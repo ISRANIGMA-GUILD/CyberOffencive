@@ -12,18 +12,22 @@ MY_IP = conf.route.route('0.0.0.0')[1]
 
 def create_acknowledge(res):
     """
-    client response
-    :param res:
+     client response
+    :param res: The ACK packet
     """
 
     new_src = res[TCP].dport
     new_dst = res[TCP].sport
 
+    new_ack = res[TCP].seq + 1
+    new_seq = res[TCP].ack + 1
+
     res[TCP].sport = new_src
     res[TCP].dport = new_dst
     res[TCP].flags = ACK
-    res[TCP].seq = res[TCP].ack + 1
-    res[TCP].ack = res[TCP].seq + 1
+
+    res[TCP].seq = new_seq
+    res[TCP].ack = new_ack
     res = res.__class__(bytes(res))
 
     return res
@@ -33,8 +37,9 @@ def main():
     """
     Main function
     """
-    p = ((Ether(src=MAC_ADDRESS, dst=MAC_ADDRESS) / IP(src=MY_IP, dst=MY_IP, flags=2) /
-         TCP(flags=SYN, sport=RandShort(), dport=8821, options=[('MSS', 1460)]) / Raw(b"what")))
+
+    p = (Ether(src=MAC_ADDRESS, dst=MAC_ADDRESS) / IP(src=MY_IP, dst=MY_IP, flags=2) /
+         TCP(flags=SYN, sport=RandShort(), dport=RandShort(), seq=RandShort()) / Raw(b"hi"))
 
     p = p.__class__(bytes(p))
     p.show()
