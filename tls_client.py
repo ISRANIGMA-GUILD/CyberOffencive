@@ -94,7 +94,7 @@ def filter_tls(packets):
 
 def print_ack(packets):
     """
-     Print syn
+     Print tcp flag
     :param packets: The TCP packet
     """
 
@@ -107,14 +107,34 @@ def create_client_key(basic_tcp):
     :param basic_tcp: Layers 2-4
     :return: TLS client key exchange packet
     """
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
 
-    key_exc = TLS(msg=TLSClientKeyExchange()) / TLS(msg=TLSChangeCipherSpec()) / TLS(msg=TLSFinished())
+    key_exc = (TLS(msg=TLSClientKeyExchange()) / TLS(msg=TLSChangeCipherSpec()))
 
     client_key = basic_tcp / key_exc
+
     client_key = client_key.__class__(bytes(client_key))
     client_key.show()
 
     return client_key
+
+
+def end_connection(basic_tcp):
+    """
+     Terminate a tcp connection
+    :param basic_tcp: Simple TCP packet with ACK flag
+    """
+    basic_tcp[TCP].flags = FIN
+    ack_end = srp1(basic_tcp)
+    ack_end[TCP].flags = ACK
+
+    ack_end[TCP].sport = ack_end[TCP].dport
+    ack_end[TCP].dport = TLS_PORT
+
+    ack_end[IP].dst = ack_end[IP].src
+    ack_end[IP].src = MY_IP
+
+    sendp(ack_end)
 
 
 def main():
@@ -156,10 +176,6 @@ def main():
 
     client_key = create_client_key(basic_tcp)
     sendp(client_key)
-
-    some_data = basic_tcp / TLS(msg=TLSApplicationData(data=b"jejfnjdfsgbjbhdfs"))
-    some_data = some_data.__class__(bytes(some_data))
-    some_data.show()
 
 
 if __name__ == '__main__':
