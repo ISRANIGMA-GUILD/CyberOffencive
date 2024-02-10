@@ -28,6 +28,8 @@ RECOMMENDED_CIPHER = "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256"
 H_NAME = "bro"
 KEY_ENC = serialization.Encoding.X962
 FORMAT_PUBLIC = serialization.PublicFormat.UncompressedPoint
+THE_PEM = serialization.Encoding.PEM
+PRIVATE_OPENSSL = serialization.PrivateFormat.TraditionalOpenSSL
 
 
 def filter_tcp(packets):
@@ -131,6 +133,7 @@ def new_certificate(basic_tcp):
 
     original_cert, key = create_x509()
     server_cert = Cert(original_cert)
+
     server_cert.show()
     print(key, "\n", server_cert.signatureValue)
 
@@ -150,24 +153,9 @@ def create_x509():
     :return: The Certificate and server key
     """
 
-    # RSA AND ECDH keys (NOTE: This code currently uses the RSA key only)
+    # RSA key
 
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
-    private_key = ec.generate_private_key(ec.SECP256R1(), backend=default_backend())
-    chosen_hash = hashes.SHA256()
-    hasher = hashes.Hash(chosen_hash)
-    hasher.update(b"data & ")
-    hasher.update(b"more data")
-    digest = hasher.finalize()
-    signature = private_key.sign(digest, ec.ECDSA(utils.Prehashed(chosen_hash)))
-    serialized_private = private_key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.BestAvailableEncryption(b'sdsdsdsdsd')
-    )
-    print(serialized_private.splitlines()[0])
-
-    loaded_private_key = serialization.load_pem_private_key(serialized_private, password=b'sdsdsdsdsd')
 
     # Create the certificate
 
@@ -193,10 +181,22 @@ def create_x509():
             .sign(key, hashes.SHA256(), default_backend())
             )
     print("===================\n", key.public_key().public_numbers(), "\n==================")
-    my_cert_pem = cert.public_bytes(encoding=serialization.Encoding.PEM)
-    my_key_pem = loaded_private_key.private_bytes(encoding=serialization.Encoding.PEM,
-                                                  format=serialization.PrivateFormat.TraditionalOpenSSL,
-                                                  encryption_algorithm=serialization.BestAvailableEncryption(b"djvbjdshbffvdsf"))
+    my_cert_pem = cert.public_bytes(encoding=THE_PEM)
+    my_key_pem = key.private_bytes(encoding=THE_PEM, format=PRIVATE_OPENSSL,
+                                   encryption_algorithm=serialization
+                                   .BestAvailableEncryption(b"dj$bjd&hb2f3v@d55920o@21sf"))
+
+    #Recreate for storage :D
+
+    with open('certifacte.crt', 'wb') as certificate_first:
+        certificate_first.write(my_cert_pem)
+
+    with open('certifacte.pem', 'wb') as certificate_first:
+        certificate_first.write(my_cert_pem)
+
+    with open('the_key.pem', 'wb') as key_first:
+        key_first.write(my_key_pem)
+
     return my_cert_pem, my_key_pem
 
 

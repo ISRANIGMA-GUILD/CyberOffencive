@@ -173,7 +173,8 @@ def main():
 
     j = sniff(count=2, lfilter=filter_tls, prn=print_ack)
     j[1].show()
-
+    m = j[1][TLS][TLSCertificate].certs
+    print(m)
     client_key = create_client_key(basic_tcp)
     sendp(client_key)
 
