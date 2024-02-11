@@ -185,8 +185,7 @@ def create_x509():
     my_key_pem = key.private_bytes(encoding=THE_PEM, format=PRIVATE_OPENSSL,
                                    encryption_algorithm=serialization
                                    .BestAvailableEncryption(b"dj$bjd&hb2f3v@d55920o@21sf"))
-
-    #Recreate for storage :D
+    #  Recreate for storage :D
 
     with open('certifacte.crt', 'wb') as certificate_first:
         certificate_first.write(my_cert_pem)

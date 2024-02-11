@@ -2,7 +2,15 @@ from scapy.all import *
 from scapy.layers.l2 import *
 from scapy.layers.dns import *
 from scapy.layers.tls.all import *
-
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.padding import *
+from cryptography.hazmat.primitives.asymmetric import rsa, dh, utils
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+import hashlib
 
 SYN = 2
 FIN = 1
@@ -14,6 +22,8 @@ TLS_NEW_VERSION = "TLS 1.3"
 DONT_FRAGMENT_FLAG = 2
 TLS_PORT = 443
 RECOMMENDED_CIPHER = "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256"
+GOOD_PAD = PKCS1v15()
+THE_SECRET_LENGTH = 48
 
 
 def create_acknowledge(res):
@@ -101,22 +111,55 @@ def print_ack(packets):
     print("Packet's syn is\n", packets[TCP].flags)
 
 
-def create_client_key(basic_tcp):
+def create_client_key(basic_tcp, client_rand, serv_rand):
     """
      Create client key exchange packet
     :param basic_tcp: Layers 2-4
+    :param client_rand: client nonce
+    :param serv_rand: server nonce
     :return: TLS client key exchange packet
-    """
-    key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
 
-    key_exc = (TLS(msg=TLSClientKeyExchange()) / TLS(msg=TLSChangeCipherSpec()))
+    """
+
+    with open("certifacte.pem", "rb") as cert_file:
+        server_cert = x509.load_pem_x509_certificate(cert_file.read(), default_backend())
+
+    the_prf = PRF("SHA256", 0x0303)
+
+    pre_master_secret = generate_pre_master_secret()
+    padding_s = GOOD_PAD
+
+    encrypted_pre_master_secret = server_cert.public_key().encrypt(pre_master_secret, padding_s)
+
+    master_secret = the_prf.compute_master_secret(pre_master_secret, client_rand, serv_rand)
+    key_man = the_prf.derive_key_block(master_secret, serv_rand, client_rand, THE_SECRET_LENGTH)
+    key_man.hex()
+    print("\n=====================", key_man, "\n", key_man.hex(), "\n=====================")
+
+    key_exc = (TLS(msg=TLSClientKeyExchange(exchkeys=encrypted_pre_master_secret)) /
+               TLS(msg=TLSChangeCipherSpec()))
 
     client_key = basic_tcp / key_exc
 
     client_key = client_key.__class__(bytes(client_key))
     client_key.show()
 
-    return client_key
+    return client_key, key_man
+
+
+def generate_pre_master_secret():
+    """
+     Create the pre master secret
+    :return: the pre master secret
+    """
+    # Generate 48 random bytes
+    random_bytes = os.urandom(48)
+
+    # Ensure first two bytes match TLS version (e.g., TLS 1.2 -> b'\x03\x03')
+    tls_version = b'\x03\x03'
+    random_bytes = tls_version + random_bytes[2:]
+
+    return random_bytes
 
 
 def end_connection(basic_tcp):
@@ -167,15 +210,15 @@ def main():
 
     basic_tcp = basic_start_tls(finish_first_handshake)  # TLS handshake starts here, by creating layer 2-4
     client_hello_packet = start_security(basic_tcp)
-
+    rand = client_hello_packet[TLS][TLSClientHello].random_bytes
     client_hello_packet.show()
     sendp(client_hello_packet)
 
     j = sniff(count=2, lfilter=filter_tls, prn=print_ack)
+    serv_rand = j[0][TLS][TLSServerHello].random_bytes
     j[1].show()
-    m = j[1][TLS][TLSCertificate].certs
-    print(m)
-    client_key = create_client_key(basic_tcp)
+
+    client_key, encryption_key = create_client_key(basic_tcp, rand, serv_rand)
     sendp(client_key)
 
 
