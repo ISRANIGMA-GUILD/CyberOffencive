@@ -21,7 +21,7 @@ TLS_MID_VERSION = "TLS 1.2"
 TLS_NEW_VERSION = "TLS 1.3"
 DONT_FRAGMENT_FLAG = 2
 TLS_PORT = 443
-RECOMMENDED_CIPHER = "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256"
+RECOMMENDED_CIPHER = "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256"
 GOOD_PAD = PKCS1v15()
 THE_SECRET_LENGTH = 48
 
@@ -128,7 +128,7 @@ def create_client_key(basic_tcp, client_rand, serv_rand):
 
     pre_master_secret = generate_pre_master_secret()
     padding_s = GOOD_PAD
-
+    print("THE PRE",pre_master_secret)
     encrypted_pre_master_secret = server_cert.public_key().encrypt(pre_master_secret, padding_s)
 
     master_secret = the_prf.compute_master_secret(pre_master_secret, client_rand, serv_rand)
@@ -139,6 +139,9 @@ def create_client_key(basic_tcp, client_rand, serv_rand):
     key_exc = (TLS(msg=TLSClientKeyExchange(exchkeys=encrypted_pre_master_secret)) /
                TLS(msg=TLSChangeCipherSpec()))
 
+    hkdf = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=b'encryption_key', backend=default_backend())
+
+    key_man = hkdf.derive(master_secret)
     client_key = basic_tcp / key_exc
 
     client_key = client_key.__class__(bytes(client_key))
