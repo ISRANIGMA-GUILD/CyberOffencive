@@ -9,6 +9,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, dh, utils
+from cryptography.hazmat.primitives.asymmetric.padding import *
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 import hashlib
 
@@ -24,12 +25,13 @@ N = RandShort()  # Key base number
 TLS_MID_VERSION = "TLS 1.2"
 TLS_NEW_VERSION = "TLS 1.3"
 TLS_PORT = 443
-RECOMMENDED_CIPHER = "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256"
+RECOMMENDED_CIPHER = "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256"
 H_NAME = "bro"
 KEY_ENC = serialization.Encoding.X962
 FORMAT_PUBLIC = serialization.PublicFormat.UncompressedPoint
 THE_PEM = serialization.Encoding.PEM
 PRIVATE_OPENSSL = serialization.PrivateFormat.TraditionalOpenSSL
+GOOD_PAD = PKCS1v15()
 
 
 def filter_tcp(packets):
@@ -144,7 +146,7 @@ def new_certificate(basic_tcp):
     cert_msg = cert_msg.__class__(bytes(cert_msg))
     cert_msg.show()
 
-    return cert_msg
+    return cert_msg, key
 
 
 def create_x509():
@@ -155,7 +157,7 @@ def create_x509():
 
     # RSA key
 
-    key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
+    key = rsa.generate_private_key(public_exponent=65537, key_size=1024, backend=default_backend())
 
     # Create the certificate
 
@@ -196,7 +198,7 @@ def create_x509():
     with open('the_key.pem', 'wb') as key_first:
         key_first.write(my_key_pem)
 
-    return my_cert_pem, my_key_pem
+    return my_cert_pem, key
 
 
 def new_secure_session(basic_tcp, s_sid):
@@ -253,7 +255,7 @@ def main():
 
     s_sid = create_session_id()
     basic_tcp = basic_start_tls(s_p)
-    certificate = new_certificate(basic_tcp)
+    certificate, key = new_certificate(basic_tcp)
 
     sec_res = new_secure_session(basic_tcp, s_sid)
     sendp([sec_res, certificate])
@@ -261,6 +263,9 @@ def main():
     tls_k = sniff(count=1, lfilter=filter_tls, prn=print_flags)
     client_key = tls_k[0]
     client_key.show()
+    k = client_key[TLS][TLSClientKeyExchange][Raw].load
+    m = key.decrypt(k, GOOD_PAD)
+    print(m)
 
     server_final = create_server_final(basic_tcp)
     server_final.show()
