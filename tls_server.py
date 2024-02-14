@@ -4,6 +4,7 @@ from scapy.layers.dns import *
 from scapy.layers.tls.all import *
 from datetime import datetime, timedelta
 from cryptography import x509
+from cryptography.hazmat.primitives import padding
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
@@ -11,6 +12,8 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, dh, utils
 from cryptography.hazmat.primitives.asymmetric.padding import *
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+import os
 import hashlib
 
 SYN = 2
@@ -32,6 +35,7 @@ FORMAT_PUBLIC = serialization.PublicFormat.UncompressedPoint
 THE_PEM = serialization.Encoding.PEM
 PRIVATE_OPENSSL = serialization.PrivateFormat.TraditionalOpenSSL
 GOOD_PAD = PKCS1v15()
+THE_SECRET_LENGTH = 48
 
 
 def filter_tcp(packets):
@@ -126,14 +130,16 @@ def basic_start_tls(s_p):
             TCP(flags=ACK, sport=TLS_PORT, dport=RandShort(), seq=first_seq, ack=first_ack))
 
 
-def new_certificate(basic_tcp):
+def new_certificate(basic_tcp, client_rand, serv_rand):
     """
      Create TLS certificate packet
+    :param client_rand:
+    :param serv_rand:
     :param basic_tcp: Layers 2-4
     :return: The TLS certificate
     """
 
-    original_cert, key = create_x509()
+    original_cert, key, enc_key = create_x509(client_rand, serv_rand)
     server_cert = Cert(original_cert)
 
     server_cert.show()
@@ -146,10 +152,10 @@ def new_certificate(basic_tcp):
     cert_msg = cert_msg.__class__(bytes(cert_msg))
     cert_msg.show()
 
-    return cert_msg, key
+    return cert_msg, key, enc_key
 
 
-def create_x509():
+def create_x509(client_rand, serv_rand):
     """
      Create The X509 certificate and server key
     :return: The Certificate and server key
@@ -198,7 +204,38 @@ def create_x509():
     with open('the_key.pem', 'wb') as key_first:
         key_first.write(my_key_pem)
 
-    return my_cert_pem, key
+    with open("certifacte.pem", "rb") as cert_file:
+        server_cert = x509.load_pem_x509_certificate(cert_file.read(), default_backend())
+
+    the_prf = PRF("SHA256", 0x0303)
+
+    pre_master_secret = generate_pre_master_secret()
+    padding_s = GOOD_PAD
+    print("THE PRE", pre_master_secret)
+    encrypted_pre_master_secret = server_cert.public_key().encrypt(pre_master_secret, padding_s)
+
+    master_secret = the_prf.compute_master_secret(pre_master_secret, client_rand, serv_rand)
+    key_man = the_prf.derive_key_block(master_secret, serv_rand, client_rand, THE_SECRET_LENGTH)
+    hkdf = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=b'encryption_key', backend=default_backend())
+
+    key_man = hkdf.derive(master_secret)
+
+    return my_cert_pem, key, key_man
+
+
+def generate_pre_master_secret():
+    """
+     Create the pre master secret
+    :return: the pre master secret
+    """
+    # Generate 48 random bytes
+    random_bytes = os.urandom(48)
+
+    # Ensure first two bytes match TLS version (e.g., TLS 1.2 -> b'\x03\x03')
+    tls_version = b'\x03\x03'
+    random_bytes = tls_version + random_bytes[2:]
+
+    return random_bytes
 
 
 def new_secure_session(basic_tcp, s_sid):
@@ -234,6 +271,27 @@ def create_server_final(basic_tcp):
     return server_ex
 
 
+def encrypt_data(data, key):
+    backend = default_backend()
+    iv = os.urandom(16)  # Generate a random IV (Initialization Vector)
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
+    encryptor = cipher.encryptor()
+    padder = padding.PKCS7(128).padder()
+    padded_data = padder.update(data) + padder.finalize()
+    encrypted_data = encryptor.update(padded_data) + encryptor.finalize()
+    return iv + encrypted_data
+
+
+def decrypt_data(encrypted_data, key):
+    backend = default_backend()
+    iv = encrypted_data[:16]  # Extract the IV from the encrypted data
+    data = encrypted_data[16:]  # Extract the encrypted data
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
+    decrypted = cipher.decryptor()
+    decrypted_data = decrypted.update(data) + decrypted.finalize()
+    return decrypted_data
+
+
 def main():
     """
     Main function
@@ -252,12 +310,14 @@ def main():
     s_p = tls_p[0]
     s_p.show()
     acked.show()
+    client_rand = s_p[TLS][TLSClientHello].random_bytes
 
     s_sid = create_session_id()
     basic_tcp = basic_start_tls(s_p)
-    certificate, key = new_certificate(basic_tcp)
 
     sec_res = new_secure_session(basic_tcp, s_sid)
+    rand_serv = sec_res[TLS][TLSServerHello].random_bytes
+    certificate, key, enc_key = new_certificate(basic_tcp, client_rand, rand_serv)
     sendp([sec_res, certificate])
 
     tls_k = sniff(count=1, lfilter=filter_tls, prn=print_flags)
@@ -266,7 +326,9 @@ def main():
     k = client_key[TLS][TLSClientKeyExchange][Raw].load
     m = key.decrypt(k, GOOD_PAD)
     print(m)
-
+    print(enc_key)
+    g = encrypt_data(b"eeeeeeeeeeeeeeeee", enc_key)
+    print(g, "\n", decrypt_data(g, enc_key))
     server_final = create_server_final(basic_tcp)
     server_final.show()
     sendp(server_final)
