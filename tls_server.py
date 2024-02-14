@@ -27,8 +27,9 @@ MSS = [("MSS", 1460)]
 N = RandShort()  # Key base number
 TLS_MID_VERSION = "TLS 1.2"
 TLS_NEW_VERSION = "TLS 1.3"
-TLS_PORT = 443
+TLS_PORT = 989
 RECOMMENDED_CIPHER = "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256"
+RECOMMENDED_SHA = "sha256+rsa"
 H_NAME = "bro"
 KEY_ENC = serialization.Encoding.X962
 FORMAT_PUBLIC = serialization.PublicFormat.UncompressedPoint
@@ -248,11 +249,11 @@ def new_secure_session(basic_tcp, s_sid):
 
     security_layer = (TLS(msg=TLSServerHello(sid=s_sid, cipher=RECOMMENDED_CIPHER,
                                              ext=TLS_Ext_SupportedVersion_SH(version=[TLS_MID_VERSION]) /
-                                             TLS_Ext_SignatureAlgorithmsCert(sig_algs=["sha256+rsa"]))))
+                                             TLS_Ext_SignatureAlgorithmsCert(sig_algs=[RECOMMENDED_SHA]))))
 
     security_packet = basic_tcp / security_layer
     security_packet.__class__(bytes(security_packet))
-    #security_packet.show()
+    security_packet.show()
 
     return security_packet
 
@@ -271,25 +272,70 @@ def create_server_final(basic_tcp):
     return server_ex
 
 
+def pad_data(data):
+    """
+     Pad the data
+    :param data: The data
+    :return: Padded data
+    """
+
+    padder = padding.PKCS7(128).padder()
+    padded_data = padder.update(data) + padder.finalize()
+
+    return padded_data
+
+
+def unpad_data(data):
+    """
+     Unpad the data
+    :param data: The data
+    :return: Unpadded data
+    """
+
+    unpadder = padding.PKCS7(128).unpadder()
+    unpadded_data = unpadder.update(data) + unpadder.finalize()
+    return unpadded_data
+
+
 def encrypt_data(data, key):
+    """
+     Encrypt the data with the encryption key
+    :param data: The data
+    :param key: The encryption key
+    :return: The encrypted data + iv
+    """
+
     backend = default_backend()
     iv = os.urandom(16)  # Generate a random IV (Initialization Vector)
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
+
     encryptor = cipher.encryptor()
-    padder = padding.PKCS7(128).padder()
-    padded_data = padder.update(data) + padder.finalize()
+    padded_data = pad_data(data)
     encrypted_data = encryptor.update(padded_data) + encryptor.finalize()
+
     return iv + encrypted_data
 
 
 def decrypt_data(encrypted_data, key):
+    """
+     Decrypt the data sent from the server
+    :param encrypted_data: The encrypted data
+    :param key: The encryption key
+    :return: Decrypted data
+    """
+
     backend = default_backend()
     iv = encrypted_data[:16]  # Extract the IV from the encrypted data
+
     data = encrypted_data[16:]  # Extract the encrypted data
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
-    decrypted = cipher.decryptor()
-    decrypted_data = decrypted.update(data) + decrypted.finalize()
-    return decrypted_data
+    decryptor = cipher.decryptor()
+
+    decrypted_data = decryptor.update(data) + decryptor.finalize()
+    unpadder = padding.PKCS7(128).unpadder()
+    unpadded_data = unpadder.update(decrypted_data) + unpadder.finalize()
+
+    return unpadded_data
 
 
 def main():
@@ -321,23 +367,29 @@ def main():
     sendp([sec_res, certificate])
 
     tls_k = sniff(count=1, lfilter=filter_tls, prn=print_flags)
-    client_key = tls_k[0]
-    client_key.show()
-    k = client_key[TLS][TLSClientKeyExchange][Raw].load
-    m = key.decrypt(k, GOOD_PAD)
-    print(m)
-    print(enc_key)
-    g = encrypt_data(b"eeeeeeeeeeeeeeeee", enc_key)
-    print(g, "\n", decrypt_data(g, enc_key))
+    keys = tls_k[0]
+    keys.show()
+    client_key = keys[TLS][TLSClientKeyExchange][Raw].load
+    decrypt_with_public = key.decrypt(client_key, GOOD_PAD)
+
+    print("Decrypted via server key\n", decrypt_with_public)
+    print("Encryption key\n", enc_key)
+
+    message = encrypt_data(b"HEY BABE? HOW YA DOIN", enc_key)
+    print(message, "\n", decrypt_data(message, enc_key))
+
     server_final = create_server_final(basic_tcp)
     server_final.show()
     sendp(server_final)
 
-    some_data = basic_tcp / TLS(msg=TLSApplicationData(data=b"jejfnjdfsgbjbhdfs"))
+    some_data = basic_tcp / TLS(msg=TLSApplicationData(data=message))
+
     some_data = some_data.__class__(bytes(some_data))
     some_data.show()
     sendp(some_data)
 
 
 if __name__ == '__main__':
+    bind_layers(TCP, TLS, sport=989)
+    bind_layers(TCP, TLS, dport=989) #replace with random number
     main()
