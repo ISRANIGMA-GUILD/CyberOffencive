@@ -9,6 +9,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.padding import *
 from cryptography.hazmat.primitives.asymmetric import rsa, dh, utils
+from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 import hashlib
 
@@ -181,6 +183,29 @@ def end_connection(basic_tcp):
     ack_end[IP].src = MY_IP
 
     sendp(ack_end)
+
+
+def encrypt_data(data, key):
+    backend = default_backend()
+    iv = os.urandom(16)  # Generate a random IV (Initialization Vector)
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
+    encryptor = cipher.encryptor()
+    padder = padding.PKCS7(128).padder()
+    padded_data = padder.update(data) + padder.finalize()
+    encrypted_data = encryptor.update(padded_data) + encryptor.finalize()
+    return iv + encrypted_data
+
+
+def decrypt_data(encrypted_data, key):
+    backend = default_backend()
+    iv = encrypted_data[:16]  # Extract the IV from the encrypted data
+    data = encrypted_data[16:]  # Extract the encrypted data
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
+    decrypted = cipher.decryptor()
+    padder = padding.PKCS7(128).padder()
+    padded_data = padder.update(data) + padder.finalize()
+    decrypted_data = decrypted.update(padded_data) + decrypted.finalize()
+    return decrypted_data
 
 
 def main():
