@@ -22,7 +22,7 @@ NETWORK_MAC = getmacbyip(conf.route.route('0.0.0.0')[2])
 TLS_MID_VERSION = "TLS 1.2"
 TLS_NEW_VERSION = "TLS 1.3"
 DONT_FRAGMENT_FLAG = 2
-TLS_PORT = 443
+TLS_PORT = 989
 RECOMMENDED_CIPHER = "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256"
 GOOD_PAD = PKCS1v15()
 THE_SECRET_LENGTH = 48
@@ -61,9 +61,10 @@ def create_acknowledge(res):
     return res
 
 
-def basic_start_tls(finish_first_handshake):
+def basic_start_tls(finish_first_handshake, ports):
     """
      Create a basic TCP ACK packet
+    :param ports:
     :param finish_first_handshake:
     :return: TCP ACK packet (Layers 2-4)
     """
@@ -73,7 +74,7 @@ def basic_start_tls(finish_first_handshake):
 
     return (Ether(src=finish_first_handshake[Ether].src, dst=finish_first_handshake[Ether].dst) /
             IP(dst=finish_first_handshake[IP].src, flags=DONT_FRAGMENT_FLAG) /
-            TCP(flags=ACK, sport=RandShort(), dport=TLS_PORT, seq=first_seq, ack=first_ack))
+            TCP(flags=ACK, sport=RandShort(), dport=ports, seq=first_seq, ack=first_ack))
 
 
 def start_security(basic_tcp):
@@ -100,8 +101,7 @@ def filter_tls(packets):
     """
 
     return (TCP in packets and packets[TCP].flags == ACK and IP in packets and packets[IP].src == MY_IP
-            and packets[IP].dst == MY_IP and TLS in packets and
-            (TLSServerHello in packets or TLSCertificate in packets))
+            and packets[IP].dst == MY_IP and TLS in packets)
 
 
 def print_ack(packets):
@@ -130,7 +130,7 @@ def create_client_key(basic_tcp, client_rand, serv_rand):
 
     pre_master_secret = generate_pre_master_secret()
     padding_s = GOOD_PAD
-    print("THE PRE",pre_master_secret)
+    print("THE PRE", pre_master_secret)
     encrypted_pre_master_secret = server_cert.public_key().encrypt(pre_master_secret, padding_s)
 
     master_secret = the_prf.compute_master_secret(pre_master_secret, client_rand, serv_rand)
@@ -149,7 +149,7 @@ def create_client_key(basic_tcp, client_rand, serv_rand):
     client_key = client_key.__class__(bytes(client_key))
     client_key.show()
 
-    return client_key, key_man
+    return client_key, key_man, server_cert
 
 
 def generate_pre_master_secret():
@@ -185,34 +185,78 @@ def end_connection(basic_tcp):
     sendp(ack_end)
 
 
+def pad_data(data):
+    """
+     Pad the data
+    :param data: The data
+    :return: Padded data
+    """
+
+    padder = padding.PKCS7(128).padder()
+    padded_data = padder.update(data) + padder.finalize()
+
+    return padded_data
+
+
+def unpad_data(data):
+    """
+     Unpad the data
+    :param data: The data
+    :return: Unpadded data
+    """
+
+    unpadder = padding.PKCS7(128).unpadder()
+    unpadded_data = unpadder.update(data) + unpadder.finalize()
+    return unpadded_data
+
+
 def encrypt_data(data, key):
+    """
+     Encrypt the data with the encryption key
+    :param data: The data
+    :param key: The encryption key
+    :return: The encrypted data + iv
+    """
+
     backend = default_backend()
     iv = os.urandom(16)  # Generate a random IV (Initialization Vector)
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
+
     encryptor = cipher.encryptor()
-    padder = padding.PKCS7(128).padder()
-    padded_data = padder.update(data) + padder.finalize()
+    padded_data = pad_data(data)
     encrypted_data = encryptor.update(padded_data) + encryptor.finalize()
+
     return iv + encrypted_data
 
 
 def decrypt_data(encrypted_data, key):
+    """
+     Decrypt the data sent from the server
+    :param encrypted_data: The encrypted data
+    :param key: The encryption key
+    :return: Decrypted data
+    """
+
     backend = default_backend()
     iv = encrypted_data[:16]  # Extract the IV from the encrypted data
+
     data = encrypted_data[16:]  # Extract the encrypted data
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
-    decrypted = cipher.decryptor()
-    padder = padding.PKCS7(128).padder()
-    padded_data = padder.update(data) + padder.finalize()
-    decrypted_data = decrypted.update(padded_data) + decrypted.finalize()
-    return decrypted_data
+    decryptor = cipher.decryptor()
+
+    decrypted_data = decryptor.update(data) + decryptor.finalize()
+    unpadder = padding.PKCS7(128).unpadder()
+    unpadded_data = unpadder.update(decrypted_data) + unpadder.finalize()
+
+    return unpadded_data
 
 
-def main():
+def main(ports):
     """
     Main function
     """
-
+    bind_layers(TCP, TLS, sport=ports)
+    bind_layers(TCP, TLS, dport=ports)  # replace with random number
     server_ip = input("Enter the ip of the server\n")
 
     if server_ip == MY_IP:
@@ -224,7 +268,7 @@ def main():
         layer2 = Ether(dst=server_mac)
 
     p = (layer2 / IP(dst=server_ip, flags=DONT_FRAGMENT_FLAG) /
-         TCP(flags=SYN, sport=RandShort(), dport=TLS_PORT, seq=RandShort()) / Raw(load=b"hi"))
+         TCP(flags=SYN, sport=RandShort(), dport=ports, seq=RandShort()) / Raw(load=b"hi"))
 
     p = p.__class__(bytes(p))
     p.show()
@@ -236,19 +280,27 @@ def main():
     finish_first_handshake.show()
     sendp(finish_first_handshake)  # TCP handshake ends here
 
-    basic_tcp = basic_start_tls(finish_first_handshake)  # TLS handshake starts here, by creating layer 2-4
+    basic_tcp = basic_start_tls(finish_first_handshake, ports)  # TLS handshake starts here, by creating layer 2-4
     client_hello_packet = start_security(basic_tcp)
     rand = client_hello_packet[TLS][TLSClientHello].random_bytes
+
     client_hello_packet.show()
     sendp(client_hello_packet)
 
-    j = sniff(count=2, lfilter=filter_tls, prn=print_ack)
-    serv_rand = j[0][TLS][TLSServerHello].random_bytes
-    j[1].show()
+    server_first_responses = sniff(count=2, lfilter=filter_tls, prn=print_ack)
+    serv_rand = server_first_responses[0][TLS][TLSServerHello].random_bytes
+    server_first_responses[1].show()
 
-    client_key, encryption_key = create_client_key(basic_tcp, rand, serv_rand)
+    client_key, encryption_key, cert = create_client_key(basic_tcp, rand, serv_rand)
     sendp(client_key)
+
+    data_pack = sniff(count=2, lfilter=filter_tls, prn=print_ack)
+ #   data = data_pack[1][TLS][TLSApplicationData].data
+   # print(decrypt_data(data, encryption_key))
 
 
 if __name__ == '__main__':
-    main()
+    ports = int(RandShort())
+    bind_layers(TCP, TLS, sport=ports)
+    bind_layers(TCP, TLS, dport=ports)
+    main(ports)
