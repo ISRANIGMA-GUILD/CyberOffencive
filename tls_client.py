@@ -255,8 +255,6 @@ def main(ports):
     """
     Main function
     """
-    bind_layers(TCP, TLS, sport=ports)
-    bind_layers(TCP, TLS, dport=ports)  # replace with random number
     server_ip = input("Enter the ip of the server\n")
 
     if server_ip == MY_IP:
