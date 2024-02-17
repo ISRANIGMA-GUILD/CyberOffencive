@@ -2,14 +2,13 @@ from scapy.all import *
 from scapy.layers.l2 import *
 from scapy.layers.dns import *
 from scapy.layers.tls.all import *
+import socket
 from datetime import datetime, timedelta
 from cryptography import x509
 from cryptography.hazmat.primitives import padding
 from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, dh, utils
 from cryptography.hazmat.primitives.asymmetric.padding import *
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -20,15 +19,15 @@ SYN = 2
 FIN = 1
 ACK = 16
 MAC_ADDRESS = Ether().src
+THE_USUAL_IP = '0.0.0.0'
 MY_IP = conf.route.route('0.0.0.0')[1]
 NETWORK_MAC = getmacbyip(conf.route.route('0.0.0.0')[2])
 DONT_FRAGMENT_FLAG = 2
 MSS = [("MSS", 1460)]
 N = RandShort()  # Key base number
-TLS_MID_VERSION = "TLS 1.2"
-TLS_NEW_VERSION = "TLS 1.3"
-TLS_PORT = 989
-RECOMMENDED_CIPHER = "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256"
+TLS_MID_VERSION = 0x0303
+TLS_NEW_VERSION = 0x0304
+RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256.val
 RECOMMENDED_SHA = "sha256+rsa"
 H_NAME = "bro"
 KEY_ENC = serialization.Encoding.X962
@@ -37,6 +36,28 @@ THE_PEM = serialization.Encoding.PEM
 PRIVATE_OPENSSL = serialization.PrivateFormat.TraditionalOpenSSL
 GOOD_PAD = PKCS1v15()
 THE_SECRET_LENGTH = 48
+MAX_MSG_LENGTH = 1024
+
+
+def first_handshake():
+    """
+
+    :return: The ack packet and the server port used the client will use
+    """
+
+    p = sniff(count=1, lfilter=filter_tcp, prn=print_flags)
+    p[0].show()
+    packet_auth = p[0]
+
+    server_port = packet_auth[TCP].dport
+    bind_layers(TCP, TLS, sport=server_port)
+    bind_layers(TCP, TLS, dport=server_port)  # replace with random number
+
+    response = create_response(packet_auth)
+    acked = srp1(response)
+    acked.show()
+
+    return acked, server_port
 
 
 def filter_tcp(packets):
@@ -47,7 +68,7 @@ def filter_tcp(packets):
     """
 
     return (TCP in packets and (packets[TCP].flags == DONT_FRAGMENT_FLAG or packets[TCP].flags == ACK) and
-            IP in packets and packets[IP].dst == MY_IP and packets[TCP].dport == TLS_PORT)
+            IP in packets and packets[IP].dst == MY_IP and packets[IP].src == MY_IP)
 
 
 def print_flags(packets):
@@ -94,16 +115,6 @@ def create_response(packet_auth):
     return packet_auth
 
 
-def filter_tls(packets):
-    """
-     Filter tcp packets
-    :param packets: The packet received
-    :return: Whether the packet is a SYN TCP packet
-    """
-
-    return TLSClientHello in packets or TLSClientKeyExchange in packets
-
-
 def create_session_id():
     """
      Create session id
@@ -117,18 +128,64 @@ def create_session_id():
     return s_sid
 
 
-def basic_start_tls(s_p):
+def secure_handshake(client_socket, acked, server_port):
+    """
+
+    :param client_socket:
+    :param acked:
+    :param server_port:
+    """
+
+    client_hello = client_socket.recv(MAX_MSG_LENGTH)
+    s_p = TLS(client_hello)
+    s_p.show()
+    client_rand = s_p[TLS][TLSClientHello].random_bytes
+
+    s_sid = create_session_id()
+    basic_tcp = basic_start_tls(acked, server_port)
+
+    sec_res = new_secure_session(basic_tcp, s_sid)
+    sec_res.show()
+    rand_serv = sec_res[TLS][TLSServerHello].random_bytes
+
+    certificate, key, enc_key = new_certificate(basic_tcp, client_rand, rand_serv)
+    client_socket.send(bytes(sec_res[TLS]))
+    client_socket.send(bytes(certificate[TLS]))
+
+    client_key_exchange = client_socket.recv(MAX_MSG_LENGTH)
+    keys = TLS(client_key_exchange)
+    keys.show()
+
+    client_key = keys[TLSClientKeyExchange][Raw].load
+    decrypt_with_public = key.decrypt(client_key[1:], GOOD_PAD)
+
+    print("Decrypted via server key\n", decrypt_with_public, "\n", client_key)
+    print("Encryption key\n", enc_key)
+
+    server_final = create_server_final(basic_tcp)
+    server_final.show()
+
+    client_socket.send(bytes(server_final[TLS]))
+
+    some_data = create_and_encrypt(basic_tcp, enc_key)
+    some_data.show()
+
+    client_socket.send(bytes(some_data[TLS]))
+
+
+def basic_start_tls(acked, server_port):
     """
      Create a tcp ack packet
-    :param s_p: Create a tcp ack packet
+    :param server_port:
+    :param acked: Create a tcp ack packet
     :return: A tcp ack packet
     """
 
-    first_seq = s_p[TCP].seq
-    first_ack = s_p[TCP].ack
+    first_seq = acked[TCP].seq
+    first_ack = acked[TCP].ack
 
-    return (Ether(src=s_p[Ether].dst, dst=s_p[Ether].src) / IP(dst=s_p[IP].src, flags=DONT_FRAGMENT_FLAG) /
-            TCP(flags=ACK, sport=TLS_PORT, dport=RandShort(), seq=first_seq, ack=first_ack))
+    return (Ether(src=acked[Ether].dst, dst=acked[Ether].src) / IP(dst=acked[IP].src, flags=DONT_FRAGMENT_FLAG) /
+            TCP(flags=ACK, sport=server_port, dport=RandShort(), seq=first_seq, ack=first_ack))
 
 
 def new_certificate(basic_tcp, client_rand, serv_rand):
@@ -205,18 +262,12 @@ def create_x509(client_rand, serv_rand):
     with open('the_key.pem', 'wb') as key_first:
         key_first.write(my_key_pem)
 
-    with open("certifacte.pem", "rb") as cert_file:
-        server_cert = x509.load_pem_x509_certificate(cert_file.read(), default_backend())
-
-    the_prf = PRF("SHA256", 0x0303)
+    the_prf = PRF("SHA256", TLS_MID_VERSION)
 
     pre_master_secret = generate_pre_master_secret()
-    padding_s = GOOD_PAD
     print("THE PRE", pre_master_secret)
-    encrypted_pre_master_secret = server_cert.public_key().encrypt(pre_master_secret, padding_s)
 
-    master_secret = the_prf.compute_master_secret(pre_master_secret, client_rand, serv_rand)
-    key_man = the_prf.derive_key_block(master_secret, serv_rand, client_rand, THE_SECRET_LENGTH)
+    master_secret = the_prf.compute_master_secret(pre_master_secret, client_rand, serv_rand, hashes.SHA256())
     hkdf = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=b'encryption_key', backend=default_backend())
 
     key_man = hkdf.derive(master_secret)
@@ -338,58 +389,46 @@ def decrypt_data(encrypted_data, key):
     return unpadded_data
 
 
+def create_and_encrypt(basic_tcp, enc_key):
+    """
+
+    :param basic_tcp:
+    :param enc_key:
+    :return:
+    """
+
+    message = encrypt_data(b"HEY BABE? HOW YA DOIN", enc_key)
+    print(message, "\n", decrypt_data(message, enc_key))
+
+    some_data = basic_tcp / TLS(msg=TLSApplicationData(data=message))
+    some_data = some_data.__class__(bytes(some_data))
+
+    return some_data
+
+
 def main():
     """
     Main function
     """
 
-    p = sniff(count=1, lfilter=filter_tcp, prn=print_flags)
-    p[0].show()
-    packet_auth = p[0]
-    response = create_response(packet_auth)
+    acked, server_port = first_handshake()
 
-    acked = srp1(response)
+    the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+    the_server_socket.bind((THE_USUAL_IP, server_port))  # Bind the server IP and Port into a tuple
+    the_server_socket.listen()  # Listen to client
 
-    tls_p = sniff(count=1, lfilter=filter_tls, prn=print_flags)
+    print("Server is up and running")
 
-    print(tls_p)
-    s_p = tls_p[0]
-    s_p.show()
-    acked.show()
-    client_rand = s_p[TLS][TLSClientHello].random_bytes
+    connection, client_address = the_server_socket.accept()  # Accept clients request
+    print("Client connected")
 
-    s_sid = create_session_id()
-    basic_tcp = basic_start_tls(s_p)
+    client_socket = connection
 
-    sec_res = new_secure_session(basic_tcp, s_sid)
-    rand_serv = sec_res[TLS][TLSServerHello].random_bytes
-    certificate, key, enc_key = new_certificate(basic_tcp, client_rand, rand_serv)
-    sendp([sec_res, certificate])
+    secure_handshake(client_socket, acked, server_port)
 
-    tls_k = sniff(count=1, lfilter=filter_tls, prn=print_flags)
-    keys = tls_k[0]
-    keys.show()
-    client_key = keys[TLS][TLSClientKeyExchange][Raw].load
-    decrypt_with_public = key.decrypt(client_key, GOOD_PAD)
-
-    print("Decrypted via server key\n", decrypt_with_public)
-    print("Encryption key\n", enc_key)
-
-    message = encrypt_data(b"HEY BABE? HOW YA DOIN", enc_key)
-    print(message, "\n", decrypt_data(message, enc_key))
-
-    server_final = create_server_final(basic_tcp)
-    server_final.show()
-    sendp(server_final)
-
-    some_data = basic_tcp / TLS(msg=TLSApplicationData(data=message))
-
-    some_data = some_data.__class__(bytes(some_data))
-    some_data.show()
-    sendp(some_data)
+    client_socket.close()
+    the_server_socket.close()
 
 
 if __name__ == '__main__':
-    bind_layers(TCP, TLS, sport=989)
-    bind_layers(TCP, TLS, dport=989) #replace with random number
     main()
