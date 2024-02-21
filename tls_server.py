@@ -6,9 +6,10 @@ import socket
 from datetime import datetime, timedelta
 from cryptography import x509
 from cryptography.hazmat.primitives import padding
-from cryptography.x509.oid import NameOID
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
+from cryptography.x509.oid import *
+from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.padding import *
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -27,7 +28,7 @@ MSS = [("MSS", 1460)]
 N = RandShort()  # Key base number
 TLS_MID_VERSION = 0x0303
 TLS_NEW_VERSION = 0x0304
-RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256.val
+RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256.val
 RECOMMENDED_SHA = "sha256+rsa"
 H_NAME = "bro"
 KEY_ENC = serialization.Encoding.X962
@@ -37,6 +38,9 @@ PRIVATE_OPENSSL = serialization.PrivateFormat.TraditionalOpenSSL
 GOOD_PAD = PKCS1v15()
 THE_SECRET_LENGTH = 48
 MAX_MSG_LENGTH = 1024
+THE_SHA_256 = hashes.SHA256()
+SECP = 0x0017
+SIGNATURE_ALGORITHIM = 0x0401
 
 
 def first_handshake():
@@ -87,14 +91,13 @@ def create_response(packet_auth):
     :return packet_auth
     """
 
-    packet_auth[Ether].dst = packet_auth[Ether].src
-    packet_auth[Ether].src = MAC_ADDRESS
+    new_src_e = packet_auth[Ether].dst
+    new_dst_e = packet_auth[Ether].src
+
+    packet_auth[Ether].dst = new_dst_e
+    packet_auth[Ether].src = new_src_e
 
     packet_auth[IP].flags = DONT_FRAGMENT_FLAG
-    packet_auth[TCP].ack = packet_auth[TCP].seq + 1
-
-    packet_auth[TCP].flags = SYN + ACK
-    packet_auth[TCP].seq = RandShort()
 
     new_src = packet_auth[IP].dst
     new_dst = packet_auth[IP].src
@@ -105,10 +108,13 @@ def create_response(packet_auth):
     packet_auth[IP].src = new_src
     packet_auth[IP].dst = new_dst
 
+    packet_auth[TCP].ack = packet_auth[TCP].seq + 1
+    packet_auth[TCP].flags = SYN + ACK
+    packet_auth[TCP].seq = RandShort()
     packet_auth[TCP].sport = new_sport
     packet_auth[TCP].dport = new_dport
-
     packet_auth[TCP].options = MSS
+
     packet_auth[Raw].load = b"hello"
     packet_auth = packet_auth.__class__(bytes(packet_auth))
 
@@ -139,18 +145,17 @@ def secure_handshake(client_socket, acked, server_port):
     client_hello = client_socket.recv(MAX_MSG_LENGTH)
     s_p = TLS(client_hello)
     s_p.show()
-    client_rand = s_p[TLS][TLSClientHello].random_bytes
 
     s_sid = create_session_id()
     basic_tcp = basic_start_tls(acked, server_port)
 
     sec_res = new_secure_session(basic_tcp, s_sid)
     sec_res.show()
-    rand_serv = sec_res[TLS][TLSServerHello].random_bytes
 
-    certificate, key, enc_key = new_certificate(basic_tcp, client_rand, rand_serv)
+    certificate, key, enc_key, enc_master_c, server_key_ex = new_certificate(basic_tcp)
     client_socket.send(bytes(sec_res[TLS]))
     client_socket.send(bytes(certificate[TLS]))
+    client_socket.send(bytes(server_key_ex[TLS]))
 
     client_key_exchange = client_socket.recv(MAX_MSG_LENGTH)
     keys = TLS(client_key_exchange)
@@ -167,10 +172,10 @@ def secure_handshake(client_socket, acked, server_port):
 
     client_socket.send(bytes(server_final[TLS]))
 
-    some_data = create_and_encrypt(basic_tcp, enc_key)
-    some_data.show()
+   # some_data = create_and_encrypt(basic_tcp, enc_key)
+   # some_data.show()
 
-    client_socket.send(bytes(some_data[TLS]))
+   # client_socket.send(bytes(some_data[TLS]))
 
 
 def basic_start_tls(acked, server_port):
@@ -188,44 +193,56 @@ def basic_start_tls(acked, server_port):
             TCP(flags=ACK, sport=server_port, dport=RandShort(), seq=first_seq, ack=first_ack))
 
 
-def new_certificate(basic_tcp, client_rand, serv_rand):
+def new_certificate(basic_tcp):
     """
      Create TLS certificate packet
-    :param client_rand:
-    :param serv_rand:
     :param basic_tcp: Layers 2-4
     :return: The TLS certificate
     """
 
-    original_cert, key, enc_key = create_x509(client_rand, serv_rand)
+    original_cert, key, enc_key, enc_master_c, shared_secret = create_x509()
     server_cert = Cert(original_cert)
 
     server_cert.show()
     print(key, "\n", server_cert.signatureValue)
+    sig = key.sign(shared_secret, GOOD_PAD, THE_SHA_256)  # RSA SIGNATURE on the shared secret
+    ec_params = ServerECDHNamedCurveParams(named_curve=SECP, point=enc_master_c)
+    d_sign = scapy.layers.tls.keyexchange._TLSSignature(sig_alg=SIGNATURE_ALGORITHIM, sig_val=sig)
 
-    cert_tls = ((TLS(msg=TLSCertificate(certs=server_cert)) /
-                TLS(msg=TLSServerHelloDone())))
+    cert_tls = (TLS(msg=TLSCertificate(certs=server_cert)))
+
+    server_key_ex = (TLS(msg=TLSServerKeyExchange(params=ec_params, sig=d_sign)) /
+                     TLS(msg=TLSServerHelloDone()))
+
     cert_msg = basic_tcp / cert_tls
+    ske_msg = basic_tcp / server_key_ex
     cert_msg.show()
     cert_msg = cert_msg.__class__(bytes(cert_msg))
     cert_msg.show()
 
-    return cert_msg, key, enc_key
+    return cert_msg, key, enc_key, enc_master_c, ske_msg
 
 
-def create_x509(client_rand, serv_rand):
+def create_x509():
     """
      Create The X509 certificate and server key
     :return: The Certificate and server key
     """
 
-    # RSA key
+    my_cert_pem, my_key_pem, key = generate_cert()
 
-    key = rsa.generate_private_key(public_exponent=65537, key_size=1024, backend=default_backend())
+    private_key, encryption_key, shared_secret, ec_point = generate_masters()
+
+    return my_cert_pem, key, encryption_key, ec_point, shared_secret
+
+
+def generate_cert():
+    # RSA key
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
 
     # Create the certificate
 
-    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, H_NAME)])
+    names = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, H_NAME)])
 
     alt_names = [x509.DNSName(H_NAME), x509.DNSName(MY_IP)]
 
@@ -236,17 +253,17 @@ def create_x509(client_rand, serv_rand):
     now = datetime.utcnow()
 
     cert = (x509.CertificateBuilder()
-            .subject_name(name)
-            .issuer_name(name)
+            .subject_name(names)
+            .issuer_name(names)
             .public_key(key.public_key())
             .serial_number(1000)
             .not_valid_before(now)
             .not_valid_after(now + timedelta(days=365))
             .add_extension(basic_constraints, True)
             .add_extension(x509.SubjectAlternativeName(alt_names), False)
-            .sign(key, hashes.SHA256(), default_backend())
+            .sign(key, THE_SHA_256, default_backend(), rsa_padding=GOOD_PAD)
             )
-    print("===================\n", key.public_key().public_numbers(), "\n==================")
+
     my_cert_pem = cert.public_bytes(encoding=THE_PEM)
     my_key_pem = key.private_bytes(encoding=THE_PEM, format=PRIVATE_OPENSSL,
                                    encryption_algorithm=serialization
@@ -262,17 +279,29 @@ def create_x509(client_rand, serv_rand):
     with open('the_key.pem', 'wb') as key_first:
         key_first.write(my_key_pem)
 
-    the_prf = PRF("SHA256", TLS_MID_VERSION)
+    return my_cert_pem, my_key_pem, key
 
-    pre_master_secret = generate_pre_master_secret()
-    print("THE PRE", pre_master_secret)
 
-    master_secret = the_prf.compute_master_secret(pre_master_secret, client_rand, serv_rand, hashes.SHA256())
-    hkdf = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=b'encryption_key', backend=default_backend())
+def generate_masters():
+    """
+    Creates both the encryption key, shared secret, ecdh public key point and the private clients ephemeral key
+    :return: All that has been created
+    """
 
-    key_man = hkdf.derive(master_secret)
+    private_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
+    public_key = private_key.public_key()
 
-    return my_cert_pem, key, key_man
+    # Serialize Alice's public key and send it to Bob
+    public_key_point = public_key.public_bytes(
+        encoding=serialization.Encoding.X962,
+        format=serialization.PublicFormat.UncompressedPoint
+    )
+    print(len(public_key_point))
+    # Compute shared key
+    shared_secret = private_key.exchange(ec.ECDH(), public_key)
+    derived_key = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=b'handshake data').derive(shared_secret)
+
+    return private_key, derived_key, shared_secret, public_key_point
 
 
 def generate_pre_master_secret():
@@ -313,8 +342,12 @@ def create_server_final(basic_tcp):
     """
      Create the server key exchange packet
     :param basic_tcp: Layers 2-4
-    :return: The server key exchange packet
+    :return: The change cipher spec packet
     """
+    with open("certifacte.pem", "rb") as cert_file:
+        server_cert = x509.load_pem_x509_certificate(cert_file.read(), default_backend())
+
+    print(len(server_cert.signature))
 
     server_key = TLS(msg=TLSChangeCipherSpec())
     server_ex = basic_tcp / server_key
