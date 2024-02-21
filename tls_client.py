@@ -8,6 +8,8 @@ from cryptography.hazmat.primitives.asymmetric.padding import *
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import serialization
 
 SYN = 2
 FIN = 1
@@ -17,7 +19,7 @@ NETWORK_MAC = getmacbyip(conf.route.route('0.0.0.0')[2])
 TLS_MID_VERSION = 0x0303
 TLS_NEW_VERSION = 0x0304
 DONT_FRAGMENT_FLAG = 2
-RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256.val
+RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256.val
 GOOD_PAD = PKCS1v15()
 THE_SECRET_LENGTH = 48
 MAX_MSG_LENGTH = 1024
@@ -75,6 +77,9 @@ def create_acknowledge(res):
     :return: The ACK packet
     """
 
+    new_dst_e = res[Ether].src
+    new_src_e = res[Ether].dst
+
     new_dst = res[IP].src
     new_src = res[IP].dst
 
@@ -84,15 +89,16 @@ def create_acknowledge(res):
     new_ack = res[TCP].seq + 1
     new_seq = res[TCP].ack + 1
 
+    res[Ether].dst = new_dst_e
+    res[Ether].src = new_src_e
+
     res[IP].dst = new_dst
     res[IP].src = new_src
+    res[IP].flags = DONT_FRAGMENT_FLAG
 
     res[TCP].sport = new_sport
     res[TCP].dport = new_dport
-
     res[TCP].flags = ACK
-    res[IP].flags = DONT_FRAGMENT_FLAG
-
     res[TCP].seq = new_seq
     res[TCP].ack = new_ack
 
@@ -112,20 +118,22 @@ def secure_handshake(the_client_socket, finish_first_handshake, server_port):
 
     basic_tcp = basic_start_tls(finish_first_handshake, server_port)  # TLS handshake starts here, by creating layer 2-4
     client_hello_packet = start_security(basic_tcp)
-    rand = client_hello_packet[TLS][TLSClientHello].random_bytes
 
     client_hello_packet.show()
     the_client_socket.send(bytes(client_hello_packet[TLS]))
 
     server_hello = the_client_socket.recv(MAX_MSG_LENGTH)
     cert = the_client_socket.recv(MAX_MSG_LENGTH)
+    key = the_client_socket.recv(MAX_MSG_LENGTH)
+
     msg_s = TLS(server_hello)
     msg_cert = TLS(cert)
-
-    serv_rand = msg_s[TLS][TLSServerHello].random_bytes
+    msg_key = TLS(key)
+    msg_s.show()
     msg_cert.show()
+    msg_key.show()
 
-    client_key, encryption_key, cert = create_client_key(basic_tcp, rand, serv_rand)
+    client_key, encryption_key, cert = create_client_key(basic_tcp)
     the_client_socket.send(bytes(client_key[TLS]))
 
     server_final = the_client_socket.recv(MAX_MSG_LENGTH)
@@ -135,7 +143,8 @@ def secure_handshake(the_client_socket, finish_first_handshake, server_port):
     data_pack = TLS(the_client_socket.recv(MAX_MSG_LENGTH))
     data_pack.show()
     data = data_pack[TLS][TLSApplicationData].data
-    print(decrypt_data(data, encryption_key))
+    print("Will decrypt", data)
+    #  print(decrypt_data(data, encryption_key))
 
 
 def basic_start_tls(finish_first_handshake, server_port):
@@ -170,53 +179,27 @@ def start_security(basic_tcp):
     return client_hello_packet
 
 
-def print_ack(packets):
-    """
-     Print tcp flag
-    :param packets: The TCP packet
-    """
-
-    print("Packet's syn is\n", packets[TCP].flags)
-
-
-def create_client_key(basic_tcp, client_rand, serv_rand):
+def create_client_key(basic_tcp):
     """
      Create client key exchange packet
     :param basic_tcp: Layers 2-4
-    :param client_rand: client nonce
-    :param serv_rand: server nonce
     :return: TLS client key exchange packet
-
     """
 
     with open("certifacte.pem", "rb") as cert_file:
         server_cert = x509.load_pem_x509_certificate(cert_file.read(), default_backend())
 
-    the_prf = PRF("SHA256", TLS_MID_VERSION)
+    private_key_2, encryption_key, shared_key_2, public_key_point = generate_main_secret()
 
-    pre_master_secret = generate_pre_master_secret()
-    padding_s = GOOD_PAD
-    print("THE PRE", pre_master_secret)
-    encrypted_pre_master_secret = server_cert.public_key().encrypt(pre_master_secret, padding_s)
-    print("THE POST", encrypted_pre_master_secret)
-
-    master_secret = the_prf.compute_master_secret(pre_master_secret, client_rand, serv_rand, hashes.SHA256())
-    key_man = the_prf.derive_key_block(master_secret, serv_rand, client_rand, THE_SECRET_LENGTH)
-    key_man.hex()
-
-    print("\n=====================", key_man, "\n", key_man.hex(), "\n=====================")
-    client_parameters = ClientECDiffieHellmanPublic(ecdh_Yc=encrypted_pre_master_secret)
+    client_parameters = ClientECDiffieHellmanPublic(ecdh_Yc=public_key_point)
     key_exc = (TLS(msg=TLSClientKeyExchange(exchkeys=client_parameters)) / TLS(msg=TLSChangeCipherSpec()))
 
-    hkdf = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=b'encryption_key', backend=default_backend())
-
-    key_man = hkdf.derive(master_secret)
     client_key = basic_tcp / key_exc
 
     client_key = client_key.__class__(bytes(client_key))
     client_key.show()
 
-    return client_key, key_man, server_cert
+    return client_key, encryption_key, server_cert
 
 
 def generate_pre_master_secret():
@@ -224,6 +207,7 @@ def generate_pre_master_secret():
      Create the pre master secret
     :return: the pre master secret
     """
+
     # Generate 48 random bytes
     random_bytes = os.urandom(48)
 
@@ -232,6 +216,27 @@ def generate_pre_master_secret():
     random_bytes = tls_version + random_bytes[2:]
 
     return random_bytes
+
+
+def generate_main_secret():
+    """
+     Creates both the encryption key, shared secret, ecdh public key point and the private clients ephemeral key
+    :return: All that has been created
+    """
+    private_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
+    public_key = private_key.public_key()
+
+    # Serialize Alice's public key and send it to Bob
+    public_key_point = public_key.public_bytes(
+        encoding=serialization.Encoding.X962,
+        format=serialization.PublicFormat.UncompressedPoint
+    )
+    print(len(public_key_point))
+    # Compute shared key
+    shared_secret = private_key.exchange(ec.ECDH(), public_key)
+    derived_key = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=b'handshake data').derive(shared_secret)
+
+    return private_key, derived_key, shared_secret, public_key_point
 
 
 def end_connection(basic_tcp, server_port):
