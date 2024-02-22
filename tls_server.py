@@ -12,7 +12,9 @@ from cryptography.x509.oid import *
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.padding import *
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+from cryptography.hazmat.primitives.hmac import *
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import os
 import hashlib
 
@@ -152,7 +154,7 @@ def secure_handshake(client_socket, acked, server_port):
     sec_res = new_secure_session(basic_tcp, s_sid)
     sec_res.show()
 
-    certificate, key, enc_key, enc_master_c, server_key_ex = new_certificate(basic_tcp)
+    certificate, key, enc_key, enc_master_c, server_key_ex, shared_secret = new_certificate(basic_tcp)
     client_socket.send(bytes(sec_res[TLS]))
     client_socket.send(bytes(certificate[TLS]))
     client_socket.send(bytes(server_key_ex[TLS]))
@@ -162,9 +164,9 @@ def secure_handshake(client_socket, acked, server_port):
     keys.show()
 
     client_key = keys[TLSClientKeyExchange][Raw].load
-    decrypt_with_public = key.decrypt(client_key[1:], GOOD_PAD)
+  #  decrypt_with_public = key.decrypt(client_key[1:], GOOD_PAD)
 
-    print("Decrypted via server key\n", decrypt_with_public, "\n", client_key)
+ #   print("Decrypted via server key\n", decrypt_with_public, "\n", client_key)
     print("Encryption key\n", enc_key)
 
     server_final = create_server_final(basic_tcp)
@@ -172,10 +174,10 @@ def secure_handshake(client_socket, acked, server_port):
 
     client_socket.send(bytes(server_final[TLS]))
 
-   # some_data = create_and_encrypt(basic_tcp, enc_key)
-   # some_data.show()
-
-   # client_socket.send(bytes(some_data[TLS]))
+    some_data = create_and_encrypt(basic_tcp, enc_key)
+    data_msg = basic_tcp / some_data
+    some_data.show()
+    client_socket.send(bytes(data_msg[TLS]))
 
 
 def basic_start_tls(acked, server_port):
@@ -220,7 +222,7 @@ def new_certificate(basic_tcp):
     cert_msg = cert_msg.__class__(bytes(cert_msg))
     cert_msg.show()
 
-    return cert_msg, key, enc_key, enc_master_c, ske_msg
+    return cert_msg, key, enc_key, enc_master_c, ske_msg, shared_secret
 
 
 def create_x509():
@@ -299,24 +301,9 @@ def generate_masters():
     print(len(public_key_point))
     # Compute shared key
     shared_secret = private_key.exchange(ec.ECDH(), public_key)
-    derived_key = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=b'handshake data').derive(shared_secret)
+    derived_key = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=b'encryption key').derive(shared_secret)
 
     return private_key, derived_key, shared_secret, public_key_point
-
-
-def generate_pre_master_secret():
-    """
-     Create the pre master secret
-    :return: the pre master secret
-    """
-    # Generate 48 random bytes
-    random_bytes = os.urandom(48)
-
-    # Ensure first two bytes match TLS version (e.g., TLS 1.2 -> b'\x03\x03')
-    tls_version = b'\x03\x03'
-    random_bytes = tls_version + random_bytes[2:]
-
-    return random_bytes
 
 
 def new_secure_session(basic_tcp, s_sid):
@@ -356,70 +343,44 @@ def create_server_final(basic_tcp):
     return server_ex
 
 
-def pad_data(data):
-    """
-     Pad the data
-    :param data: The data
-    :return: Padded data
-    """
+def encrypt_data(key, plaintext, associated_data):
+    # Generate a random 96-bit IV.
+    iv = os.urandom(12)
 
-    padder = padding.PKCS7(128).padder()
-    padded_data = padder.update(data) + padder.finalize()
+    # Construct an AES-GCM Cipher object with the given key and a
+    # randomly generated IV.
+    encryptor = Cipher(
+        algorithms.AES(key),
+        modes.GCM(iv),
+    ).encryptor()
 
-    return padded_data
+    # associated_data will be authenticated but not encrypted,
+    # it must also be passed in on decryption.
+    encryptor.authenticate_additional_data(associated_data)
 
+    # Encrypt the plaintext and get the associated ciphertext.
+    # GCM does not require padding.
+    ciphertext = encryptor.update(plaintext) + encryptor.finalize()
+    print("tagged", encryptor.tag)
 
-def unpad_data(data):
-    """
-     Unpad the data
-    :param data: The data
-    :return: Unpadded data
-    """
-
-    unpadder = padding.PKCS7(128).unpadder()
-    unpadded_data = unpadder.update(data) + unpadder.finalize()
-    return unpadded_data
+    return iv, ciphertext, encryptor.tag
 
 
-def encrypt_data(data, key):
-    """
-     Encrypt the data with the encryption key
-    :param data: The data
-    :param key: The encryption key
-    :return: The encrypted data + iv
-    """
+def decrypt_data(key, associated_data, iv, ciphertext, tag):
+    # Construct a Cipher object, with the key, iv, and additionally the
+    # GCM tag used for authenticating the message.
+    decryptor = Cipher(
+        algorithms.AES(key),
+        modes.GCM(iv, tag),
+    ).decryptor()
 
-    backend = default_backend()
-    iv = os.urandom(16)  # Generate a random IV (Initialization Vector)
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
+    # We put associated_data back in or the tag will fail to verify
+    # when we finalize the decryptor.
+    decryptor.authenticate_additional_data(associated_data)
 
-    encryptor = cipher.encryptor()
-    padded_data = pad_data(data)
-    encrypted_data = encryptor.update(padded_data) + encryptor.finalize()
-
-    return iv + encrypted_data
-
-
-def decrypt_data(encrypted_data, key):
-    """
-     Decrypt the data sent from the server
-    :param encrypted_data: The encrypted data
-    :param key: The encryption key
-    :return: Decrypted data
-    """
-
-    backend = default_backend()
-    iv = encrypted_data[:16]  # Extract the IV from the encrypted data
-
-    data = encrypted_data[16:]  # Extract the encrypted data
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
-    decryptor = cipher.decryptor()
-
-    decrypted_data = decryptor.update(data) + decryptor.finalize()
-    unpadder = padding.PKCS7(128).unpadder()
-    unpadded_data = unpadder.update(decrypted_data) + unpadder.finalize()
-
-    return unpadded_data
+    # Decryption gets us the authenticated plaintext.
+    # If the tag does not match an InvalidTag exception will be raised.
+    return decryptor.update(ciphertext) + decryptor.finalize()
 
 
 def create_and_encrypt(basic_tcp, enc_key):
@@ -429,11 +390,13 @@ def create_and_encrypt(basic_tcp, enc_key):
     :param enc_key:
     :return:
     """
+    print("==============", "\n", enc_key, "\n", "==============")
+    iv, message, tag = encrypt_data(enc_key, b"HELLO there", b"gg")
+    full = iv + message + tag
+    print("COOL", message, "\n", decrypt_data(enc_key, b"gg", iv,  message, tag), iv,
+          len(iv), len(tag), full)
 
-    message = encrypt_data(b"HEY BABE? HOW YA DOIN", enc_key)
-    print(message, "\n", decrypt_data(message, enc_key))
-
-    some_data = basic_tcp / TLS(msg=TLSApplicationData(data=message))
+    some_data = basic_tcp / TLS(msg=TLSApplicationData(data=full))
     some_data = some_data.__class__(bytes(some_data))
 
     return some_data
