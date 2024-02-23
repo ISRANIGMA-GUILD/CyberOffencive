@@ -5,12 +5,10 @@ import socket
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric.padding import *
-from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 SYN = 2
 FIN = 1
@@ -44,7 +42,11 @@ def the_pre_handshake(server_ip, server_port):
     finish_first_handshake.show()
     sendp(finish_first_handshake)  # TCP handshake ends here
 
-    return finish_first_handshake
+    letter = p[Raw].load
+    dot = finish_first_handshake[Raw].load
+    authentic = letter + dot
+
+    return finish_first_handshake, authentic
 
 
 def create_syn(server_ip, server_port):
@@ -109,12 +111,13 @@ def create_acknowledge(res):
     return res
 
 
-def secure_handshake(the_client_socket, finish_first_handshake, server_port):
+def secure_handshake(the_client_socket, finish_first_handshake, server_port, auth):
     """
 
     :param the_client_socket:
     :param finish_first_handshake:
     :param server_port:
+    :param auth:
     """
 
     basic_tcp = basic_start_tls(finish_first_handshake, server_port)  # TLS handshake starts here, by creating layer 2-4
@@ -135,13 +138,11 @@ def secure_handshake(the_client_socket, finish_first_handshake, server_port):
     msg_cert.show()
     msg_key.show()
 
-    with open("certifacte.pem", "rb") as server_cert:
-        m = x509.load_pem_x509_certificate(server_cert.read())
+    server_point = msg_key[TLS][TLSServerKeyExchange][ServerECDHNamedCurveParams].point
 
-    sig_tls = scapy.layers.tls.keyexchange._TLSSignature()
-    m.public_key().verify(msg_key[TLS][TLSServerKeyExchange][sig_tls].sig_val, msg_key)
+    client_key, cert, private_key = create_client_key(basic_tcp)
+    encryption_key = full_encryption(server_point, private_key)
 
-    client_key, encryption_key, cert = create_client_key(basic_tcp)
     the_client_socket.send(bytes(client_key[TLS]))
 
     server_final = the_client_socket.recv(MAX_MSG_LENGTH)
@@ -158,7 +159,17 @@ def secure_handshake(the_client_socket, finish_first_handshake, server_port):
     print(data_iv, data_c_t, data_tag)
     print("==============", "\n", encryption_key, "\n", "==============")
     print("Will decrypt", data)
-    print(decrypt_data(encryption_key, b"gg", data_iv, data_c_t, data_tag))
+    print(decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag))
+
+    message = b'greetings!'
+    some_data = encrypt_data(encryption_key, message, auth)
+    print(some_data)
+    data_msg = create_message(basic_tcp, some_data)
+
+    data_msg.show()
+    the_client_socket.send(bytes(data_msg[TLS]))
+
+    print(decrypt_data(encryption_key, auth, some_data[0], some_data[1], some_data[2]))
 
 
 def basic_start_tls(finish_first_handshake, server_port):
@@ -203,39 +214,55 @@ def create_client_key(basic_tcp):
     with open("certifacte.pem", "rb") as cert_file:
         server_cert = x509.load_pem_x509_certificate(cert_file.read(), default_backend())
 
-    private_key_2, encryption_key, shared_key_2, public_key_point = generate_main_secret()
+    private_key, public_key_point = generate_the_point()
 
     client_parameters = ClientECDiffieHellmanPublic(ecdh_Yc=public_key_point)
-    key_exc = (TLS(msg=TLSClientKeyExchange(exchkeys=client_parameters)) / TLS(msg=TLSChangeCipherSpec()))
+    key_exc = (TLS(msg=TLSClientKeyExchange(exchkeys=client_parameters)) /
+               TLS(msg=TLSChangeCipherSpec()) /
+               TLS(msg=TLSFinished()))
 
     client_key = basic_tcp / key_exc
 
     client_key = client_key.__class__(bytes(client_key))
     client_key.show()
 
-    return client_key, encryption_key, server_cert
+    return client_key, server_cert, private_key
 
 
-def generate_main_secret():
+def generate_the_point():
     """
-     Creates both the encryption key, shared secret, ecdh public key point and the private clients ephemeral key
-    :return: All that has been created
+
+    :return: The ECDH private key and public key point
     """
+
     private_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
     public_key = private_key.public_key()
 
-    # Serialize Alice's public key and send it to Bob
+    # Server public key point
     public_key_point = public_key.public_bytes(
         encoding=serialization.Encoding.X962,
         format=serialization.PublicFormat.UncompressedPoint
     )
 
     print(len(public_key_point), public_key)
-    # Compute shared key
-    shared_secret = private_key.exchange(ec.ECDH(), public_key)
-    derived_key = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=b'encryption key').derive(shared_secret)
 
-    return private_key, derived_key, shared_secret, public_key_point
+    return private_key, public_key_point
+
+
+def full_encryption(server_point, private_key):
+    """
+
+    :param server_point:
+    :param private_key:
+    :return:
+    """
+
+    server_key = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), server_point)
+
+    shared_secret = private_key.exchange(ec.ECDH(), server_key)
+    derived_k_f = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=b'encryption key').derive(shared_secret)
+
+    return derived_k_f
 
 
 def end_connection(basic_tcp, server_port):
@@ -259,15 +286,20 @@ def end_connection(basic_tcp, server_port):
 
 
 def encrypt_data(key, plaintext, associated_data):
+    """
+
+    :param key:
+    :param plaintext:
+    :param associated_data:
+    :return:
+    """
+
     # Generate a random 96-bit IV.
     iv = os.urandom(12)
 
     # Construct an AES-GCM Cipher object with the given key and a
     # randomly generated IV.
-    encryptor = Cipher(
-        algorithms.AES(key),
-        modes.GCM(iv),
-    ).encryptor()
+    encryptor = Cipher(algorithms.AES(key), modes.GCM(iv)).encryptor()
 
     # associated_data will be authenticated but not encrypted,
     # it must also be passed in on decryption.
@@ -282,12 +314,19 @@ def encrypt_data(key, plaintext, associated_data):
 
 
 def decrypt_data(key, associated_data, iv, ciphertext, tag):
+    """
+
+    :param key:
+    :param associated_data:
+    :param iv:
+    :param ciphertext:
+    :param tag:
+    :return:
+    """
+
     # Construct a Cipher object, with the key, iv, and additionally the
     # GCM tag used for authenticating the message.
-    decryptor = Cipher(
-        algorithms.AES(key),
-        modes.GCM(iv, tag),
-    ).decryptor()
+    decryptor = Cipher(algorithms.AES(key), modes.GCM(iv, tag)).decryptor()
 
     # We put associated_data back in or the tag will fail to verify
     # when we finalize the decryptor.
@@ -296,6 +335,22 @@ def decrypt_data(key, associated_data, iv, ciphertext, tag):
     # Decryption gets us the authenticated plaintext.
     # If the tag does not match an InvalidTag exception will be raised.
     return decryptor.update(ciphertext) + decryptor.finalize()
+
+
+def create_message(basic_tcp, some_data):
+    """
+
+    :param basic_tcp:
+    :param some_data:
+    :return:
+    """
+
+    full_data = some_data[0] + some_data[1] + some_data[2]
+    data_packet = TLS(msg=TLSApplicationData(data=full_data))
+    data_message = basic_tcp / data_packet
+    data_message = data_message.__class__(bytes(data_message))
+
+    return data_message
 
 
 def main():
@@ -308,12 +363,12 @@ def main():
     bind_layers(TCP, TLS, dport=server_port)
 
     server_ip = input("Enter the ip of the server\n")
-    finish_first_handshake = the_pre_handshake(server_ip, server_port)
+    finish_first_handshake, auth = the_pre_handshake(server_ip, server_port)
 
     the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     the_client_socket.connect((server_ip, server_port))
 
-    secure_handshake(the_client_socket, finish_first_handshake, server_port)
+    secure_handshake(the_client_socket, finish_first_handshake, server_port, auth)
 
     the_client_socket.close()
 
