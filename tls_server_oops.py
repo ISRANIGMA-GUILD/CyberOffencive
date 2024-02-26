@@ -20,8 +20,6 @@ ACK = 16
 MAC_ADDRESS = Ether().src
 THE_USUAL_IP = '0.0.0.0'
 MY_IP = conf.route.route('0.0.0.0')[1]
-NETWORK_MAC = getmacbyip(conf.route.route('0.0.0.0')[2])
-DONT_FRAGMENT_FLAG = 2
 MSS = [("MSS", 1460)]
 N = RandShort()  # Key base number
 TLS_MID_VERSION = 0x0303
@@ -84,11 +82,10 @@ class Server:
 
         return UDP in packets and Raw in packets and packets[Raw].load == b'Logged'
 
-    def first_handshake(self, the_client_socket, server_port):
+    def first_handshake(self, the_client_socket):
         """
 
         :param the_client_socket:
-        :param server_port:
         :return: The ack packet and the server port used the client will use
         """
 
@@ -102,10 +99,6 @@ class Server:
         syn_packet = syn_packet / syn_data
 
         clients_letter = syn_packet[Raw].load
-        server_port = syn_packet[TCP].dport
-
-        bind_layers(TCP, TLS, sport=server_port)
-        bind_layers(TCP, TLS, dport=server_port)  # replace with random number
 
         response = self.create_response(syn_packet)
         the_client_socket.send(bytes(response[TCP]))
@@ -157,12 +150,10 @@ class Server:
 
         return s_sid
 
-    def secure_handshake(self, client_socket, acked, server_port, auth):
+    def secure_handshake(self, client_socket, auth):
         """
 
         :param client_socket:
-        :param acked:
-        :param server_port:
         :param auth:
         """
 
@@ -347,7 +338,7 @@ class Server:
 
         client_key = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), client_point[1:])
         shared_secret = private_key.exchange(ec.ECDH(), client_key)
-        derived_k_f = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=b'encryption key').derive(shared_secret)
+        derived_k_f = HKDF(algorithm=THE_SHA_256, length=32, salt=None, info=b'encryption key').derive(shared_secret)
 
         return derived_k_f
 
@@ -448,9 +439,9 @@ def main():
 
     client_socket = connection
 
-    acked, auth = server.first_handshake(client_socket, server_port)
+    acked, auth = server.first_handshake(client_socket)
 
-    server.secure_handshake(client_socket, acked, server_port, auth)
+    server.secure_handshake(client_socket, auth)
 
     client_socket.close()
     the_server_socket.close()
