@@ -15,14 +15,13 @@ SYN = 2
 FIN = 1
 ACK = 16
 MY_IP = conf.route.route('0.0.0.0')[1]
-NETWORK_MAC = getmacbyip(conf.route.route('0.0.0.0')[2])
-TLS_MID_VERSION = 0x0303
-TLS_NEW_VERSION = 0x0304
-DONT_FRAGMENT_FLAG = 2
+TLS_M_VERSION = 0x0303
+TLS_N_VERSION = 0x0304
 RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256.val
 GOOD_PAD = PKCS1v15()
 THE_SECRET_LENGTH = 48
 MAX_MSG_LENGTH = 1024
+THE_SHA_256 = hashes.SHA256()
 
 
 class Client:
@@ -46,7 +45,10 @@ class Client:
             server_mac = getmacbyip(server_ip)
             layer2 = Ether(dst=server_mac)
 
-        udp_packet = layer2 / IP(src=MY_IP, dst=server_ip) / UDP(sport=RandShort(), dport=server_port) / Raw(load=b'Logged')
+        udp_packet = (layer2 / IP(src=MY_IP, dst=server_ip) /
+                      UDP(sport=RandShort(), dport=server_port) /
+                      Raw(load=b'Logged'))
+
         udp_packet = udp_packet.__class__(bytes(udp_packet))
         udp_packet.show()
         sendp(udp_packet)
@@ -58,10 +60,9 @@ class Client:
 
         return UDP in packets and Raw in packets and packets[Raw].load == b'Accepted'
 
-    def the_pre_handshake(self, server_ip, server_port, the_client_socket):
+    def the_pre_handshake(self, server_port, the_client_socket):
         """
          Initiate the three-way handshake
-        :param server_ip: The servers ip
         :param server_port: The chosen server port
         :param the_client_socket:
         :return: The ack packet
@@ -73,8 +74,8 @@ class Client:
         the_client_socket.send(bytes(syn_packet[TCP]))
         the_client_socket.send(bytes(syn_packet[Raw]))
 
-        server_response = the_client_socket.recv(1024)
-        server_message = the_client_socket.recv(1024)
+        server_response = the_client_socket.recv(MAX_MSG_LENGTH)
+        server_message = the_client_socket.recv(MAX_MSG_LENGTH)
 
         res = TCP(server_response) / Raw(server_message)
         res.show()
@@ -128,12 +129,10 @@ class Client:
 
         return res
 
-    def secure_handshake(self, the_client_socket, finish_first_handshake, server_port, auth):
+    def secure_handshake(self, the_client_socket, auth):
         """
 
         :param the_client_socket:
-        :param finish_first_handshake:
-        :param server_port:
         :param auth:
         """
 
@@ -193,7 +192,7 @@ class Client:
         :return: Client hello packet
         """
 
-        ch_packet = TLS(msg=TLSClientHello(ext=TLS_Ext_SupportedVersion_CH(versions=[TLS_NEW_VERSION, TLS_MID_VERSION])))
+        ch_packet = TLS(msg=TLSClientHello(ext=TLS_Ext_SupportedVersion_CH(versions=[TLS_N_VERSION, TLS_M_VERSION])))
 
         client_hello_packet = ch_packet
         client_hello_packet = client_hello_packet.__class__(bytes(client_hello_packet))
@@ -254,7 +253,7 @@ class Client:
         server_key = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), server_point)
 
         shared_secret = private_key.exchange(ec.ECDH(), server_key)
-        derived_k_f = HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=b'encryption key').derive(shared_secret)
+        derived_k_f = HKDF(algorithm=THE_SHA_256, length=32, salt=None, info=b'encryption key').derive(shared_secret)
 
         return derived_k_f
 
@@ -349,17 +348,14 @@ def main():
 
     client = Client()
     server_port = int(RandShort())
-    bind_layers(TCP, TLS, sport=server_port)
-    bind_layers(TCP, TLS, dport=server_port)
-
     server_ip = input("Enter the ip of the server\n")
 
     client.first_contact(server_ip, server_port)
     the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     the_client_socket.connect((server_ip, server_port))
 
-    finish_first_handshake, auth = client.the_pre_handshake(server_ip, server_port, the_client_socket)
-    client.secure_handshake(the_client_socket, finish_first_handshake, server_port, auth)
+    finish_first_handshake, auth = client.the_pre_handshake(server_port, the_client_socket)
+    client.secure_handshake(the_client_socket, auth)
 
     the_client_socket.close()
 
