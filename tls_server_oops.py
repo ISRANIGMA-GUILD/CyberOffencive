@@ -46,70 +46,92 @@ class Server:
     def __init__(self):
         pass
 
-    def first_handshake(self):
+    def first_contact(self):
         """
 
+        :return:
+        """
+
+        p = sniff(count=1, lfilter=self.filter_udp)
+        udp_packet = p[0]
+        alt_res = udp_packet.copy()
+        alt_res[Raw].load = b'Accepted'
+
+        new_mac_src = alt_res[Ether].dst
+        new_mac_dst = alt_res[Ether].src
+
+        new_src = alt_res[IP].dst
+        new_dst = alt_res[IP].src
+
+        new_src_port = alt_res[UDP].dport
+        new_dst_port = alt_res[UDP].sport
+
+        alt_res[Ether].src = new_mac_src
+        alt_res[Ether].dst = new_mac_dst
+
+        alt_res[IP].src = new_src
+        alt_res[IP].dst = new_dst
+
+        alt_res[UDP].sport = new_src_port
+        alt_res[UDP].dport = new_dst_port
+
+        alt_res = alt_res.__class__(bytes(alt_res))
+        sendp(alt_res)
+
+        return udp_packet[UDP].sport,  udp_packet[UDP].dport
+
+    def filter_udp(self, packets):
+
+        return UDP in packets and Raw in packets and packets[Raw].load == b'Logged'
+
+    def first_handshake(self, the_client_socket, server_port):
+        """
+
+        :param the_client_socket:
+        :param server_port:
         :return: The ack packet and the server port used the client will use
         """
 
-        p = sniff(count=1, lfilter=self.filter_tcp, prn=self.print_flags)
-        p[0].show()
-        packet_auth = p[0]
+        first_packet = the_client_socket.recv(MAX_MSG_LENGTH)
+        first_data = the_client_socket.recv(MAX_MSG_LENGTH)
 
-        clients_letter = packet_auth[Raw].load
-        server_port = packet_auth[TCP].dport
+        syn_packet = TCP(first_packet)
+        syn_data = Raw(first_data)
+        syn_packet.show()
+
+        syn_packet = syn_packet / syn_data
+
+        clients_letter = syn_packet[Raw].load
+        server_port = syn_packet[TCP].dport
+
         bind_layers(TCP, TLS, sport=server_port)
         bind_layers(TCP, TLS, dport=server_port)  # replace with random number
 
-        response = self.create_response(packet_auth)
-        acked = srp1(response)
-        acked.show()
-        clients_dot = acked[Raw].load
+        response = self.create_response(syn_packet)
+        the_client_socket.send(bytes(response[TCP]))
+        the_client_socket.send(bytes(response[Raw]))
+
+        last_pack = the_client_socket.recv(MAX_MSG_LENGTH)
+        last_pack_data = the_client_socket.recv(MAX_MSG_LENGTH)
+        ack_packet = TCP(last_pack) / Raw(last_pack_data)
+
+        ack_packet.show()
+
+        clients_dot = ack_packet[Raw].load
         auth = clients_letter + clients_dot
 
-        return acked, server_port, auth
+        return ack_packet, auth
 
-    def filter_tcp(self, packets):
-        """
-         Filter for tcp packets
-        :param packets: The packet received
-        :return: Whether the packet is a SYN TCP packet
-        """
-
-        return (TCP in packets and (packets[TCP].flags == DONT_FRAGMENT_FLAG or packets[TCP].flags == ACK) and
-                IP in packets and packets[IP].dst == MY_IP and packets[IP].src == MY_IP)
-
-    def print_flags(self, packets):
-        """
-         Print TCP flag
-        :param packets: The TCP packet
-        """
-
-        print("Packet's flag is\n", packets[TCP].flags)
-
-    def create_response(self, packet_auth):
+    def create_response(self, syn_packet):
         """
          Server response
-        :param packet_auth: The SYN + ACK packet
+        :param syn_packet: The SYN packet
         :return packet_auth
         """
 
-        new_src_e = packet_auth[Ether].dst
-        new_dst_e = packet_auth[Ether].src
-
-        packet_auth[Ether].dst = new_dst_e
-        packet_auth[Ether].src = new_src_e
-
-        packet_auth[IP].flags = DONT_FRAGMENT_FLAG
-
-        new_src = packet_auth[IP].dst
-        new_dst = packet_auth[IP].src
-
+        packet_auth = syn_packet.copy()
         new_sport = packet_auth[TCP].dport
         new_dport = packet_auth[TCP].sport
-
-        packet_auth[IP].src = new_src
-        packet_auth[IP].dst = new_dst
 
         packet_auth[TCP].ack = packet_auth[TCP].seq + 1
         packet_auth[TCP].flags = SYN + ACK
@@ -149,7 +171,6 @@ class Server:
         s_p.show()
 
         s_sid = self.create_session_id()
-        basic_tcp = self.basic_start_tls(acked, server_port)
 
         sec_res = self.new_secure_session(s_sid)
         sec_res.show()
@@ -191,20 +212,6 @@ class Server:
         print("==============", "\n", enc_key, "\n", "==============")
         print("Will decrypt", data)
         print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
-
-    def basic_start_tls(self, acked, server_port):
-        """
-         Create a tcp ack packet
-        :param server_port:
-        :param acked: Create a tcp ack packet
-        :return: A tcp ack packet
-        """
-
-        first_seq = acked[TCP].seq
-        first_ack = acked[TCP].ack
-
-        return (Ether(src=acked[Ether].dst, dst=acked[Ether].src) / IP(dst=acked[IP].src, flags=DONT_FRAGMENT_FLAG) /
-                TCP(flags=ACK, sport=server_port, dport=RandShort(), seq=first_seq, ack=first_ack))
 
     def new_secure_session(self, s_sid):
         """
@@ -428,7 +435,7 @@ def main():
     Main function
     """
     server = Server()
-    acked, server_port, auth = server.first_handshake()
+    client_port, server_port = server.first_contact()
 
     the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     the_server_socket.bind((THE_USUAL_IP, server_port))  # Bind the server IP and Port into a tuple
@@ -440,6 +447,8 @@ def main():
     print("Client connected")
 
     client_socket = connection
+
+    acked, auth = server.first_handshake(client_socket, server_port)
 
     server.secure_handshake(client_socket, acked, server_port, auth)
 
