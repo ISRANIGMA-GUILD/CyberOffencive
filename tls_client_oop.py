@@ -1,3 +1,4 @@
+from scapy.all import *
 from scapy.layers.l2 import *
 from scapy.layers.dns import *
 from scapy.layers.tls.all import *
@@ -29,36 +30,12 @@ class Client:
     def __init__(self):
         pass
 
-    def the_pre_handshake(self, server_ip, server_port):
-        """
-         Initiate the three-way handshake
-        :param server_ip: The servers ip
-        :param server_port: The chosen server port
-        :return: The ack packet
+    def first_contact(self, server_ip, server_port):
         """
 
-        p = self.create_syn(server_ip, server_port)
-        p.show()
-
-        res = srp1(p)
-        res.show()
-
-        finish_first_handshake = self.create_acknowledge(res)
-        finish_first_handshake.show()
-        sendp(finish_first_handshake)  # TCP handshake ends here
-
-        letter = p[Raw].load
-        dot = finish_first_handshake[Raw].load
-        authentic = letter + dot
-
-        return finish_first_handshake, authentic
-
-    def create_syn(self, server_ip, server_port):
-        """
-
-        :param server_port: The server port
-        :param server_ip: The server ip
-        :return: The SYN packet
+        :param server_ip:
+        :param server_port:
+        :return:
         """
 
         if server_ip == MY_IP:
@@ -69,12 +46,63 @@ class Client:
             server_mac = getmacbyip(server_ip)
             layer2 = Ether(dst=server_mac)
 
-        p = (layer2 / IP(dst=server_ip, flags=DONT_FRAGMENT_FLAG) /
-             TCP(flags=SYN, sport=RandShort(), dport=server_port, seq=RandShort()) / Raw(load=b"hi"))
+        udp_packet = layer2 / IP(src=MY_IP, dst=server_ip) / UDP(sport=RandShort(), dport=server_port) / Raw(load=b'Logged')
+        udp_packet = udp_packet.__class__(bytes(udp_packet))
+        udp_packet.show()
+        sendp(udp_packet)
 
-        p = p.__class__(bytes(p))
+        vert = sniff(count=1, lfilter=self.filter_udp, timeout=2)
+        vert.show()
 
-        return p
+    def filter_udp(self, packets):
+
+        return UDP in packets and Raw in packets and packets[Raw].load == b'Accepted'
+
+    def the_pre_handshake(self, server_ip, server_port, the_client_socket):
+        """
+         Initiate the three-way handshake
+        :param server_ip: The servers ip
+        :param server_port: The chosen server port
+        :param the_client_socket:
+        :return: The ack packet
+        """
+
+        syn_packet = self.create_syn(server_port)
+        syn_packet.show()
+
+        the_client_socket.send(bytes(syn_packet[TCP]))
+        the_client_socket.send(bytes(syn_packet[Raw]))
+
+        server_response = the_client_socket.recv(1024)
+        server_message = the_client_socket.recv(1024)
+
+        res = TCP(server_response) / Raw(server_message)
+        res.show()
+
+        finish_first_handshake = self.create_acknowledge(res)
+        finish_first_handshake.show()
+
+        the_client_socket.send(bytes(finish_first_handshake[TCP]))
+        the_client_socket.send(bytes(finish_first_handshake[Raw]))
+
+        letter = syn_packet[Raw].load
+        dot = finish_first_handshake[Raw].load
+        authentic = letter + dot
+
+        return finish_first_handshake, authentic
+
+    def create_syn(self, server_port):
+        """
+
+        :param server_port: The server port
+        :return: The SYN packet
+        """
+
+        syn_packet = TCP(flags=SYN, sport=RandShort(), dport=server_port, seq=RandShort()) / Raw(load=b"hi")
+
+        syn_packet = syn_packet.__class__(bytes(syn_packet))
+
+        return syn_packet
 
     def create_acknowledge(self, res):
         """
@@ -83,24 +111,11 @@ class Client:
         :return: The ACK packet
         """
 
-        new_dst_e = res[Ether].src
-        new_src_e = res[Ether].dst
-
-        new_dst = res[IP].src
-        new_src = res[IP].dst
-
         new_sport = res[TCP].dport
         new_dport = res[TCP].sport
 
         new_ack = res[TCP].seq + 1
         new_seq = res[TCP].ack + 1
-
-        res[Ether].dst = new_dst_e
-        res[Ether].src = new_src_e
-
-        res[IP].dst = new_dst
-        res[IP].src = new_src
-        res[IP].flags = DONT_FRAGMENT_FLAG
 
         res[TCP].sport = new_sport
         res[TCP].dport = new_dport
@@ -122,8 +137,7 @@ class Client:
         :param auth:
         """
 
-        basic_tcp = self.basic_start_tls(finish_first_handshake, server_port)  # TLS handshake starts here, by creating layer 2-4
-        client_hello_packet = self.start_security(basic_tcp)
+        client_hello_packet = self.start_security()
 
         client_hello_packet.show()
         the_client_socket.send(bytes(client_hello_packet[TLS]))
@@ -173,31 +187,15 @@ class Client:
 
         print(self.decrypt_data(encryption_key, auth, some_data[0], some_data[1], some_data[2]))
 
-    def basic_start_tls(self, finish_first_handshake, server_port):
-        """
-         Create a basic TCP ACK packet
-        :param server_port: The server port
-        :param finish_first_handshake:
-        :return: TCP ACK packet (Layers 2-4)
-        """
-
-        first_seq = finish_first_handshake[TCP].seq
-        first_ack = finish_first_handshake[TCP].ack
-
-        return (Ether(src=finish_first_handshake[Ether].src, dst=finish_first_handshake[Ether].dst) /
-                IP(dst=finish_first_handshake[IP].src, flags=DONT_FRAGMENT_FLAG) /
-                TCP(flags=ACK, sport=RandShort(), dport=server_port, seq=first_seq, ack=first_ack))
-
-    def start_security(self, basic_tcp):
+    def start_security(self):
         """
          Create client hello packet
-        :param basic_tcp: Layers 2-4
         :return: Client hello packet
         """
 
         ch_packet = TLS(msg=TLSClientHello(ext=TLS_Ext_SupportedVersion_CH(versions=[TLS_NEW_VERSION, TLS_MID_VERSION])))
 
-        client_hello_packet = basic_tcp / ch_packet
+        client_hello_packet = ch_packet
         client_hello_packet = client_hello_packet.__class__(bytes(client_hello_packet))
         client_hello_packet.show()
 
@@ -355,11 +353,12 @@ def main():
     bind_layers(TCP, TLS, dport=server_port)
 
     server_ip = input("Enter the ip of the server\n")
-    finish_first_handshake, auth = client.the_pre_handshake(server_ip, server_port)
 
+    client.first_contact(server_ip, server_port)
     the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     the_client_socket.connect((server_ip, server_port))
 
+    finish_first_handshake, auth = client.the_pre_handshake(server_ip, server_port, the_client_socket)
     client.secure_handshake(the_client_socket, finish_first_handshake, server_port, auth)
 
     the_client_socket.close()
