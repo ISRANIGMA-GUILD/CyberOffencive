@@ -5,7 +5,6 @@ from scapy.layers.tls.all import *
 import socket
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric.padding import *
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
@@ -18,8 +17,6 @@ MY_IP = conf.route.route('0.0.0.0')[1]
 TLS_M_VERSION = 0x0303
 TLS_N_VERSION = 0x0304
 RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256.val
-GOOD_PAD = PKCS1v15()
-THE_SECRET_LENGTH = 48
 MAX_MSG_LENGTH = 1024
 THE_SHA_256 = hashes.SHA256()
 
@@ -31,10 +28,9 @@ class Client:
 
     def first_contact(self, server_ip, server_port):
         """
-
-        :param server_ip:
-        :param server_port:
-        :return:
+         Get in contact with the server by sending a UDP packet to it
+        :param server_ip: The server's ip
+        :param server_port: The port the client will connect to
         """
 
         if server_ip == MY_IP:
@@ -53,19 +49,28 @@ class Client:
         udp_packet.show()
         sendp(udp_packet)
 
-        vert = sniff(count=1, lfilter=self.filter_udp, timeout=2)
-        vert.show()
+        vert = sniff(count=1, lfilter=self.filter_udp)
+        vert[0].show()
+        res = vert[0]
+
+        return res
 
     def filter_udp(self, packets):
+        """
+         Check if the packet received is a UDP packet
+        :param packets: The packet
+        :return: If the packet has UDP in it
+        """
 
-        return UDP in packets and Raw in packets and packets[Raw].load == b'Accepted'
+        return UDP in packets and Raw in packets and \
+            (packets[Raw].load == b'Accept' or packets[Raw].load == b'Denied')
 
     def the_pre_handshake(self, server_port, the_client_socket):
         """
          Initiate the three-way handshake
         :param server_port: The chosen server port
         :param the_client_socket:
-        :return: The ack packet
+        :return: The ack packet and the authentic client associate
         """
 
         syn_packet = self.create_syn(server_port)
@@ -94,7 +99,7 @@ class Client:
 
     def create_syn(self, server_port):
         """
-
+         Create the syn packet
         :param server_port: The server port
         :return: The SYN packet
         """
@@ -107,8 +112,8 @@ class Client:
 
     def create_acknowledge(self, res):
         """
-         Client response
-        :param res: The ACK packet
+         Create the ACK packet
+        :param res: The SYN + ACK packet
         :return: The ACK packet
         """
 
@@ -131,13 +136,12 @@ class Client:
 
     def secure_handshake(self, the_client_socket, auth):
         """
-
-        :param the_client_socket:
-        :param auth:
+         Start the secure handshake with the server
+        :param the_client_socket: The client socket
+        :param auth: The authentic data
         """
 
         client_hello_packet = self.start_security()
-
         client_hello_packet.show()
         the_client_socket.send(bytes(client_hello_packet[TLS]))
 
@@ -164,16 +168,10 @@ class Client:
         msg_s_f = TLS(server_final)
         msg_s_f.show()
 
-        data_pack = TLS(the_client_socket.recv(MAX_MSG_LENGTH))
-        data_pack.show()
-        data = data_pack[TLS][TLSApplicationData].data
-        data_iv = data[:12]
-        data_tag = data[len(data)-16:len(data)]
-        data_c_t = data[12:len(data)-16]
+        data_iv, data_c_t, data_tag = self.recieve_data(the_client_socket)
 
         print(data_iv, data_c_t, data_tag)
         print("==============", "\n", encryption_key, "\n", "==============")
-        print("Will decrypt", data)
         print(self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag))
 
         message = b'greetings!'
@@ -225,7 +223,7 @@ class Client:
 
     def generate_the_point(self):
         """
-
+         Generate the ECDH private key and public key
         :return: The ECDH private key and public key point
         """
 
@@ -244,10 +242,10 @@ class Client:
 
     def full_encryption(self, server_point, private_key):
         """
-
-        :param server_point:
-        :param private_key:
-        :return:
+         Create the client encryption key
+        :param server_point: The servers point
+        :param private_key: The client private key
+        :return: The server encryption key
         """
 
         server_key = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), server_point)
@@ -256,6 +254,24 @@ class Client:
         derived_k_f = HKDF(algorithm=THE_SHA_256, length=32, salt=None, info=b'encryption key').derive(shared_secret)
 
         return derived_k_f
+
+    def recieve_data(self, the_client_socket):
+        """
+         Dissect the data received from the server
+        :param the_client_socket: The client socket
+        :return: The data iv, data and tag
+        """
+
+        data_pack = TLS(the_client_socket.recv(MAX_MSG_LENGTH))
+        data_pack.show()
+        data = data_pack[TLS][TLSApplicationData].data
+
+        print("Will decrypt", data)
+        data_iv = data[:12]
+        data_tag = data[len(data) - 16:len(data)]
+        data_c_t = data[12:len(data) - 16]
+
+        return data_iv, data_c_t, data_tag
 
     def end_connection(self, basic_tcp, server_port):
         """
@@ -278,11 +294,11 @@ class Client:
 
     def encrypt_data(self, key, plaintext, associated_data):
         """
-
-        :param key:
-        :param plaintext:
-        :param associated_data:
-        :return:
+         Encrypt data before sending it to the client
+        :param key: The server encryption key
+        :param plaintext: The data which will be encrypted
+        :param associated_data: Data which is associated with yet not encrypted
+        :return: The iv, the encrypted data and the encryption tag
         """
 
         # Generate a random 96-bit IV.
@@ -305,13 +321,13 @@ class Client:
 
     def decrypt_data(self, key, associated_data, iv, ciphertext, tag):
         """
-
-        :param key:
-        :param associated_data:
-        :param iv:
-        :param ciphertext:
-        :param tag:
-        :return:
+         Decrypt the data recieved by the client
+        :param key: The server encryption key
+        :param associated_data: The data associated with the message
+        :param iv: The iv
+        :param ciphertext: The encrypted data
+        :param tag: The encryption tag
+        :return: The decrypted data
         """
 
         # Construct a Cipher object, with the key, iv, and additionally the
@@ -328,9 +344,9 @@ class Client:
 
     def create_message(self, some_data):
         """
-
-        :param some_data:
-        :return:
+         Turn the data into a proper message
+        :param some_data: The data parts
+        :return: The full data message
         """
 
         full_data = some_data[0] + some_data[1] + some_data[2]
@@ -350,14 +366,19 @@ def main():
     server_port = int(RandShort())
     server_ip = input("Enter the ip of the server\n")
 
-    client.first_contact(server_ip, server_port)
-    the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-    the_client_socket.connect((server_ip, server_port))
+    res = client.first_contact(server_ip, server_port)
+    if res[Raw].load == b'Accept':
 
-    finish_first_handshake, auth = client.the_pre_handshake(server_port, the_client_socket)
-    client.secure_handshake(the_client_socket, auth)
+        the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        the_client_socket.connect((server_ip, server_port))
 
-    the_client_socket.close()
+        finish_first_handshake, auth = client.the_pre_handshake(server_port, the_client_socket)
+        client.secure_handshake(the_client_socket, auth)
+
+        the_client_socket.close()
+
+    else:
+        print("TO BAD YOU ARE BANNED!")
 
 
 if __name__ == '__main__':

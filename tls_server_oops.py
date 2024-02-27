@@ -17,7 +17,6 @@ import hashlib
 SYN = 2
 FIN = 1
 ACK = 16
-MAC_ADDRESS = Ether().src
 THE_USUAL_IP = '0.0.0.0'
 MY_IP = conf.route.route('0.0.0.0')[1]
 MSS = [("MSS", 1460)]
@@ -25,18 +24,17 @@ N = RandShort()  # Key base number
 TLS_MID_VERSION = 0x0303
 TLS_NEW_VERSION = 0x0304
 RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256.val
-RECOMMENDED_SHA = "sha256+rsa"
 H_NAME = "bro"
 KEY_ENC = serialization.Encoding.X962
 FORMAT_PUBLIC = serialization.PublicFormat.UncompressedPoint
 THE_PEM = serialization.Encoding.PEM
 PRIVATE_OPENSSL = serialization.PrivateFormat.TraditionalOpenSSL
 GOOD_PAD = PKCS1v15()
-THE_SECRET_LENGTH = 48
 MAX_MSG_LENGTH = 1024
 THE_SHA_256 = hashes.SHA256()
 SECP = 0x0017
 SIGNATURE_ALGORITHIM = 0x0401
+THE_LIST = {}
 
 
 class Server:
@@ -46,14 +44,44 @@ class Server:
 
     def first_contact(self):
         """
-
+         Answer a client that is trying to connect to the server
         :return:
         """
 
         p = sniff(count=1, lfilter=self.filter_udp)
         udp_packet = p[0]
         alt_res = udp_packet.copy()
-        alt_res[Raw].load = b'Accepted'
+        alt_res[Raw].load = self.check_if_eligible(alt_res[Ether].src)
+
+        alt_res = self.create_f_response(alt_res)
+        alt_res.show()
+        sendp(alt_res)
+
+        return udp_packet[UDP].sport,  udp_packet[UDP].dport, alt_res[Raw].load
+
+    def filter_udp(self, packets):
+        """
+         Check if the packet received is a UDP packet
+        :param packets: The packet
+        :return: If the packet has UDP in it
+        """
+
+        return UDP in packets and Raw in packets and packets[Raw].load == b'Logged'
+
+    def check_if_eligible(self, identifier):
+
+        if identifier in THE_LIST.values():
+            return b'Denied'
+
+        else:
+            return b'Accept'
+
+    def create_f_response(self, alt_res):
+        """
+         Create the servers first response
+        :param alt_res: The UDP packet
+        :return: The UDP response
+        """
 
         new_mac_src = alt_res[Ether].dst
         new_mac_dst = alt_res[Ether].src
@@ -74,18 +102,12 @@ class Server:
         alt_res[UDP].dport = new_dst_port
 
         alt_res = alt_res.__class__(bytes(alt_res))
-        sendp(alt_res)
-
-        return udp_packet[UDP].sport,  udp_packet[UDP].dport
-
-    def filter_udp(self, packets):
-
-        return UDP in packets and Raw in packets and packets[Raw].load == b'Logged'
+        return alt_res
 
     def first_handshake(self, the_client_socket):
         """
-
-        :param the_client_socket:
+         The tcp handshake
+        :param the_client_socket: The client socket
         :return: The ack packet and the server port used the client will use
         """
 
@@ -152,9 +174,9 @@ class Server:
 
     def secure_handshake(self, client_socket, auth):
         """
-
-        :param client_socket:
-        :param auth:
+         The TLS handshake
+        :param client_socket: The client socket
+        :param auth: The associate data
         """
 
         client_hello = client_socket.recv(MAX_MSG_LENGTH)
@@ -192,16 +214,10 @@ class Server:
         data_msg.show()
         client_socket.send(bytes(data_msg[TLS]))
 
-        data_pack = TLS(client_socket.recv(MAX_MSG_LENGTH))
-        data_pack.show()
-        data = data_pack[TLS][TLSApplicationData].data
-        data_iv = data[:12]
-        data_tag = data[len(data) - 16:len(data)]
-        data_c_t = data[12:len(data) - 16]
+        data_iv, data_c_t, data_tag = self.recieve_data(client_socket)
 
         print(data_iv, data_c_t, data_tag)
         print("==============", "\n", enc_key, "\n", "==============")
-        print("Will decrypt", data)
         print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
 
     def new_secure_session(self, s_sid):
@@ -213,7 +229,7 @@ class Server:
 
         security_layer = (TLS(msg=TLSServerHello(sid=s_sid, cipher=RECOMMENDED_CIPHER,
                                                  ext=TLS_Ext_SupportedVersion_SH(version=[TLS_MID_VERSION]) /
-                                                 TLS_Ext_SignatureAlgorithmsCert(sig_algs=[RECOMMENDED_SHA]))))
+                                                 TLS_Ext_SignatureAlgorithmsCert(sig_algs=[SIGNATURE_ALGORITHIM]))))
 
         security_packet = security_layer
         security_packet.__class__(bytes(security_packet))
@@ -223,8 +239,8 @@ class Server:
 
     def new_certificate(self):
         """
-         Create TLS certificate packet
-        :return: The TLS certificate
+         Create TLS certificate packet and server key exchange packet
+        :return: The TLS certificate and server key exchange packet
         """
 
         original_cert, key, enc_master_c, private_key = self.create_x509()
@@ -252,7 +268,7 @@ class Server:
     def create_x509(self):
         """
          Create The X509 certificate and server key
-        :return: The Certificate and server key
+        :return: Certificate, private key, point and private key
         """
 
         my_cert_pem, my_key_pem, key = self.generate_cert()
@@ -263,8 +279,8 @@ class Server:
 
     def generate_cert(self):
         """
-
-        :return:
+         Create the server certificate
+        :return: The public key, the certificate and private key
         """
 
         # RSA key
@@ -313,7 +329,7 @@ class Server:
 
     def generate_public_point(self):
         """
-
+         Generate the ECDH private key and public key
         :return: The ECDH private key and public key point
         """
 
@@ -330,10 +346,10 @@ class Server:
 
     def create_encryption_key(self, private_key, client_point):
         """
-
-        :param private_key:
-        :param client_point:
-        :return:
+         Create the server encryption key
+        :param client_point: The client point
+        :param private_key: The servers private key
+        :return: The server encryption key
         """
 
         client_key = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), client_point[1:])
@@ -344,9 +360,10 @@ class Server:
 
     def create_server_final(self):
         """
-         Create the server key exchange packet
-        :return: The change cipher spec packet
+         Create the finish message
+        :return: The finish message
         """
+
         with open("certifacte.pem", "rb") as cert_file:
             server_cert = x509.load_pem_x509_certificate(cert_file.read(), default_backend())
 
@@ -360,11 +377,11 @@ class Server:
 
     def encrypt_data(self, key, plaintext, associated_data):
         """
-
-        :param key:
-        :param plaintext:
-        :param associated_data:
-        :return:
+         Encrypt data before sending it to the client
+        :param key: The server encryption key
+        :param plaintext: The data which will be encrypted
+        :param associated_data: Data which is associated with yet not encrypted
+        :return: The iv, the encrypted data and the encryption tag
         """
 
         # Generate a random 96-bit IV.
@@ -386,14 +403,15 @@ class Server:
 
     def decrypt_data(self, key, associated_data, iv, ciphertext, tag):
         """
-
-        :param key:
-        :param associated_data:
-        :param iv:
-        :param ciphertext:
-        :param tag:
-        :return:
+         Decrypt the data recieved by the client
+        :param key: The server encryption key
+        :param associated_data: The data associated with the message
+        :param iv: The iv
+        :param ciphertext: The encrypted data
+        :param tag: The encryption tag
+        :return: The decrypted data
         """
+
         # Construct a Cipher object, with the key, iv, and additionally the
         # GCM tag used for authenticating the message.
         decryptor = Cipher(algorithms.AES(key), modes.GCM(iv, tag)).decryptor()
@@ -408,9 +426,9 @@ class Server:
 
     def create_message(self, some_data):
         """
-
-        :param some_data:
-        :return:
+         Turn the data into a proper message
+        :param some_data: The data parts
+        :return: The full data message
         """
 
         full_data = some_data[0] + some_data[1] + some_data[2]
@@ -420,31 +438,63 @@ class Server:
 
         return data_message
 
+    def recieve_data(self, the_client_socket):
+        """
+         Dissect the data received from the server
+        :param the_client_socket: The client socket
+        :return: The data iv, data and tag
+        """
+
+        data_pack = TLS(the_client_socket.recv(MAX_MSG_LENGTH))
+        data_pack.show()
+        data = data_pack[TLS][TLSApplicationData].data
+
+        print("Will decrypt", data)
+        data_iv = data[:12]
+        data_tag = data[len(data) - 16:len(data)]
+        data_c_t = data[12:len(data) - 16]
+
+        return data_iv, data_c_t, data_tag
+
 
 def main():
     """
     Main function
     """
-    server = Server()
-    client_port, server_port = server.first_contact()
 
-    the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-    the_server_socket.bind((THE_USUAL_IP, server_port))  # Bind the server IP and Port into a tuple
-    the_server_socket.listen()  # Listen to client
+    while True:
+        server = Server()
+        client_port, server_port, message = server.first_contact()
 
-    print("Server is up and running")
+        if message == b'Accept':
+            the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+            the_server_socket.bind((THE_USUAL_IP, server_port))  # Bind the server IP and Port into a tuple
+            the_server_socket.listen()  # Listen to client
 
-    connection, client_address = the_server_socket.accept()  # Accept clients request
-    print("Client connected")
+            print("Server is up and running")
 
-    client_socket = connection
+            connection, client_address = the_server_socket.accept()  # Accept clients request
+            print("Client connected")
 
-    acked, auth = server.first_handshake(client_socket)
+            client_socket = connection
 
-    server.secure_handshake(client_socket, auth)
+            acked, auth = server.first_handshake(client_socket)
 
-    client_socket.close()
-    the_server_socket.close()
+            server.secure_handshake(client_socket, auth)
+
+            client_socket.close()
+            the_server_socket.close()
+
+            break #will be removed later
+
+        elif message == b'Denied':
+
+            print("banned client")
+            break
+
+        else:
+
+            print("Error message try again")
 
 
 if __name__ == '__main__':
