@@ -1,3 +1,4 @@
+import sys
 from scapy.all import *
 from scapy.layers.l2 import *
 from scapy.layers.dns import *
@@ -26,7 +27,9 @@ THE_BIG_LIST = {"0": "'", "1": ";", "2": "=",
                 "13": "+", "14": "UNION", "15": "ALL",
                 "16": ">", "17": "<", "18": "–dbs", "19": "-D",
                 "20": "-T", "21": "-", "22": ".php", "23": "SLEEP",
-                "24": "@@", "25": "CREATE USER", "26": "`"}
+                "24": "@@", "25": "CREATE USER", "26": "`", "27": "select",
+                "28": "from", "29": "union", "30": "union", "31": "create user",
+                "32": "sleep", "33": "all", "34": "and"}
 
 
 class Client:
@@ -404,6 +407,13 @@ class Client:
             if THE_BIG_LIST.get(str(i)) in passw or \
                THE_BIG_LIST.get(str(i)) in user:
                 return 0, 1
+
+        if len(user) > 50 or len(passw) > 50:
+            return 0, 1
+
+        if ((user.isnumeric() and sys.maxsize <= int(user)) or
+                (passw.isnumeric() and sys.maxsize <= int(passw))):
+            return 0, 1
 
         user = user.encode()
         passw = passw.encode()
