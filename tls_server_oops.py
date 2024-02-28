@@ -35,6 +35,7 @@ THE_SHA_256 = hashes.SHA256()
 SECP = 0x0017
 SIGNATURE_ALGORITHIM = 0x0401
 THE_LIST = {}
+PREVS = {}
 
 
 class Server:
@@ -219,6 +220,22 @@ class Server:
         print(data_iv, data_c_t, data_tag)
         print("==============", "\n", enc_key, "\n", "==============")
         print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
+
+        data_iv, data_c_t, data_tag = self.recieve_data(client_socket)
+
+        if data_iv == 0 and data_c_t == 1 and data_tag == 2:
+            return
+
+        else:
+            print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
+
+        data_iv2, data_c_t2, data_tag2 = self.recieve_data(client_socket)
+
+        if data_iv2 == 0 and data_c_t2 == 1 and data_tag2 == 2:
+            return
+
+        else:
+            print(self.decrypt_data(enc_key, auth, data_iv2, data_c_t2, data_tag2))
 
     def new_secure_session(self, s_sid):
         """
@@ -445,14 +462,21 @@ class Server:
         :return: The data iv, data and tag
         """
 
-        data_pack = TLS(the_client_socket.recv(MAX_MSG_LENGTH))
-        data_pack.show()
-        data = data_pack[TLS][TLSApplicationData].data
+        data_pack = the_client_socket.recv(MAX_MSG_LENGTH)
+        if not data_pack:
+            print("THAT IS A SNEAKY CLIENT")
+            return 0, 1, 2
 
-        print("Will decrypt", data)
-        data_iv = data[:12]
-        data_tag = data[len(data) - 16:len(data)]
-        data_c_t = data[12:len(data) - 16]
+        else:
+            data_pack = TLS(data_pack)
+            data_pack.show()
+
+            data = data_pack[TLS][TLSApplicationData].data
+
+            print("Will decrypt", data)
+            data_iv = data[:12]
+            data_tag = data[len(data) - 16:len(data)]
+            data_c_t = data[12:len(data) - 16]
 
         return data_iv, data_c_t, data_tag
 
@@ -485,7 +509,7 @@ def main():
             client_socket.close()
             the_server_socket.close()
 
-            break #will be removed later
+            break  # will be removed later
 
         elif message == b'Denied':
 
