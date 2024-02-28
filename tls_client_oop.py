@@ -19,6 +19,14 @@ TLS_N_VERSION = 0x0304
 RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256.val
 MAX_MSG_LENGTH = 1024
 THE_SHA_256 = hashes.SHA256()
+THE_BIG_LIST = {"0": "'", "1": ";", "2": "=",
+                "3": '"', "4": "*", "5": "AND",
+                "6": "SELECT", "7": "/", "8": "#",
+                "9": " ", "10": "FROM", "11": "(", "12": ")",
+                "13": "+", "14": "UNION", "15": "ALL",
+                "16": ">", "17": "<", "18": "–dbs", "19": "-D",
+                "20": "-T", "21": "-", "22": ".php", "23": "SLEEP",
+                "24": "@@", "25": "CREATE USER", "26": "`"}
 
 
 class Client:
@@ -184,6 +192,14 @@ class Client:
 
         print(self.decrypt_data(encryption_key, auth, some_data[0], some_data[1], some_data[2]))
 
+        details_pack, detail = self.details_entry(encryption_key, auth)
+        if details_pack == 0 and detail == 1:
+            print("YOU WERE BANNED FOR USING HTML")
+
+        else:
+            the_client_socket.send(bytes(details_pack[TLS]))
+            the_client_socket.send(bytes(detail[TLS]))
+
     def start_security(self):
         """
          Create client hello packet
@@ -348,13 +364,56 @@ class Client:
         :param some_data: The data parts
         :return: The full data message
         """
+        print(type(some_data))
+        if type(some_data) is not list:
+            full_data = some_data[0] + some_data[1] + some_data[2]
+            data_packet = TLS(msg=TLSApplicationData(data=full_data))
+            data_message = data_packet
+            data_message = data_message.__class__(bytes(data_message))
 
-        full_data = some_data[0] + some_data[1] + some_data[2]
-        data_packet = TLS(msg=TLSApplicationData(data=full_data))
-        data_message = data_packet
-        data_message = data_message.__class__(bytes(data_message))
+        else:
+            first_data = some_data[0][0] + some_data[0][1] + some_data[0][2]
+            second_data = some_data[1][0] + some_data[1][1] + some_data[1][2]
+            data_packet = TLS(msg=TLSApplicationData(data=first_data))
+            data_pack = TLS(msg=TLSApplicationData(data=second_data))
+
+            data_message = data_packet
+            data_message_2 = data_pack
+            data_message = data_message.__class__(bytes(data_message))
+            data_message_2 = data_message_2.__class__(bytes(data_message_2))
+
+            return data_message, data_message_2
 
         return data_message
+
+    def details_entry(self, key, auth):
+        """
+
+        Args:
+            key:
+            auth:
+
+        Returns:
+
+        """
+        user = input("Enter your username\n")
+        passw = input("Enter your password\n")
+
+        for i in range(0, len(THE_BIG_LIST)):
+
+            if THE_BIG_LIST.get(str(i)) in passw or \
+               THE_BIG_LIST.get(str(i)) in user:
+                return 0, 1
+
+        user = user.encode()
+        passw = passw.encode()
+
+        encyrpted_user = self.encrypt_data(key, user, auth)
+        encrypted_passw = self.encrypt_data(key, passw, auth)
+        data = [encyrpted_user, encrypted_passw]
+        pack = self.create_message(data)
+
+        return pack
 
 
 def main():
@@ -363,6 +422,7 @@ def main():
     """
 
     client = Client()
+    print(THE_BIG_LIST.values(), THE_BIG_LIST.keys())
     server_port = int(RandShort())
     server_ip = input("Enter the ip of the server\n")
 
