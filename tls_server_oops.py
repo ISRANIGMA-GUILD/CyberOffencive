@@ -184,58 +184,77 @@ class Server:
         s_p = TLS(client_hello)
         s_p.show()
 
-        s_sid = self.create_session_id()
+        if TLSClientHello in s_p:
 
-        sec_res = self.new_secure_session(s_sid)
-        sec_res.show()
+            s_sid = self.create_session_id()
 
-        certificate, key, enc_master_c, server_key_ex, private_key = self.new_certificate()
-        client_socket.send(bytes(sec_res[TLS]))  # Server hello
-        client_socket.send(bytes(certificate[TLS]))  # Certificate
-        client_socket.send(bytes(server_key_ex[TLS]))  # Server key exchange
+            sec_res = self.new_secure_session(s_sid)
+            sec_res.show()
 
-        client_key_exchange = client_socket.recv(MAX_MSG_LENGTH)
-        keys = TLS(client_key_exchange)
-        keys.show()
+            certificate, key, enc_master_c, server_key_ex, private_key = self.new_certificate()
+            client_socket.send(bytes(sec_res[TLS]))  # Server hello
+            client_socket.send(bytes(certificate[TLS]))  # Certificate
+            client_socket.send(bytes(server_key_ex[TLS]))  # Server key exchange
 
-        client_point = keys[TLSClientKeyExchange][Raw].load
-        enc_key = self.create_encryption_key(private_key, client_point)
-        print("Encryption key\n", enc_key)
+            client_key_exchange = client_socket.recv(MAX_MSG_LENGTH)
+            keys = TLS(client_key_exchange)
+            keys.show()
 
-        server_final = self.create_server_final()  # Change Cipher spec
-        server_final.show()
+            if TLSClientKeyExchange in keys:
+                client_point = keys[TLSClientKeyExchange][Raw].load
+                enc_key = self.create_encryption_key(private_key, client_point)
+                print("Encryption key\n", enc_key)
 
-        client_socket.send(bytes(server_final[TLS]))
+                server_final = self.create_server_final()  # Change Cipher spec
+                server_final.show()
 
-        message = b'hello'
-        some_data = self.encrypt_data(enc_key, message, auth)
-        print(some_data)
-        data_msg = self.create_message(some_data)  # Application data
+                client_socket.send(bytes(server_final[TLS]))
 
-        data_msg.show()
-        client_socket.send(bytes(data_msg[TLS]))
+                message = b'hello'
+                some_data = self.encrypt_data(enc_key, message, auth)
+                print(some_data)
+                data_msg = self.create_message(some_data)  # Application data
 
-        data_iv, data_c_t, data_tag = self.recieve_data(client_socket)
+                data_msg.show()
+                client_socket.send(bytes(data_msg[TLS]))
 
-        print(data_iv, data_c_t, data_tag)
-        print("==============", "\n", enc_key, "\n", "==============")
-        print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
+                data_iv, data_c_t, data_tag = self.recieve_data(client_socket)
 
-        data_iv, data_c_t, data_tag = self.recieve_data(client_socket)
+                print(data_iv, data_c_t, data_tag)
+                print("==============", "\n", enc_key, "\n", "==============")
+                print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
 
-        if data_iv == 0 and data_c_t == 1 and data_tag == 2:
-            return
+                data_iv, data_c_t, data_tag = self.recieve_data(client_socket)
+
+                if data_iv == 0 and data_c_t == 1 and data_tag == 2:
+                    return
+
+                else:
+                    print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
+
+                data_iv2, data_c_t2, data_tag2 = self.recieve_data(client_socket)
+
+                if data_iv2 == 0 and data_c_t2 == 1 and data_tag2 == 2:
+                    return
+
+                else:
+                    print(self.decrypt_data(enc_key, auth, data_iv2, data_c_t2, data_tag2))
+
+            elif TLSAlert in client_key_exchange:
+                print("There is a major error")
+                return
+
+            else:
+                print("There is a major error")
+                alert = self.send_alert()
+                client_socket.send(bytes(alert[TLS]))
+                return
 
         else:
-            print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
-
-        data_iv2, data_c_t2, data_tag2 = self.recieve_data(client_socket)
-
-        if data_iv2 == 0 and data_c_t2 == 1 and data_tag2 == 2:
+            print("There is a major error")
+            alert = self.send_alert()
+            client_socket.send(bytes(alert[TLS]))
             return
-
-        else:
-            print(self.decrypt_data(enc_key, auth, data_iv2, data_c_t2, data_tag2))
 
     def new_secure_session(self, s_sid):
         """
@@ -480,6 +499,13 @@ class Server:
 
         return data_iv, data_c_t, data_tag
 
+    def send_alert(self):
+
+        alert = TLS(msg=TLSAlert(level=2, descr=40))
+        alert = alert.__class__(bytes(alert))
+
+        return alert
+
 
 def main():
     """
@@ -488,6 +514,8 @@ def main():
 
     while True:
         server = Server()
+        secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        secure_socket.connect((MY_IP, 443))
         client_port, server_port, message = server.first_contact()
 
         if message == b'Accept':
@@ -506,6 +534,7 @@ def main():
 
             server.secure_handshake(client_socket, auth)
 
+            secure_socket.close()
             client_socket.close()
             the_server_socket.close()
 
