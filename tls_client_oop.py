@@ -30,6 +30,8 @@ THE_BIG_LIST = {"0": "'", "1": ";", "2": "=",
                 "24": "@@", "25": "CREATE USER", "26": "`", "27": "select",
                 "28": "from", "29": "union", "30": "union", "31": "create user",
                 "32": "sleep", "33": "all", "34": "and"}
+PARAM_LIST = {"0": 0x0303, "1": 0x16, "2": 0x15, "3": 0x14,
+              "4": 0x1}
 
 
 class Client:
@@ -168,40 +170,50 @@ class Client:
         msg_cert.show()
         msg_key.show()
 
-        server_point = msg_key[TLS][TLSServerKeyExchange][ServerECDHNamedCurveParams].point
+        if TLSServerHello in msg_s and TLSCertificate in msg_cert and TLSServerKeyExchange in msg_key:
 
-        client_key, cert, private_key = self.create_client_key()
-        encryption_key = self.full_encryption(server_point, private_key)
+            server_point = msg_key[TLS][TLSServerKeyExchange][ServerECDHNamedCurveParams].point
 
-        the_client_socket.send(bytes(client_key[TLS]))
+            client_key, cert, private_key = self.create_client_key()
+            encryption_key = self.full_encryption(server_point, private_key)
 
-        server_final = the_client_socket.recv(MAX_MSG_LENGTH)
-        msg_s_f = TLS(server_final)
-        msg_s_f.show()
+            the_client_socket.send(bytes(client_key[TLS]))
+            server_final = the_client_socket.recv(MAX_MSG_LENGTH)
+            msg_s_f = TLS(server_final)
+            msg_s_f.show()
 
-        data_iv, data_c_t, data_tag = self.recieve_data(the_client_socket)
+            if self.is_there_an_alert(msg_s_f):
+                print("YOU ARE BANNED")
+                return
 
-        print(data_iv, data_c_t, data_tag)
-        print("==============", "\n", encryption_key, "\n", "==============")
-        print(self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag))
+            else:
+                data_iv, data_c_t, data_tag = self.recieve_data(the_client_socket)
 
-        message = b'greetings!'
-        some_data = self.encrypt_data(encryption_key, message, auth)
-        print(some_data)
-        data_msg = self.create_message(some_data)
+                print(data_iv, data_c_t, data_tag)
+                print("==============", "\n", encryption_key, "\n", "==============")
+                print(self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag))
 
-        data_msg.show()
-        the_client_socket.send(bytes(data_msg[TLS]))
+                message = b'greetings!'
+                some_data = self.encrypt_data(encryption_key, message, auth)
+                print(some_data)
+                data_msg = self.create_message(some_data)
 
-        print(self.decrypt_data(encryption_key, auth, some_data[0], some_data[1], some_data[2]))
+                data_msg.show()
+                the_client_socket.send(bytes(data_msg[TLS]))
 
-        details_pack, detail = self.details_entry(encryption_key, auth)
-        if details_pack == 0 and detail == 1:
-            print("YOU WERE BANNED FOR USING HTML")
+                print(self.decrypt_data(encryption_key, auth, some_data[0], some_data[1], some_data[2]))
 
+                details_pack, detail = self.details_entry(encryption_key, auth)
+
+                if details_pack == 0 and detail == 1:
+                    print("YOU WERE BANNED FOR USING HTML")
+
+                else:
+                    the_client_socket.send(bytes(details_pack[TLS]))
+                    the_client_socket.send(bytes(detail[TLS]))
         else:
-            the_client_socket.send(bytes(details_pack[TLS]))
-            the_client_socket.send(bytes(detail[TLS]))
+            alert_message = self.send_alert()
+            the_client_socket.send(bytes(alert_message[TLS]))
 
     def start_security(self):
         """
@@ -424,6 +436,17 @@ class Client:
         pack = self.create_message(data)
 
         return pack
+
+    def is_there_an_alert(self, message):
+
+        return TLSAlert in message
+
+    def send_alert(self):
+
+        alert = TLS(msg=TLSAlert(level=2, descr=40))
+        alert = alert.__class__(bytes(alert))
+
+        return alert
 
 
 def main():
