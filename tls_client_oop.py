@@ -198,19 +198,26 @@ class Client:
                 print(some_data)
                 data_msg = self.create_message(some_data)
 
-                data_msg.show()
-                the_client_socket.send(bytes(data_msg[TLS]))
+                if type(data_msg) is list:
+                    for i in range(0, len(data_msg)):
+                        message = data_msg[i]
+                        message.show()
+                        the_client_socket.send(bytes(message[TLS]))
+
+                else:
+                    data_msg.show()
+                    the_client_socket.send(bytes(data_msg[TLS]))
 
                 print(self.decrypt_data(encryption_key, auth, some_data[0], some_data[1], some_data[2]))
 
-                details_pack, detail = self.details_entry(encryption_key, auth)
+                details = self.details_entry(encryption_key, auth)
 
-                if details_pack == 0 and detail == 1:
+                if details[0] == 0 and details[1] == 1:
                     print("YOU WERE BANNED FOR USING HTML")
 
                 else:
-                    the_client_socket.send(bytes(details_pack[TLS]))
-                    the_client_socket.send(bytes(detail[TLS]))
+                    the_client_socket.send(bytes(details[0][TLS]))
+                    the_client_socket.send(bytes(details[1][TLS]))
         else:
             alert_message = self.send_alert()
             the_client_socket.send(bytes(alert_message[TLS]))
@@ -387,17 +394,15 @@ class Client:
             data_message = data_message.__class__(bytes(data_message))
 
         else:
-            first_data = some_data[0][0] + some_data[0][1] + some_data[0][2]
-            second_data = some_data[1][0] + some_data[1][1] + some_data[1][2]
-            data_packet = TLS(msg=TLSApplicationData(data=first_data))
-            data_pack = TLS(msg=TLSApplicationData(data=second_data))
+            data_pack_list = []
 
-            data_message = data_packet
-            data_message_2 = data_pack
-            data_message = data_message.__class__(bytes(data_message))
-            data_message_2 = data_message_2.__class__(bytes(data_message_2))
+            for i in range(0, len(some_data)):
+                first_data = some_data[i][0] + some_data[i][1] + some_data[i][2]
+                data_packet = TLS(msg=TLSApplicationData(data=first_data))
+                data_packet = data_packet.__class__(bytes(data_packet))
+                data_pack_list.append(data_packet)
 
-            return data_message, data_message_2
+            return data_pack_list
 
         return data_message
 
