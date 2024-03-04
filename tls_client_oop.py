@@ -452,6 +452,9 @@ class Client:
         alert = alert.__class__(bytes(alert))
 
         return alert
+    
+    def run(self):
+        pass
 
 
 def main():
