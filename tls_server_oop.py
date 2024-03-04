@@ -506,6 +506,9 @@ class Server:
 
         return alert
 
+    def run(self):
+        pass
+
 
 def main():
     """
