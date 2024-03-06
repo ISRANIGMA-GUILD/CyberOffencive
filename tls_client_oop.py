@@ -29,7 +29,8 @@ THE_BIG_LIST = {"0": "'", "1": ";", "2": "=",
                 "20": "-T", "21": "-", "22": ".php", "23": "SLEEP",
                 "24": "@@", "25": "CREATE USER", "26": "`", "27": "select",
                 "28": "from", "29": "union", "30": "union", "31": "create user",
-                "32": "sleep", "33": "all", "34": "and"}
+                "32": "sleep", "33": "all", "34": "and", "35": "INSERT", "36": "UPDATE",
+                "37": "DELETE"}
 PARAM_LIST = {"0": 0x0303, "1": 0x16, "2": 0x15, "3": 0x14,
               "4": 0x1}
 
@@ -41,7 +42,7 @@ class Client:
 
     def first_contact(self, server_ip, server_port):
         """
-         Get in contact with the server by sending a UDP packet to it
+         Get in contact with the server by sending a TCP packet to it
         :param server_ip: The server's ip
         :param server_port: The port the client will connect to
         """
@@ -52,30 +53,31 @@ class Client:
 
         else:
             server_mac = getmacbyip(server_ip)
-            layer2 = Ether(dst=server_mac)
+            client_mac = get_if_hwaddr(conf.iface)
+            layer2 = Ether(src=client_mac, dst=server_mac)
 
-        udp_packet = (layer2 / IP(src=MY_IP, dst=server_ip) /
-                      UDP(sport=RandShort(), dport=server_port) /
+        tcp_packet = (layer2 / IP(src=MY_IP, dst=server_ip) /
+                      TCP(sport=RandShort(), dport=server_port) /
                       Raw(load=b'Logged'))
 
-        udp_packet = udp_packet.__class__(bytes(udp_packet))
-        udp_packet.show()
-        sendp(udp_packet)
+        tcp_packet = tcp_packet.__class__(bytes(tcp_packet))
+        tcp_packet.show()
+        sendp(tcp_packet)
 
-        vert = sniff(count=1, lfilter=self.filter_udp)
+        vert = sniff(count=1, lfilter=self.filter_tcp)
         vert[0].show()
         res = vert[0]
 
         return res
 
-    def filter_udp(self, packets):
+    def filter_tcp(self, packets):
         """
-         Check if the packet received is a UDP packet
+         Check if the packet received is a TCP packet
         :param packets: The packet
-        :return: If the packet has UDP in it
+        :return: If the packet has TCP in it
         """
 
-        return UDP in packets and Raw in packets and \
+        return TCP in packets and Raw in packets and \
             (packets[Raw].load == b'Accept' or packets[Raw].load == b'Denied')
 
     def the_pre_handshake(self, server_port, the_client_socket):
@@ -107,6 +109,9 @@ class Client:
         letter = syn_packet[Raw].load
         dot = finish_first_handshake[Raw].load
         authentic = letter + dot
+
+        finisher = finish_first_handshake.copy()
+        self.end_the_connection(finisher, server_port, the_client_socket)
 
         return finish_first_handshake, authentic
 
@@ -156,6 +161,7 @@ class Client:
 
         client_hello_packet = self.start_security()
         client_hello_packet.show()
+        print(bytes(client_hello_packet[TLS]), "\n", len(bytes(client_hello_packet[TLS])))
         the_client_socket.send(bytes(client_hello_packet[TLS]))
 
         server_hello = the_client_socket.recv(MAX_MSG_LENGTH)
@@ -311,24 +317,28 @@ class Client:
 
         return data_iv, data_c_t, data_tag
 
-    def end_connection(self, basic_tcp, server_port):
+    def end_the_connection(self, finisher, server_port, client_socket):
         """
          Terminate a tcp connection
         :param server_port: Servers port
-        :param basic_tcp: Simple TCP packet with ACK flag
+        :param finisher: Simple TCP packet with ACK flag
         """
 
-        basic_tcp[TCP].flags = FIN
-        ack_end = srp1(basic_tcp)
-        ack_end[TCP].flags = ACK
+        finisher[TCP].flags = FIN
+        client_socket.send(bytes(finisher[TCP]))
 
-        ack_end[TCP].sport = ack_end[TCP].dport
-        ack_end[TCP].dport = server_port
+        server_ack = client_socket.recv(MAX_MSG_LENGTH)
+        g = TCP(server_ack)
+        server_fin = client_socket.recv(MAX_MSG_LENGTH)
+        m = TCP(server_fin)
 
-        ack_end[IP].dst = ack_end[IP].src
-        ack_end[IP].src = MY_IP
+        c = m.copy()
+        c[TCP].ack = c[TCP].ack + 1
+        c[TCP].flags = ACK
+        c[TCP].sport = c[TCP].dport
+        c[TCP].dport = server_port
+        client_socket.send(bytes(c[TCP]))
 
-        sendp(ack_end)
 
     def encrypt_data(self, key, plaintext, associated_data):
         """
@@ -460,7 +470,6 @@ def main():
     """
 
     client = Client()
-    print(THE_BIG_LIST.values(), THE_BIG_LIST.keys())
     server_port = int(RandShort())
     server_ip = input("Enter the ip of the server\n")
 
