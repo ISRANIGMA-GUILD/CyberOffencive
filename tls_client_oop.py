@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 import sys
-=======
->>>>>>> main
 from scapy.all import *
 from scapy.layers.l2 import *
 from scapy.layers.dns import *
@@ -23,7 +20,6 @@ TLS_N_VERSION = 0x0304
 RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256.val
 MAX_MSG_LENGTH = 1024
 THE_SHA_256 = hashes.SHA256()
-<<<<<<< HEAD
 THE_BIG_LIST = {"0": "'", "1": ";", "2": "=",
                 "3": '"', "4": "*", "5": "AND",
                 "6": "SELECT", "7": "/", "8": "#",
@@ -37,8 +33,6 @@ THE_BIG_LIST = {"0": "'", "1": ";", "2": "=",
                 "37": "DELETE"}
 PARAM_LIST = {"0": 0x0303, "1": 0x16, "2": 0x15, "3": 0x14,
               "4": 0x1}
-=======
->>>>>>> main
 
 
 class Client:
@@ -48,11 +42,7 @@ class Client:
 
     def first_contact(self, server_ip, server_port):
         """
-<<<<<<< HEAD
          Get in contact with the server by sending a TCP packet to it
-=======
-         Get in contact with the server by sending a UDP packet to it
->>>>>>> main
         :param server_ip: The server's ip
         :param server_port: The port the client will connect to
         """
@@ -66,7 +56,6 @@ class Client:
             client_mac = get_if_hwaddr(conf.iface)
             layer2 = Ether(src=client_mac, dst=server_mac)
 
-<<<<<<< HEAD
         tcp_packet = (layer2 / IP(src=MY_IP, dst=server_ip) /
                       TCP(sport=RandShort(), dport=server_port) /
                       Raw(load=b'Logged'))
@@ -76,23 +65,11 @@ class Client:
         sendp(tcp_packet)
 
         vert = sniff(count=1, lfilter=self.filter_tcp)
-=======
-        udp_packet = (layer2 / IP(src=MY_IP, dst=server_ip) /
-                      UDP(sport=RandShort(), dport=server_port) /
-                      Raw(load=b'Logged'))
-
-        udp_packet = udp_packet.__class__(bytes(udp_packet))
-        udp_packet.show()
-        sendp(udp_packet)
-
-        vert = sniff(count=1, lfilter=self.filter_udp)
->>>>>>> main
         vert[0].show()
         res = vert[0]
 
         return res
 
-<<<<<<< HEAD
     def filter_tcp(self, packets):
         """
          Check if the packet received is a TCP packet
@@ -101,16 +78,6 @@ class Client:
         """
 
         return TCP in packets and Raw in packets and \
-=======
-    def filter_udp(self, packets):
-        """
-         Check if the packet received is a UDP packet
-        :param packets: The packet
-        :return: If the packet has UDP in it
-        """
-
-        return UDP in packets and Raw in packets and \
->>>>>>> main
             (packets[Raw].load == b'Accept' or packets[Raw].load == b'Denied')
 
     def the_pre_handshake(self, server_port, the_client_socket):
@@ -143,12 +110,9 @@ class Client:
         dot = finish_first_handshake[Raw].load
         authentic = letter + dot
 
-<<<<<<< HEAD
         finisher = finish_first_handshake.copy()
         self.end_the_connection(finisher, server_port, the_client_socket)
 
-=======
->>>>>>> main
         return finish_first_handshake, authentic
 
     def create_syn(self, server_port):
@@ -224,20 +188,12 @@ class Client:
             msg_s_f = TLS(server_final)
             msg_s_f.show()
 
-<<<<<<< HEAD
             if self.is_there_an_alert(msg_s_f):
                 print("YOU ARE BANNED")
                 return
 
             else:
                 data_iv, data_c_t, data_tag = self.recieve_data(the_client_socket)
-=======
-        data_iv, data_c_t, data_tag = self.recieve_data(the_client_socket)
-
-        print(data_iv, data_c_t, data_tag)
-        print("==============", "\n", encryption_key, "\n", "==============")
-        print(self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag))
->>>>>>> main
 
                 print(data_iv, data_c_t, data_tag)
                 print("==============", "\n", encryption_key, "\n", "==============")
@@ -254,7 +210,6 @@ class Client:
                         message.show()
                         the_client_socket.send(bytes(message[TLS]))
 
-<<<<<<< HEAD
                 else:
                     data_msg.show()
                     the_client_socket.send(bytes(data_msg[TLS]))
@@ -273,8 +228,6 @@ class Client:
             alert_message = self.send_alert()
             the_client_socket.send(bytes(alert_message[TLS]))
 
-=======
->>>>>>> main
     def start_security(self):
         """
          Create client hello packet
@@ -364,11 +317,7 @@ class Client:
 
         return data_iv, data_c_t, data_tag
 
-<<<<<<< HEAD
     def end_the_connection(self, finisher, server_port, client_socket):
-=======
-    def end_connection(self, basic_tcp, server_port):
->>>>>>> main
         """
          Terminate a tcp connection
         :param server_port: Servers port
@@ -513,9 +462,6 @@ class Client:
         alert = alert.__class__(bytes(alert))
 
         return alert
-    
-    def run(self):
-        pass
 
 
 def main():

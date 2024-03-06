@@ -5,6 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tls_client_oop.py" beforeDir="false" afterPath="$PROJECT_DIR$/tls_client_oop.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tls_server_oops.py" beforeDir="false" afterPath="$PROJECT_DIR$/tls_server_oops.py" afterDir="false" />
     </list>
@@ -27,16 +29,16 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.tls_client_oop.executor&quot;: &quot;Run&quot;,
-    &quot;Python.tls_server_oops.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/basic_com&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.tls_client_oop.executor": "Run",
+    "Python.tls_server_oops.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "tls",
+    "last_opened_file_path": "C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/basic_com"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="Python.tls_server_oops">
     <configuration name="tls_client_oop" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="basic_com" />

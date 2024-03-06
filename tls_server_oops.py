@@ -35,6 +35,7 @@ THE_SHA_256 = hashes.SHA256()
 SECP = 0x0017
 SIGNATURE_ALGORITHIM = 0x0401
 THE_LIST = {}
+PREVS = {}
 
 
 class Server:
@@ -48,25 +49,26 @@ class Server:
         :return:
         """
 
-        p = sniff(count=1, lfilter=self.filter_udp)
-        udp_packet = p[0]
-        alt_res = udp_packet.copy()
+        p = sniff(count=1, lfilter=self.filter_tcp)
+        tcp_packet = p[0]
+        alt_res = tcp_packet.copy()
         alt_res[Raw].load = self.check_if_eligible(alt_res[Ether].src)
 
         alt_res = self.create_f_response(alt_res)
+        print("response:")
         alt_res.show()
         sendp(alt_res)
 
-        return udp_packet[UDP].sport,  udp_packet[UDP].dport, alt_res[Raw].load
+        return tcp_packet[TCP].sport,  tcp_packet[TCP].dport, alt_res[Raw].load
 
-    def filter_udp(self, packets):
+    def filter_tcp(self, packets):
         """
-         Check if the packet received is a UDP packet
+         Check if the packet received is a TCP packet
         :param packets: The packet
-        :return: If the packet has UDP in it
+        :return: If the packet has TCP in it
         """
 
-        return UDP in packets and Raw in packets and packets[Raw].load == b'Logged'
+        return TCP in packets and Raw in packets and packets[Raw].load == b'Logged'
 
     def check_if_eligible(self, identifier):
 
@@ -79,8 +81,8 @@ class Server:
     def create_f_response(self, alt_res):
         """
          Create the servers first response
-        :param alt_res: The UDP packet
-        :return: The UDP response
+        :param alt_res: The TCP packet
+        :return: The TCP response
         """
 
         new_mac_src = alt_res[Ether].dst
@@ -89,8 +91,8 @@ class Server:
         new_src = alt_res[IP].dst
         new_dst = alt_res[IP].src
 
-        new_src_port = alt_res[UDP].dport
-        new_dst_port = alt_res[UDP].sport
+        new_src_port = alt_res[TCP].dport
+        new_dst_port = alt_res[TCP].sport
 
         alt_res[Ether].src = new_mac_src
         alt_res[Ether].dst = new_mac_dst
@@ -98,10 +100,14 @@ class Server:
         alt_res[IP].src = new_src
         alt_res[IP].dst = new_dst
 
-        alt_res[UDP].sport = new_src_port
-        alt_res[UDP].dport = new_dst_port
+        alt_res[TCP].sport = new_src_port
+        alt_res[TCP].dport = new_dst_port
+        alt_res[TCP].flags = SYN + ACK
+        alt_res[TCP].ack = alt_res[TCP].seq + 1
+        alt_res[TCP].seq = RandShort()
 
         alt_res = alt_res.__class__(bytes(alt_res))
+
         return alt_res
 
     def first_handshake(self, the_client_socket):
@@ -134,6 +140,8 @@ class Server:
 
         clients_dot = ack_packet[Raw].load
         auth = clients_letter + clients_dot
+
+        self.end_connection(ack_packet[TCP].sport, the_client_socket)
 
         return ack_packet, auth
 
@@ -183,42 +191,77 @@ class Server:
         s_p = TLS(client_hello)
         s_p.show()
 
-        s_sid = self.create_session_id()
+        if TLSClientHello in s_p:
 
-        sec_res = self.new_secure_session(s_sid)
-        sec_res.show()
+            s_sid = self.create_session_id()
 
-        certificate, key, enc_master_c, server_key_ex, private_key = self.new_certificate()
-        client_socket.send(bytes(sec_res[TLS]))  # Server hello
-        client_socket.send(bytes(certificate[TLS]))  # Certificate
-        client_socket.send(bytes(server_key_ex[TLS]))  # Server key exchange
+            sec_res = self.new_secure_session(s_sid)
+            sec_res.show()
 
-        client_key_exchange = client_socket.recv(MAX_MSG_LENGTH)
-        keys = TLS(client_key_exchange)
-        keys.show()
+            certificate, key, enc_master_c, server_key_ex, private_key = self.new_certificate()
+            client_socket.send(bytes(sec_res[TLS]))  # Server hello
+            client_socket.send(bytes(certificate[TLS]))  # Certificate
+            client_socket.send(bytes(server_key_ex[TLS]))  # Server key exchange
 
-        client_point = keys[TLSClientKeyExchange][Raw].load
-        enc_key = self.create_encryption_key(private_key, client_point)
-        print("Encryption key\n", enc_key)
+            client_key_exchange = client_socket.recv(MAX_MSG_LENGTH)
+            keys = TLS(client_key_exchange)
+            keys.show()
 
-        server_final = self.create_server_final()  # Change Cipher spec
-        server_final.show()
+            if TLSClientKeyExchange in keys:
+                client_point = keys[TLSClientKeyExchange][Raw].load
+                enc_key = self.create_encryption_key(private_key, client_point)
+                print("Encryption key\n", enc_key)
 
-        client_socket.send(bytes(server_final[TLS]))
+                server_final = self.create_server_final()  # Change Cipher spec
+                server_final.show()
 
-        message = b'hello'
-        some_data = self.encrypt_data(enc_key, message, auth)
-        print(some_data)
-        data_msg = self.create_message(some_data)  # Application data
+                client_socket.send(bytes(server_final[TLS]))
 
-        data_msg.show()
-        client_socket.send(bytes(data_msg[TLS]))
+                message = b'hello'
+                some_data = self.encrypt_data(enc_key, message, auth)
+                print(some_data)
+                data_msg = self.create_message(some_data)  # Application data
 
-        data_iv, data_c_t, data_tag = self.recieve_data(client_socket)
+                data_msg.show()
+                client_socket.send(bytes(data_msg[TLS]))
 
-        print(data_iv, data_c_t, data_tag)
-        print("==============", "\n", enc_key, "\n", "==============")
-        print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
+                data_iv, data_c_t, data_tag = self.recieve_data(client_socket)
+
+                print(data_iv, data_c_t, data_tag)
+                print("==============", "\n", enc_key, "\n", "==============")
+                print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
+
+                data_iv, data_c_t, data_tag = self.recieve_data(client_socket)
+
+                if data_iv == 0 and data_c_t == 1 and data_tag == 2:
+                    return
+
+                else:
+                    print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
+
+                data_iv2, data_c_t2, data_tag2 = self.recieve_data(client_socket)
+
+                if data_iv2 == 0 and data_c_t2 == 1 and data_tag2 == 2:
+                    return
+
+                else:
+                    print(self.decrypt_data(enc_key, auth, data_iv2, data_c_t2, data_tag2))
+
+            elif TLSAlert in client_key_exchange:
+                print("There is a major error")
+                return
+
+            else:
+                print("There is a major error")
+                alert = self.send_alert()
+                client_socket.send(bytes(alert[TLS]))
+                return
+
+        else:
+            print("There is a major error")
+            alert = self.send_alert()
+            client_socket.send(bytes(alert[TLS]))
+            return
 
     def new_secure_session(self, s_sid):
         """
@@ -445,16 +488,59 @@ class Server:
         :return: The data iv, data and tag
         """
 
-        data_pack = TLS(the_client_socket.recv(MAX_MSG_LENGTH))
-        data_pack.show()
-        data = data_pack[TLS][TLSApplicationData].data
+        data_pack = the_client_socket.recv(MAX_MSG_LENGTH)
+        if not data_pack:
+            print("THAT IS A SNEAKY CLIENT")
+            return 0, 1, 2
 
-        print("Will decrypt", data)
-        data_iv = data[:12]
-        data_tag = data[len(data) - 16:len(data)]
-        data_c_t = data[12:len(data) - 16]
+        else:
+            data_pack = TLS(data_pack)
+            data_pack.show()
+
+            data = data_pack[TLS][TLSApplicationData].data
+
+            print("Will decrypt", data)
+            data_iv = data[:12]
+            data_tag = data[len(data) - 16:len(data)]
+            data_c_t = data[12:len(data) - 16]
 
         return data_iv, data_c_t, data_tag
+
+    def end_connection(self, server_port, client_socket):
+        """
+         Terminate a tcp connection
+        :param server_port: Servers port
+        :param client_socket: Simple TCP packet with ACK flag
+        """
+
+        client_fin = client_socket.recv(MAX_MSG_LENGTH)
+        f = TCP(client_fin)
+        ack_packet, fin_packet = f.copy(), f.copy()
+
+        ack_packet[TCP].ack = ack_packet[TCP].ack + 1
+        fin_packet[TCP].flags = FIN
+
+        ack_packet[TCP].sport = ack_packet[TCP].dport
+        ack_packet[TCP].dport = server_port
+
+        print(server_port, ack_packet[TCP].dport)
+        fin_packet[TCP].sport = ack_packet[TCP].dport
+        fin_packet[TCP].dport = server_port
+        fin_packet.show()
+
+        client_socket.send(bytes(fin_packet[TCP]))
+        client_socket.send(bytes(ack_packet[TCP]))
+
+        client_fin_ack = TCP(client_socket.recv(MAX_MSG_LENGTH))
+
+        client_fin_ack.show()
+
+    def send_alert(self):
+
+        alert = TLS(msg=TLSAlert(level=2, descr=40))
+        alert = alert.__class__(bytes(alert))
+
+        return alert
 
 
 def main():
@@ -464,11 +550,13 @@ def main():
 
     while True:
         server = Server()
+        secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        secure_socket.connect((MY_IP, 443))
         client_port, server_port, message = server.first_contact()
 
         if message == b'Accept':
             the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-            the_server_socket.bind((THE_USUAL_IP, server_port))  # Bind the server IP and Port into a tuple
+            the_server_socket.bind(('0.0.0.0', server_port))  # Bind the server IP and Port into a tuple
             the_server_socket.listen()  # Listen to client
 
             print("Server is up and running")
@@ -482,10 +570,11 @@ def main():
 
             server.secure_handshake(client_socket, auth)
 
+            secure_socket.close()
             client_socket.close()
             the_server_socket.close()
 
-            break #will be removed later
+            break  # will be removed later
 
         elif message == b'Denied':
 
