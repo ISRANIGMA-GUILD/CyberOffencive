@@ -188,8 +188,8 @@ class Server:
         s_p = TLS(client_hello)
         s_p.show()
 
-        if TLSClientHello in s_p:
-
+        if TLSClientHello in s_p and s_p[TLS][TLSClientHello].version == TLS_MID_VERSION \
+           and s_p[TLS].version == TLS_MID_VERSION:
             s_sid = self.create_session_id()
 
             sec_res = self.new_secure_session(s_sid)
@@ -205,7 +205,7 @@ class Server:
             keys = TLS(client_key_exchange)
             keys.show()
 
-            if TLSClientKeyExchange in keys:
+            if TLSClientKeyExchange in keys and keys[TLS].version == TLS_MID_VERSION:
                 client_point = keys[TLSClientKeyExchange][Raw].load
                 enc_key = self.create_encryption_key(private_key, client_point)
                 print("==============", "\n", "Encryption key\n", enc_key, "\n", "==============")
@@ -244,12 +244,6 @@ class Server:
                 print("There is a major error")
                 return
 
-            else:
-                print("There is a major error")
-                alert = self.send_alert()
-                client_socket.send(bytes(alert[TLS]))
-                return
-
         else:
             print("There is a major error")
             alert = self.send_alert()
@@ -264,8 +258,10 @@ class Server:
         """
 
         security_layer = (TLS(msg=TLSServerHello(sid=s_sid, cipher=RECOMMENDED_CIPHER,
-                                                 ext=TLS_Ext_SupportedVersion_SH(version=[TLS_MID_VERSION]) /
-                                                 TLS_Ext_SignatureAlgorithmsCert(sig_algs=[SIGNATURE_ALGORITHIM]))))
+                          ext=(TLS_Ext_SupportedVersion_SH(version=[TLS_MID_VERSION]) /
+                              TLS_Ext_SignatureAlgorithmsCert(sig_algs=[SIGNATURE_ALGORITHIM]) /
+                              TLS_Ext_ExtendedMasterSecret() / TLS_Ext_SupportedPointFormat() /
+                              TLS_Ext_RenegotiationInfo()))))
 
         security_packet = security_layer
         security_packet.__class__(bytes(security_packet))
