@@ -25,6 +25,8 @@ THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6
                 "31": "create user", "32": "sleep", "33": "all", "34": "and", "35": "INSERT", "36": "UPDATE",
                 "37": "DELETE"}
 PARAM_LIST = {"0": 0x0303, "1": 0x16, "2": 0x15, "3": 0x14, "4": 0x1}
+SECP = [0x6a6a, 0x001d, 0x0017, 0x0018]
+SIGNATURE_ALGORITHIM = [0x0403, 0x0804, 0x0401, 0x0503, 0x0805, 0x0501, 0x0806, 0x0601]
 
 
 class Client:
@@ -151,7 +153,6 @@ class Client:
 
         client_hello_packet = self.start_security()
         client_hello_packet.show()
-        print(bytes(client_hello_packet[TLS]), "\n", len(bytes(client_hello_packet[TLS])))
         the_client_socket.send(bytes(client_hello_packet[TLS]))
 
         server_hello = the_client_socket.recv(MAX_MSG_LENGTH)
@@ -184,14 +185,12 @@ class Client:
 
             else:
                 data_iv, data_c_t, data_tag = self.recieve_data(the_client_socket)
-
-                print(data_iv, data_c_t, data_tag)
                 print("==============", "\n", encryption_key, "\n", "==============")
-                print(self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag))
 
+                print(self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag))
                 message = b'greetings!'
+
                 some_data = self.encrypt_data(encryption_key, message, auth)
-                print(some_data)
                 data_msg = self.create_message(some_data)
 
                 if type(data_msg) is list:
@@ -232,7 +231,10 @@ class Client:
         :return: Client hello packet
         """
 
-        ch_packet = TLS(msg=TLSClientHello(ext=TLS_Ext_SupportedVersion_CH(versions=[TLS_N_VERSION, TLS_M_VERSION])))
+        ch_packet = TLS(msg=TLSClientHello(ext=TLS_Ext_SupportedVersion_CH(versions=[TLS_N_VERSION, TLS_M_VERSION]) /
+                        TLS_Ext_SignatureAlgorithms(sig_algs=SIGNATURE_ALGORITHIM) / TLS_Ext_RenegotiationInfo() /
+                        TLS_Ext_ExtendedMasterSecret() / TLS_Ext_SupportedPointFormat() /
+                        TLS_Ext_SupportedGroups(groups=SECP)))
 
         client_hello_packet = ch_packet
         client_hello_packet = client_hello_packet.__class__(bytes(client_hello_packet))
@@ -278,7 +280,7 @@ class Client:
             format=serialization.PublicFormat.UncompressedPoint
         )
 
-        print(len(public_key_point), public_key)
+        print(len(public_key_point))
 
         return private_key, public_key_point
 
@@ -338,7 +340,6 @@ class Client:
         # Encrypt the plaintext and get the associated ciphertext.
         # GCM does not require padding.
         ciphertext = encryptor.update(plaintext) + encryptor.finalize()
-        print(encryptor.tag)
 
         return iv, ciphertext, encryptor.tag
 
