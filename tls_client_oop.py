@@ -1,4 +1,3 @@
-import sys
 from scapy.all import *
 from scapy.layers.l2 import *
 from scapy.layers.dns import *
@@ -12,7 +11,6 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 
 SYN = 2
-FIN = 1
 ACK = 16
 MY_IP = conf.route.route('0.0.0.0')[1]
 TLS_M_VERSION = 0x0303
@@ -104,14 +102,12 @@ class Client:
         finish_first_handshake.show()
 
         the_client_socket.send(bytes(finish_first_handshake[TCP]))
+        time.sleep(2)
         the_client_socket.send(bytes(finish_first_handshake[Raw]))
 
         letter = syn_packet[Raw].load
         dot = finish_first_handshake[Raw].load
         authentic = letter + dot
-
-        finisher = finish_first_handshake.copy()
-        self.end_the_connection(finisher, server_port, the_client_socket)
 
         return finish_first_handshake, authentic
 
@@ -227,6 +223,14 @@ class Client:
         else:
             alert_message = self.send_alert()
             the_client_socket.send(bytes(alert_message[TLS]))
+            i = 1
+            while True:
+                try:
+                    if i == 1:
+                        print("no way")
+                        i += 1
+                except KeyboardInterrupt:
+                    break
 
     def start_security(self):
         """
@@ -316,29 +320,6 @@ class Client:
         data_c_t = data[12:len(data) - 16]
 
         return data_iv, data_c_t, data_tag
-
-    def end_the_connection(self, finisher, server_port, client_socket):
-        """
-         Terminate a tcp connection
-        :param server_port: Servers port
-        :param finisher: Simple TCP packet with ACK flag
-        """
-
-        finisher[TCP].flags = FIN
-        client_socket.send(bytes(finisher[TCP]))
-
-        server_ack = client_socket.recv(MAX_MSG_LENGTH)
-        g = TCP(server_ack)
-        server_fin = client_socket.recv(MAX_MSG_LENGTH)
-        m = TCP(server_fin)
-
-        c = m.copy()
-        c[TCP].ack = c[TCP].ack + 1
-        c[TCP].flags = ACK
-        c[TCP].sport = c[TCP].dport
-        c[TCP].dport = server_port
-        client_socket.send(bytes(c[TCP]))
-
 
     def encrypt_data(self, key, plaintext, associated_data):
         """

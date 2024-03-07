@@ -15,7 +15,6 @@ import os
 import hashlib
 
 SYN = 2
-FIN = 1
 ACK = 16
 THE_USUAL_IP = '0.0.0.0'
 MY_IP = conf.route.route('0.0.0.0')[1]
@@ -130,6 +129,7 @@ class Server:
 
         response = self.create_response(syn_packet)
         the_client_socket.send(bytes(response[TCP]))
+        time.sleep(5)
         the_client_socket.send(bytes(response[Raw]))
 
         last_pack = the_client_socket.recv(MAX_MSG_LENGTH)
@@ -140,8 +140,6 @@ class Server:
 
         clients_dot = ack_packet[Raw].load
         auth = clients_letter + clients_dot
-
-        self.end_connection(ack_packet[TCP].sport, the_client_socket)
 
         return ack_packet, auth
 
@@ -201,6 +199,7 @@ class Server:
             certificate, key, enc_master_c, server_key_ex, private_key = self.new_certificate()
             client_socket.send(bytes(sec_res[TLS]))  # Server hello
             client_socket.send(bytes(certificate[TLS]))  # Certificate
+            time.sleep(2)
             client_socket.send(bytes(server_key_ex[TLS]))  # Server key exchange
 
             client_key_exchange = client_socket.recv(MAX_MSG_LENGTH)
@@ -247,7 +246,7 @@ class Server:
                 else:
                     print(self.decrypt_data(enc_key, auth, data_iv2, data_c_t2, data_tag2))
 
-            elif TLSAlert in client_key_exchange:
+            elif TLSAlert in keys:
                 print("There is a major error")
                 return
 
@@ -506,35 +505,6 @@ class Server:
 
         return data_iv, data_c_t, data_tag
 
-    def end_connection(self, server_port, client_socket):
-        """
-         Terminate a tcp connection
-        :param server_port: Servers port
-        :param client_socket: Simple TCP packet with ACK flag
-        """
-
-        client_fin = client_socket.recv(MAX_MSG_LENGTH)
-        f = TCP(client_fin)
-        ack_packet, fin_packet = f.copy(), f.copy()
-
-        ack_packet[TCP].ack = ack_packet[TCP].ack + 1
-        fin_packet[TCP].flags = FIN
-
-        ack_packet[TCP].sport = ack_packet[TCP].dport
-        ack_packet[TCP].dport = server_port
-
-        print(server_port, ack_packet[TCP].dport)
-        fin_packet[TCP].sport = ack_packet[TCP].dport
-        fin_packet[TCP].dport = server_port
-        fin_packet.show()
-
-        client_socket.send(bytes(fin_packet[TCP]))
-        client_socket.send(bytes(ack_packet[TCP]))
-
-        client_fin_ack = TCP(client_socket.recv(MAX_MSG_LENGTH))
-
-        client_fin_ack.show()
-
     def send_alert(self):
 
         alert = TLS(msg=TLSAlert(level=2, descr=40))
@@ -567,6 +537,7 @@ def main():
             client_socket = connection
 
             acked, auth = server.first_handshake(client_socket)
+            time.sleep(2)
 
             server.secure_handshake(client_socket, auth)
 
