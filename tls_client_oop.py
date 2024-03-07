@@ -18,19 +18,13 @@ TLS_N_VERSION = 0x0304
 RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256.val
 MAX_MSG_LENGTH = 1024
 THE_SHA_256 = hashes.SHA256()
-THE_BIG_LIST = {"0": "'", "1": ";", "2": "=",
-                "3": '"', "4": "*", "5": "AND",
-                "6": "SELECT", "7": "/", "8": "#",
-                "9": " ", "10": "FROM", "11": "(", "12": ")",
-                "13": "+", "14": "UNION", "15": "ALL",
-                "16": ">", "17": "<", "18": "–dbs", "19": "-D",
-                "20": "-T", "21": "-", "22": ".php", "23": "SLEEP",
-                "24": "@@", "25": "CREATE USER", "26": "`", "27": "select",
-                "28": "from", "29": "union", "30": "union", "31": "create user",
-                "32": "sleep", "33": "all", "34": "and", "35": "INSERT", "36": "UPDATE",
+THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6": "SELECT", "7": "/", "8": "#",
+                "9": " ", "10": "FROM", "11": "(", "12": ")", "13": "+", "14": "UNION", "15": "ALL",
+                "16": ">", "17": "<", "18": "–dbs", "19": "-D", "20": "-T", "21": "-", "22": ".php", "23": "SLEEP",
+                "24": "@@", "25": "CREATE USER", "26": "`", "27": "select", "28": "from", "29": "union", "30": "union",
+                "31": "create user", "32": "sleep", "33": "all", "34": "and", "35": "INSERT", "36": "UPDATE",
                 "37": "DELETE"}
-PARAM_LIST = {"0": 0x0303, "1": 0x16, "2": 0x15, "3": 0x14,
-              "4": 0x1}
+PARAM_LIST = {"0": 0x0303, "1": 0x16, "2": 0x15, "3": 0x14, "4": 0x1}
 
 
 class Client:
@@ -400,12 +394,10 @@ class Client:
     def details_entry(self, key, auth):
         """
 
-        Args:
-            key:
-            auth:
-
-        Returns:
-
+         Turn the data into a proper message
+        :param key: The key
+        :param auth: The authenticator
+        :return: The full data message or 0,1 (CLIENT WILL BE BANNED)
         """
         user = input("Enter your username\n")
         passw = input("Enter your password\n")
