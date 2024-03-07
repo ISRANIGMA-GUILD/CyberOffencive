@@ -28,7 +28,7 @@ KEY_ENC = serialization.Encoding.X962
 FORMAT_PUBLIC = serialization.PublicFormat.UncompressedPoint
 THE_PEM = serialization.Encoding.PEM
 PRIVATE_OPENSSL = serialization.PrivateFormat.TraditionalOpenSSL
-GOOD_PAD = PKCS1v15()
+GOOD_PAD = PSS(MGF1(hashes.SHA256()), PSS.MAX_LENGTH)
 MAX_MSG_LENGTH = 1024
 THE_SHA_256 = hashes.SHA256()
 SECP = 0x0017
@@ -54,7 +54,6 @@ class Server:
         alt_res[Raw].load = self.check_if_eligible(alt_res[Ether].src)
 
         alt_res = self.create_f_response(alt_res)
-        print("response:")
         alt_res.show()
         sendp(alt_res)
 
@@ -209,7 +208,7 @@ class Server:
             if TLSClientKeyExchange in keys:
                 client_point = keys[TLSClientKeyExchange][Raw].load
                 enc_key = self.create_encryption_key(private_key, client_point)
-                print("Encryption key\n", enc_key)
+                print("==============", "\n", "Encryption key\n", enc_key, "\n", "==============")
 
                 server_final = self.create_server_final()  # Change Cipher spec
                 server_final.show()
@@ -218,18 +217,13 @@ class Server:
 
                 message = b'hello'
                 some_data = self.encrypt_data(enc_key, message, auth)
-                print(some_data)
                 data_msg = self.create_message(some_data)  # Application data
 
                 data_msg.show()
                 client_socket.send(bytes(data_msg[TLS]))
 
                 data_iv, data_c_t, data_tag = self.recieve_data(client_socket)
-
-                print(data_iv, data_c_t, data_tag)
-                print("==============", "\n", enc_key, "\n", "==============")
                 print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
-
                 data_iv, data_c_t, data_tag = self.recieve_data(client_socket)
 
                 if data_iv == 0 and data_c_t == 1 and data_tag == 2:
@@ -334,8 +328,6 @@ class Server:
 
         alt_names = [x509.DNSName(H_NAME), x509.DNSName(MY_IP)]
 
-        print(alt_names)
-
         basic_constraints = x509.BasicConstraints(ca=True, path_length=0)
 
         now = datetime.utcnow()
@@ -349,7 +341,7 @@ class Server:
                 .not_valid_after(now + timedelta(days=365))
                 .add_extension(basic_constraints, True)
                 .add_extension(x509.SubjectAlternativeName(alt_names), False)
-                .sign(key, THE_SHA_256, default_backend(), rsa_padding=GOOD_PAD)
+                .sign(key, THE_SHA_256, default_backend(), rsa_padding=PKCS1v15())
                 )
 
         my_cert_pem = cert.public_bytes(encoding=THE_PEM)
