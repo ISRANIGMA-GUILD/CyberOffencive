@@ -227,7 +227,7 @@ class Client:
             while True:
                 try:
                     if i == 1:
-                        print("no way")
+                        print("ALERT ALERT")
                         i += 1
                 except KeyboardInterrupt:
                     break
