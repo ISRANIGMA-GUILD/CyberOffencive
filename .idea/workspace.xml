@@ -5,8 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/basic_com.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/basic_com.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/certifacte.crt" beforeDir="false" afterPath="$PROJECT_DIR$/certifacte.crt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/certifacte.pem" beforeDir="false" afterPath="$PROJECT_DIR$/certifacte.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/the_key.pem" beforeDir="false" afterPath="$PROJECT_DIR$/the_key.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tls_client_oop.py" beforeDir="false" afterPath="$PROJECT_DIR$/tls_client_oop.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tls_server_oops.py" beforeDir="false" afterPath="$PROJECT_DIR$/tls_server_oops.py" afterDir="false" />
     </list>
@@ -29,17 +33,40 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.tls_client_oop.executor": "Run",
-    "Python.tls_server_oops.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "tls",
-    "last_opened_file_path": "C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/basic_com"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.security_server.executor&quot;: &quot;Run&quot;,
+    &quot;Python.tls_client_oop.executor&quot;: &quot;Run&quot;,
+    &quot;Python.tls_server_oops.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;tls&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/basic_com&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Python.tls_server_oops">
+    <configuration name="security_server" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="basic_com" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/security_server.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="tls_client_oop" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="basic_com" />
       <option name="ENV_FILES" value="" />
@@ -88,6 +115,7 @@
       <list>
         <item itemvalue="Python.tls_client_oop" />
         <item itemvalue="Python.tls_server_oops" />
+        <item itemvalue="Python.security_server" />
       </list>
     </recent_temporary>
   </component>
