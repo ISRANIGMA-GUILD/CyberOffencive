@@ -263,14 +263,14 @@ class Server:
                     print(self.decrypt_data(enc_key, auth, data_iv2, data_c_t2, data_tag2))
                     return enc_key
 
-            elif TLSAlert in keys:
+            else:
                 print("There is a major error")
+                self.send_alert(client_socket)
                 return
 
         else:
             print("There is a major error")
-            alert = self.send_alert()
-            client_socket.send(bytes(alert[TLS]))
+            self.send_alert(client_socket)
             return
 
     def new_secure_session(self, s_sid):
@@ -314,7 +314,7 @@ class Server:
 
         cert_msg = cert_tls
         ske_msg = server_key_ex
-        cert_msg.show()
+
         cert_msg = cert_msg.__class__(bytes(cert_msg))
         cert_msg.show()
 
@@ -516,7 +516,7 @@ class Server:
 
         return data_iv, data_c_t, data_tag
 
-    def send_alert(self):
+    def send_alert(self, client_socket):
         """
 
         :return:
@@ -524,8 +524,7 @@ class Server:
 
         alert = TLS(msg=TLSAlert(level=2, descr=40))
         alert = alert.__class__(bytes(alert))
-
-        return alert
+        client_socket.send(bytes(alert[TLS]))
 
     def respond_to_client(self, enc_key, auth, client_socket, index_of_client):
         """
@@ -551,7 +550,7 @@ class Server:
         if decrypted_data == b'EXIT':
             client_socket.close()
             KEY[str(index_of_client)] = 1
-            print(client_socket)
+            print("Client has exited the server")
 
 
 def main():
@@ -581,14 +580,13 @@ def main():
             KEY[str(number)] = (enc_key, auth)
 
             index_of_client = number
-            print(index_of_client, number_of_clients)
+
+        enc_key = KEY[str(index_of_client)][0]
+        auth = KEY[str(index_of_client)][1]
 
         while True:
             try:
-                print(index_of_client)
                 if KEY[str(index_of_client)] != 1:
-                    enc_key = KEY[str(index_of_client)][0]
-                    auth = KEY[str(index_of_client)][1]
                     server.respond_to_client(enc_key, auth, CLIENTS[str(index_of_client)], index_of_client)
 
                 else:
@@ -599,8 +597,6 @@ def main():
                         break
 
             except ConnectionAbortedError:
-                client_socket = CLIENTS[str(number_of_clients)]
-                print(client_socket)
                 break
 
             except (socket.timeout, KeyboardInterrupt):
