@@ -19,6 +19,7 @@ ACK = 16
 THE_USUAL_IP = '0.0.0.0'
 MY_IP = conf.route.route('0.0.0.0')[1]
 MSS = [("MSS", 1460)]
+SECURITY_PORT = 443
 N = RandShort()  # Key base number
 TLS_MID_VERSION = 0x0303
 TLS_NEW_VERSION = 0x0304
@@ -38,7 +39,7 @@ THE_LIST = {}
 PREVS = {}
 KEY = {}
 CLIENTS = {}
-G = 0
+MAX_CLIENT = 5
 
 
 class Server:
@@ -51,8 +52,12 @@ class Server:
          Answer a client that is trying to connect to the server
         :return:
         """
+        while True:
+            p = sniff(count=MAX_CLIENT, lfilter=self.filter_tcp, timeout=2)
+            number_of_clients = len(p)
+            if number_of_clients > 0 or number_of_clients == MAX_CLIENT:
+                break
 
-        p = sniff(count=1, lfilter=self.filter_tcp)
         tcp_packet = p[0]
         alt_res = tcp_packet.copy()
         alt_res[Raw].load = self.check_if_eligible(alt_res[Ether].src)
@@ -61,7 +66,7 @@ class Server:
         alt_res.show()
         sendp(alt_res)
 
-        return tcp_packet[TCP].sport,  tcp_packet[TCP].dport, alt_res[Raw].load
+        return tcp_packet[TCP].sport,  tcp_packet[TCP].dport, alt_res[Raw].load, number_of_clients
 
     def filter_tcp(self, packets):
         """
@@ -111,6 +116,19 @@ class Server:
         alt_res = alt_res.__class__(bytes(alt_res))
 
         return alt_res
+
+    def create_handshakes(self, client_socket):
+        """
+
+        :param client_socket:
+        :return:
+        """
+
+        acked, auth = self.first_handshake(client_socket)
+        time.sleep(2)
+        enc_key = self.secure_handshake(client_socket, auth)
+
+        return enc_key, auth
 
     def first_handshake(self, the_client_socket):
         """
@@ -499,13 +517,25 @@ class Server:
         return data_iv, data_c_t, data_tag
 
     def send_alert(self):
+        """
+
+        :return:
+        """
 
         alert = TLS(msg=TLSAlert(level=2, descr=40))
         alert = alert.__class__(bytes(alert))
 
         return alert
 
-    def respond_to_client(self, enc_key, auth, client_socket):
+    def respond_to_client(self, enc_key, auth, client_socket, index_of_client):
+        """
+
+        :param enc_key:
+        :param auth:
+        :param client_socket:
+        :param index_of_client:
+        :return:
+        """
 
         data_iv, data_c_t, data_tag = self.recieve_data(client_socket)
 
@@ -517,6 +547,7 @@ class Server:
 
         if decrypted_data == b'EXIT':
             client_socket.close()
+            KEY[str(index_of_client)] = 1
             print(client_socket)
 
 
@@ -526,43 +557,48 @@ def main():
     """
     server = Server()
     secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-    secure_socket.connect((MY_IP, 443))
-    n = 0
-    number = 0
-    client_port, server_port, message = server.first_contact()
+    secure_socket.connect((MY_IP, SECURITY_PORT))
+    client_port, server_port, message, number_of_clients = server.first_contact()
+    index_of_client = 0
 
     if message == b'Accept':
         the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-        the_server_socket.bind(('0.0.0.0', server_port))  # Bind the server IP and Port into a tuple
-        the_server_socket.listen()  # Listen to client
+        the_server_socket.bind((THE_USUAL_IP, server_port))  # Bind the server IP and Port into a tuple
+        the_server_socket.listen(MAX_CLIENT)  # Listen to client
 
         print("Server is up and running")
+        for number in range(0, number_of_clients):
+            connection, client_address = the_server_socket.accept()  # Accept clients request
+            print(f"Client connected {client_address}")
+
+            client_socket = connection
+            enc_key, auth = server.create_handshakes(client_socket)
+
+            CLIENTS[str(number)] = client_socket
+            KEY[str(number)] = (enc_key, auth)
+
+            index_of_client = number
+            print(index_of_client, number_of_clients)
+
         while True:
             try:
-                connection, client_address = the_server_socket.accept()  # Accept clients request
-                print(f"Client connected {client_address}")
+                print(index_of_client)
+                if KEY[str(index_of_client)] != 1:
+                    enc_key = KEY[str(index_of_client)][0]
+                    auth = KEY[str(index_of_client)][1]
+                    server.respond_to_client(enc_key, auth, CLIENTS[str(index_of_client)], index_of_client)
 
-                client_socket = connection
-                CLIENTS[str(number)] = client_socket
-                while True:
-                    try:
-                        if n == 0:
-                            acked, auth = server.first_handshake(client_socket)
-                            time.sleep(2)
-
-                            enc_key = server.secure_handshake(client_socket, auth)
-                            n += 1
-                            KEY[str(number)] = (enc_key, auth)
-
-                        if "1" not in KEY.values():
-                            enc_key = KEY[str(number)][0]
-                            auth = KEY[str(number)][1]
-                            server.respond_to_client(enc_key, auth, client_socket)
-
-                    except ConnectionAbortedError:
-                        client_socket = CLIENTS[str(number)]
-                        print(client_socket)
+                else:
+                    number_of_clients -= 1
+                    if number_of_clients == 0:
+                        secure_socket.close()
+                        the_server_socket.close()
                         break
+
+            except ConnectionAbortedError:
+                client_socket = CLIENTS[str(number_of_clients)]
+                print(client_socket)
+                break
 
             except (socket.timeout, KeyboardInterrupt):
 
