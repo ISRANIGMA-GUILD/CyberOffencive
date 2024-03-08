@@ -369,13 +369,13 @@ class Server:
                                        .BestAvailableEncryption(b"dj$bjd&hb2f3v@d55920o@21sf"))
         #  Recreate for storage :D
 
-        with open('certifacte.crt', 'wb') as certificate_first:
+        with open('Certificates\\certifacte.crt', 'wb') as certificate_first:
             certificate_first.write(my_cert_pem)
 
-        with open('certifacte.pem', 'wb') as certificate_first:
+        with open('Certificates\\certifacte.pem', 'wb') as certificate_first:
             certificate_first.write(my_cert_pem)
 
-        with open('the_key.pem', 'wb') as key_first:
+        with open('Keys\\the_key.pem', 'wb') as key_first:
             key_first.write(my_key_pem)
 
         return my_cert_pem, my_key_pem, key
@@ -417,7 +417,7 @@ class Server:
         :return: The finish message
         """
 
-        with open("certifacte.pem", "rb") as cert_file:
+        with open("Certificates\\certifacte.pem", "rb") as cert_file:
             server_cert = x509.load_pem_x509_certificate(cert_file.read(), default_backend())
 
         print(len(server_cert.signature))
