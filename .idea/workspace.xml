@@ -6,9 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/certifacte.crt" beforeDir="false" afterPath="$PROJECT_DIR$/certifacte.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/certifacte.pem" beforeDir="false" afterPath="$PROJECT_DIR$/certifacte.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/the_key.pem" beforeDir="false" afterPath="$PROJECT_DIR$/the_key.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/certifacte.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/certifacte.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/security_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/security_server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/the_key.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tls_client_oop.py" beforeDir="false" afterPath="$PROJECT_DIR$/tls_client_oop.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tls_server_oops.py" beforeDir="false" afterPath="$PROJECT_DIR$/tls_server_oops.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -42,7 +44,7 @@
     &quot;last_opened_file_path&quot;: &quot;C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/basic_com&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.tls_client_oop">
+  <component name="RunManager" selected="Python.tls_server_oops">
     <configuration name="security_server" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="basic_com" />
       <option name="ENV_FILES" value="" />
