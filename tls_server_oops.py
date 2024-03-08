@@ -244,9 +244,9 @@ class Server:
                 data_msg.show()
                 client_socket.send(bytes(data_msg[TLS]))
 
-                data_iv, data_c_t, data_tag = self.recieve_data(client_socket)
+                data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
                 print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
-                data_iv, data_c_t, data_tag = self.recieve_data(client_socket)
+                data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
 
                 if data_iv == 0 and data_c_t == 1 and data_tag == 2:
                     return
@@ -254,7 +254,7 @@ class Server:
                 else:
                     print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
 
-                data_iv2, data_c_t2, data_tag2 = self.recieve_data(client_socket)
+                data_iv2, data_c_t2, data_tag2 = self.deconstruct_data(client_socket)
 
                 if data_iv2 == 0 and data_c_t2 == 1 and data_tag2 == 2:
                     return
@@ -491,7 +491,7 @@ class Server:
 
         return data_message
 
-    def recieve_data(self, the_client_socket):
+    def deconstruct_data(self, the_client_socket):
         """
          Dissect the data received from the server
         :param the_client_socket: The client socket
@@ -537,9 +537,12 @@ class Server:
         :return:
         """
 
-        data_iv, data_c_t, data_tag = self.recieve_data(client_socket)
+        data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
 
-        if not data_iv and not data_c_t and not data_tag:
+        if data_iv == 0 and data_c_t == 1 and data_tag == 2:
+            client_socket.close()
+            KEY[str(index_of_client)] = 1
+            print(client_socket)
             return
 
         decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
