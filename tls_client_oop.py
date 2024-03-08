@@ -222,6 +222,7 @@ class Client:
 
                 if details[0] == 0 and details[1] == 1:
                     print("YOU WERE BANNED FOR USING HTML")
+                    return 1
 
                 else:
                     the_client_socket.send(bytes(details[0][TLS]))
@@ -249,10 +250,9 @@ class Client:
         """
 
         ch_packet = TLS(msg=TLSClientHello(ext=TLS_Ext_SupportedVersion_CH(versions=[TLS_N_VERSION, TLS_M_VERSION]) /
-                                               TLS_Ext_SignatureAlgorithms(
-                                                   sig_algs=SIGNATURE_ALGORITHIM) / TLS_Ext_RenegotiationInfo() /
-                                               TLS_Ext_ExtendedMasterSecret() / TLS_Ext_SupportedPointFormat() /
-                                               TLS_Ext_SupportedGroups(groups=SECP)))
+                        TLS_Ext_SignatureAlgorithms(sig_algs=SIGNATURE_ALGORITHIM) / TLS_Ext_RenegotiationInfo() /
+                        TLS_Ext_ExtendedMasterSecret() / TLS_Ext_SupportedPointFormat() /
+                        TLS_Ext_SupportedGroups(groups=SECP)))
 
         client_hello_packet = ch_packet
         client_hello_packet = client_hello_packet.__class__(bytes(client_hello_packet))
@@ -421,17 +421,7 @@ class Client:
         user = input("Enter your username\n")
         passw = input("Enter your password\n")
 
-        for i in range(0, len(THE_BIG_LIST)):
-
-            if THE_BIG_LIST.get(str(i)) in passw or \
-                    THE_BIG_LIST.get(str(i)) in user:
-                return 0, 1
-
-        if len(user) > 50 or len(passw) > 50:
-            return 0, 1
-
-        if ((user.isnumeric() and sys.maxsize <= int(user)) or
-                (passw.isnumeric() and sys.maxsize <= int(passw))):
+        if self.malicious_message(user) or self.malicious_message(passw):
             return 0, 1
 
         user = user.encode()
@@ -454,6 +444,25 @@ class Client:
         alert = alert.__class__(bytes(alert))
 
         return alert
+
+    def malicious_message(self, message):
+        """
+
+        :param message:
+        :return:
+        """
+
+        for i in range(0, len(THE_BIG_LIST)):
+            if THE_BIG_LIST.get(str(i)) in message:
+                return True
+
+        if len(message) > 50:
+            return True
+
+        if message.isnumeric() and sys.maxsize <= int(message):
+            return True
+
+        return False
 
 
 def main():
@@ -484,45 +493,51 @@ def main():
             print("To bad")
 
         else:
-            while True:
-                try:
-                    if "1" not in KEY.values():
-                        key = KEY[str(n)]
-                        auth = KEY[str(n + 1)]
-                        msg = input("Enter a message\n")
-                        message = msg.encode()
-                        print(message)
-                        data = [client.encrypt_data(key, message, auth)]
-                        full_msg = client.create_message(data)
+            if key != 1:
+                while True:
+                    try:
+                        if "1" not in KEY.values():
+                            key = KEY[str(n)]
+                            auth = KEY[str(n + 1)]
+                            msg = input("Enter a message\n")
+                            if not client.malicious_message(msg):
+                                message = msg.encode()
+                                print(message)
+                                data = [client.encrypt_data(key, message, auth)]
+                                full_msg = client.create_message(data)
 
-                        if type(full_msg) is list:
-                            for i in range(0, len(full_msg)):
-                                message = full_msg[i]
-                                message.show()
-                                the_client_socket.send(bytes(message[TLS]))
+                                if type(full_msg) is list:
+                                    for i in range(0, len(full_msg)):
+                                        message = full_msg[i]
+                                        message.show()
+                                        the_client_socket.send(bytes(message[TLS]))
 
-                        else:
-                            full_msg.show()
-                            the_client_socket.send(bytes(full_msg[TLS]))
+                                else:
+                                    full_msg.show()
+                                    the_client_socket.send(bytes(full_msg[TLS]))
 
-                        if msg == "EXIT":
-                            break
+                                if msg == "EXIT":
+                                    break
 
-                except ConnectionRefusedError:
+                            else:
+                                print("You have been banned!")
+                                break
 
-                    # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
+                    except ConnectionRefusedError:
 
-                    print("Retrying")
+                        # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
 
-                except ConnectionAbortedError:
-                    break
+                        print("Retrying")
 
-                except KeyboardInterrupt:
+                    except ConnectionAbortedError:
+                        break
 
-                    # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
+                    except KeyboardInterrupt:
 
-                    print("Server is shutting down")
-                    break
+                        # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
+
+                        print("Server is shutting down")
+                        break
 
             the_client_socket.close()
 
