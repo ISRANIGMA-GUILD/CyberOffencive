@@ -5,11 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/basic_com.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/certifacte.crt" beforeDir="false" afterPath="$PROJECT_DIR$/certifacte.crt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/certifacte.pem" beforeDir="false" afterPath="$PROJECT_DIR$/certifacte.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/the_key.pem" beforeDir="false" afterPath="$PROJECT_DIR$/the_key.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tls_client_oop.py" beforeDir="false" afterPath="$PROJECT_DIR$/tls_client_oop.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tls_server_oops.py" beforeDir="false" afterPath="$PROJECT_DIR$/tls_server_oops.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -31,18 +31,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.security_server.executor&quot;: &quot;Run&quot;,
-    &quot;Python.tls_client_oop.executor&quot;: &quot;Run&quot;,
-    &quot;Python.tls_server_oops.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;tls&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/basic_com&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.security_server.executor": "Run",
+    "Python.tls_client_oop.executor": "Run",
+    "Python.tls_server_oops.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "tls",
+    "last_opened_file_path": "C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/basic_com"
   }
-}</component>
-  <component name="RunManager" selected="Python.tls_server_oops">
+}]]></component>
+  <component name="RunManager" selected="Python.security_server">
     <configuration name="security_server" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="basic_com" />
       <option name="ENV_FILES" value="" />
