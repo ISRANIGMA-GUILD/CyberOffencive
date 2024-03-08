@@ -27,6 +27,7 @@ THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6
 PARAM_LIST = {"0": 0x0303, "1": 0x16, "2": 0x15, "3": 0x14, "4": 0x1}
 SECP = [0x6a6a, 0x001d, 0x0017, 0x0018]
 SIGNATURE_ALGORITHIM = [0x0403, 0x0804, 0x0401, 0x0503, 0x0805, 0x0501, 0x0806, 0x0601]
+KEY = {}
 
 
 class Client:
@@ -73,6 +74,18 @@ class Client:
 
         return TCP in packets and Raw in packets and \
             (packets[Raw].load == b'Accept' or packets[Raw].load == b'Denied')
+
+    def connection_handshakes(self, server_port, the_client_socket):
+        """
+
+        :param server_port:
+        :param the_client_socket:
+        """
+
+        finish_first_handshake, auth = self.the_pre_handshake(server_port, the_client_socket)
+        key = self.secure_handshake(the_client_socket, auth)
+
+        return key, auth
 
     def the_pre_handshake(self, server_port, the_client_socket):
         """
@@ -213,6 +226,8 @@ class Client:
                 else:
                     the_client_socket.send(bytes(details[0][TLS]))
                     the_client_socket.send(bytes(details[1][TLS]))
+
+                return encryption_key
         else:
             alert_message = self.send_alert()
             the_client_socket.send(bytes(alert_message[TLS]))
@@ -225,6 +240,8 @@ class Client:
                 except KeyboardInterrupt:
                     break
 
+        return 1
+
     def start_security(self):
         """
          Create client hello packet
@@ -232,9 +249,10 @@ class Client:
         """
 
         ch_packet = TLS(msg=TLSClientHello(ext=TLS_Ext_SupportedVersion_CH(versions=[TLS_N_VERSION, TLS_M_VERSION]) /
-                        TLS_Ext_SignatureAlgorithms(sig_algs=SIGNATURE_ALGORITHIM) / TLS_Ext_RenegotiationInfo() /
-                        TLS_Ext_ExtendedMasterSecret() / TLS_Ext_SupportedPointFormat() /
-                        TLS_Ext_SupportedGroups(groups=SECP)))
+                                               TLS_Ext_SignatureAlgorithms(
+                                                   sig_algs=SIGNATURE_ALGORITHIM) / TLS_Ext_RenegotiationInfo() /
+                                               TLS_Ext_ExtendedMasterSecret() / TLS_Ext_SupportedPointFormat() /
+                                               TLS_Ext_SupportedGroups(groups=SECP)))
 
         client_hello_packet = ch_packet
         client_hello_packet = client_hello_packet.__class__(bytes(client_hello_packet))
@@ -406,7 +424,7 @@ class Client:
         for i in range(0, len(THE_BIG_LIST)):
 
             if THE_BIG_LIST.get(str(i)) in passw or \
-               THE_BIG_LIST.get(str(i)) in user:
+                    THE_BIG_LIST.get(str(i)) in user:
                 return 0, 1
 
         if len(user) > 50 or len(passw) > 50:
@@ -446,17 +464,67 @@ def main():
     client = Client()
     server_port = int(RandShort())
     server_ip = input("Enter the ip of the server\n")
+    n = 0
 
     res = client.first_contact(server_ip, server_port)
     if res[Raw].load == b'Accept':
 
         the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-        the_client_socket.connect((server_ip, server_port))
+        try:
+            the_client_socket.connect((server_ip, server_port))
+            key, auth = client.connection_handshakes(server_port, the_client_socket)
+            n += 1
+            KEY[str(n)] = key
+            KEY[str(n + 1)] = auth
 
-        finish_first_handshake, auth = client.the_pre_handshake(server_port, the_client_socket)
-        client.secure_handshake(the_client_socket, auth)
+        except KeyboardInterrupt:
+            print("refused to play")
 
-        the_client_socket.close()
+        except ConnectionRefusedError:
+            print("To bad")
+
+        else:
+            while True:
+                try:
+                    if "1" not in KEY.values():
+                        key = KEY[str(n)]
+                        auth = KEY[str(n + 1)]
+                        msg = input("Enter a message\n")
+                        message = msg.encode()
+                        print(message)
+                        data = [client.encrypt_data(key, message, auth)]
+                        full_msg = client.create_message(data)
+
+                        if type(full_msg) is list:
+                            for i in range(0, len(full_msg)):
+                                message = full_msg[i]
+                                message.show()
+                                the_client_socket.send(bytes(message[TLS]))
+
+                        else:
+                            full_msg.show()
+                            the_client_socket.send(bytes(full_msg[TLS]))
+
+                        if msg == "EXIT":
+                            break
+
+                except ConnectionRefusedError:
+
+                    # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
+
+                    print("Retrying")
+
+                except ConnectionAbortedError:
+                    break
+
+                except KeyboardInterrupt:
+
+                    # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
+
+                    print("Server is shutting down")
+                    break
+
+            the_client_socket.close()
 
     else:
         print("TO BAD YOU ARE BANNED!")

@@ -33,8 +33,12 @@ MAX_MSG_LENGTH = 1024
 THE_SHA_256 = hashes.SHA256()
 SECP = 0x0017
 SIGNATURE_ALGORITHIM = 0x0401
+SOCKET_TIMEOUT = 10
 THE_LIST = {}
 PREVS = {}
+KEY = {}
+CLIENTS = {}
+G = 0
 
 
 class Server:
@@ -239,6 +243,7 @@ class Server:
 
                 else:
                     print(self.decrypt_data(enc_key, auth, data_iv2, data_c_t2, data_tag2))
+                    return enc_key
 
             elif TLSAlert in keys:
                 print("There is a major error")
@@ -500,49 +505,80 @@ class Server:
 
         return alert
 
+    def respond_to_client(self, enc_key, auth, client_socket):
+
+        data_iv, data_c_t, data_tag = self.recieve_data(client_socket)
+
+        if not data_iv and not data_c_t and not data_tag:
+            return
+
+        decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
+        print(decrypted_data)
+
+        if decrypted_data == b'EXIT':
+            client_socket.close()
+            print(client_socket)
+
 
 def main():
     """
     Main function
     """
+    server = Server()
+    secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+    secure_socket.connect((MY_IP, 443))
+    n = 0
+    number = 0
+    client_port, server_port, message = server.first_contact()
 
-    while True:
-        server = Server()
-        secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-        secure_socket.connect((MY_IP, 443))
-        client_port, server_port, message = server.first_contact()
+    if message == b'Accept':
+        the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        the_server_socket.bind(('0.0.0.0', server_port))  # Bind the server IP and Port into a tuple
+        the_server_socket.listen()  # Listen to client
 
-        if message == b'Accept':
-            the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-            the_server_socket.bind(('0.0.0.0', server_port))  # Bind the server IP and Port into a tuple
-            the_server_socket.listen()  # Listen to client
+        print("Server is up and running")
+        while True:
+            try:
+                connection, client_address = the_server_socket.accept()  # Accept clients request
+                print(f"Client connected {client_address}")
 
-            print("Server is up and running")
+                client_socket = connection
+                CLIENTS[str(number)] = client_socket
+                while True:
+                    try:
+                        if n == 0:
+                            acked, auth = server.first_handshake(client_socket)
+                            time.sleep(2)
 
-            connection, client_address = the_server_socket.accept()  # Accept clients request
-            print("Client connected")
+                            enc_key = server.secure_handshake(client_socket, auth)
+                            n += 1
+                            KEY[str(number)] = (enc_key, auth)
 
-            client_socket = connection
+                        if "1" not in KEY.values():
+                            enc_key = KEY[str(number)][0]
+                            auth = KEY[str(number)][1]
+                            server.respond_to_client(enc_key, auth, client_socket)
 
-            acked, auth = server.first_handshake(client_socket)
-            time.sleep(2)
+                    except ConnectionAbortedError:
+                        client_socket = CLIENTS[str(number)]
+                        print(client_socket)
+                        break
 
-            server.secure_handshake(client_socket, auth)
+            except (socket.timeout, KeyboardInterrupt):
 
-            secure_socket.close()
-            client_socket.close()
-            the_server_socket.close()
+                # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
 
-            break  # will be removed later
+                print("Server is shutting down")
+                secure_socket.close()
+                the_server_socket.close()
+                break
 
-        elif message == b'Denied':
+    elif message == b'Denied':
+        print("banned client")
 
-            print("banned client")
-            break
+    else:
 
-        else:
-
-            print("Error message try again")
+        print("Error message try again")
 
 
 if __name__ == '__main__':
