@@ -62,8 +62,9 @@ class Client:
         vert = sniff(count=1, lfilter=self.filter_tcp)
         vert[0].show()
         res = vert[0]
+        print(res[TCP].sport, res[TCP].dport)
 
-        return res
+        return res, res[TCP].sport
 
     def filter_tcp(self, packets):
         """
@@ -475,69 +476,71 @@ def main():
     server_ip = input("Enter the ip of the server\n")
     n = 0
 
-    res = client.first_contact(server_ip, server_port)
+    res, server_port = client.first_contact(server_ip, server_port)
     if res[Raw].load == b'Accept':
 
         the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-        try:
-            the_client_socket.connect((server_ip, server_port))
-            key, auth = client.connection_handshakes(server_port, the_client_socket)
-            n += 1
-            KEY[str(n)] = key
-            KEY[str(n + 1)] = auth
+        while True:
+            try:
+                the_client_socket.connect((server_ip, server_port))
+                key, auth = client.connection_handshakes(server_port, the_client_socket)
+                n += 1
+                KEY[str(n)] = key
+                KEY[str(n + 1)] = auth
 
-        except KeyboardInterrupt:
-            print("refused to play")
+            except KeyboardInterrupt:
+                print("refused to play")
 
-        except ConnectionRefusedError:
-            print("To bad")
+            except ConnectionRefusedError as e:
+                print(e)
+            else:
+                break
 
-        else:
-            if key != 1:
-                while True:
-                    try:
-                        if "1" not in KEY.values():
-                            key = KEY[str(n)]
-                            auth = KEY[str(n + 1)]
-                            msg = input("Enter a message\n")
-                            if not client.malicious_message(msg):
-                                message = msg.encode()
-                                print(message)
-                                data = [client.encrypt_data(key, message, auth)]
-                                full_msg = client.create_message(data)
+        if key != 1:
+            while True:
+                try:
+                    if "1" not in KEY.values():
+                        key = KEY[str(n)]
+                        auth = KEY[str(n + 1)]
+                        msg = input("Enter a message\n")
+                        if not client.malicious_message(msg):
+                            message = msg.encode()
+                            print(message)
+                            data = [client.encrypt_data(key, message, auth)]
+                            full_msg = client.create_message(data)
 
-                                if type(full_msg) is list:
-                                    for i in range(0, len(full_msg)):
-                                        message = full_msg[i]
-                                        message.show()
-                                        the_client_socket.send(bytes(message[TLS]))
-
-                                else:
-                                    full_msg.show()
-                                    the_client_socket.send(bytes(full_msg[TLS]))
-
-                                if msg == "EXIT":
-                                    break
+                            if type(full_msg) is list:
+                                for i in range(0, len(full_msg)):
+                                    message = full_msg[i]
+                                    message.show()
+                                    the_client_socket.send(bytes(message[TLS]))
 
                             else:
-                                print("You have been banned!")
+                                full_msg.show()
+                                the_client_socket.send(bytes(full_msg[TLS]))
+
+                            if msg == "EXIT":
                                 break
 
-                    except ConnectionRefusedError:
+                        else:
+                            print("You have been banned!")
+                            break
 
-                        # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
+                except ConnectionRefusedError:
 
-                        print("Retrying")
+                    # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
 
-                    except ConnectionAbortedError:
-                        break
+                    print("Retrying")
 
-                    except KeyboardInterrupt:
+                except ConnectionAbortedError:
+                    break
 
-                        # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
+                except KeyboardInterrupt:
 
-                        print("Server is shutting down")
-                        break
+                    # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
+
+                    print("Server is shutting down")
+                    break
 
             the_client_socket.close()
 
