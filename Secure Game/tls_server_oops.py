@@ -12,6 +12,7 @@ from cryptography.hazmat.primitives.asymmetric.padding import *
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 import os
+import threading
 import hashlib
 
 SYN = 2
@@ -53,20 +54,26 @@ class Server:
         :return:
         """
         while True:
-            p = sniff(count=MAX_CLIENT, lfilter=self.filter_tcp, timeout=2)
+            p = sniff(count=MAX_CLIENT, lfilter=self.filter_tcp, timeout=20)
             number_of_clients = len(p)
             if number_of_clients > 0 or number_of_clients == MAX_CLIENT:
                 break
 
-        tcp_packet = p[0]
-        alt_res = tcp_packet.copy()
-        alt_res[Raw].load = self.check_if_eligible(alt_res[Ether].src)
+        l = []
+        server_port = p[0][TCP].dport
+        for i in range(0, len(p)):
+            a_pack = p[i]
 
-        alt_res = self.create_f_response(alt_res)
-        alt_res.show()
-        sendp(alt_res)
+            a_pack[Raw].load = self.check_if_eligible(a_pack[Ether].src)
 
-        return tcp_packet[TCP].sport,  tcp_packet[TCP].dport, alt_res[Raw].load, number_of_clients
+            a_pack = self.create_f_response(a_pack, server_port)
+            a_pack.show()
+            l.append(a_pack)
+
+        for i in range(0, len(l)):
+            sendp(l[i])
+
+        return p, l, number_of_clients
 
     def filter_tcp(self, packets):
         """
@@ -85,50 +92,58 @@ class Server:
         else:
             return b'Accept'
 
-    def create_f_response(self, alt_res):
+    def create_f_response(self, alt_res, server_port):
         """
          Create the servers first response
         :param alt_res: The TCP packet
+        :param server_port:
         :return: The TCP response
         """
 
-        new_mac_src = alt_res[Ether].dst
-        new_mac_dst = alt_res[Ether].src
+        res = alt_res
+        new_mac_src = res[Ether].dst
+        new_mac_dst = res[Ether].src
 
-        new_src = alt_res[IP].dst
-        new_dst = alt_res[IP].src
+        new_src = res[IP].dst
+        new_dst = res[IP].src
 
-        new_src_port = alt_res[TCP].dport
-        new_dst_port = alt_res[TCP].sport
+        new_src_port = server_port
+        new_dst_port = res[TCP].sport
 
-        alt_res[Ether].src = new_mac_src
-        alt_res[Ether].dst = new_mac_dst
+        res[Ether].src = new_mac_src
+        res[Ether].dst = new_mac_dst
 
-        alt_res[IP].src = new_src
-        alt_res[IP].dst = new_dst
+        res[IP].src = new_src
+        res[IP].dst = new_dst
 
-        alt_res[TCP].sport = new_src_port
-        alt_res[TCP].dport = new_dst_port
-        alt_res[TCP].flags = SYN + ACK
-        alt_res[TCP].ack = alt_res[TCP].seq + 1
-        alt_res[TCP].seq = RandShort()
+        res[TCP].sport = new_src_port
+        res[TCP].dport = new_dst_port
+        res[TCP].flags = SYN + ACK
+        res[TCP].ack = res[TCP].seq + 1
+        res[TCP].seq = RandShort()
 
-        alt_res = alt_res.__class__(bytes(alt_res))
+        res = res.__class__(bytes(res))
 
-        return alt_res
+        return res
 
-    def create_handshakes(self, client_socket):
+    def create_handshakes(self, lock, client_socket, number):
         """
 
+        :param lock:
         :param client_socket:
+        :param number:
         :return:
         """
-
+        lock.acquire()
         acked, auth = self.first_handshake(client_socket)
+
         time.sleep(2)
         enc_key = self.secure_handshake(client_socket, auth)
 
-        return enc_key, auth
+        CLIENTS[str(number)] = client_socket
+        KEY[str(number)] = (enc_key, auth)
+
+        lock.release()
 
     def first_handshake(self, the_client_socket):
         """
@@ -500,6 +515,9 @@ class Server:
 
         data_pack = the_client_socket.recv(MAX_MSG_LENGTH)
         if not data_pack:
+            return
+
+        elif TLSAlert in TLS(data_pack):
             print("THAT IS A SNEAKY CLIENT")
             return 0, 1, 2
 
@@ -526,22 +544,27 @@ class Server:
         alert = alert.__class__(bytes(alert))
         client_socket.send(bytes(alert[TLS]))
 
-    def respond_to_client(self, enc_key, auth, client_socket, index_of_client):
+    def respond_to_client(self, lock, index_of_client):
         """
 
-        :param enc_key:
-        :param auth:
-        :param client_socket:
+        :param lock:
         :param index_of_client:
         :return:
         """
-
+        lock.acquire()
+        client_socket = CLIENTS[str(index_of_client)]
+        enc_key, auth = KEY[str(index_of_client)]
         data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
+
+        if not data_iv and not data_c_t and not data_tag:
+            lock.release()
+            return
 
         if data_iv == 0 and data_c_t == 1 and data_tag == 2:
             client_socket.close()
             KEY[str(index_of_client)] = 1
             print(client_socket)
+            lock.release()
             return
 
         decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
@@ -551,6 +574,7 @@ class Server:
             client_socket.close()
             KEY[str(index_of_client)] = 1
             print("Client has exited the server")
+        lock.release()
 
 
 def main():
@@ -560,13 +584,19 @@ def main():
     server = Server()
     secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     secure_socket.connect((MY_IP, SECURITY_PORT))
-    client_port, server_port, message, number_of_clients = server.first_contact()
-    index_of_client = 0
+    first, second, number_of_clients = server.first_contact()
 
-    if message == b'Accept':
+    message = [second[i][Raw].load for i in range(0, len(second))]
+    server_port = first[0][TCP].sport
+
+    print(number_of_clients)
+
+    if b'Accept' in message:
         the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
         the_server_socket.bind((THE_USUAL_IP, server_port))  # Bind the server IP and Port into a tuple
         the_server_socket.listen(MAX_CLIENT)  # Listen to client
+        threads = []
+        lock = threading.Lock()
 
         print("Server is up and running")
         for number in range(0, number_of_clients):
@@ -574,27 +604,40 @@ def main():
             print(f"Client connected {client_address}")
 
             client_socket = connection
-            enc_key, auth = server.create_handshakes(client_socket)
+            the_thread = threading.Thread(target=server.create_handshakes, args=(lock, client_socket, number,))
+            threads.append(the_thread)
 
-            CLIENTS[str(number)] = client_socket
-            KEY[str(number)] = (enc_key, auth)
+        for number in range(0, number_of_clients):
+            threads[number].start()
+            print(f"client {number}")
+            threads[number].join()
 
-            index_of_client = number
+        print("process over")
+        print(KEY)
+        print("please what")
+        print(KEY.values, "please what")
 
-        enc_key = KEY[str(index_of_client)][0]
-        auth = KEY[str(index_of_client)][1]
+        threads = []
 
         while True:
             try:
-                if KEY[str(index_of_client)] != 1:
-                    server.respond_to_client(enc_key, auth, CLIENTS[str(index_of_client)], index_of_client)
+                for number in range(0, number_of_clients):
+                    the_thread = threading.Thread(target=server.respond_to_client, args=(lock, number,))
+                    threads.append(the_thread)
 
-                else:
-                    number_of_clients -= 1
-                    if number_of_clients == 0:
-                        secure_socket.close()
-                        the_server_socket.close()
-                        break
+                for index in range(0, number_of_clients):
+                    if KEY[str(index)] != 1:
+                        t = threads[index]
+                        t.start()
+                        t.join()
+
+                    else:
+                        number_of_clients -= 1
+                        if number_of_clients == 0:
+                            secure_socket.close()
+                            the_server_socket.close()
+                            break
+                threads = []
 
             except ConnectionAbortedError:
                 break
@@ -608,7 +651,7 @@ def main():
                 the_server_socket.close()
                 break
 
-    elif message == b'Denied':
+    elif b'Denied' in message:
         print("banned client")
 
     else:
