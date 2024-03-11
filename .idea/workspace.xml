@@ -5,10 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/basic_com.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte.crt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Secure Game/Keys/the_key.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Keys/the_key.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/security_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/security_server.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Secure Game/tls_client_oop.py" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/tls_client_oop.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Secure Game/tls_server_oops.py" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/tls_server_oops.py" afterDir="false" />
     </list>
@@ -35,6 +37,7 @@
   &quot;keyToString&quot;: {
     &quot;Python.security_server (1).executor&quot;: &quot;Run&quot;,
     &quot;Python.security_server.executor&quot;: &quot;Run&quot;,
+    &quot;Python.tls_client_oop (1).executor&quot;: &quot;Run&quot;,
     &quot;Python.tls_client_oop.executor&quot;: &quot;Run&quot;,
     &quot;Python.tls_server_oops (1).executor&quot;: &quot;Run&quot;,
     &quot;Python.tls_server_oops.executor&quot;: &quot;Run&quot;,

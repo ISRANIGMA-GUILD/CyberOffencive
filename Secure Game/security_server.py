@@ -35,7 +35,6 @@ class Security:
         pass
 
     def create_server(self):
-
         while True:
             try:
                 the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
@@ -43,7 +42,6 @@ class Security:
                 the_server_socket.listen()  # Listen to client
 
                 print("Server is up and running")
-
                 connection, service_address = the_server_socket.accept()  # Accept clients request
                 print("Client connected")
 
