@@ -76,6 +76,31 @@ class Client:
         return TCP in packets and Raw in packets and \
             (packets[Raw].load == b'Accept' or packets[Raw].load == b'Denied')
 
+    def initialize_handshakes(self, the_client_socket, server_ip, server_port, number):
+        """
+
+        :param the_client_socket:
+        :param server_ip:
+        :param server_port:
+        :param number:
+        """
+
+        while True:
+            try:
+                the_client_socket.connect((server_ip, server_port))
+                key, auth = self.connection_handshakes(server_port, the_client_socket)
+                KEY[str(number)] = (key, auth)
+                number += 1
+
+            except KeyboardInterrupt:
+                print("refused to play")
+
+            except ConnectionRefusedError as e:
+                server_port += 1
+                print(e)
+            else:
+                break
+
     def connection_handshakes(self, server_port, the_client_socket):
         """
 
@@ -101,6 +126,7 @@ class Client:
 
         the_client_socket.send(bytes(syn_packet[TCP]))
         the_client_socket.send(bytes(syn_packet[Raw]))
+        time.sleep(2)
 
         server_response = the_client_socket.recv(MAX_MSG_LENGTH)
         server_message = the_client_socket.recv(MAX_MSG_LENGTH)
@@ -112,8 +138,8 @@ class Client:
         finish_first_handshake.show()
 
         the_client_socket.send(bytes(finish_first_handshake[TCP]))
-        time.sleep(2)
         the_client_socket.send(bytes(finish_first_handshake[Raw]))
+        time.sleep(2)
 
         letter = syn_packet[Raw].load
         dot = finish_first_handshake[Raw].load
@@ -419,6 +445,7 @@ class Client:
         :param auth: The authenticator
         :return: The full data message or 0,1 (CLIENT WILL BE BANNED)
         """
+
         user = input("Enter your username\n")
         passw = input("Enter your password\n")
 
@@ -436,10 +463,19 @@ class Client:
         return pack
 
     def is_there_an_alert(self, message):
+        """
+
+        :param message:
+        :return:
+        """
 
         return TLSAlert in message
 
     def send_alert(self):
+        """
+
+        :return:
+        """
 
         alert = TLS(msg=TLSAlert(level=2, descr=40))
         alert = alert.__class__(bytes(alert))
@@ -465,6 +501,58 @@ class Client:
 
         return False
 
+    def communicate(self, the_client_socket, number):
+        """
+
+        :param the_client_socket:
+        :param number:
+        """
+
+        while True:
+            try:
+                if "1" not in KEY.values():
+                    key = KEY[str(number)][0]
+                    auth = KEY[str(number)][1]
+                    msg = input("Enter a message\n")
+                    if not self.malicious_message(msg):
+                        message = msg.encode()
+                        print(message)
+                        data = [self.encrypt_data(key, message, auth)]
+                        full_msg = self.create_message(data)
+
+                        if type(full_msg) is list:
+                            for i in range(0, len(full_msg)):
+                                message = full_msg[i]
+                                message.show()
+                                the_client_socket.send(bytes(message[TLS]))
+
+                        else:
+                            full_msg.show()
+                            the_client_socket.send(bytes(full_msg[TLS]))
+
+                        if msg == "EXIT":
+                            break
+
+                    else:
+                        print("You have been banned!")
+                        break
+
+            except ConnectionRefusedError:
+
+                # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
+
+                print("Retrying")
+
+            except ConnectionAbortedError:
+                break
+
+            except KeyboardInterrupt:
+
+                # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
+
+                print("Server is shutting down")
+                break
+
 
 def main():
     """
@@ -474,73 +562,21 @@ def main():
     client = Client()
     server_port = int(RandShort())
     server_ip = input("Enter the ip of the server\n")
-    n = 0
+    number = 0
 
     res, server_port = client.first_contact(server_ip, server_port)
+
     if res[Raw].load == b'Accept':
 
         the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-        while True:
-            try:
-                the_client_socket.connect((server_ip, server_port))
-                key, auth = client.connection_handshakes(server_port, the_client_socket)
-                n += 1
-                KEY[str(n)] = key
-                KEY[str(n + 1)] = auth
+        print(server_port)
+        client.initialize_handshakes(the_client_socket, server_ip, server_port, number)
 
-            except KeyboardInterrupt:
-                print("refused to play")
-
-            except ConnectionRefusedError as e:
-                print(e)
-            else:
-                break
+        key, auth = KEY[str(number)][0], KEY[str(number)][1]
+        time.sleep(2)
 
         if key != 1:
-            while True:
-                try:
-                    if "1" not in KEY.values():
-                        key = KEY[str(n)]
-                        auth = KEY[str(n + 1)]
-                        msg = input("Enter a message\n")
-                        if not client.malicious_message(msg):
-                            message = msg.encode()
-                            print(message)
-                            data = [client.encrypt_data(key, message, auth)]
-                            full_msg = client.create_message(data)
-
-                            if type(full_msg) is list:
-                                for i in range(0, len(full_msg)):
-                                    message = full_msg[i]
-                                    message.show()
-                                    the_client_socket.send(bytes(message[TLS]))
-
-                            else:
-                                full_msg.show()
-                                the_client_socket.send(bytes(full_msg[TLS]))
-
-                            if msg == "EXIT":
-                                break
-
-                        else:
-                            print("You have been banned!")
-                            break
-
-                except ConnectionRefusedError:
-
-                    # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
-
-                    print("Retrying")
-
-                except ConnectionAbortedError:
-                    break
-
-                except KeyboardInterrupt:
-
-                    # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
-
-                    print("Server is shutting down")
-                    break
+            client.communicate(the_client_socket, number)
 
             the_client_socket.close()
 

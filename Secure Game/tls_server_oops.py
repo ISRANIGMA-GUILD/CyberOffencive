@@ -69,6 +69,7 @@ class Server:
             a_pack = self.create_f_response(a_pack, server_port)
             a_pack.show()
             l.append(a_pack)
+            server_port += 1
 
         for i in range(0, len(l)):
             sendp(l[i])
@@ -125,6 +126,26 @@ class Server:
         res = res.__class__(bytes(res))
 
         return res
+
+    def accept_clients(self, number_of_clients, the_server_socket, lock, threads):
+
+        for number in range(0, number_of_clients):
+            connection, client_address = the_server_socket.accept()  # Accept clients request
+            print(f"Client connected {client_address}")
+
+            client_socket = connection
+            the_thread = threading.Thread(target=self.create_handshakes, args=(lock, client_socket, number,))
+            threads.append(the_thread)
+            CLIENTS[str(number)] = client_socket
+
+        return threads
+
+    def initiate_handshakes(self, threads, number_of_clients):
+
+        for number in range(0, number_of_clients):
+            threads[number].start()
+            print(f"client {number}")
+            threads[number].join()
 
     def create_handshakes(self, lock, client_socket, number):
         """
@@ -544,6 +565,46 @@ class Server:
         alert = alert.__class__(bytes(alert))
         client_socket.send(bytes(alert[TLS]))
 
+    def create_responders(self, threads, number_of_clients, lock):
+
+        for number in range(0, number_of_clients):
+            the_thread = threading.Thread(target=self.respond_to_client, args=(lock, number,))
+            threads.append(the_thread)
+
+        return threads
+
+    def handle_clients(self, threads, number_of_clients, lock, secure_socket, the_server_socket):
+
+        while True:
+            try:
+                threads = self.create_responders(threads, number_of_clients, lock)
+
+                for index in range(0, number_of_clients):
+                    if KEY[str(index)] != 1:
+                        t = threads[index]
+                        t.start()
+                        t.join()
+
+                    else:
+                        number_of_clients -= 1
+                        if number_of_clients == 0:
+                            secure_socket.close()
+                            the_server_socket.close()
+                            break
+                threads = []
+
+            except ConnectionAbortedError:
+                break
+
+            except (socket.timeout, KeyboardInterrupt):
+
+                # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
+
+                print("Server is shutting down")
+                secure_socket.close()
+                the_server_socket.close()
+                break
+
     def respond_to_client(self, lock, index_of_client):
         """
 
@@ -584,6 +645,7 @@ def main():
     server = Server()
     secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     secure_socket.connect((MY_IP, SECURITY_PORT))
+
     first, second, number_of_clients = server.first_contact()
 
     message = [second[i][Raw].load for i in range(0, len(second))]
@@ -599,57 +661,16 @@ def main():
         lock = threading.Lock()
 
         print("Server is up and running")
-        for number in range(0, number_of_clients):
-            connection, client_address = the_server_socket.accept()  # Accept clients request
-            print(f"Client connected {client_address}")
+        threads = server.accept_clients(number_of_clients, the_server_socket, lock, threads)
 
-            client_socket = connection
-            the_thread = threading.Thread(target=server.create_handshakes, args=(lock, client_socket, number,))
-            threads.append(the_thread)
+        server.initiate_handshakes(threads, number_of_clients)
 
-        for number in range(0, number_of_clients):
-            threads[number].start()
-            print(f"client {number}")
-            threads[number].join()
-
-        print("process over")
         print(KEY)
-        print("please what")
-        print(KEY.values, "please what")
+        print(KEY.values)
 
         threads = []
 
-        while True:
-            try:
-                for number in range(0, number_of_clients):
-                    the_thread = threading.Thread(target=server.respond_to_client, args=(lock, number,))
-                    threads.append(the_thread)
-
-                for index in range(0, number_of_clients):
-                    if KEY[str(index)] != 1:
-                        t = threads[index]
-                        t.start()
-                        t.join()
-
-                    else:
-                        number_of_clients -= 1
-                        if number_of_clients == 0:
-                            secure_socket.close()
-                            the_server_socket.close()
-                            break
-                threads = []
-
-            except ConnectionAbortedError:
-                break
-
-            except (socket.timeout, KeyboardInterrupt):
-
-                # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
-
-                print("Server is shutting down")
-                secure_socket.close()
-                the_server_socket.close()
-                break
+        server.handle_clients(threads, number_of_clients, lock, secure_socket, the_server_socket)
 
     elif b'Denied' in message:
         print("banned client")
