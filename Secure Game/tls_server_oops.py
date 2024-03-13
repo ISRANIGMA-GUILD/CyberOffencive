@@ -61,22 +61,22 @@ class Server:
                 break
 
         l = []
-        server_port = p[0][TCP].dport
+        server_port = [p[i][TCP].dport for i in range(0, len(p))]
+        print(server_port)
         for i in range(0, len(p)):
             a_pack = p[i]
 
             a_pack[Raw].load = self.check_if_eligible(a_pack[Ether].src)
 
-            a_pack = self.create_f_response(a_pack, server_port)
+            a_pack = self.create_f_response(a_pack)
             a_pack.show()
             l.append(a_pack)
-            server_port += 1
 
         for i in range(0, len(l)):
             sendp(l[i])
             time.sleep(2)
 
-        return p, l, number_of_clients
+        return p, l, number_of_clients, server_port
 
     def filter_tcp(self, packets):
         """
@@ -95,7 +95,7 @@ class Server:
         else:
             return b'Accept'
 
-    def create_f_response(self, alt_res, server_port):
+    def create_f_response(self, alt_res):
         """
          Create the servers first response
         :param alt_res: The TCP packet
@@ -110,7 +110,7 @@ class Server:
         new_src = res[IP].dst
         new_dst = res[IP].src
 
-        new_src_port = server_port
+        new_src_port = res[TCP].dport
         new_dst_port = res[TCP].sport
 
         res[Ether].src = new_mac_src
@@ -135,20 +135,24 @@ class Server:
         :param server_port:
         """
 
-        print("creating for five clients")
+        print("creating for five clients", server_port)
         for port_number in range(0, len(server_port)):
             the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+            print(server_port[port_number])
             the_server_socket.bind((THE_USUAL_IP, server_port[port_number]))  # Bind the server IP and Port into a tuple
-            the_server_socket.listen()  # Listen to client
             SOCKETS[str(port_number)] = the_server_socket
+            print(SOCKETS)
 
     def accept_clients(self, number_of_clients, the_server_socket, lock, threads):
 
         for number in range(0, number_of_clients):
+            the_server_socket[str(number)].listen()  # Listen to client
+            time.sleep(2)
             connection, client_address = the_server_socket[str(number)].accept()  # Accept clients request
-            print(f"Client connected {client_address}")
 
+            print(f"Client connected {connection}")
             client_socket = connection
+
             the_thread = threading.Thread(target=self.create_handshakes, args=(lock, client_socket, number,))
             threads.append(the_thread)
             CLIENTS[str(number)] = client_socket
@@ -173,14 +177,19 @@ class Server:
         :return:
         """
         lock.acquire()
-        acked, auth = self.first_handshake(client_socket)
-
-        time.sleep(2)
-        enc_key = self.secure_handshake(client_socket, auth)
+        while True:
+            print("Retry")
+            acked, auth = self.first_handshake(client_socket)
+            if auth is None:
+                print("Retry")
+                pass
+            else:
+                print("verify", auth)
+                enc_key = self.secure_handshake(client_socket, auth)
+                break
 
         CLIENTS[str(number)] = client_socket
         KEY[str(number)] = (enc_key, auth)
-
         lock.release()
 
     def first_handshake(self, the_client_socket):
@@ -190,8 +199,14 @@ class Server:
         :return: The ack packet and the server port used the client will use
         """
 
-        first_packet = the_client_socket.recv(MAX_MSG_LENGTH)
-        first_data = the_client_socket.recv(MAX_MSG_LENGTH)
+        while True:
+            first_packet = the_client_socket.recv(MAX_MSG_LENGTH)
+            first_data = the_client_socket.recv(MAX_MSG_LENGTH)
+            if not first_packet and not first_data:
+                print("retrying")
+                pass
+            else:
+                break
 
         syn_packet = TCP(first_packet)
         syn_data = Raw(first_data)
@@ -199,7 +214,7 @@ class Server:
 
         syn_packet = syn_packet / syn_data
 
-        clients_letter = syn_packet[Raw].load
+        clients_letter = syn_packet[Raw].load[0:2]
 
         response = self.create_response(syn_packet)
         the_client_socket.send(bytes(response[TCP]))
@@ -212,7 +227,7 @@ class Server:
 
         ack_packet.show()
 
-        clients_dot = ack_packet[Raw].load
+        clients_dot = ack_packet[Raw].load[0:4]
         auth = clients_letter + clients_dot
 
         return ack_packet, auth
@@ -599,12 +614,14 @@ class Server:
                 threads = self.create_responders(threads, number_of_clients, lock)
 
                 for index in range(0, number_of_clients):
-                    if KEY[str(index)] != 1:
-                        t = threads[index]
-                        t.start()
-                        t.join()
+                    t = threads[index]
+                    t.start()
 
-                    else:
+                for index in range(0, number_of_clients):
+                    t = threads[index]
+                    t.join()
+
+                    if KEY[str(index)] == 1:
                         number_of_clients -= 1
                         if number_of_clients == 0:
                             secure_socket.close()
@@ -635,26 +652,31 @@ class Server:
         lock.acquire()
         client_socket = CLIENTS[str(index_of_client)]
         enc_key, auth = KEY[str(index_of_client)]
-        data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
+        try:
+            data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
 
-        if not data_iv and not data_c_t and not data_tag:
-            lock.release()
-            return
+            if not data_iv and not data_c_t and not data_tag:
+                lock.release()
+                return
 
-        if data_iv == 0 and data_c_t == 1 and data_tag == 2:
+            if data_iv == 0 and data_c_t == 1 and data_tag == 2:
+                client_socket.close()
+                KEY[str(index_of_client)] = 1
+                print(client_socket)
+                lock.release()
+                return
+
+            decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
+            print(decrypted_data)
+
+            if decrypted_data == b'EXIT':
+                client_socket.close()
+                KEY[str(index_of_client)] = 1
+                print("Client has exited the server")
+
+        except TypeError:
             client_socket.close()
             KEY[str(index_of_client)] = 1
-            print(client_socket)
-            lock.release()
-            return
-
-        decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
-        print(decrypted_data)
-
-        if decrypted_data == b'EXIT':
-            client_socket.close()
-            KEY[str(index_of_client)] = 1
-            print("Client has exited the server")
         lock.release()
 
 
@@ -666,10 +688,9 @@ def main():
     secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     secure_socket.connect((MY_IP, SECURITY_PORT))
 
-    first, second, number_of_clients = server.first_contact()
+    first, second, number_of_clients, server_port = server.first_contact()
 
     message = [second[i][Raw].load for i in range(0, len(second))]
-    server_port = [first[i][TCP].sport for i in range(0, len(first))]
 
     print(number_of_clients)
 

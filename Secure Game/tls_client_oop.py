@@ -8,6 +8,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
+import time
 import socket
 
 SYN = 2
@@ -65,7 +66,7 @@ class Client:
 
         print(res[TCP].sport, res[TCP].dport)
 
-        return res, res[TCP].sport
+        return res, server_port
 
     def filter_tcp(self, packets):
         """
@@ -88,16 +89,21 @@ class Client:
 
         while True:
             try:
+                time.sleep(2)
                 the_client_socket.connect((server_ip, server_port))
                 key, auth = self.connection_handshakes(server_port, the_client_socket)
                 KEY[str(number)] = (key, auth)
                 number += 1
+                break
 
             except KeyboardInterrupt:
                 print("refused to play")
 
             except ConnectionRefusedError as e:
                 print(e)
+                number = 0
+                continue
+
             else:
                 break
 
@@ -120,17 +126,32 @@ class Client:
         :param the_client_socket:
         :return: The ack packet and the authentic client associate
         """
-
+        print("Trying")
         syn_packet = self.create_syn(server_port)
         syn_packet.show()
+        time.sleep(10)
+        i = 0
 
-        the_client_socket.send(bytes(syn_packet[TCP]))
-        the_client_socket.send(bytes(syn_packet[Raw]))
-        time.sleep(2)
+        while True:
+            the_client_socket.settimeout(10)
+            try:
+                time.sleep(2)
+                the_client_socket.send(bytes(syn_packet[TCP]))
+               # time.sleep(2)
+                if i == 0:
+                   # the_client_socket.send(bytes(syn_packet[Raw]))
+                    i += 1
 
-        server_response = the_client_socket.recv(MAX_MSG_LENGTH)
-        server_message = the_client_socket.recv(MAX_MSG_LENGTH)
+                print("Trying")
+                server_response = the_client_socket.recv(MAX_MSG_LENGTH)
+                server_message = the_client_socket.recv(MAX_MSG_LENGTH)
+                print("Trying")
+                break
 
+            except socket.timeout:
+                print('retry')
+
+        the_client_socket.setblocking(True)
         res = TCP(server_response) / Raw(server_message)
         res.show()
 
@@ -141,9 +162,10 @@ class Client:
         the_client_socket.send(bytes(finish_first_handshake[Raw]))
         time.sleep(2)
 
-        letter = syn_packet[Raw].load
-        dot = finish_first_handshake[Raw].load
+        letter = syn_packet[Raw].load[0:2]
+        dot = finish_first_handshake[Raw].load[0:4]
         authentic = letter + dot
+        print("verifier", authentic)
 
         return finish_first_handshake, authentic
 
@@ -567,6 +589,7 @@ def main():
     if res[Raw].load == b'Accept':
 
         the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        time.sleep(2)
         print(server_port)
         client.initialize_handshakes(the_client_socket, server_ip, server_port, number)
 
