@@ -104,9 +104,6 @@ class Client:
                 number = 0
                 continue
 
-            else:
-                break
-
     def connection_handshakes(self, server_port, the_client_socket):
         """
 
@@ -130,22 +127,15 @@ class Client:
         syn_packet = self.create_syn(server_port)
         syn_packet.show()
         time.sleep(10)
-        i = 0
 
         while True:
             the_client_socket.settimeout(10)
             try:
                 time.sleep(2)
                 the_client_socket.send(bytes(syn_packet[TCP]))
-               # time.sleep(2)
-                if i == 0:
-                   # the_client_socket.send(bytes(syn_packet[Raw]))
-                    i += 1
 
-                print("Trying")
                 server_response = the_client_socket.recv(MAX_MSG_LENGTH)
                 server_message = the_client_socket.recv(MAX_MSG_LENGTH)
-                print("Trying")
                 break
 
             except socket.timeout:
