@@ -55,16 +55,17 @@ class Server:
         :return:
         """
         while True:
-            p = sniff(count=MAX_CLIENT, lfilter=self.filter_tcp, timeout=20)
-            number_of_clients = len(p)
+            requests = sniff(count=MAX_CLIENT, lfilter=self.filter_tcp, timeout=20)
+            number_of_clients = len(requests)
             if number_of_clients > 0 or number_of_clients == MAX_CLIENT:
                 break
 
         list_responses = []
-        server_port = [p[i][TCP].dport for i in range(0, len(p))]
+        server_port = [requests[i][TCP].dport for i in range(0, len(requests))]
         print(server_port)
-        for index in range(0, len(p)):
-            a_pack = p[index]
+
+        for index in range(0, len(requests)):
+            a_pack = requests[index]
 
             a_pack[Raw].load = self.check_if_eligible(a_pack[Ether].src)
 
@@ -124,9 +125,12 @@ class Server:
         res[TCP].ack = res[TCP].seq + 1
         res[TCP].seq = RandShort()
 
-        res = res.__class__(bytes(res))
+        res = self.prepare_packet_structure(res)
 
         return res
+
+    def prepare_packet_structure(self, the_packet):
+        return the_packet.__class__(bytes(the_packet))
 
     def create_sockets(self, server_port):
         """
@@ -250,21 +254,9 @@ class Server:
         packet_auth[TCP].options = MSS
 
         packet_auth[Raw].load = b"hello"
-        packet_auth = packet_auth.__class__(bytes(packet_auth))
+        packet_auth = self.prepare_packet_structure(packet_auth)
 
         return packet_auth
-
-    def create_session_id(self):
-        """
-         Create session id
-        :return: TLS session id
-        """
-
-        s_sid = hashlib.sha256()
-        s_sid.update(bytes(N))
-        s_sid = s_sid.hexdigest()
-
-        return s_sid
 
     def secure_handshake(self, client_socket, auth):
         """
@@ -274,17 +266,16 @@ class Server:
         """
 
         client_hello = client_socket.recv(MAX_MSG_LENGTH)
-        s_p = TLS(client_hello)
-        s_p.show()
+        t_client_hello = TLS(client_hello)
+        t_client_hello.show()
 
-        if TLSClientHello in s_p and s_p[TLS][TLSClientHello].version == TLS_MID_VERSION \
-           and s_p[TLS].version == TLS_MID_VERSION:
+        if self.valid_tls(t_client_hello):
             s_sid = self.create_session_id()
 
             sec_res = self.new_secure_session(s_sid)
             sec_res.show()
 
-            certificate, key, enc_master_c, server_key_ex, private_key = self.new_certificate()
+            certificate, key, server_key_ex, private_key = self.new_certificate()
             client_socket.send(bytes(sec_res[TLS]))  # Server hello
             client_socket.send(bytes(certificate[TLS]))  # Certificate
             time.sleep(2)
@@ -294,10 +285,10 @@ class Server:
             keys = TLS(client_key_exchange)
             keys.show()
 
-            if TLSClientKeyExchange in keys and keys[TLS].version == TLS_MID_VERSION:
+            if self.valid_key_exchange(keys):
                 client_point = keys[TLSClientKeyExchange][Raw].load
                 enc_key = self.create_encryption_key(private_key, client_point)
-                print("==============", "\n", "Encryption key\n", enc_key, "\n", "==============")
+                print("=====================", "\n", "Encryption key\n", enc_key, "\n", "=============================")
 
                 server_final = self.create_server_final()  # Change Cipher spec
                 server_final.show()
@@ -315,7 +306,7 @@ class Server:
                 print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
                 data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
 
-                if data_iv == 0 and data_c_t == 1 and data_tag == 2:
+                if self.valid_data(data_iv, data_c_t, data_tag):
                     return
 
                 else:
@@ -323,7 +314,7 @@ class Server:
 
                 data_iv2, data_c_t2, data_tag2 = self.deconstruct_data(client_socket)
 
-                if data_iv2 == 0 and data_c_t2 == 1 and data_tag2 == 2:
+                if self.valid_data(data_iv2, data_c_t2, data_tag2):
                     return
 
                 else:
@@ -340,6 +331,23 @@ class Server:
             self.send_alert(client_socket)
             return
 
+    def valid_tls(self, t_client_hello):
+
+        return TLSClientHello in t_client_hello and t_client_hello[TLS][TLSClientHello].version == TLS_MID_VERSION \
+                and t_client_hello[TLS].version == TLS_MID_VERSION
+
+    def create_session_id(self):
+        """
+         Create session id
+        :return: TLS session id
+        """
+
+        s_sid = hashlib.sha256()
+        s_sid.update(bytes(N))
+        s_sid = s_sid.hexdigest()
+
+        return s_sid
+
     def new_secure_session(self, s_sid):
         """
          Create the server hello packet
@@ -348,13 +356,12 @@ class Server:
         """
 
         security_layer = (TLS(msg=TLSServerHello(sid=s_sid, cipher=RECOMMENDED_CIPHER,
-                          ext=(TLS_Ext_SupportedVersion_SH(version=[TLS_MID_VERSION]) /
-                              TLS_Ext_SignatureAlgorithmsCert(sig_algs=[SIGNATURE_ALGORITHIM]) /
-                              TLS_Ext_ExtendedMasterSecret() / TLS_Ext_SupportedPointFormat() /
-                              TLS_Ext_RenegotiationInfo()))))
+                                                 ext=(TLS_Ext_SupportedVersion_SH(version=[TLS_MID_VERSION]) /
+                                                      TLS_Ext_SignatureAlgorithmsCert(sig_algs=[SIGNATURE_ALGORITHIM]) /
+                                                      TLS_Ext_ExtendedMasterSecret() / TLS_Ext_SupportedPointFormat() /
+                                                      TLS_Ext_RenegotiationInfo()))))
 
-        security_packet = security_layer
-        security_packet.__class__(bytes(security_packet))
+        security_packet = self.prepare_packet_structure(security_layer)
         security_packet.show()
 
         return security_packet
@@ -379,13 +386,12 @@ class Server:
         server_key_ex = (TLS(msg=TLSServerKeyExchange(params=ec_params, sig=d_sign)) /
                          TLS(msg=TLSServerHelloDone()))
 
-        cert_msg = cert_tls
         ske_msg = server_key_ex
 
-        cert_msg = cert_msg.__class__(bytes(cert_msg))
+        cert_msg = self.prepare_packet_structure(cert_tls)
         cert_msg.show()
 
-        return cert_msg, key, enc_master_c, ske_msg, private_key
+        return cert_msg, key, ske_msg, private_key
 
     def create_x509(self):
         """
@@ -478,6 +484,9 @@ class Server:
 
         return derived_k_f
 
+    def valid_key_exchange(self, keys):
+        return TLSClientKeyExchange in keys and keys[TLS].version == TLS_MID_VERSION
+
     def create_server_final(self):
         """
          Create the finish message
@@ -490,8 +499,7 @@ class Server:
         print(len(server_cert.signature))
 
         server_key = (TLS(msg=TLSChangeCipherSpec()) / TLS(msg=TLSFinished()))
-        server_ex = server_key
-        server_ex = server_ex.__class__(bytes(server_ex))
+        server_ex = self.prepare_packet_structure(server_key)
 
         return server_ex
 
@@ -553,8 +561,7 @@ class Server:
 
         full_data = some_data[0] + some_data[1] + some_data[2]
         data_packet = TLS(msg=TLSApplicationData(data=full_data))
-        data_message = data_packet
-        data_message = data_message.__class__(bytes(data_message))
+        data_message = self.prepare_packet_structure(data_packet)
 
         return data_message
 
@@ -586,6 +593,10 @@ class Server:
 
         return data_iv, data_c_t, data_tag
 
+    def valid_data(self, data_iv, data_c_t, data_tag):
+        return data_iv == 0 and data_c_t == 1 and data_tag == 2
+
+
     def send_alert(self, client_socket):
         """
 
@@ -593,7 +604,7 @@ class Server:
         """
 
         alert = TLS(msg=TLSAlert(level=2, descr=40))
-        alert = alert.__class__(bytes(alert))
+        alert = self.prepare_packet_structure(alert)
         client_socket.send(bytes(alert[TLS]))
 
     def create_responders(self, threads, number_of_clients, lock):
@@ -613,18 +624,16 @@ class Server:
                 threads = self.create_responders(threads, number_of_clients, lock)
 
                 for index in range(0, number_of_clients):
-                    t = threads[index]
-                    t.start()
+                    threads[index].start()
 
                 for index in range(0, number_of_clients):
-                    t = threads[index]
-                    t.join()
+                    threads[index].join()
 
                     if KEY[str(index)] == 1:
                         number_of_clients -= 1
                         KEY.pop(str(index))
                         CLIENTS.pop(str(index))
-                        the_server_socket[str(number)].close()
+                        the_server_socket[str(index)].close()
                         SOCKETS.pop(str(index))
 
                         if number_of_clients == 0:
