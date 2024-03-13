@@ -39,6 +39,7 @@ SOCKET_TIMEOUT = 10
 THE_LIST = {}
 PREVS = {}
 KEY = {}
+SOCKETS = {}
 CLIENTS = {}
 MAX_CLIENT = 5
 
@@ -73,6 +74,7 @@ class Server:
 
         for i in range(0, len(l)):
             sendp(l[i])
+            time.sleep(2)
 
         return p, l, number_of_clients
 
@@ -127,10 +129,23 @@ class Server:
 
         return res
 
+    def create_sockets(self, server_port):
+        """
+
+        :param server_port:
+        """
+
+        print("creating for five clients")
+        for port_number in range(0, len(server_port)):
+            the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+            the_server_socket.bind((THE_USUAL_IP, server_port[port_number]))  # Bind the server IP and Port into a tuple
+            the_server_socket.listen()  # Listen to client
+            SOCKETS[str(port_number)] = the_server_socket
+
     def accept_clients(self, number_of_clients, the_server_socket, lock, threads):
 
         for number in range(0, number_of_clients):
-            connection, client_address = the_server_socket.accept()  # Accept clients request
+            connection, client_address = the_server_socket[str(number)].accept()  # Accept clients request
             print(f"Client connected {client_address}")
 
             client_socket = connection
@@ -145,6 +160,8 @@ class Server:
         for number in range(0, number_of_clients):
             threads[number].start()
             print(f"client {number}")
+
+        for number in range(0, number_of_clients):
             threads[number].join()
 
     def create_handshakes(self, lock, client_socket, number):
@@ -575,6 +592,8 @@ class Server:
 
     def handle_clients(self, threads, number_of_clients, lock, secure_socket, the_server_socket):
 
+        number = 0
+
         while True:
             try:
                 threads = self.create_responders(threads, number_of_clients, lock)
@@ -589,8 +608,9 @@ class Server:
                         number_of_clients -= 1
                         if number_of_clients == 0:
                             secure_socket.close()
-                            the_server_socket.close()
+                            the_server_socket[str(index)].close()
                             break
+                    number = index
                 threads = []
 
             except ConnectionAbortedError:
@@ -602,7 +622,7 @@ class Server:
 
                 print("Server is shutting down")
                 secure_socket.close()
-                the_server_socket.close()
+                the_server_socket[str(number)].close()
                 break
 
     def respond_to_client(self, lock, index_of_client):
@@ -649,18 +669,18 @@ def main():
     first, second, number_of_clients = server.first_contact()
 
     message = [second[i][Raw].load for i in range(0, len(second))]
-    server_port = first[0][TCP].sport
+    server_port = [first[i][TCP].sport for i in range(0, len(first))]
 
     print(number_of_clients)
 
     if b'Accept' in message:
-        the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-        the_server_socket.bind((THE_USUAL_IP, server_port))  # Bind the server IP and Port into a tuple
-        the_server_socket.listen(MAX_CLIENT)  # Listen to client
+        server.create_sockets(server_port)
+        the_server_socket = SOCKETS
         threads = []
         lock = threading.Lock()
 
         print("Server is up and running")
+
         threads = server.accept_clients(number_of_clients, the_server_socket, lock, threads)
 
         server.initiate_handshakes(threads, number_of_clients)

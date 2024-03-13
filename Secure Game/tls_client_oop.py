@@ -62,6 +62,7 @@ class Client:
         vert = sniff(count=1, lfilter=self.filter_tcp)
         vert[0].show()
         res = vert[0]
+
         print(res[TCP].sport, res[TCP].dport)
 
         return res, res[TCP].sport
@@ -96,7 +97,6 @@ class Client:
                 print("refused to play")
 
             except ConnectionRefusedError as e:
-                server_port += 1
                 print(e)
             else:
                 break
