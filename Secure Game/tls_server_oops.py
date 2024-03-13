@@ -60,23 +60,23 @@ class Server:
             if number_of_clients > 0 or number_of_clients == MAX_CLIENT:
                 break
 
-        l = []
+        list_responses = []
         server_port = [p[i][TCP].dport for i in range(0, len(p))]
         print(server_port)
-        for i in range(0, len(p)):
-            a_pack = p[i]
+        for index in range(0, len(p)):
+            a_pack = p[index]
 
             a_pack[Raw].load = self.check_if_eligible(a_pack[Ether].src)
 
             a_pack = self.create_f_response(a_pack)
             a_pack.show()
-            l.append(a_pack)
+            list_responses.append(a_pack)
 
-        for i in range(0, len(l)):
-            sendp(l[i])
+        for index in range(0, len(list_responses)):
+            sendp(list_responses[index])
             time.sleep(2)
 
-        return p, l, number_of_clients, server_port
+        return list_responses, number_of_clients, server_port
 
     def filter_tcp(self, packets):
         """
@@ -99,7 +99,6 @@ class Server:
         """
          Create the servers first response
         :param alt_res: The TCP packet
-        :param server_port:
         :return: The TCP response
         """
 
@@ -623,10 +622,15 @@ class Server:
 
                     if KEY[str(index)] == 1:
                         number_of_clients -= 1
+                        KEY.pop(str(index))
+                        CLIENTS.pop(str(index))
+                        the_server_socket[str(number)].close()
+                        SOCKETS.pop(str(index))
+
                         if number_of_clients == 0:
                             secure_socket.close()
-                            the_server_socket[str(index)].close()
                             break
+
                     number = index
                 threads = []
 
@@ -688,7 +692,7 @@ def main():
     secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     secure_socket.connect((MY_IP, SECURITY_PORT))
 
-    first, second, number_of_clients, server_port = server.first_contact()
+    second, number_of_clients, server_port = server.first_contact()
 
     message = [second[i][Raw].load for i in range(0, len(second))]
 
