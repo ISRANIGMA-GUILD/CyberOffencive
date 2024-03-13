@@ -36,6 +36,13 @@ class Client:
     def __init__(self):
         pass
 
+    def empty_string(self, message):
+        return message is None or '' in message
+
+    def ip_v_four_format(self, ip_address):
+        return ip_address.count('.') == 3 and ''.join(ip_address.split('.')).isnumeric() and \
+                len(''.join(ip_address.split('.'))) <= 12
+
     def first_contact(self, server_ip, server_port):
         """
          Get in contact with the server by sending a TCP packet to it
@@ -123,7 +130,6 @@ class Client:
         :param the_client_socket:
         :return: The ack packet and the authentic client associate
         """
-        print("Trying")
         syn_packet = self.create_syn(server_port)
         syn_packet.show()
         time.sleep(10)
@@ -259,20 +265,15 @@ class Client:
 
                 details = self.details_entry(encryption_key, auth)
 
-                if details[0] == 0 and details[1] == 1:
-                    print("YOU WERE BANNED FOR USING HTML")
-                    return 1
-
-                else:
-                    the_client_socket.send(bytes(details[0][TLS]))
-                    the_client_socket.send(bytes(details[1][TLS]))
+                the_client_socket.send(bytes(details[0][TLS]))
+                the_client_socket.send(bytes(details[1][TLS]))
 
                 return encryption_key
         else:
             alert_message = self.send_alert()
             the_client_socket.send(bytes(alert_message[TLS]))
             i = 1
-            while True:
+            while True:  # THIS WILL BE REMOVED THIS IS AN EMERGENCY PAUSE
                 try:
                     if i == 1:
                         print("ALERT ALERT")
@@ -452,14 +453,20 @@ class Client:
          Turn the data into a proper message
         :param key: The key
         :param auth: The authenticator
-        :return: The full data message or 0,1 (CLIENT WILL BE BANNED)
+        :return: The full data message
         """
+        while True:
+            user = input("Enter your username\n")
+            passw = input("Enter your password\n")
 
-        user = input("Enter your username\n")
-        passw = input("Enter your password\n")
+            if self.empty_string(user) or self.empty_string(passw):
+                print("Please enter the requested information")
 
-        if self.malicious_message(user) or self.malicious_message(passw):
-            return 0, 1
+            elif self.malicious_message(user) or self.malicious_message(passw):
+                print("Don't mess with Shmulik")
+
+            else:
+                break
 
         user = user.encode()
         passw = passw.encode()
@@ -498,8 +505,8 @@ class Client:
         :return:
         """
 
-        for i in range(0, len(THE_BIG_LIST)):
-            if THE_BIG_LIST.get(str(i)) in message:
+        for index in range(0, len(THE_BIG_LIST)):
+            if THE_BIG_LIST.get(str(index)) in message:
                 return True
 
         if len(message) > 50:
@@ -531,8 +538,8 @@ class Client:
                         full_msg = self.create_message(data)
 
                         if type(full_msg) is list:
-                            for i in range(0, len(full_msg)):
-                                message = full_msg[i]
+                            for index in range(0, len(full_msg)):
+                                message = full_msg[index]
                                 message.show()
                                 the_client_socket.send(bytes(message[TLS]))
 
@@ -544,8 +551,7 @@ class Client:
                             break
 
                     else:
-                        print("You have been banned!")
-                        break
+                        print("Don't mess with Shmulik")
 
             except ConnectionRefusedError:
 
@@ -571,7 +577,13 @@ def main():
 
     client = Client()
     server_port = int(RandShort())
-    server_ip = input("Enter the ip of the server\n")
+
+    while True:
+        server_ip = input("Enter the ip of the server\n")
+        print(len(''.join(server_ip.split('.'))))
+        if client.ip_v_four_format(server_ip) and not client.empty_string(server_ip):
+            break
+
     number = 0
 
     res, server_port = client.first_contact(server_ip, server_port)
@@ -580,7 +592,6 @@ def main():
 
         the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
         time.sleep(2)
-        print(server_port)
         client.initialize_handshakes(the_client_socket, server_ip, server_port, number)
 
         key, auth = KEY[str(number)][0], KEY[str(number)][1]
