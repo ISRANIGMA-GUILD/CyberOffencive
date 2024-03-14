@@ -798,8 +798,6 @@ class Server:
             data_pack.show()
 
             data = data_pack[TLS][TLSApplicationData].data
-
-            print("Will decrypt", data)
             data_iv = data[:12]
 
             data_tag = data[len(data) - 16:len(data)]
@@ -917,7 +915,7 @@ class Server:
             print(decrypted_data)
 
             if decrypted_data == b'EXIT':
-                print(client_socket.getpeername(), "Has exited the server")
+                print("Client", index_of_client, client_socket.getpeername(), "Has exited the server")
                 client_socket.close()
                 KEY[str(index_of_client)] = 1
 
@@ -928,7 +926,7 @@ class Server:
                 SOCKETS.pop(str(index_of_client))
 
         except TypeError:
-            print("Will kick", client_socket.getpeername())
+            print("Will kick", "Client", index_of_client, client_socket.getpeername())
             client_socket.close()
             KEY[str(index_of_client)] = 1
 
@@ -939,7 +937,7 @@ class Server:
             SOCKETS.pop(str(index_of_client))
 
         except socket.timeout:
-            print(client_socket.getpeername())
+            print("Moving away from", "Client", index_of_client, client_socket.getpeername())
         lock.release()
 
 
