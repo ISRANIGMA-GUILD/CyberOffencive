@@ -35,7 +35,7 @@ MAX_MSG_LENGTH = 1024
 THE_SHA_256 = hashes.SHA256()
 SECP = 0x0017
 SIGNATURE_ALGORITHIM = 0x0401
-SOCKET_TIMEOUT = 10
+SOCKET_TIMEOUT = 2
 THE_LIST = {}
 PREVS = {}
 KEY = {}
@@ -51,6 +51,43 @@ class Server:
     def __init__(self):
         pass
 
+    def run(self):
+        secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        secure_socket.connect((MY_IP, SECURITY_PORT))
+
+        accepted_clients, port_list = self.recieve_client_conenction_request()
+        self.create_sockets(port_list)
+
+        the_server_sockets = SOCKETS
+        threads = []
+
+        lock = threading.Lock()
+        print("Server is up and running")
+
+        threads = self.accept_clients(accepted_clients, the_server_sockets, lock, threads)
+        self.initiate_handshakes(threads, accepted_clients)
+
+        self.answer_credentials(accepted_clients, lock, the_server_sockets, secure_socket)
+        threads = []
+
+        self.handle_clients(threads, accepted_clients, lock, secure_socket)
+
+    def recieve_client_conenction_request(self):
+        """
+
+        :return:
+        """
+
+        while True:
+            second, number_of_clients, server_port = self.first_contact()
+            messages = [second[index][Raw].load for index in range(0, len(second))]
+
+            print(number_of_clients)
+            accepted_clients, port_list = self.check_for_banned(number_of_clients, messages, server_port)
+
+            if accepted_clients > 0:
+                return accepted_clients, port_list
+
     def first_contact(self):
         """
          Answer a client that is trying to connect to the server
@@ -63,7 +100,7 @@ class Server:
                 break
 
         list_responses = []
-        server_port = [requests[i][TCP].dport for i in range(0, len(requests))]
+        server_port = [requests[index][TCP].dport for index in range(0, len(requests))]
         print(server_port)
 
         for index in range(0, len(requests)):
@@ -133,6 +170,21 @@ class Server:
 
     def prepare_packet_structure(self, the_packet):
         return the_packet.__class__(bytes(the_packet))
+
+    def check_for_banned(self, number_of_clients, messages, server_port):
+        """
+
+        :param number_of_clients:
+        :param messages:
+        :param server_port:
+        """
+
+        for index in range(0, number_of_clients):
+            if b'Denied' == messages[index]:
+                number_of_clients -= 1
+                server_port.pop(index)
+
+        return number_of_clients, server_port
 
     def create_sockets(self, server_port):
         """
@@ -280,33 +332,36 @@ class Server:
 
             certificate, key, server_key_ex, private_key = self.new_certificate()
             client_socket.send(bytes(sec_res[TLS]))  # Server hello
+
             client_socket.send(bytes(certificate[TLS]))  # Certificate
             time.sleep(2)
-            client_socket.send(bytes(server_key_ex[TLS]))  # Server key exchange
 
+            client_socket.send(bytes(server_key_ex[TLS]))  # Server key exchange
             client_key_exchange = client_socket.recv(MAX_MSG_LENGTH)
+
             keys = TLS(client_key_exchange)
             keys.show()
 
             if self.valid_key_exchange(keys):
                 client_point = keys[TLSClientKeyExchange][Raw].load
                 enc_key = self.create_encryption_key(private_key, client_point)
+
                 print("=====================", "\n", "Encryption key\n", enc_key, "\n", "=============================")
-
                 server_final = self.create_server_final()  # Change Cipher spec
-                server_final.show()
 
+                server_final.show()
                 client_socket.send(bytes(server_final[TLS]))
 
                 message = b'hello'
                 some_data = self.encrypt_data(enc_key, message, auth)
+
                 data_msg = self.create_message(some_data)  # Application data
-
                 data_msg.show()
-                client_socket.send(bytes(data_msg[TLS]))
 
+                client_socket.send(bytes(data_msg[TLS]))
                 data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
-                if self.valid_data(data_iv, data_c_t, data_tag):
+
+                if self.invalid_data(data_iv, data_c_t, data_tag):
                     return
 
                 else:
@@ -314,12 +369,12 @@ class Server:
                     return enc_key
 
             else:
-                print("There is a major error")
+                print("Error in key exchange")
                 self.send_alert(client_socket)
                 return
 
         else:
-            print("There is a major error")
+            print("Client has not used tls properly")
             self.send_alert(client_socket)
             return
 
@@ -369,15 +424,15 @@ class Server:
 
         server_cert.show()
         print(key, "\n", server_cert.signatureValue)
+
         sig = key.sign(enc_master_c, GOOD_PAD, THE_SHA_256)  # RSA SIGNATURE on the shared secret
         ec_params = ServerECDHNamedCurveParams(named_curve=SECP, point=enc_master_c)
-        d_sign = scapy.layers.tls.keyexchange._TLSSignature(sig_alg=SIGNATURE_ALGORITHIM, sig_val=sig)
 
+        d_sign = scapy.layers.tls.keyexchange._TLSSignature(sig_alg=SIGNATURE_ALGORITHIM, sig_val=sig)
         cert_tls = (TLS(msg=TLSCertificate(certs=server_cert)))
 
         server_key_ex = (TLS(msg=TLSServerKeyExchange(params=ec_params, sig=d_sign)) /
                          TLS(msg=TLSServerHelloDone()))
-
         ske_msg = server_key_ex
 
         cert_msg = self.prepare_packet_structure(cert_tls)
@@ -392,7 +447,6 @@ class Server:
         """
 
         my_cert_pem, my_key_pem, key = self.generate_cert()
-
         private_key, ec_point = self.generate_public_point()
 
         return my_cert_pem, key, ec_point, private_key
@@ -623,12 +677,12 @@ class Server:
         enc_key = KEY[str(number)][0]
         auth = KEY[str(number)][1]
 
-        client_socket.settimeout(2)
+        client_socket.settimeout(SOCKET_TIMEOUT)
 
         try:
             data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
 
-            if self.valid_data(data_iv, data_c_t, data_tag):
+            if self.invalid_data(data_iv, data_c_t, data_tag):
                 lock.release()
                 return
 
@@ -638,7 +692,7 @@ class Server:
 
             data_iv2, data_c_t2, data_tag2 = self.deconstruct_data(client_socket)
 
-            if self.valid_data(data_iv2, data_c_t2, data_tag2):
+            if self.invalid_data(data_iv2, data_c_t2, data_tag2):
                 lock.release()
                 return
 
@@ -685,7 +739,7 @@ class Server:
 
         return data_iv, data_c_t, data_tag
 
-    def valid_data(self, data_iv, data_c_t, data_tag):
+    def invalid_data(self, data_iv, data_c_t, data_tag):
         return data_iv == 0 and data_c_t == 1 and data_tag == 2
 
     def send_alert(self, client_socket):
@@ -701,9 +755,7 @@ class Server:
     def empty_string(self, message):
         return message is None or ' ' in message
 
-    def handle_clients(self, threads, number_of_clients, lock, secure_socket, the_server_socket):
-
-        number = 0
+    def handle_clients(self, threads, number_of_clients, lock, secure_socket):
 
         while True:
             try:
@@ -717,24 +769,14 @@ class Server:
                     if KEY[str(index)] != 1:
                         threads[index].join()
 
-                    number = index
-
                 if len(CLIENTS.keys()) == 0:
                     secure_socket.close()
                     break
 
                 threads = []
 
-            except ConnectionAbortedError:
-                the_server_socket[str(number)].close()
-                break
-
-            except (socket.timeout, KeyboardInterrupt):
-
-                # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
-
-                print("Server is shutting down")
-                secure_socket.close()
+            except KeyboardInterrupt:
+                print("Server will end service")
                 break
 
     def create_responders(self, threads, number_of_clients, lock):
@@ -755,7 +797,7 @@ class Server:
         lock.acquire()
         client_socket = CLIENTS[str(index_of_client)]
         enc_key, auth = KEY[str(index_of_client)]
-        client_socket.settimeout(2)
+        client_socket.settimeout(SOCKET_TIMEOUT)
 
         try:
             data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
@@ -777,6 +819,12 @@ class Server:
             if decrypted_data == b'EXIT':
                 client_socket.close()
                 KEY[str(index_of_client)] = 1
+
+                CLIENTS.pop(str(index_of_client))
+                the_server_socket = SOCKETS[str(index_of_client)]
+
+                the_server_socket.close()
+                SOCKETS.pop(str(index_of_client))
                 print("Client has exited the server")
 
         except TypeError:
@@ -797,42 +845,7 @@ def main():
     Main function
     """
     server = Server()
-    secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-    secure_socket.connect((MY_IP, SECURITY_PORT))
-
-    second, number_of_clients, server_port = server.first_contact()
-
-    message = [second[i][Raw].load for i in range(0, len(second))]
-
-    print(number_of_clients)
-
-    if b'Accept' in message:
-        server.create_sockets(server_port)
-        the_server_socket = SOCKETS
-        threads = []
-        lock = threading.Lock()
-
-        print("Server is up and running")
-
-        threads = server.accept_clients(number_of_clients, the_server_socket, lock, threads)
-
-        server.initiate_handshakes(threads, number_of_clients)
-
-        print(KEY)
-        print(KEY.values)
-
-        server.answer_credentials(number_of_clients, lock, the_server_socket, secure_socket)
-
-        threads = []
-
-        server.handle_clients(threads, number_of_clients, lock, secure_socket, the_server_socket)
-
-    elif b'Denied' in message:
-        print("banned client")
-
-    else:
-
-        print("Error message try again")
+    server.run()
 
 
 if __name__ == '__main__':

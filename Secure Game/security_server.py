@@ -20,6 +20,7 @@ TLS_M_VERSION = 0x0303
 TLS_N_VERSION = 0x0304
 RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256.val
 MAX_MSG_LENGTH = 1024
+SECURITY_PORT = 443
 THE_SHA_256 = hashes.SHA256()
 THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6": "SELECT", "7": "/", "8": "#",
                 "9": "SQL", "10": "FROM", "11": "(", "12": ")", "13": "+", "14": "UNION", "15": "ALL", "16": ">",
@@ -34,11 +35,15 @@ class Security:
     def __init__(self):
         pass
 
+    def run(self):
+        print("secure")
+        self.create_server()
+
     def create_server(self):
         while True:
             try:
                 the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-                the_server_socket.bind((MY_IP, 443))  # Bind the server IP and Port into a tuple
+                the_server_socket.bind((MY_IP, SECURITY_PORT))  # Bind the server IP and Port into a tuple
                 the_server_socket.listen()  # Listen to client
 
                 print("Server is up and running")
@@ -69,8 +74,7 @@ class Security:
 def main():
 
     security = Security()
-    security.create_server()
-    print("secure")
+    security.run()
 
 
 if __name__ == '__main__':
