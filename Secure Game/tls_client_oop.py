@@ -40,26 +40,33 @@ class Client:
         """
 
         """
-        server_ip, server_port = self.format_socket()
+        try:
+            server_ip, server_port = self.format_socket()
 
-        res, server_port = self.first_contact(server_ip, server_port)
+            res, server_port = self.first_contact(server_ip, server_port)
 
-        if res[Raw].load == b'Accept':
+            if res[Raw].load == b'Accept':
 
-            the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-            time.sleep(2)
-            self.initialize_handshakes(the_client_socket, server_ip, server_port)
+                the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+                time.sleep(2)
+                self.initialize_handshakes(the_client_socket, server_ip, server_port)
 
-            time.sleep(2)
-            print(KEY)
+                time.sleep(2)
+                print(KEY)
 
-            if KEY['encryption'][0] != 1:
-                self.communicate(the_client_socket)
+                if KEY['encryption'][0] != 1:
+                    self.communicate(the_client_socket)
 
-                the_client_socket.close()
+                    the_client_socket.close()
 
-        else:
-            print("TO BAD YOU ARE BANNED!")
+            else:
+                print("TO BAD YOU ARE BANNED!")
+
+        except ConnectionRefusedError:
+            print("Connection refused check your internet")
+
+        except KeyboardInterrupt:
+            print("Leaving the game")
 
     def format_socket(self):
         """
@@ -109,8 +116,8 @@ class Client:
         :param ip_address:
         :return:
         """
-        return ip_address.count('.') == 3 and ''.join(ip_address.split('.')).isnumeric() and \
-                len(''.join(ip_address.split('.'))) <= 12
+        return (ip_address.count('.') == 3 and ''.join(ip_address.split('.')).isnumeric() and
+                len(''.join(ip_address.split('.'))) <= 12)
 
     def first_contact(self, server_ip, server_port):
         """
@@ -428,10 +435,10 @@ class Client:
 
         data_pack = TLS(the_client_socket.recv(MAX_MSG_LENGTH))
         data_pack.show()
-        data = data_pack[TLS][TLSApplicationData].data
 
-        print("Will decrypt", data)
+        data = data_pack[TLS][TLSApplicationData].data
         data_iv = data[:12]
+
         data_tag = data[len(data) - 16:len(data)]
         data_c_t = data[12:len(data) - 16]
 
