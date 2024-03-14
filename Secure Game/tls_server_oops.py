@@ -41,7 +41,9 @@ PREVS = {}
 KEY = {}
 SOCKETS = {}
 CLIENTS = {}
+CREDENTIALS = {}
 MAX_CLIENT = 5
+START_INDEX = 0
 
 
 class Server:
@@ -193,6 +195,7 @@ class Server:
 
         CLIENTS[str(number)] = client_socket
         KEY[str(number)] = (enc_key, auth)
+
         lock.release()
 
     def first_handshake(self, the_client_socket):
@@ -303,22 +306,11 @@ class Server:
                 client_socket.send(bytes(data_msg[TLS]))
 
                 data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
-                print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
-                data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
-
                 if self.valid_data(data_iv, data_c_t, data_tag):
                     return
 
                 else:
                     print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
-
-                data_iv2, data_c_t2, data_tag2 = self.deconstruct_data(client_socket)
-
-                if self.valid_data(data_iv2, data_c_t2, data_tag2):
-                    return
-
-                else:
-                    print(self.decrypt_data(enc_key, auth, data_iv2, data_c_t2, data_tag2))
                     return enc_key
 
             else:
@@ -565,6 +557,106 @@ class Server:
 
         return data_message
 
+    def answer_credentials(self, number_of_clients, lock, the_server_socket, secure_socket):
+
+        number = 0
+
+        for index in range(0, number_of_clients):
+            CREDENTIALS[str(index)] = None
+
+        while True:
+            try:
+                threads = self.create_credential_threads(number_of_clients, lock)
+
+                for index in range(0, number_of_clients):
+                    if CREDENTIALS[str(index)] is None:
+                        threads[index].start()
+
+                for index in range(0, number_of_clients):
+                    if CREDENTIALS[str(index)] is None:
+                        threads[index].join()
+
+                    if KEY[str(index)] == 1:
+                        number_of_clients -= 1
+                        KEY.pop(str(index))
+                        CLIENTS.pop(str(index))
+                        the_server_socket[str(index)].close()
+                        SOCKETS.pop(str(index))
+
+                        if number_of_clients == 0:
+                            secure_socket.close()
+                            break
+
+                    number = index
+
+                if len(CREDENTIALS.values()) == number_of_clients:
+                    break
+
+            except ConnectionAbortedError:
+                the_server_socket[str(number)].close()
+                break
+
+            except (socket.timeout, KeyboardInterrupt):
+
+                # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
+
+                print("Server is shutting down")
+                secure_socket.close()
+                break
+
+    def create_credential_threads(self, number_of_clients, lock):
+
+        threads = []
+
+        for number in range(0, number_of_clients):
+
+            the_thread = threading.Thread(target=self.recieve_credentials, args=(lock, number,))
+            threads.append(the_thread)
+
+        return threads
+
+    def recieve_credentials(self, lock, number):
+
+        lock.acquire()
+
+        client_socket = CLIENTS[str(number)]
+        enc_key = KEY[str(number)][0]
+        auth = KEY[str(number)][1]
+
+        client_socket.settimeout(2)
+
+        try:
+            data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
+
+            if self.valid_data(data_iv, data_c_t, data_tag):
+                lock.release()
+                return
+
+            else:
+                user = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
+                print(user)
+
+            data_iv2, data_c_t2, data_tag2 = self.deconstruct_data(client_socket)
+
+            if self.valid_data(data_iv2, data_c_t2, data_tag2):
+                lock.release()
+                return
+
+            else:
+                passw = self.decrypt_data(enc_key, auth, data_iv2, data_c_t2, data_tag2)
+                print(passw)
+                CREDENTIALS[str(number)] = (user, passw)
+
+        except TypeError:
+            print("Retrying")
+
+        except socket.timeout:
+            print("next")
+            lock.release()
+            return
+
+        lock.release()
+
     def deconstruct_data(self, the_client_socket):
         """
          Dissect the data received from the server
@@ -596,7 +688,6 @@ class Server:
     def valid_data(self, data_iv, data_c_t, data_tag):
         return data_iv == 0 and data_c_t == 1 and data_tag == 2
 
-
     def send_alert(self, client_socket):
         """
 
@@ -607,13 +698,8 @@ class Server:
         alert = self.prepare_packet_structure(alert)
         client_socket.send(bytes(alert[TLS]))
 
-    def create_responders(self, threads, number_of_clients, lock):
-
-        for number in range(0, number_of_clients):
-            the_thread = threading.Thread(target=self.respond_to_client, args=(lock, number,))
-            threads.append(the_thread)
-
-        return threads
+    def empty_string(self, message):
+        return message is None or ' ' in message
 
     def handle_clients(self, threads, number_of_clients, lock, secure_socket, the_server_socket):
 
@@ -624,26 +710,23 @@ class Server:
                 threads = self.create_responders(threads, number_of_clients, lock)
 
                 for index in range(0, number_of_clients):
-                    threads[index].start()
+                    if KEY[str(index)] != 1:
+                        threads[index].start()
 
                 for index in range(0, number_of_clients):
-                    threads[index].join()
-
-                    if KEY[str(index)] == 1:
-                        number_of_clients -= 1
-                        KEY.pop(str(index))
-                        CLIENTS.pop(str(index))
-                        the_server_socket[str(index)].close()
-                        SOCKETS.pop(str(index))
-
-                        if number_of_clients == 0:
-                            secure_socket.close()
-                            break
+                    if KEY[str(index)] != 1:
+                        threads[index].join()
 
                     number = index
+
+                if len(CLIENTS.keys()) == 0:
+                    secure_socket.close()
+                    break
+
                 threads = []
 
             except ConnectionAbortedError:
+                the_server_socket[str(number)].close()
                 break
 
             except (socket.timeout, KeyboardInterrupt):
@@ -652,8 +735,15 @@ class Server:
 
                 print("Server is shutting down")
                 secure_socket.close()
-                the_server_socket[str(number)].close()
                 break
+
+    def create_responders(self, threads, number_of_clients, lock):
+
+        for number in range(0, number_of_clients):
+            the_thread = threading.Thread(target=self.respond_to_client, args=(lock, number,))
+            threads.append(the_thread)
+
+        return threads
 
     def respond_to_client(self, lock, index_of_client):
         """
@@ -665,9 +755,11 @@ class Server:
         lock.acquire()
         client_socket = CLIENTS[str(index_of_client)]
         enc_key, auth = KEY[str(index_of_client)]
+        client_socket.settimeout(2)
+
         try:
             data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
-
+            print(data_iv, data_c_t, data_tag)
             if not data_iv and not data_c_t and not data_tag:
                 lock.release()
                 return
@@ -690,6 +782,13 @@ class Server:
         except TypeError:
             client_socket.close()
             KEY[str(index_of_client)] = 1
+            CLIENTS.pop(str(index_of_client))
+            the_server_socket = SOCKETS[str(index_of_client)]
+            the_server_socket.close()
+            SOCKETS.pop(str(index_of_client))
+
+        except socket.timeout:
+            print("next")
         lock.release()
 
 
@@ -721,6 +820,8 @@ def main():
 
         print(KEY)
         print(KEY.values)
+
+        server.answer_credentials(number_of_clients, lock, the_server_socket, secure_socket)
 
         threads = []
 

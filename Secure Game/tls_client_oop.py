@@ -37,7 +37,7 @@ class Client:
         pass
 
     def empty_string(self, message):
-        return message is None or '' in message
+        return message is None or ' ' in message
 
     def ip_v_four_format(self, ip_address):
         return ip_address.count('.') == 3 and ''.join(ip_address.split('.')).isnumeric() and \
@@ -580,7 +580,7 @@ def main():
 
     while True:
         server_ip = input("Enter the ip of the server\n")
-        print(len(''.join(server_ip.split('.'))))
+        print(server_ip.count('.'), ''.join(server_ip.split('.')).isnumeric(), len(''.join(server_ip.split('.'))))
         if client.ip_v_four_format(server_ip) and not client.empty_string(server_ip):
             break
 
