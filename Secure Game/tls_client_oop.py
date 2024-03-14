@@ -52,11 +52,9 @@ class Client:
                 self.initialize_handshakes(the_client_socket, server_ip, server_port)
 
                 time.sleep(2)
-                print(KEY)
 
                 if KEY['encryption'][0] != 1:
                     self.communicate(the_client_socket)
-
                     the_client_socket.close()
 
             else:
@@ -204,7 +202,7 @@ class Client:
         """
         syn_packet = self.create_syn(server_port)
         syn_packet.show()
-        time.sleep(10)
+        time.sleep(2)
 
         while True:
             the_client_socket.settimeout(10)
@@ -315,7 +313,6 @@ class Client:
 
             else:
                 data_iv, data_c_t, data_tag = self.recieve_data(the_client_socket)
-                print("==============", "\n", encryption_key, "\n", "==============")
 
                 print(self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag))
                 message = b'greetings!'
@@ -453,19 +450,10 @@ class Client:
         :return: The iv, the encrypted data and the encryption tag
         """
 
-        # Generate a random 96-bit IV.
         iv = os.urandom(12)
-
-        # Construct an AES-GCM Cipher object with the given key and a
-        # randomly generated IV.
         encryptor = Cipher(algorithms.AES(key), modes.GCM(iv)).encryptor()
 
-        # associated_data will be authenticated but not encrypted,
-        # it must also be passed in on decryption.
         encryptor.authenticate_additional_data(associated_data)
-
-        # Encrypt the plaintext and get the associated ciphertext.
-        # GCM does not require padding.
         ciphertext = encryptor.update(plaintext) + encryptor.finalize()
 
         return iv, ciphertext, encryptor.tag
@@ -481,16 +469,9 @@ class Client:
         :return: The decrypted data
         """
 
-        # Construct a Cipher object, with the key, iv, and additionally the
-        # GCM tag used for authenticating the message.
         decryptor = Cipher(algorithms.AES(key), modes.GCM(iv, tag)).decryptor()
-
-        # We put associated_data back in or the tag will fail to verify
-        # when we finalize the decryptor.
         decryptor.authenticate_additional_data(associated_data)
 
-        # Decryption gets us the authenticated plaintext.
-        # If the tag does not match an InvalidTag exception will be raised.
         return decryptor.update(ciphertext) + decryptor.finalize()
 
     def create_message(self, some_data):
@@ -607,6 +588,7 @@ class Client:
                     if not self.malicious_message(msg):
                         message = msg.encode()
                         print(message)
+
                         data = [self.encrypt_data(key, message, auth)]
                         full_msg = self.create_message(data)
 
@@ -627,18 +609,12 @@ class Client:
                         print("Don't mess with Shmulik")
 
             except ConnectionRefusedError:
-
-                # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
-
                 print("Retrying")
 
             except ConnectionAbortedError:
                 break
 
             except KeyboardInterrupt:
-
-                # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
-
                 print("Server is shutting down")
                 break
 

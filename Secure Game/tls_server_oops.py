@@ -311,7 +311,7 @@ class Server:
 
         response = self.create_response(syn_packet)
         the_client_socket.send(bytes(response[TCP]))
-        time.sleep(5)
+        time.sleep(2)
         the_client_socket.send(bytes(response[Raw]))
 
         last_pack = the_client_socket.recv(MAX_MSG_LENGTH)
@@ -383,7 +383,6 @@ class Server:
                 client_point = keys[TLSClientKeyExchange][Raw].load
                 enc_key = self.create_encryption_key(private_key, client_point)
 
-                print("=====================", "\n", "Encryption key\n", enc_key, "\n", "=============================")
                 server_final = self.create_server_final()  # Change Cipher spec
 
                 server_final.show()
@@ -606,19 +605,10 @@ class Server:
         :return: The iv, the encrypted data and the encryption tag
         """
 
-        # Generate a random 96-bit IV.
         iv = os.urandom(12)
-
-        # Construct an AES-GCM Cipher object with the given key and a
-        # randomly generated IV.
         encryptor = Cipher(algorithms.AES(key), modes.GCM(iv)).encryptor()
 
-        # associated_data will be authenticated but not encrypted,
-        # it must also be passed in on decryption.
         encryptor.authenticate_additional_data(associated_data)
-
-        # Encrypt the plaintext and get the associated ciphertext.
-        # GCM does not require padding.
         ciphertext = encryptor.update(plaintext) + encryptor.finalize()
 
         return iv, ciphertext, encryptor.tag
@@ -634,16 +624,9 @@ class Server:
         :return: The decrypted data
         """
 
-        # Construct a Cipher object, with the key, iv, and additionally the
-        # GCM tag used for authenticating the message.
         decryptor = Cipher(algorithms.AES(key), modes.GCM(iv, tag)).decryptor()
-
-        # We put associated_data back in or the tag will fail to verify
-        # when we finalize the decryptor.
         decryptor.authenticate_additional_data(associated_data)
 
-        # Decryption gets us the authenticated plaintext.
-        # If the tag does not match an InvalidTag exception will be raised.
         return decryptor.update(ciphertext) + decryptor.finalize()
 
     def create_message(self, some_data):
@@ -897,7 +880,6 @@ class Server:
 
         try:
             data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
-            print(data_iv, data_c_t, data_tag)
 
             if not data_iv and not data_c_t and not data_tag:
                 lock.release()
