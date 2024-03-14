@@ -36,10 +36,18 @@ class Security:
         pass
 
     def run(self):
+        """
+
+        """
+
         print("secure")
         self.create_server()
 
     def create_server(self):
+        """
+
+        """
+
         while True:
             try:
                 the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
@@ -63,7 +71,12 @@ class Security:
 
         print("connect to the main server")
 
-    def recieve_requests(self, service_socket):
+    def receive_requests(self, service_socket):
+        """
+
+        :param service_socket:
+        :return:
+        """
 
         data = service_socket.recv(MAX_MSG_LENGTH)
 

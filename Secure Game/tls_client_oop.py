@@ -37,7 +37,9 @@ class Client:
         pass
 
     def run(self):
+        """
 
+        """
         server_ip, server_port = self.format_socket()
 
         res, server_port = self.first_contact(server_ip, server_port)
@@ -83,7 +85,10 @@ class Client:
         return server_port
 
     def find_ip(self):
+        """
 
+        :return:
+        """
         while True:
             server_ip = input("Enter the ip of the server\n")
 
@@ -91,9 +96,19 @@ class Client:
                 return server_ip
 
     def empty_string(self, message):
+        """
+
+        :param message:
+        :return:
+        """
         return message is None or ' ' in message
 
     def ip_v_four_format(self, ip_address):
+        """
+
+        :param ip_address:
+        :return:
+        """
         return ip_address.count('.') == 3 and ''.join(ip_address.split('.')).isnumeric() and \
                 len(''.join(ip_address.split('.'))) <= 12
 
@@ -511,6 +526,9 @@ class Client:
 
             if self.empty_string(user) or self.empty_string(passw):
                 print("Please enter the requested information")
+
+            if user == 'EXIT' or passw == 'EXIT':
+                print("YOU CAN'T EXIT AT LOGIN!")
 
             elif self.malicious_message(user) or self.malicious_message(passw):
                 print("Don't mess with Shmulik")
