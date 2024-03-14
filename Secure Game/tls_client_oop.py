@@ -36,6 +36,60 @@ class Client:
     def __init__(self):
         pass
 
+    def run(self):
+
+        server_ip, server_port = self.format_socket()
+
+        res, server_port = self.first_contact(server_ip, server_port)
+
+        if res[Raw].load == b'Accept':
+
+            the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+            time.sleep(2)
+            self.initialize_handshakes(the_client_socket, server_ip, server_port)
+
+            time.sleep(2)
+            print(KEY)
+
+            if KEY['encryption'][0] != 1:
+                self.communicate(the_client_socket)
+
+                the_client_socket.close()
+
+        else:
+            print("TO BAD YOU ARE BANNED!")
+
+    def format_socket(self):
+        """
+
+        :return:
+        """
+
+        server_port = self.choose_port()
+        server_ip = self.find_ip()
+
+        return server_ip, server_port
+
+    def choose_port(self):
+        """
+
+        :return:
+        """
+
+        server_port = int(RandShort())
+        if server_port == 443:
+            server_port += 1
+
+        return server_port
+
+    def find_ip(self):
+
+        while True:
+            server_ip = input("Enter the ip of the server\n")
+
+            if self.ip_v_four_format(server_ip) and not self.empty_string(server_ip):
+                return server_ip
+
     def empty_string(self, message):
         return message is None or ' ' in message
 
@@ -85,22 +139,19 @@ class Client:
         return TCP in packets and Raw in packets and \
             (packets[Raw].load == b'Accept' or packets[Raw].load == b'Denied')
 
-    def initialize_handshakes(self, the_client_socket, server_ip, server_port, number):
+    def initialize_handshakes(self, the_client_socket, server_ip, server_port):
         """
 
         :param the_client_socket:
         :param server_ip:
         :param server_port:
-        :param number:
         """
 
         while True:
             try:
                 time.sleep(2)
                 the_client_socket.connect((server_ip, server_port))
-                key, auth = self.connection_handshakes(server_port, the_client_socket)
-                KEY[str(number)] = (key, auth)
-                number += 1
+                KEY["encryption"] = self.connection_handshakes(server_port, the_client_socket)
                 break
 
             except KeyboardInterrupt:
@@ -108,7 +159,6 @@ class Client:
 
             except ConnectionRefusedError as e:
                 print(e)
-                number = 0
                 continue
 
     def connection_handshakes(self, server_port, the_client_socket):
@@ -517,18 +567,16 @@ class Client:
 
         return False
 
-    def communicate(self, the_client_socket, number):
+    def communicate(self, the_client_socket):
         """
 
         :param the_client_socket:
-        :param number:
         """
 
         while True:
             try:
-                if "1" not in KEY.values():
-                    key = KEY[str(number)][0]
-                    auth = KEY[str(number)][1]
+                if 1 not in KEY:
+                    key, auth = KEY['encryption'][0], KEY['encryption'][1]
                     msg = input("Enter a message\n")
 
                     if not self.malicious_message(msg):
@@ -576,34 +624,7 @@ def main():
     """
 
     client = Client()
-    server_port = int(RandShort())
-
-    while True:
-        server_ip = input("Enter the ip of the server\n")
-        print(server_ip.count('.'), ''.join(server_ip.split('.')).isnumeric(), len(''.join(server_ip.split('.'))))
-        if client.ip_v_four_format(server_ip) and not client.empty_string(server_ip):
-            break
-
-    number = 0
-
-    res, server_port = client.first_contact(server_ip, server_port)
-
-    if res[Raw].load == b'Accept':
-
-        the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-        time.sleep(2)
-        client.initialize_handshakes(the_client_socket, server_ip, server_port, number)
-
-        key, auth = KEY[str(number)][0], KEY[str(number)][1]
-        time.sleep(2)
-
-        if key != 1:
-            client.communicate(the_client_socket, number)
-
-            the_client_socket.close()
-
-    else:
-        print("TO BAD YOU ARE BANNED!")
+    client.run()
 
 
 if __name__ == '__main__':
