@@ -375,7 +375,7 @@ class Client:
         :return: TLS client key exchange packet
         """
 
-        with open("Certificates\\Certifacte.pem", "rb") as cert_file:
+        with open("Certificates\\Certifacte1.pem", "rb") as cert_file:
             server_cert = x509.load_pem_x509_certificate(cert_file.read(), default_backend())
 
         private_key, public_key_point = self.generate_the_point()

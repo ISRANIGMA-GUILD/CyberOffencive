@@ -9,6 +9,7 @@ from cryptography.x509.oid import *
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.padding import *
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+from cryptography.hazmat.primitives.serialization import *
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 import socket
 import os
@@ -489,56 +490,24 @@ class Server:
         :return: Certificate, private key, point and private key
         """
 
-        my_cert_pem, my_key_pem, key = self.generate_cert()
+        my_cert_pem, my_key_pem, key = self.retrieve_cert()
         private_key, ec_point = self.generate_public_point()
 
         return my_cert_pem, key, ec_point, private_key
 
-    def generate_cert(self):
+    def retrieve_cert(self):
         """
          Create the server certificate
         :return: The public key, the certificate and private key
         """
 
-        # RSA key
-        key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
+        with open('Certificates\\certifacte1.pem', 'rb') as certificate_first:
+            my_cert_pem = certificate_first.read()
 
-        # Create the certificate
+        with open('Keys\\the_key1.pem', 'rb') as key_first:
+            my_key_pem = key_first.read()
 
-        names = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, H_NAME)])
-
-        alt_names = [x509.DNSName(H_NAME), x509.DNSName(MY_IP)]
-
-        basic_constraints = x509.BasicConstraints(ca=True, path_length=0)
-
-        now = datetime.utcnow()
-
-        cert = (x509.CertificateBuilder()
-                .subject_name(names)
-                .issuer_name(names)
-                .public_key(key.public_key())
-                .serial_number(1000)
-                .not_valid_before(now)
-                .not_valid_after(now + timedelta(days=365))
-                .add_extension(basic_constraints, True)
-                .add_extension(x509.SubjectAlternativeName(alt_names), False)
-                .sign(key, THE_SHA_256, default_backend(), rsa_padding=PKCS1v15())
-                )
-
-        my_cert_pem = cert.public_bytes(encoding=THE_PEM)
-        my_key_pem = key.private_bytes(encoding=THE_PEM, format=PRIVATE_OPENSSL,
-                                       encryption_algorithm=serialization
-                                       .BestAvailableEncryption(b"dj$bjd&hb2f3v@d55920o@21sf"))
-        #  Recreate for storage :D
-
-        with open('Certificates\\Certificate_crts\\certifacte.crt', 'wb') as certificate_first:
-            certificate_first.write(my_cert_pem)
-
-        with open('Certificates\\certifacte.pem', 'wb') as certificate_first:
-            certificate_first.write(my_cert_pem)
-
-        with open('Keys\\the_key.pem', 'wb') as key_first:
-            key_first.write(my_key_pem)
+            key = load_pem_private_key(my_key_pem, b'hi', backend=default_backend())
 
         return my_cert_pem, my_key_pem, key
 
@@ -588,7 +557,7 @@ class Server:
         :return: The finish message
         """
 
-        with open("Certificates\\certifacte.pem", "rb") as cert_file:
+        with open("Certificates\\certifacte1.pem", "rb") as cert_file:
             server_cert = x509.load_pem_x509_certificate(cert_file.read(), default_backend())
 
         print(len(server_cert.signature))

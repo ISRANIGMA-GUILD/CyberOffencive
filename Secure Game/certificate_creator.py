@@ -24,8 +24,6 @@ SIGNATURE_ALGORITHIM = 0x0401
 for index in range(0, 20):
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
 
-    # Create the certificate
-
     names = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, H_NAME)])
     basic_constraints = x509.BasicConstraints(ca=True, path_length=0)
 
@@ -50,9 +48,9 @@ for index in range(0, 20):
             )
 
     my_cert_pem = cert.public_bytes(encoding=THE_PEM)
-    my_key_pem = key.private_bytes(encoding=THE_PEM, format=PRIVATE_OPENSSL,
+    my_key_pem = key.private_bytes(encoding=THE_PEM, format=serialization.PrivateFormat.PKCS8,
                                    encryption_algorithm=serialization
-                                   .BestAvailableEncryption(b"dj$bjd&hb2f3v@d55920o@21sf"))
+                                   .BestAvailableEncryption(b'hi'))
 
     with open(f'Certificates\\Certificate_crts\\certifacte{index}.crt', 'wb') as certificate_first:
         certificate_first.write(my_cert_pem)
@@ -60,5 +58,5 @@ for index in range(0, 20):
     with open(f'Certificates\\certifacte{index}.pem', 'wb') as certificate_first:
         certificate_first.write(my_cert_pem)
 
-    with open(f'Keys\\the_key.pem{index}', 'wb') as key_first:
+    with open(f'Keys\\the_key{index}.pem', 'wb') as key_first:
         key_first.write(my_key_pem)
