@@ -6,46 +6,46 @@
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte0.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte0.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte1.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte1.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte10.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte10.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte11.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte11.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte12.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte12.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte13.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte13.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte14.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte14.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte15.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte15.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte16.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte16.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte17.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte17.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte18.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte18.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte19.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte19.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte2.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte2.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte3.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte3.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte4.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte4.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte5.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte5.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte6.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte6.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte7.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte7.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte8.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte8.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte9.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte9.crt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte0.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte0.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte1.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte1.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte10.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte10.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte11.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte11.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte12.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte12.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte13.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte13.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte14.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte14.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte15.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte15.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte16.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte16.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte17.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte17.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte18.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte18.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte19.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte19.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte2.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte2.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte3.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte3.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte4.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte4.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte5.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte5.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte6.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte6.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte7.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte7.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte8.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte8.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte9.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Certificates/certifacte9.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte0.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte1.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte10.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte11.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte12.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte13.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte14.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte15.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte16.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte17.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte18.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte19.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte2.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte3.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte4.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte5.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte6.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte7.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte8.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/Certificate_crts/certifacte9.crt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte0.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte1.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte10.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte11.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte12.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte13.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte14.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte15.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte16.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte17.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte18.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte19.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte2.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte3.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte4.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte5.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte6.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte7.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte8.pem" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/Certificates/certifacte9.pem" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Secure Game/Keys/the_key0.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Keys/the_key0.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Secure Game/Keys/the_key1.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Keys/the_key1.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Secure Game/Keys/the_key10.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Keys/the_key10.pem" afterDir="false" />
@@ -95,31 +95,31 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "Python.certificate_creator (1).executor": "Run",
-    "Python.certificate_creator.executor": "Run",
-    "Python.security_server (1).executor": "Run",
-    "Python.security_server.executor": "Run",
-    "Python.tls_client_oop (1).executor": "Run",
-    "Python.tls_client_oop.executor": "Run",
-    "Python.tls_server_oops (1).executor": "Run",
-    "Python.tls_server_oops.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "tls",
-    "last_opened_file_path": "C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/basic_com"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;Python.certificate_creator (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.certificate_creator.executor&quot;: &quot;Run&quot;,
+    &quot;Python.security_server (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.security_server.executor&quot;: &quot;Run&quot;,
+    &quot;Python.tls_client_oop (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.tls_client_oop.executor&quot;: &quot;Run&quot;,
+    &quot;Python.tls_server_oops (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.tls_server_oops.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;tls&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/basic_com&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Secure Game\Certificates\Certificate_crts" />
       <recent name="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Secure Game" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.security_server (1)">
+  <component name="RunManager" selected="Python.tls_client_oop (1)">
     <configuration name="certificate_creator (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="basic_com" />
       <option name="ENV_FILES" value="" />

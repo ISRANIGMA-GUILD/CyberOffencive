@@ -49,10 +49,10 @@ for index in range(0, 20):
                                    encryption_algorithm=serialization
                                    .BestAvailableEncryption(b'gfdgdfgdhffdgfdgfdgdf'))
 
-    with open(f'Certificates\\Certificate_crts\\certifacte{index}.crt', 'wb') as certificate_first:
+    with open(f'Certificates\\Certificate_crts\\certificate{index}.crt', 'wb') as certificate_first:
         certificate_first.write(my_cert_pem)
 
-    with open(f'Certificates\\certifacte{index}.pem', 'wb') as certificate_first:
+    with open(f'Certificates\\certificate{index}.pem', 'wb') as certificate_first:
         certificate_first.write(my_cert_pem)
 
     with open(f'Keys\\the_key{index}.pem', 'wb') as key_first:
