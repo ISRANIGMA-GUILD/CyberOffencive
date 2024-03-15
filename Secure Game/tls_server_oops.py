@@ -25,7 +25,7 @@ N = RandShort()  # Key base number
 TLS_MID_VERSION = 0x0303
 TLS_NEW_VERSION = 0x0304
 RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256.val
-H_NAME = "bro"
+H_NAME = "Cyber-Offensive"
 KEY_ENC = serialization.Encoding.X962
 FORMAT_PUBLIC = serialization.PublicFormat.UncompressedPoint
 THE_PEM = serialization.Encoding.PEM
@@ -461,7 +461,9 @@ class Server:
         """
 
         original_cert, key, enc_master_c, private_key = self.create_x509()
+        print("The type", original_cert)
         server_cert = Cert(original_cert)
+        print("The type", server_cert)
 
         server_cert.show()
         print(key, "\n", server_cert.signatureValue)
@@ -529,7 +531,7 @@ class Server:
                                        .BestAvailableEncryption(b"dj$bjd&hb2f3v@d55920o@21sf"))
         #  Recreate for storage :D
 
-        with open('Certificates\\certifacte.crt', 'wb') as certificate_first:
+        with open('Certificates\\Certificate_crts\\certifacte.crt', 'wb') as certificate_first:
             certificate_first.write(my_cert_pem)
 
         with open('Certificates\\certifacte.pem', 'wb') as certificate_first:
