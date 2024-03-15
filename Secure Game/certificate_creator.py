@@ -2,10 +2,7 @@ from datetime import datetime, timedelta
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import *
-from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.padding import *
-from cryptography.hazmat.primitives.kdf.hkdf import HKDF
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 
@@ -50,7 +47,7 @@ for index in range(0, 20):
     my_cert_pem = cert.public_bytes(encoding=THE_PEM)
     my_key_pem = key.private_bytes(encoding=THE_PEM, format=serialization.PrivateFormat.PKCS8,
                                    encryption_algorithm=serialization
-                                   .BestAvailableEncryption(b'hi'))
+                                   .BestAvailableEncryption(b'gfdgdfgdhffdgfdgfdgdf'))
 
     with open(f'Certificates\\Certificate_crts\\certifacte{index}.crt', 'wb') as certificate_first:
         certificate_first.write(my_cert_pem)

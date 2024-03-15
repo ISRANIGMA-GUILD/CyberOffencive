@@ -2,10 +2,8 @@ from scapy.all import *
 from scapy.layers.l2 import *
 from scapy.layers.dns import *
 from scapy.layers.tls.all import *
-from datetime import datetime, timedelta
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from cryptography.x509.oid import *
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.padding import *
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
@@ -507,7 +505,7 @@ class Server:
         with open('Keys\\the_key1.pem', 'rb') as key_first:
             my_key_pem = key_first.read()
 
-            key = load_pem_private_key(my_key_pem, b'hi', backend=default_backend())
+            key = load_pem_private_key(my_key_pem, b'gfdgdfgdhffdgfdgfdgdf', backend=default_backend())
 
         return my_cert_pem, my_key_pem, key
 
