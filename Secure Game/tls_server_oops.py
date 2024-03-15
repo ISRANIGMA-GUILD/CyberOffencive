@@ -214,7 +214,6 @@ class Server:
 
             the_server_socket.bind((THE_USUAL_IP, server_port[port_number]))  # Bind the server IP and Port into a tuple
             SOCKETS[str(port_number)] = the_server_socket
-            print(SOCKETS)
 
     def accept_clients(self, number_of_clients, the_server_socket, lock, threads):
         """
@@ -310,6 +309,7 @@ class Server:
 
         response = self.create_response(syn_packet)
         the_client_socket.send(bytes(response[TCP]))
+
         time.sleep(2)
         the_client_socket.send(bytes(response[Raw]))
 
@@ -499,7 +499,7 @@ class Server:
         :return: The public key, the certificate and private key
         """
 
-        with open('Certificates\\certifacte1.pem', 'rb') as certificate_first:
+        with open('Certificates\\certificate1.pem', 'rb') as certificate_first:
             my_cert_pem = certificate_first.read()
 
         with open('Keys\\the_key1.pem', 'rb') as key_first:
@@ -555,7 +555,7 @@ class Server:
         :return: The finish message
         """
 
-        with open("Certificates\\certifacte1.pem", "rb") as cert_file:
+        with open("Certificates\\certificate1.pem", "rb") as cert_file:
             server_cert = x509.load_pem_x509_certificate(cert_file.read(), default_backend())
 
         print(len(server_cert.signature))
