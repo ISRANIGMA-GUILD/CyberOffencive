@@ -141,11 +141,21 @@ class Client:
         tcp_packet.show()
         sendp(tcp_packet)
 
-        vert = sniff(count=1, lfilter=self.filter_tcp)
-        vert[0].show()
-        res = vert[0]
+        while True:
+            vert = sniff(count=1, lfilter=self.filter_tcp)
+            vert[0].show()
 
-        print(res[TCP].sport, res[TCP].dport)
+            if vert[0][IP].src != server_ip:
+                print("Send an emergency request")
+                tcp_packet[Raw].load = b'URGENT'
+
+                tcp_packet[TCP].seq = RandShort()
+                sendp(tcp_packet)
+
+            else:
+                break
+
+        res = vert[0]
 
         return res, server_port
 
