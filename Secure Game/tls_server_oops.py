@@ -31,6 +31,7 @@ THE_PEM = serialization.Encoding.PEM
 PRIVATE_OPENSSL = serialization.PrivateFormat.TraditionalOpenSSL
 GOOD_PAD = PSS(MGF1(hashes.SHA256()), PSS.MAX_LENGTH)
 MAX_MSG_LENGTH = 1024
+EXCEPTIONAL_CASE_LENGTH = 4096
 THE_SHA_256 = hashes.SHA256()
 SECP = 0x0017
 SIGNATURE_ALGORITHIM = 0x0401
@@ -368,7 +369,6 @@ class Server:
 
             certificate, key, server_key_ex, private_key = self.new_certificate()
             client_socket.send(bytes(sec_res[TLS]))  # Server hello
-
             client_socket.send(bytes(certificate[TLS]))  # Certificate
             time.sleep(2)
 
@@ -461,7 +461,9 @@ class Server:
 
         original_cert, key, enc_master_c, private_key = self.create_x509()
         print("The type", original_cert)
-        server_cert = Cert(original_cert)
+        server_cert = Cert(original_cert[1])
+
+        all_certs = [Cert(original_cert[0]), server_cert, Cert(original_cert[2]), Cert(original_cert[3])]
         print("The type", server_cert)
 
         server_cert.show()
@@ -471,7 +473,7 @@ class Server:
         ec_params = ServerECDHNamedCurveParams(named_curve=SECP, point=enc_master_c)
 
         d_sign = scapy.layers.tls.keyexchange._TLSSignature(sig_alg=SIGNATURE_ALGORITHIM, sig_val=sig)
-        cert_tls = (TLS(msg=TLSCertificate(certs=server_cert)))
+        cert_tls = (TLS(msg=TLSCertificate(certs=all_certs)))
 
         server_key_ex = (TLS(msg=TLSServerKeyExchange(params=ec_params, sig=d_sign)) /
                          TLS(msg=TLSServerHelloDone()))
@@ -488,10 +490,10 @@ class Server:
         :return: Certificate, private key, point and private key
         """
 
-        my_cert_pem, my_key_pem, key = self.retrieve_cert()
+        certs, my_key_pem, key = self.retrieve_cert()
         private_key, ec_point = self.generate_public_point()
 
-        return my_cert_pem, key, ec_point, private_key
+        return certs, key, ec_point, private_key
 
     def retrieve_cert(self):
         """
@@ -499,15 +501,19 @@ class Server:
         :return: The public key, the certificate and private key
         """
 
-        with open('Certificates\\certificate1.pem', 'rb') as certificate_first:
-            my_cert_pem = certificate_first.read()
+        certs = []
 
-        with open('Keys\\the_key1.pem', 'rb') as key_first:
+        for index in range(0, 4):
+            with open(f'Certificates\\certificate{index}.pem', 'rb') as certificate_first:
+                my_cert_pem = certificate_first.read()
+                certs.append(my_cert_pem)
+
+        with open(f'Keys\\the_key1.pem', 'rb') as key_first:
             my_key_pem = key_first.read()
 
             key = load_pem_private_key(my_key_pem, b'gfdgdfgdhffdgfdgfdgdf', backend=default_backend())
 
-        return my_cert_pem, my_key_pem, key
+        return certs, my_key_pem, key
 
     def generate_public_point(self):
         """
