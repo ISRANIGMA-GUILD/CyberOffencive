@@ -188,8 +188,8 @@ class Client:
             except KeyboardInterrupt:
                 print("refused to play")
 
-            except ConnectionRefusedError as e:
-                print(e)
+            except ConnectionRefusedError:
+                print("Waiting")
                 continue
 
     def connection_handshakes(self, server_port, the_client_socket):
@@ -212,11 +212,10 @@ class Client:
         :return: The ack packet and the authentic client associate
         """
         syn_packet = self.create_syn(server_port)
-        syn_packet.show()
         time.sleep(2)
 
         while True:
-            the_client_socket.settimeout(10)
+            the_client_socket.settimeout(3)
             try:
                 time.sleep(2)
                 the_client_socket.send(bytes(syn_packet[TCP]))
@@ -230,12 +229,10 @@ class Client:
 
         the_client_socket.setblocking(True)
         res = TCP(server_response) / Raw(server_message)
-        res.show()
 
         finish_first_handshake = self.create_acknowledge(res)
-        finish_first_handshake.show()
-
         the_client_socket.send(bytes(finish_first_handshake[TCP]))
+
         the_client_socket.send(bytes(finish_first_handshake[Raw]))
         time.sleep(2)
 
@@ -291,7 +288,6 @@ class Client:
         """
 
         client_hello_packet = self.start_security()
-        client_hello_packet.show()
         the_client_socket.send(bytes(client_hello_packet[TLS]))
 
         server_hello = the_client_socket.recv(MAX_MSG_LENGTH)
@@ -302,9 +298,7 @@ class Client:
         msg_cert = TLS(cert)
         msg_key = TLS(key)
 
-        msg_s.show()
         msg_cert.show()
-        msg_key.show()
 
         if TLSServerHello in msg_s and TLSCertificate in msg_cert and TLSServerKeyExchange in msg_key:
 
@@ -315,8 +309,8 @@ class Client:
 
             the_client_socket.send(bytes(client_key[TLS]))
             server_final = the_client_socket.recv(MAX_MSG_LENGTH)
+
             msg_s_f = TLS(server_final)
-            msg_s_f.show()
 
             if self.is_there_an_alert(msg_s_f):
                 print("YOU ARE BANNED")
@@ -334,11 +328,9 @@ class Client:
                 if type(data_msg) is list:
                     for i in range(0, len(data_msg)):
                         message = data_msg[i]
-                        message.show()
                         the_client_socket.send(bytes(message[TLS]))
 
                 else:
-                    data_msg.show()
                     the_client_socket.send(bytes(data_msg[TLS]))
 
                 print(self.decrypt_data(encryption_key, auth, some_data[0], some_data[1], some_data[2]))
@@ -376,7 +368,6 @@ class Client:
 
         client_hello_packet = ch_packet
         client_hello_packet = client_hello_packet.__class__(bytes(client_hello_packet))
-        client_hello_packet.show()
 
         return client_hello_packet
 
@@ -397,9 +388,7 @@ class Client:
                    TLS(msg=TLSFinished()))
 
         client_key = key_exc
-
         client_key = client_key.__class__(bytes(client_key))
-        client_key.show()
 
         return client_key, server_cert, private_key
 
@@ -442,7 +431,6 @@ class Client:
         """
 
         data_pack = TLS(the_client_socket.recv(MAX_MSG_LENGTH))
-        data_pack.show()
 
         data = data_pack[TLS][TLSApplicationData].data
         data_iv = data[:12]
@@ -606,11 +594,9 @@ class Client:
                         if type(full_msg) is list:
                             for index in range(0, len(full_msg)):
                                 message = full_msg[index]
-                                message.show()
                                 the_client_socket.send(bytes(message[TLS]))
 
                         else:
-                            full_msg.show()
                             the_client_socket.send(bytes(full_msg[TLS]))
 
                         if msg == "EXIT":
