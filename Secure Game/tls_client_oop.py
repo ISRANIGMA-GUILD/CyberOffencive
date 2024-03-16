@@ -18,6 +18,7 @@ TLS_M_VERSION = 0x0303
 TLS_N_VERSION = 0x0304
 RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256.val
 MAX_MSG_LENGTH = 1024
+EXCEPTIONAL_CASE_LENGTH = 4096
 THE_SHA_256 = hashes.SHA256()
 THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6": "SELECT", "7": "/", "8": "#",
                 "9": "SQL", "10": "FROM", "11": "(", "12": ")", "13": "+", "14": "UNION", "15": "ALL", "16": ">",
@@ -294,7 +295,7 @@ class Client:
         the_client_socket.send(bytes(client_hello_packet[TLS]))
 
         server_hello = the_client_socket.recv(MAX_MSG_LENGTH)
-        cert = the_client_socket.recv(MAX_MSG_LENGTH)
+        cert = the_client_socket.recv(EXCEPTIONAL_CASE_LENGTH)
         key = the_client_socket.recv(MAX_MSG_LENGTH)
 
         msg_s = TLS(server_hello)
