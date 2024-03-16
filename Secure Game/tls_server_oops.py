@@ -2,7 +2,6 @@ from scapy.all import *
 from scapy.layers.l2 import *
 from scapy.layers.dns import *
 from scapy.layers.tls.all import *
-from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.padding import *
@@ -73,7 +72,7 @@ class Server:
 
         self.answer_credentials(accepted_clients, lock, the_server_sockets, secure_socket)
         threads = []
-
+        print(CREDENTIALS)
         self.handle_clients(threads, accepted_clients, lock, secure_socket)
 
     def recieve_client_conenction_request(self):
@@ -101,6 +100,7 @@ class Server:
         while True:
             requests = sniff(count=MAX_CLIENT, lfilter=self.filter_tcp, timeout=20)
             number_of_clients = len(requests)
+
             if number_of_clients > 0 or number_of_clients == MAX_CLIENT:
                 break
 
@@ -110,16 +110,16 @@ class Server:
 
         for index in range(0, len(requests)):
             a_pack = requests[index]
-
             a_pack[Raw].load = self.check_if_eligible(a_pack[Ether].src)
 
             a_pack = self.create_f_response(a_pack)
-            a_pack.show()
             list_responses.append(a_pack)
 
         for index in range(0, len(list_responses)):
             sendp(list_responses[index])
             time.sleep(2)
+
+        self.verify_connection_success(number_of_clients, list_responses)
 
         return list_responses, number_of_clients, server_port
 
@@ -170,10 +170,11 @@ class Server:
 
         res[TCP].sport = new_src_port
         res[TCP].dport = new_dst_port
+
         res[TCP].flags = SYN + ACK
         res[TCP].ack = res[TCP].seq + 1
-        res[TCP].seq = RandShort()
 
+        res[TCP].seq = RandShort()
         res = self.prepare_packet_structure(res)
 
         return res
@@ -186,6 +187,27 @@ class Server:
         """
 
         return the_packet.__class__(bytes(the_packet))
+
+    def verify_connection_success(self, number_of_clients, list_responses):
+
+        skip = []
+
+        while True:
+            requests = sniff(count=number_of_clients, lfilter=self.filter_tcp, timeout=20)
+
+            if len(skip) == number_of_clients or len(requests) == 0:
+                break
+
+            for index in range(0, len(requests)):
+
+                if index not in skip:
+                    if requests[index] is None:
+                        print("Connection success")
+
+                    else:
+                        sendp(list_responses[index])
+                        skip.append(index)
+                        time.sleep(2)
 
     def check_for_banned(self, number_of_clients, messages, server_port):
         """
@@ -249,7 +271,7 @@ class Server:
 
         for number in range(0, number_of_clients):
             threads[number].start()
-            print(f"client {number}")
+            print(f"client {number+1}")
 
         for number in range(0, number_of_clients):
             threads[number].join()
@@ -267,7 +289,7 @@ class Server:
 
         while True:
             print("Retry")
-            acked, auth = self.first_handshake(client_socket)
+            acked, auth = self.first_handshake(client_socket, number)
 
             if auth is None:
                 print("Retry")
@@ -275,7 +297,7 @@ class Server:
 
             else:
                 print("verify", auth)
-                enc_key = self.secure_handshake(client_socket, auth)
+                enc_key = self.secure_handshake(client_socket, auth, number)
                 break
 
         CLIENTS[str(number)] = client_socket
@@ -283,10 +305,11 @@ class Server:
 
         lock.release()
 
-    def first_handshake(self, the_client_socket):
+    def first_handshake(self, the_client_socket, number):
         """
          The tcp handshake
         :param the_client_socket: The client socket
+        :param number:
         :return: The ack packet and the server port used the client will use
         """
 
@@ -303,12 +326,11 @@ class Server:
 
         syn_packet = TCP(first_packet)
         syn_data = Raw(first_data)
-        syn_packet.show()
 
         syn_packet = syn_packet / syn_data
         clients_letter = syn_packet[Raw].load[0:2]
 
-        response = self.create_response(syn_packet)
+        response = self.create_response(syn_packet, number)
         the_client_socket.send(bytes(response[TCP]))
 
         time.sleep(2)
@@ -318,17 +340,17 @@ class Server:
         last_pack_data = the_client_socket.recv(MAX_MSG_LENGTH)
 
         ack_packet = TCP(last_pack) / Raw(last_pack_data)
-        ack_packet.show()
 
         clients_dot = ack_packet[Raw].load[0:4]
         auth = clients_letter + clients_dot
 
         return ack_packet, auth
 
-    def create_response(self, syn_packet):
+    def create_response(self, syn_packet, number):
         """
          Server response
         :param syn_packet: The SYN packet
+        :param number:
         :return packet_auth
         """
 
@@ -345,29 +367,28 @@ class Server:
         packet_auth[TCP].dport = new_dport
         packet_auth[TCP].options = MSS
 
-        packet_auth[Raw].load = b"hello"
+        packet_auth[Raw].load = f"hello{number}".encode()
         packet_auth = self.prepare_packet_structure(packet_auth)
 
         return packet_auth
 
-    def secure_handshake(self, client_socket, auth):
+    def secure_handshake(self, client_socket, auth, number):
         """
          The TLS handshake
         :param client_socket: The client socket
+        :param number:
         :param auth: The associate data
         """
 
         client_hello = client_socket.recv(MAX_MSG_LENGTH)
         t_client_hello = TLS(client_hello)
-        t_client_hello.show()
 
         if self.valid_tls(t_client_hello):
             s_sid = self.create_session_id()
 
             sec_res = self.new_secure_session(s_sid)
-            sec_res.show()
 
-            certificate, key, server_key_ex, private_key = self.new_certificate()
+            certificate, key, server_key_ex, private_key = self.certificate_and_key(number)
             client_socket.send(bytes(sec_res[TLS]))  # Server hello
             client_socket.send(bytes(certificate[TLS]))  # Certificate
             time.sleep(2)
@@ -376,22 +397,18 @@ class Server:
             client_key_exchange = client_socket.recv(MAX_MSG_LENGTH)
 
             keys = TLS(client_key_exchange)
-            keys.show()
 
             if self.valid_key_exchange(keys):
                 client_point = keys[TLSClientKeyExchange][Raw].load
                 enc_key = self.create_encryption_key(private_key, client_point)
 
                 server_final = self.create_server_final()  # Change Cipher spec
-
-                server_final.show()
                 client_socket.send(bytes(server_final[TLS]))
 
                 message = b'hello'
                 some_data = self.encrypt_data(enc_key, message, auth)
 
                 data_msg = self.create_message(some_data)  # Application data
-                data_msg.show()
 
                 client_socket.send(bytes(data_msg[TLS]))
                 data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
@@ -449,25 +466,20 @@ class Server:
                                    TLS_Ext_RenegotiationInfo()))))
 
         security_packet = self.prepare_packet_structure(security_layer)
-        security_packet.show()
 
         return security_packet
 
-    def new_certificate(self):
+    def certificate_and_key(self, number):
         """
          Create TLS certificate packet and server key exchange packet
         :return: The TLS certificate and server key exchange packet
         """
 
-        original_cert, key, enc_master_c, private_key = self.create_x509()
-        print("The type", original_cert)
+        original_cert, key, enc_master_c, private_key = self.get_authenticators(number)
         server_cert = Cert(original_cert[1])
 
         all_certs = [Cert(original_cert[0]), server_cert, Cert(original_cert[2]), Cert(original_cert[3])]
-        print("The type", server_cert)
-
         server_cert.show()
-        print(key, "\n", server_cert.signatureValue)
 
         sig = key.sign(enc_master_c, GOOD_PAD, THE_SHA_256)  # RSA SIGNATURE on the shared secret
         ec_params = ServerECDHNamedCurveParams(named_curve=SECP, point=enc_master_c)
@@ -484,18 +496,18 @@ class Server:
 
         return cert_msg, key, ske_msg, private_key
 
-    def create_x509(self):
+    def get_authenticators(self, number):
         """
-         Create The X509 certificate and server key
-        :return: Certificate, private key, point and private key
+         Get the certificates and server key
+        :return: Certificates, private key, point and private key
         """
 
-        certs, my_key_pem, key = self.retrieve_cert()
+        certs, my_key_pem, key = self.retrieve_cert(number)
         private_key, ec_point = self.generate_public_point()
 
         return certs, key, ec_point, private_key
 
-    def retrieve_cert(self):
+    def retrieve_cert(self, number):
         """
          Create the server certificate
         :return: The public key, the certificate and private key
@@ -503,12 +515,12 @@ class Server:
 
         certs = []
 
-        for index in range(0, 4):
+        for index in range(number, (number+1)*4):
             with open(f'Certificates\\certificate{index}.pem', 'rb') as certificate_first:
                 my_cert_pem = certificate_first.read()
                 certs.append(my_cert_pem)
 
-        with open(f'Keys\\the_key1.pem', 'rb') as key_first:
+        with open(f'Keys\\the_key{number}.pem', 'rb') as key_first:
             my_key_pem = key_first.read()
 
             key = load_pem_private_key(my_key_pem, b'gfdgdfgdhffdgfdgfdgdf', backend=default_backend())
@@ -560,11 +572,6 @@ class Server:
          Create the finish message
         :return: The finish message
         """
-
-        with open("Certificates\\certificate1.pem", "rb") as cert_file:
-            server_cert = x509.load_pem_x509_certificate(cert_file.read(), default_backend())
-
-        print(len(server_cert.signature))
 
         server_key = (TLS(msg=TLSChangeCipherSpec()) / TLS(msg=TLSFinished()))
         server_ex = self.prepare_packet_structure(server_key)
@@ -640,8 +647,7 @@ class Server:
                         threads[index].start()
 
                 for index in range(0, number_of_clients):
-                    if CREDENTIALS[str(index)] is None:
-                        threads[index].join()
+                    threads[index].join()
 
                     if KEY[str(index)] == 1:
                         number_of_clients -= 1
@@ -654,7 +660,8 @@ class Server:
                             secure_socket.close()
                             break
 
-                    number = index
+                    if CREDENTIALS[str(index)] is None:
+                        number = index
 
                 if len(CREDENTIALS.values()) == number_of_clients:
                     break
@@ -683,12 +690,12 @@ class Server:
 
         for number in range(0, number_of_clients):
 
-            the_thread = threading.Thread(target=self.receive_credentials, args=(lock, number,))
+            the_thread = threading.Thread(target=self.receive_credentials, args=(lock, number, CREDENTIALS))
             threads.append(the_thread)
 
         return threads
 
-    def receive_credentials(self, lock, number):
+    def receive_credentials(self, lock, number, cred):
         """
 
         :param lock:
@@ -702,37 +709,30 @@ class Server:
         enc_key = KEY[str(number)][0]
         auth = KEY[str(number)][1]
 
-        client_socket.settimeout(SOCKET_TIMEOUT)
+        client_socket.settimeout(10)
 
-        try:
-            data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
+        while True:
+            try:
+                data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
+                data_iv2, data_c_t2, data_tag2 = self.deconstruct_data(client_socket)
 
-            if self.invalid_data(data_iv, data_c_t, data_tag):
+                if self.invalid_data(data_iv, data_c_t, data_tag) or self.invalid_data(data_iv2, data_c_t2, data_tag2):
+                    lock.release()
+                    return
+
+                else:
+                    user = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
+                    passw = self.decrypt_data(enc_key, auth, data_iv2, data_c_t2, data_tag2)
+                    cred[str(number)] = (user, passw)
+                    break
+
+            except TypeError:
+                print("Retrying")
+
+            except socket.timeout:
+                print(CLIENTS[str(number)].getpeername())
                 lock.release()
                 return
-
-            else:
-                user = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
-                print(user)
-
-            data_iv2, data_c_t2, data_tag2 = self.deconstruct_data(client_socket)
-
-            if self.invalid_data(data_iv2, data_c_t2, data_tag2):
-                lock.release()
-                return
-
-            else:
-                passw = self.decrypt_data(enc_key, auth, data_iv2, data_c_t2, data_tag2)
-                print(passw)
-                CREDENTIALS[str(number)] = (user, passw)
-
-        except TypeError:
-            print("Retrying")
-
-        except socket.timeout:
-            print(CLIENTS[str(number)])
-            lock.release()
-            return
 
         lock.release()
 
@@ -753,7 +753,6 @@ class Server:
 
         else:
             data_pack = TLS(data_pack)
-            data_pack.show()
 
             data = data_pack[TLS][TLSApplicationData].data
             data_iv = data[:12]
@@ -801,7 +800,7 @@ class Server:
         :param lock:
         :param secure_socket:
         """
-
+        print(CREDENTIALS.values())
         while True:
             try:
                 threads = self.create_responders(threads, number_of_clients, lock)
@@ -848,6 +847,7 @@ class Server:
         """
 
         lock.acquire()
+        print(CREDENTIALS)
         client_socket = CLIENTS[str(index_of_client)]
 
         enc_key, auth = KEY[str(index_of_client)]
@@ -869,10 +869,10 @@ class Server:
                 return
 
             decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
-            print(decrypted_data)
+            print("Client", index_of_client+1, "says:", decrypted_data)
 
             if decrypted_data == b'EXIT':
-                print("Client", index_of_client, client_socket.getpeername(), "Has exited the server")
+                print("Client", index_of_client+1, client_socket.getpeername(), "Has exited the server")
                 client_socket.close()
                 KEY[str(index_of_client)] = 1
 
@@ -883,7 +883,7 @@ class Server:
                 SOCKETS.pop(str(index_of_client))
 
         except TypeError:
-            print("Will kick", "Client", index_of_client, client_socket.getpeername())
+            print("Will kick", "Client", index_of_client+1, client_socket.getpeername())
             client_socket.close()
             KEY[str(index_of_client)] = 1
 
@@ -894,7 +894,7 @@ class Server:
             SOCKETS.pop(str(index_of_client))
 
         except socket.timeout:
-            print("Moving away from", "Client", index_of_client, client_socket.getpeername())
+            print("Moving away from", "Client", index_of_client+1, client_socket.getpeername())
         lock.release()
 
 
