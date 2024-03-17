@@ -337,8 +337,7 @@ class Client:
 
                 details = self.details_entry(encryption_key, auth)
 
-                the_client_socket.send(bytes(details[0][TLS]))
-                the_client_socket.send(bytes(details[1][TLS]))
+                the_client_socket.send(bytes(details[TLS]))
 
                 return encryption_key
         else:
@@ -526,9 +525,10 @@ class Client:
         user = user.encode()
         passw = passw.encode()
 
-        encyrpted_user = self.encrypt_data(key, user, auth)
-        encrypted_passw = self.encrypt_data(key, passw, auth)
-        data = [encyrpted_user, encrypted_passw]
+        credentials = user + " ".encode() + passw
+
+        encyrpted_credentials = self.encrypt_data(key, credentials, auth)
+        data = encyrpted_credentials
         pack = self.create_message(data)
 
         return pack
