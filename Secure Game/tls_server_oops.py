@@ -36,13 +36,11 @@ SECP = 0x0017
 SIGNATURE_ALGORITHIM = 0x0401
 SOCKET_TIMEOUT = 2
 THE_LIST = {}
-PREVS = {}
 KEY = {}
 SOCKETS = {}
 CLIENTS = {}
 CREDENTIALS = {}
 MAX_CLIENT = 5
-START_INDEX = 0
 
 
 class Server:
@@ -700,6 +698,7 @@ class Server:
 
         :param lock:
         :param number:
+        :param cred:
         :return:
         """
 
@@ -709,30 +708,26 @@ class Server:
         enc_key = KEY[str(number)][0]
         auth = KEY[str(number)][1]
 
-        client_socket.settimeout(10)
+        client_socket.settimeout(5)
 
-        while True:
-            try:
-                data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
-                data_iv2, data_c_t2, data_tag2 = self.deconstruct_data(client_socket)
+        try:
+            data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
 
-                if self.invalid_data(data_iv, data_c_t, data_tag) or self.invalid_data(data_iv2, data_c_t2, data_tag2):
-                    lock.release()
-                    return
-
-                else:
-                    user = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
-                    passw = self.decrypt_data(enc_key, auth, data_iv2, data_c_t2, data_tag2)
-                    cred[str(number)] = (user, passw)
-                    break
-
-            except TypeError:
-                print("Retrying")
-
-            except socket.timeout:
-                print(CLIENTS[str(number)].getpeername())
+            if self.invalid_data(data_iv, data_c_t, data_tag):
                 lock.release()
                 return
+
+            else:
+                credentials = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
+                cred[str(number)] = credentials
+
+        except TypeError:
+            print("Retrying")
+
+        except socket.timeout:
+            print(CLIENTS[str(number)].getpeername())
+            lock.release()
+            return
 
         lock.release()
 
@@ -800,7 +795,7 @@ class Server:
         :param lock:
         :param secure_socket:
         """
-        print(CREDENTIALS.values())
+
         while True:
             try:
                 threads = self.create_responders(threads, number_of_clients, lock)
@@ -847,7 +842,6 @@ class Server:
         """
 
         lock.acquire()
-        print(CREDENTIALS)
         client_socket = CLIENTS[str(index_of_client)]
 
         enc_key, auth = KEY[str(index_of_client)]
