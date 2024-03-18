@@ -34,11 +34,11 @@ EXCEPTIONAL_CASE_LENGTH = 4096
 THE_SHA_256 = hashes.SHA256()
 SECP = 0x0017
 SIGNATURE_ALGORITHIM = 0x0401
-SOCKET_TIMEOUT = 2
+SOCKET_TIMEOUT = 0.5
 THE_LIST = {}
 KEY = {}
 SOCKETS = {}
-CLIENTS = {}
+CLIENTS = []
 CREDENTIALS = {}
 MAX_CLIENT = 5
 
@@ -68,9 +68,8 @@ class Server:
         threads = self.accept_clients(accepted_clients, the_server_sockets, lock, threads)
         self.initiate_handshakes(threads, accepted_clients)
 
-        self.answer_credentials(accepted_clients, lock, the_server_sockets, secure_socket)
         threads = []
-        print(CREDENTIALS)
+
         self.handle_clients(threads, accepted_clients, lock, secure_socket)
 
     def recieve_client_conenction_request(self):
@@ -256,7 +255,7 @@ class Server:
 
             the_thread = threading.Thread(target=self.create_handshakes, args=(lock, client_socket, number,))
             threads.append(the_thread)
-            CLIENTS[str(number)] = client_socket
+            CLIENTS.append(client_socket)
 
         return threads
 
@@ -269,7 +268,7 @@ class Server:
 
         for number in range(0, number_of_clients):
             threads[number].start()
-            print(f"client {number+1}")
+            print(f"client {number + 1}")
 
         for number in range(0, number_of_clients):
             threads[number].join()
@@ -298,7 +297,7 @@ class Server:
                 enc_key = self.secure_handshake(client_socket, auth, number)
                 break
 
-        CLIENTS[str(number)] = client_socket
+        CLIENTS[number] = client_socket
         KEY[str(number)] = (enc_key, auth)
 
         lock.release()
@@ -458,10 +457,10 @@ class Server:
         """
 
         security_layer = (TLS(msg=TLSServerHello(sid=s_sid, cipher=RECOMMENDED_CIPHER,
-                              ext=(TLS_Ext_SupportedVersion_SH(version=[TLS_MID_VERSION]) /
-                                   TLS_Ext_SignatureAlgorithmsCert(sig_algs=[SIGNATURE_ALGORITHIM]) /
-                                   TLS_Ext_ExtendedMasterSecret() / TLS_Ext_SupportedPointFormat() /
-                                   TLS_Ext_RenegotiationInfo()))))
+                                                 ext=(TLS_Ext_SupportedVersion_SH(version=[TLS_MID_VERSION]) /
+                                                      TLS_Ext_SignatureAlgorithmsCert(sig_algs=[SIGNATURE_ALGORITHIM]) /
+                                                      TLS_Ext_ExtendedMasterSecret() / TLS_Ext_SupportedPointFormat() /
+                                                      TLS_Ext_RenegotiationInfo()))))
 
         security_packet = self.prepare_packet_structure(security_layer)
 
@@ -513,7 +512,7 @@ class Server:
 
         certs = []
 
-        for index in range(number, (number+1)*4):
+        for index in range(number, (number + 1) * 4):
             with open(f'Certificates\\certificate{index}.pem', 'rb') as certificate_first:
                 my_cert_pem = certificate_first.read()
                 certs.append(my_cert_pem)
@@ -622,115 +621,6 @@ class Server:
 
         return data_message
 
-    def answer_credentials(self, number_of_clients, lock, the_server_socket, secure_socket):
-        """
-
-        :param number_of_clients:
-        :param lock:
-        :param the_server_socket:
-        :param secure_socket:
-        """
-
-        number = 0
-
-        for index in range(0, number_of_clients):
-            CREDENTIALS[str(index)] = None
-
-        while True:
-            try:
-                threads = self.create_credential_threads(number_of_clients, lock)
-
-                for index in range(0, number_of_clients):
-                    if CREDENTIALS[str(index)] is None:
-                        threads[index].start()
-
-                for index in range(0, number_of_clients):
-                    threads[index].join()
-
-                    if KEY[str(index)] == 1:
-                        number_of_clients -= 1
-                        KEY.pop(str(index))
-                        CLIENTS.pop(str(index))
-                        the_server_socket[str(index)].close()
-                        SOCKETS.pop(str(index))
-
-                        if number_of_clients == 0:
-                            secure_socket.close()
-                            break
-
-                    if CREDENTIALS[str(index)] is None:
-                        number = index
-
-                if len(CREDENTIALS.values()) == number_of_clients:
-                    break
-
-            except ConnectionAbortedError:
-                the_server_socket[str(number)].close()
-                break
-
-            except (socket.timeout, KeyboardInterrupt):
-
-                # If server shuts down due to admin pressing a key (i.e, CTRL + C), shut down the server
-
-                print("Server is shutting down")
-                secure_socket.close()
-                break
-
-    def create_credential_threads(self, number_of_clients, lock):
-        """
-
-        :param number_of_clients:
-        :param lock:
-        :return:
-        """
-
-        threads = []
-
-        for number in range(0, number_of_clients):
-
-            the_thread = threading.Thread(target=self.receive_credentials, args=(lock, number, CREDENTIALS))
-            threads.append(the_thread)
-
-        return threads
-
-    def receive_credentials(self, lock, number, cred):
-        """
-
-        :param lock:
-        :param number:
-        :param cred:
-        :return:
-        """
-
-        lock.acquire()
-        client_socket = CLIENTS[str(number)]
-
-        enc_key = KEY[str(number)][0]
-        auth = KEY[str(number)][1]
-
-        client_socket.settimeout(5)
-
-        try:
-            data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
-
-            if self.invalid_data(data_iv, data_c_t, data_tag):
-                lock.release()
-                return
-
-            else:
-                credentials = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
-                cred[str(number)] = credentials
-
-        except TypeError:
-            print("Retrying")
-
-        except socket.timeout:
-            print(CLIENTS[str(number)].getpeername())
-            lock.release()
-            return
-
-        lock.release()
-
     def deconstruct_data(self, the_client_socket):
         """
          Dissect the data received from the server
@@ -787,6 +677,16 @@ class Server:
 
         return message is None or ' ' in message
 
+    def organize_credentials(self, number):
+        """
+
+        :param number:
+        """
+
+        user, passw = CREDENTIALS[str(number)].decode().split(' ')
+        CREDENTIALS[str(number)] = "U:", user, "P:", passw
+        print(CREDENTIALS)
+
     def handle_clients(self, threads, number_of_clients, lock, secure_socket):
         """
 
@@ -796,19 +696,32 @@ class Server:
         :param secure_socket:
         """
 
+        success = []
+
+        for index in range(0, number_of_clients):
+            CREDENTIALS[str(index)] = None
+
         while True:
             try:
-                threads = self.create_responders(threads, number_of_clients, lock)
+                login_threads = self.create_credential_threads(number_of_clients, lock)
+                response_threads = self.create_responders(threads, number_of_clients, lock)
 
                 for index in range(0, number_of_clients):
-                    if KEY[str(index)] != 1:
-                        threads[index].start()
+                    if CREDENTIALS[str(index)] is not None and 0 <= index < len(CLIENTS):
+                        response_threads[index].start()
 
-                for index in range(0, number_of_clients):
-                    if KEY[str(index)] != 1:
-                        threads[index].join()
+                    else:
+                        login_threads[index].start()
 
-                if len(CLIENTS.keys()) == 0:
+                for index in range(0, len(CLIENTS)):
+                    if response_threads[index].is_alive():
+                        response_threads[index].join()
+
+                    elif login_threads[index].is_alive():
+                        login_threads[index].join()
+                        success.append("Success")
+
+                if not CLIENTS:
                     secure_socket.close()
                     break
 
@@ -817,6 +730,68 @@ class Server:
             except KeyboardInterrupt:
                 print("Server will end service")
                 break
+
+    def create_credential_threads(self, number_of_clients, lock):
+        """
+
+        :param number_of_clients:
+        :param lock:
+        :return:
+        """
+
+        threads = []
+
+        for number in range(0, number_of_clients):
+            the_thread = threading.Thread(target=self.receive_credentials, args=(lock, number))
+            threads.append(the_thread)
+
+        return threads
+
+    def receive_credentials(self, lock, number):
+        """
+
+        :param lock:
+        :param number:
+        :return:
+        """
+
+        lock.acquire()
+        if KEY[str(number)] is not None:
+            client_socket = CLIENTS[number]
+
+            enc_key = KEY[str(number)][0]
+            auth = KEY[str(number)][1]
+
+            client_socket.settimeout(SOCKET_TIMEOUT)
+
+            while True:
+                try:
+                    data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
+
+                    if self.invalid_data(data_iv, data_c_t, data_tag):
+                        lock.release()
+                        return
+
+                    else:
+                        CREDENTIALS[str(number)] = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
+
+                        if CREDENTIALS[str(number)] is not None:
+                            self.organize_credentials(number)
+                            break
+
+                except TypeError:
+                    print("Retrying")
+
+                except socket.timeout:
+                    print(CLIENTS[number].getpeername())
+
+                    if CREDENTIALS[str(number)] is not None:
+                        self.organize_credentials(number)
+
+                    lock.release()
+                    return
+
+        lock.release()
 
     def create_responders(self, threads, number_of_clients, lock):
         """
@@ -842,54 +817,66 @@ class Server:
         """
 
         lock.acquire()
-        client_socket = CLIENTS[str(index_of_client)]
+        if KEY[str(index_of_client)] is not None:
+            client_socket = CLIENTS[index_of_client]
 
-        enc_key, auth = KEY[str(index_of_client)]
-        client_socket.settimeout(SOCKET_TIMEOUT)
+            enc_key, auth = KEY[str(index_of_client)]
+            client_socket.settimeout(SOCKET_TIMEOUT)
 
-        try:
-            data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
+            try:
+                data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
 
-            if not data_iv and not data_c_t and not data_tag:
-                lock.release()
-                return
+                if not data_iv and not data_c_t and not data_tag:
+                    lock.release()
+                    return
 
-            if data_iv == 0 and data_c_t == 1 and data_tag == 2:
+                if data_iv == 0 and data_c_t == 1 and data_tag == 2:
+                    client_socket.close()
+                    KEY[str(index_of_client)] = None
+
+                    print(client_socket)
+                    lock.release()
+
+                    return
+
+                decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
+                print("Client", index_of_client + 1, "says:", decrypted_data)
+
+                print(CREDENTIALS)
+                # self.send_to_chat(decrypted_data)
+
+                if decrypted_data == b'EXIT':
+                    print("Client", index_of_client + 1, client_socket.getpeername(), "Has exited the server")
+                    client_socket.close()
+
+                    KEY[str(index_of_client)] = None
+                    CREDENTIALS[str(index_of_client)] = None
+
+                    CLIENTS.pop(index_of_client)
+                    the_server_socket = SOCKETS[str(index_of_client)]
+
+                    the_server_socket.close()
+                    SOCKETS.pop(str(index_of_client))
+
+            except TypeError:
+                print("Will kick", "Client", index_of_client + 1, client_socket.getpeername())
                 client_socket.close()
-                KEY[str(index_of_client)] = 1
+                KEY[str(index_of_client)] = None
 
-                print(client_socket)
-                lock.release()
-                return
-
-            decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
-            print("Client", index_of_client+1, "says:", decrypted_data)
-
-            if decrypted_data == b'EXIT':
-                print("Client", index_of_client+1, client_socket.getpeername(), "Has exited the server")
-                client_socket.close()
-                KEY[str(index_of_client)] = 1
-
-                CLIENTS.pop(str(index_of_client))
+                CLIENTS.pop(index_of_client)
                 the_server_socket = SOCKETS[str(index_of_client)]
 
                 the_server_socket.close()
                 SOCKETS.pop(str(index_of_client))
 
-        except TypeError:
-            print("Will kick", "Client", index_of_client+1, client_socket.getpeername())
-            client_socket.close()
-            KEY[str(index_of_client)] = 1
-
-            CLIENTS.pop(str(index_of_client))
-            the_server_socket = SOCKETS[str(index_of_client)]
-
-            the_server_socket.close()
-            SOCKETS.pop(str(index_of_client))
-
-        except socket.timeout:
-            print("Moving away from", "Client", index_of_client+1, client_socket.getpeername())
+            except socket.timeout:
+                pass
         lock.release()
+
+    def send_to_chat(self, decrypted_data):
+
+        for client_number in range(0, len(CLIENTS)):
+            encrypted_data = self.encrypt_data(KEY[str(client_number)][0], decrypted_data, KEY[str(client_number)][1])
 
 
 def main():
