@@ -38,8 +38,9 @@ SOCKET_TIMEOUT = 0.5
 THE_LIST = {}
 KEY = {}
 SOCKETS = {}
-CLIENTS = []
+CLIENTS = {}
 CREDENTIALS = {}
+MESSAGES = []
 MAX_CLIENT = 5
 
 
@@ -255,7 +256,7 @@ class Server:
 
             the_thread = threading.Thread(target=self.create_handshakes, args=(lock, client_socket, number,))
             threads.append(the_thread)
-            CLIENTS.append(client_socket)
+            CLIENTS[str(number)] = client_socket
 
         return threads
 
@@ -297,7 +298,7 @@ class Server:
                 enc_key = self.secure_handshake(client_socket, auth, number)
                 break
 
-        CLIENTS[number] = client_socket
+        CLIENTS[str(number)] = client_socket
         KEY[str(number)] = (enc_key, auth)
 
         lock.release()
@@ -682,7 +683,7 @@ class Server:
 
         :param number:
         """
-
+        print(CREDENTIALS)
         user, passw = CREDENTIALS[str(number)].decode().split(' ')
         CREDENTIALS[str(number)] = "U:", user, "P:", passw
         print(CREDENTIALS)
@@ -707,13 +708,16 @@ class Server:
                 response_threads = self.create_responders(threads, number_of_clients, lock)
 
                 for index in range(0, number_of_clients):
-                    if CREDENTIALS[str(index)] is not None and 0 <= index < len(CLIENTS):
+                    if CREDENTIALS[str(index)] is not None and CLIENTS[str(index)] is not None:
                         response_threads[index].start()
+
+                        if MESSAGES:
+                            self.send_to_chat()
 
                     else:
                         login_threads[index].start()
 
-                for index in range(0, len(CLIENTS)):
+                for index in range(0, number_of_clients):
                     if response_threads[index].is_alive():
                         response_threads[index].join()
 
@@ -721,7 +725,7 @@ class Server:
                         login_threads[index].join()
                         success.append("Success")
 
-                if not CLIENTS:
+                if self.empty_server():
                     secure_socket.close()
                     break
 
@@ -757,7 +761,7 @@ class Server:
 
         lock.acquire()
         if KEY[str(number)] is not None:
-            client_socket = CLIENTS[number]
+            client_socket = CLIENTS[str(number)]
 
             enc_key = KEY[str(number)][0]
             auth = KEY[str(number)][1]
@@ -781,9 +785,15 @@ class Server:
 
                 except TypeError:
                     print("Retrying")
+                    CLIENTS[str(number)].close()
+                    SOCKETS[str(number)].close()
+
+                    SOCKETS[str(number)] = None
+                    CLIENTS[str(number)] = None
+                    return
 
                 except socket.timeout:
-                    print(CLIENTS[number].getpeername())
+                    print(CLIENTS[str(number)].getpeername())
 
                     if CREDENTIALS[str(number)] is not None:
                         self.organize_credentials(number)
@@ -818,7 +828,7 @@ class Server:
 
         lock.acquire()
         if KEY[str(index_of_client)] is not None:
-            client_socket = CLIENTS[index_of_client]
+            client_socket = CLIENTS[str(index_of_client)]
 
             enc_key, auth = KEY[str(index_of_client)]
             client_socket.settimeout(SOCKET_TIMEOUT)
@@ -843,7 +853,6 @@ class Server:
                 print("Client", index_of_client + 1, "says:", decrypted_data)
 
                 print(CREDENTIALS)
-                # self.send_to_chat(decrypted_data)
 
                 if decrypted_data == b'EXIT':
                     print("Client", index_of_client + 1, client_socket.getpeername(), "Has exited the server")
@@ -852,7 +861,7 @@ class Server:
                     KEY[str(index_of_client)] = None
                     CREDENTIALS[str(index_of_client)] = None
 
-                    CLIENTS.pop(index_of_client)
+                    CLIENTS[str(index_of_client)] = None
                     the_server_socket = SOCKETS[str(index_of_client)]
 
                     the_server_socket.close()
@@ -863,7 +872,7 @@ class Server:
                 client_socket.close()
                 KEY[str(index_of_client)] = None
 
-                CLIENTS.pop(index_of_client)
+                CLIENTS[str(index_of_client)] = None
                 the_server_socket = SOCKETS[str(index_of_client)]
 
                 the_server_socket.close()
@@ -873,10 +882,26 @@ class Server:
                 pass
         lock.release()
 
-    def send_to_chat(self, decrypted_data):
+    def empty_server(self):
+        """
+
+        :return:
+        """
+
+        count_none = [client for client in range(0, len(CLIENTS)) if CLIENTS[str(client)] is None]
+        return len(count_none) == len(CLIENTS)
+
+    def send_to_chat(self):
 
         for client_number in range(0, len(CLIENTS)):
-            encrypted_data = self.encrypt_data(KEY[str(client_number)][0], decrypted_data, KEY[str(client_number)][1])
+            if CLIENTS[str(client_number)] is not None:
+                encrypted_data = self.encrypt_data(KEY[str(client_number)][0],
+                                                   MESSAGES[0],
+                                                   KEY[str(client_number)][1])
+
+                CLIENTS[str(client_number)].send(bytes(self.create_message(encrypted_data)[TLS]))
+
+        MESSAGES.pop(0)
 
 
 def main():

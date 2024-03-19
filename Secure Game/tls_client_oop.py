@@ -107,7 +107,7 @@ class Client:
         :param message:
         :return:
         """
-        return message is None or ' ' in message
+        return message is None or ' ' in message or message == ''
 
     def ip_v_four_format(self, ip_address):
         """
@@ -582,34 +582,42 @@ class Client:
             try:
                 if 1 not in KEY:
                     key, auth = KEY['encryption'][0], KEY['encryption'][1]
-                    msg = input("Enter a message\n")
 
-                    if not self.malicious_message(msg):
-                        message = msg.encode()
-                        print(message)
-
-                        data = [self.encrypt_data(key, message, auth)]
-                        full_msg = self.create_message(data)
-
-                        if type(full_msg) is list:
-                            for index in range(0, len(full_msg)):
-                                message = full_msg[index]
-                                the_client_socket.send(bytes(message[TLS]))
-
-                        else:
-                            the_client_socket.send(bytes(full_msg[TLS]))
-
-                        if msg == "EXIT":
-                            break
-
-                    else:
-                        print("Don't mess with Shmulik")
+                    the_client_socket.settimeout(2)
+                    print("Client says", self.decrypt_data(key, auth, self.recieve_data(the_client_socket)[0],
+                                                           self.recieve_data(the_client_socket)[1],
+                                                           self.recieve_data(the_client_socket)[2]))
 
             except ConnectionRefusedError:
                 print("Retrying")
 
             except ConnectionAbortedError:
                 break
+
+            except socket.timeout:
+                key, auth = KEY['encryption'][0], KEY['encryption'][1]
+                msg = input("Enter a message\n")
+                the_client_socket.setblocking(True)
+
+                if not self.malicious_message(msg):
+                    message = msg.encode()
+                    print(message)
+
+                    data = [self.encrypt_data(key, message, auth)]
+                    full_msg = self.create_message(data)
+
+                    if type(full_msg) is list:
+                        for index in range(0, len(full_msg)):
+                            message = full_msg[index]
+                            the_client_socket.send(bytes(message[TLS]))
+
+                    else:
+                        the_client_socket.send(bytes(full_msg[TLS]))
+
+                    if msg == "EXIT":
+                        break
+
+                print("None")
 
             except KeyboardInterrupt:
                 print("Server is shutting down")
