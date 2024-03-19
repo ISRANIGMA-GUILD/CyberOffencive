@@ -9,6 +9,7 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.serialization import *
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 import socket
+from DatabaseCreator import *
 import os
 import threading
 import hashlib
@@ -46,7 +47,8 @@ MAX_CLIENT = 5
 
 class Server:
 
-    def __init__(self):
+    def __init__(self, database: DatabaseManager):
+        self.__database = database
         pass
 
     def run(self):
@@ -683,7 +685,7 @@ class Server:
         """
 
         user, passw = CREDENTIALS[str(number)].decode().split(' ')
-        CREDENTIALS[str(number)] = "U:", user, "P:", passw
+        CREDENTIALS[str(number)] = (user, passw)
         print(CREDENTIALS)
 
     def handle_clients(self, threads, number_of_clients, lock, secure_socket):
@@ -722,8 +724,10 @@ class Server:
                     elif login_threads[index].is_alive():
                         login_threads[index].join()
                         success.append("Success")
+                        self.manage_database()
 
                 if self.empty_server():
+                    self.__database.close_conn()
                     secure_socket.close()
                     break
 
@@ -886,6 +890,22 @@ class Server:
         count_none = [client for client in range(0, len(CLIENTS)) if CLIENTS[str(client)] is None]
         return len(count_none) == len(CLIENTS)
 
+    def manage_database(self):
+        """
+
+        """
+
+        for client_number in range(0, len(CREDENTIALS)):
+            if CREDENTIALS[str(client_number)] is not None:
+                print(self.__database.insert_no_duplicates([CREDENTIALS[str(client_number)][0],
+                                                            CREDENTIALS[str(client_number)][1]],
+                                                           ['Username', 'Password']))
+                print(self.__database.get_content())
+
+    def account_exists(self, client_number):
+
+        return [CREDENTIALS[str(client_number)][0], CREDENTIALS[str(client_number)][1]] in self.__database.get_content()
+
     def send_to_chat(self):
 
         for client_number in range(0, len(CLIENTS)):
@@ -903,7 +923,8 @@ def main():
     """
     Main function
     """
-    server = Server()
+    data_base = DatabaseManager("Login", ['Username', 'Password'])
+    server = Server(data_base)
     server.run()
 
 

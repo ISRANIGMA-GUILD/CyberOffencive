@@ -43,15 +43,14 @@ class Client:
         """
         try:
             server_ip, server_port = self.format_socket()
-
             res, server_port = self.first_contact(server_ip, server_port)
 
             if res[Raw].load == b'Accept':
 
                 the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
                 time.sleep(2)
-                self.initialize_handshakes(the_client_socket, server_ip, server_port)
 
+                self.initialize_handshakes(the_client_socket, server_ip, server_port)
                 time.sleep(2)
 
                 if KEY['encryption'][0] != 1:
@@ -137,8 +136,8 @@ class Client:
         tcp_packet = (layer2 / IP(src=MY_IP, dst=server_ip) /
                       TCP(sport=RandShort(), dport=server_port) /
                       Raw(load=b'Logged'))
-
         tcp_packet = tcp_packet.__class__(bytes(tcp_packet))
+
         tcp_packet.show()
         sendp(tcp_packet)
 
@@ -182,6 +181,7 @@ class Client:
             try:
                 time.sleep(2)
                 the_client_socket.connect((server_ip, server_port))
+
                 KEY["encryption"] = self.connection_handshakes(server_port, the_client_socket)
                 break
 
@@ -238,6 +238,7 @@ class Client:
 
         letter = syn_packet[Raw].load[0:2]
         dot = finish_first_handshake[Raw].load[0:4]
+
         authentic = letter + dot
         print("verifier", authentic)
 
@@ -482,6 +483,7 @@ class Client:
         if type(some_data) is not list:
             full_data = some_data[0] + some_data[1] + some_data[2]
             data_packet = TLS(msg=TLSApplicationData(data=full_data))
+
             data_message = data_packet
             data_message = data_message.__class__(bytes(data_message))
 
@@ -491,6 +493,7 @@ class Client:
             for i in range(0, len(some_data)):
                 first_data = some_data[i][0] + some_data[i][1] + some_data[i][2]
                 data_packet = TLS(msg=TLSApplicationData(data=first_data))
+
                 data_packet = data_packet.__class__(bytes(data_packet))
                 data_pack_list.append(data_packet)
 
@@ -526,9 +529,9 @@ class Client:
         passw = passw.encode()
 
         credentials = user + " ".encode() + passw
+        encrypted_credentials = self.encrypt_data(key, credentials, auth)
 
-        encyrpted_credentials = self.encrypt_data(key, credentials, auth)
-        data = encyrpted_credentials
+        data = encrypted_credentials
         pack = self.create_message(data)
 
         return pack
