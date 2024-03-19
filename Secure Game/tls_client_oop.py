@@ -513,7 +513,7 @@ class Client:
             if self.empty_string(user) or self.empty_string(passw):
                 print("Please enter the requested information")
 
-            if user == 'EXIT' or passw == 'EXIT':
+            elif user == 'EXIT' or passw == 'EXIT':
                 print("YOU CAN'T EXIT AT LOGIN!")
 
             elif self.malicious_message(user) or self.malicious_message(passw):

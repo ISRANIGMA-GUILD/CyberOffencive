@@ -5,9 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/basic_com.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/tls_client_oop.py" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/tls_client_oop.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Secure Game/tls_server_oops.py" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/tls_server_oops.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -64,7 +62,7 @@
       <recent name="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Secure Game" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.tls_server_oops (1)">
+  <component name="RunManager" selected="Python.tls_client_oop (1)">
     <configuration name="certificate_creator (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="basic_com" />
       <option name="ENV_FILES" value="" />
@@ -177,8 +175,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.tls_server_oops (1)" />
         <item itemvalue="Python.tls_client_oop (1)" />
+        <item itemvalue="Python.tls_server_oops (1)" />
         <item itemvalue="Python.security_server (1)" />
         <item itemvalue="Python.test_array" />
         <item itemvalue="Python.certificate_creator (1)" />

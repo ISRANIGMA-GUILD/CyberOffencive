@@ -286,11 +286,9 @@ class Server:
         lock.acquire()
 
         while True:
-            print("Retry")
             acked, auth = self.first_handshake(client_socket, number)
 
             if auth is None:
-                print("Retry")
                 pass
 
             else:
@@ -383,11 +381,11 @@ class Server:
 
         if self.valid_tls(t_client_hello):
             s_sid = self.create_session_id()
-
             sec_res = self.new_secure_session(s_sid)
 
             certificate, key, server_key_ex, private_key = self.certificate_and_key(number)
             client_socket.send(bytes(sec_res[TLS]))  # Server hello
+
             client_socket.send(bytes(certificate[TLS]))  # Certificate
             time.sleep(2)
 
@@ -683,7 +681,7 @@ class Server:
 
         :param number:
         """
-        print(CREDENTIALS)
+
         user, passw = CREDENTIALS[str(number)].decode().split(' ')
         CREDENTIALS[str(number)] = "U:", user, "P:", passw
         print(CREDENTIALS)
@@ -762,10 +760,9 @@ class Server:
         lock.acquire()
         if KEY[str(number)] is not None:
             client_socket = CLIENTS[str(number)]
-
             enc_key = KEY[str(number)][0]
-            auth = KEY[str(number)][1]
 
+            auth = KEY[str(number)][1]
             client_socket.settimeout(SOCKET_TIMEOUT)
 
             while True:
@@ -829,7 +826,6 @@ class Server:
         lock.acquire()
         if KEY[str(index_of_client)] is not None:
             client_socket = CLIENTS[str(index_of_client)]
-
             enc_key, auth = KEY[str(index_of_client)]
             client_socket.settimeout(SOCKET_TIMEOUT)
 
@@ -851,7 +847,6 @@ class Server:
 
                 decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
                 print("Client", index_of_client + 1, "says:", decrypted_data)
-
                 print(CREDENTIALS)
 
                 if decrypted_data == b'EXIT':
