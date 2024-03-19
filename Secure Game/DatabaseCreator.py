@@ -12,7 +12,7 @@ class DatabaseManager:
             table_name (str): the SQL Table inside the database
             list_of_params (list, optional): All params that the SQL Table will store.
             Defaults to [].
-            path (str, optional): Path to the databse.
+            path (str, optional): Path to the database.
             Defaults to './sql/database.db'.
         """
 
@@ -77,7 +77,7 @@ class DatabaseManager:
             bool: True if value has been inserted successfully, False otherwise
         """
 
-        if (len(values) != len(self.__list_of_params)):
+        if len(values) != len(self.__list_of_params):
             return False
 
         dict_param_val = dict(map(lambda k, v: (k, v), self.__list_of_params, values))
@@ -95,23 +95,23 @@ class DatabaseManager:
         If the satisfying input parameters and values were not found, then the function returns None.
 
         Args:
-            return_params (iter): parameters that their values will be returned
-            input_params (iter): parameters that are used to search for desired values
-            values (iter): desired values of a row, from which the return parameters values will be returned
+            return_params (iter): parameters that their values will be returned,
+            input_params (iter): parameters that are used to search for desired values,
+            values (iter): desired values of a row, from which the return parameters' values will be returned.
 
         Returns:
             iter: tuple of values according to the return parameters found or None
         """
 
-        if (len(input_params) != len(values)):
+        if len(input_params) != len(values):
             return None
 
         for input_param in input_params:
-            if not input_param in self.__list_of_params:
+            if input_param not in self.__list_of_params:
                 return None
 
         for return_param in return_params:
-            if not return_param in self.__list_of_params:
+            if return_param not in self.__list_of_params:
                 return None
 
         return_params_str = ", ".join(return_params)
@@ -138,15 +138,15 @@ class DatabaseManager:
             condition_values (iter): values of parameters to check if the row should be updated
         """
 
-        if (len(update_params) != len(update_values) or len(condition_params) != len(condition_values)):
+        if len(update_params) != len(update_values) or len(condition_params) != len(condition_values):
             return
 
         for param in update_params:
-            if not param in self.__list_of_params:
+            if param not in self.__list_of_params:
                 return
 
         for param in update_params:
-            if not param in self.__list_of_params:
+            if param not in self.__list_of_params:
                 return
 
         set_str = ", ".join(
@@ -169,25 +169,20 @@ class DatabaseManager:
 
 
 def run_tests_a() -> None:
+    """
+
+    """
+
     manager = DatabaseManager("Login", ['Username', 'Password'])
-    # print(manager.insert(("Gavriel123", "1234")))
     print(manager.insert(("Gavriel123", "1234")))
-    # print(manager.insert(("Gavriel123", "1234")))
-    # print(manager.insert(("Lunix", "770")))
-    # print(manager.find(['Username', 'Password'], ['Username', 'Password'], ("Gavriel123", "1234")))
-    # manager.set_values (
-    #    ['Username', 'Password'], ['Gavriel', '1234'], ['Username', 'Password'], ['Gavriel123', '1234']
-    # )
 
     print(manager.insert_no_duplicates(["Gavrie", "12345"], ['Username', 'Password']))
-
     print(manager.get_content())
     manager.close_conn()
 
 
 def main() -> None:
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
-    # print(os.getcwd())
 
     run_tests_a()
 
