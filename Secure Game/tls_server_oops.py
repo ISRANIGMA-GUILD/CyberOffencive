@@ -43,6 +43,7 @@ CLIENTS = {}
 CREDENTIALS = {}
 MESSAGES = []
 MAX_CLIENT = 5
+PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Cash', 'Status'], "IPS": ['MacAddress', 'Status']}
 
 
 class Server:
@@ -826,7 +827,7 @@ class Server:
 
             elif login_threads[index].is_alive():
                 login_threads[index].join()
-                self.manage_database()
+                self.check_account()
 
     def receive_credentials(self, lock, number):
         """
@@ -897,10 +898,7 @@ class Server:
                     return
 
                 if data_iv == 0 and data_c_t == 1 and data_tag == 2:
-                    client_socket.close()
-                    KEY[str(index_of_client)] = None
-
-                    print(client_socket)
+                    self.eliminate_socket(index_of_client)
                     lock.release()
 
                     return
@@ -942,7 +940,7 @@ class Server:
         count_none = [client for client in range(0, len(CLIENTS)) if CLIENTS[str(client)] is None]
         return len(count_none) == len(CLIENTS)
 
-    def manage_database(self):
+    def check_account(self):
         """
 
         """
@@ -950,9 +948,13 @@ class Server:
         for client_number in range(0, len(CREDENTIALS)):
             if CREDENTIALS[str(client_number)] is not None:
                 if not self.account_exists(client_number):
-                    print(self.__database.insert_no_duplicates([CREDENTIALS[str(client_number)][0],
-                                                                CREDENTIALS[str(client_number)][1]],
-                                                               ['Username', 'Password']))
+                    print(self.__database.insert_no_duplicates(values=[CREDENTIALS[str(client_number)][0],
+                                                               CREDENTIALS[str(client_number)][1], "0", "None"],
+                                                               no_duplicate_params=PARAMETERS["PlayerDetails"]))
+
+                else:
+                    self.view_status(client_number)
+
                 print(self.__database.get_content())
 
     def account_exists(self, client_number):
@@ -963,6 +965,15 @@ class Server:
         """
 
         return [CREDENTIALS[str(client_number)][0], CREDENTIALS[str(client_number)][1]] in self.__database.get_content()
+
+    def view_status(self, client_number):
+        """
+
+        :param client_number:
+        """
+
+        print(self.__database.find(return_params="Status", input_params=[("Username", "Password")],
+                                   values=(CREDENTIALS[str(client_number)][0], CREDENTIALS[str(client_number)][1])))
 
     def send_to_chat(self):
         """
@@ -981,7 +992,7 @@ def main():
     """
     Main function
     """
-    data_base = DatabaseManager("Login", ['Username', 'Password'])
+    data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
     server = Server(data_base)
     server.run()
 
