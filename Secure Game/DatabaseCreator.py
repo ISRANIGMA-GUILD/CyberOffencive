@@ -28,7 +28,6 @@ class DatabaseManager:
         self.table_name = table_name
         self.__list_of_params = list_of_params
         self.__list_of_params_str = ", ".join(list_of_params)
-        print(self.__list_of_params_str)
 
         # Creates new table if the table does not exist
         self.__cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.table_name}({self.__list_of_params_str});")
@@ -173,11 +172,7 @@ def run_tests_a() -> None:
 
     """
 
-    manager = DatabaseManager("Login", ['Username', 'Password'])
-    print(manager.insert(("Gavriel123", "1234")))
-
-    print(manager.insert_no_duplicates(["Gavrie", "12345"], ['Username', 'Password']))
-    print(manager.get_content())
+    manager = DatabaseManager("PlayerDetails", ['Username', 'Password', 'Cash', 'Status'])
     manager.close_conn()
 
 

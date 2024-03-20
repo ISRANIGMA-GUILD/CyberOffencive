@@ -585,7 +585,6 @@ class Client:
                 if 1 not in KEY:
                     key, auth = KEY['encryption'][0], KEY['encryption'][1]
                     msg = input("Enter a message\n")
-                    the_client_socket.setblocking(True)
 
                     if not self.malicious_message(msg):
                         message = msg.encode()
