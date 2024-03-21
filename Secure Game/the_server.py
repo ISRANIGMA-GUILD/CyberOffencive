@@ -43,7 +43,7 @@ CLIENTS = {}
 CREDENTIALS = {}
 MESSAGES = []
 MAX_CLIENT = 5
-PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Cash', 'Status'], "IPS": ['MacAddress', 'Status']}
+PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Cash', 'Status']}
 
 
 class Server:
@@ -84,13 +84,15 @@ class Server:
 
         while True:
             second, number_of_clients, server_port = self.first_contact()
-            messages = [second[index][Raw].load for index in range(0, len(second))]
 
-            print(number_of_clients)
-            accepted_clients, port_list = self.check_for_banned(number_of_clients, messages, server_port)
+            if second != 1 and number_of_clients != 0 and server_port != 1:
+                messages = [second[index][Raw].load for index in range(0, len(second))]
 
-            if accepted_clients > 0:
-                return accepted_clients, port_list
+                print(number_of_clients)
+                accepted_clients, port_list = self.check_for_banned(number_of_clients, messages, server_port)
+
+                if accepted_clients > 0:
+                    return accepted_clients, port_list
 
     def first_contact(self):
         """
@@ -104,10 +106,15 @@ class Server:
         server_port = [requests[index][TCP].dport for index in range(0, len(requests))]
         print(server_port)
 
-        list_responses = self.analyse_connections(requests, list_responses)
+        number_of_clients, fixed_requests, fixed_connections = self.search_for_ddos(server_port, requests)
+
+        list_responses = self.analyse_connections(fixed_requests, list_responses)
+        if not list_responses:
+            return 1, 0, 1
+
         self.verify_connection_success(number_of_clients, list_responses)
 
-        return list_responses, number_of_clients, server_port
+        return list_responses, number_of_clients, fixed_connections
 
     def receive_first_connections(self):
         """
@@ -131,7 +138,29 @@ class Server:
         :return: If the packet has TCP in it
         """
 
-        return TCP in packets and Raw in packets and packets[Raw].load == b'Logged'
+        return TCP in packets and Raw in packets and (packets[Raw].load == b'Logged' or packets[Raw].load == b'Urgent')
+
+    def search_for_ddos(self, server_port, requests):
+        """
+
+        :param server_port:
+        :param requests:
+        :return:
+        """
+
+        fixed_connections = [server_port[index] for index in range(0, len(server_port))
+                             if server_port.count(server_port[index]) == 1]
+
+        print(fixed_connections)
+        fixed_requests = []
+
+        for index in range(0, len(requests)):
+            if requests[index][TCP].dport in fixed_connections:
+                fixed_requests.append(requests[index])
+
+        number_of_clients = len(fixed_requests)
+
+        return number_of_clients, fixed_requests, fixed_connections
 
     def analyse_connections(self, requests, list_responses):
         """
@@ -140,6 +169,9 @@ class Server:
         :param list_responses:
         :return:
         """
+
+        if not requests:
+            return
 
         for index in range(0, len(requests)):
             a_pack = requests[index]
@@ -211,6 +243,11 @@ class Server:
         return the_packet.__class__(bytes(the_packet))
 
     def verify_connection_success(self, number_of_clients, list_responses):
+        """
+
+        :param number_of_clients:
+        :param list_responses:
+        """
 
         skip = []
 
@@ -972,7 +1009,7 @@ class Server:
         :param client_number:
         """
 
-        print(self.__database.find(return_params="Status", input_params=[("Username", "Password")],
+        print(self.__database.find(return_params=['Status'], input_params=['Username', 'Password'],
                                    values=(CREDENTIALS[str(client_number)][0], CREDENTIALS[str(client_number)][1])))
 
     def send_to_chat(self):

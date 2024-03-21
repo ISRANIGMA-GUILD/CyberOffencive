@@ -10,6 +10,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
+from DatabaseCreator import *
 
 
 SYN = 2
@@ -29,10 +30,13 @@ THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6
                 "31": "create user", "32": "sleep", "33": "all", "34": "and", "35": "INSERT", "36": "UPDATE",
                 "37": "DELETE"}
 
+PARAMETERS = {"IPs": ["IP", "MAC", "Status"]}
+
 
 class Security:
 
-    def __init__(self):
+    def __init__(self, database: DatabaseManager):
+        self.__database = database
         pass
 
     def run(self):
@@ -47,23 +51,29 @@ class Security:
         """
 
         """
+        the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        the_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        the_server_socket.bind((MY_IP, SECURITY_PORT))  # Bind the server IP and Port into a tuple
+        the_server_socket.listen()  # Listen to client
 
         while True:
             try:
-                the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-                the_server_socket.bind((MY_IP, SECURITY_PORT))  # Bind the server IP and Port into a tuple
-                the_server_socket.listen()  # Listen to client
-
                 print("Server is up and running")
                 connection, service_address = the_server_socket.accept()  # Accept clients request
-                print("Client connected")
 
+                print("Client connected")
                 service_socket = connection
 
-                service_socket.close()
-                the_server_socket.close()
+                self.receive_requests(service_socket)
+
+            except ConnectionAbortedError:
+                break
+
+            except ConnectionRefusedError:
+                break
 
             except KeyboardInterrupt:
+                the_server_socket.close()
                 break
 
             else:
@@ -78,15 +88,43 @@ class Security:
         :return:
         """
 
-        data = service_socket.recv(MAX_MSG_LENGTH)
+        while True:
 
-        if not data:
-            return
+            self.find_ddos_attempt()
+
+            data = service_socket.recv(MAX_MSG_LENGTH)
+
+            if not data:
+                return
+
+    def find_ddos_attempt(self):
+        """
+
+        """
+
+        requests = sniff(count=5, lfilter=self.filter_tcp, timeout=2)
+        ports = [requests[i][TCP].sport for i in range(0, len(requests))]
+
+        for i in range(0, len(ports)):
+            if ports.count(ports[i]) > 1:
+                print("Ban")
+            else:
+                print("No error")
+
+    def filter_tcp(self, packets):
+        """
+         Check if the packet received is a TCP packet
+        :param packets: The packet
+        :return: If the packet has TCP in it
+        """
+
+        return TCP in packets and Raw in packets and (packets[Raw].load == b'Logged' or packets[Raw].load == b'Urgent')
 
 
 def main():
 
-    security = Security()
+    database = DatabaseManager("IPs", PARAMETERS["IPs"])
+    security = Security(database)
     security.run()
 
 
