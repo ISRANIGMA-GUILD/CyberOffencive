@@ -5,12 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/basic_com.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/security_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/security_server.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/the_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/the_client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/the_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/the_server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TheGame" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/TheGame/src/code/camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/camera.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TheGame/src/code/entity.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/entity.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TheGame/src/code/level.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/level.py" afterDir="false" />
