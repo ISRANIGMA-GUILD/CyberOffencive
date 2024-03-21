@@ -5,12 +5,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/basic_com.iml" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/basic_com.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/Database/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/Database/database.db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Secure Game/security_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/security_server.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/tls_client_oop.py" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/the_client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Secure Game/tls_server_oops.py" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/the_server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/the_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/the_client.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Secure Game/the_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Secure Game/the_server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TheGame/src/code/camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/camera.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TheGame/src/code/entity.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/entity.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TheGame/src/code/level.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/level.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TheGame/src/code/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TheGame/src/code/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/player.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TheGame/src/code/tile.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/tile.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TheGame/src/code/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/utils.py" afterDir="false" />
+    </list>
+    <list id="d7579d5f-ca4f-4ae4-a4e6-5ed88bba3f09" name="Changes by Giga Gavriel" comment="">
+      <change beforePath="$PROJECT_DIR$/TheGame/src/code/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,6 +36,21 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="LineStatusTrackerManager">
+    <file path="$PROJECT_DIR$/TheGame/src/code/main.py">
+      <ranges>
+        <range start1="12" end1="13" start2="12" end2="13" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
+        <range start1="14" end1="15" start2="14" end2="15" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
+        <range start1="16" end1="17" start2="16" end2="17" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
+        <range start1="21" end1="22" start2="21" end2="22" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
+        <range start1="28" end1="31" start2="28" end2="31" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
+        <range start1="32" end1="34" start2="32" end2="34" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
+        <range start1="39" end1="39" start2="39" end2="40" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
+        <range start1="43" end1="44" start2="44" end2="47" changelist="d7579d5f-ca4f-4ae4-a4e6-5ed88bba3f09" />
+        <range start1="51" end1="51" start2="54" end2="55" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
+      </ranges>
+    </file>
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -48,11 +73,14 @@
     "Python.certificate_creator (1).executor": "Run",
     "Python.certificate_creator.executor": "Run",
     "Python.client (1).executor": "Run",
+    "Python.main.executor": "Run",
     "Python.security_server (1).executor": "Run",
     "Python.security_server.executor": "Run",
     "Python.server (1).executor": "Run",
     "Python.test_array.executor": "Run",
+    "Python.the_client (1).executor": "Run",
     "Python.the_client.executor": "Run",
+    "Python.the_server (1).executor": "Run",
     "Python.the_server.executor": "Run",
     "Python.tls_client_oop (1).executor": "Run",
     "Python.tls_client_oop.executor": "Run",
@@ -72,7 +100,29 @@
       <recent name="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Secure Game\Certificates\Certificate_crts" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.security_server (1)">
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="basic_com" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/TheGame/src/code" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/TheGame/src/code/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="security_server (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="basic_com" />
       <option name="ENV_FILES" value="" />
@@ -95,7 +145,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="the_client" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="the_client (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="basic_com" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -108,7 +158,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Secure Game\the_client.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Secure Game/the_client.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -131,6 +181,28 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Secure Game\the_client.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="the_server (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="basic_com" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Secure Game" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Secure Game/the_server.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -185,10 +257,10 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.the_client (1)" />
+        <item itemvalue="Python.the_server (1)" />
         <item itemvalue="Python.security_server (1)" />
-        <item itemvalue="Python.the_server" />
-        <item itemvalue="Python.the_client" />
-        <item itemvalue="Python.the_client" />
+        <item itemvalue="Python.main" />
         <item itemvalue="Python.the_server" />
       </list>
     </recent_temporary>

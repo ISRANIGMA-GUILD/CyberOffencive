@@ -48,17 +48,16 @@ PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Cash', 'Status']}
 
 class Server:
 
-    def __init__(self, database: DatabaseManager):
+    def __init__(self, database: DatabaseManager, secure_socket: socket):
+        self.__secure_socket = secure_socket
         self.__database = database
-        pass
 
     def run(self):
         """
 
         """
 
-        secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-        secure_socket.connect((MY_IP, SECURITY_PORT))
+        self.__secure_socket.connect((MY_IP, SECURITY_PORT))
 
         accepted_clients, port_list = self.receive_client_connection_request()
         self.create_server_sockets(port_list)
@@ -74,7 +73,7 @@ class Server:
 
         threads = []
 
-        self.handle_clients(threads, accepted_clients, lock, secure_socket)
+        self.handle_clients(threads, accepted_clients, lock)
 
     def receive_client_connection_request(self):
         """
@@ -771,13 +770,12 @@ class Server:
         CREDENTIALS[str(number)] = (user, passw)
         print(CREDENTIALS)
 
-    def handle_clients(self, threads, number_of_clients, lock, secure_socket):
+    def handle_clients(self, threads, number_of_clients, lock):
         """
 
         :param threads:
         :param number_of_clients:
         :param lock:
-        :param secure_socket:
         """
 
         self.create_credential_list(number_of_clients)
@@ -791,7 +789,7 @@ class Server:
 
                 if self.empty_server():
                     self.__database.close_conn()
-                    secure_socket.close()
+                    self.__secure_socket.close()
                     break
 
                 threads = []
@@ -1029,8 +1027,9 @@ def main():
     """
     Main function
     """
+    secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
-    server = Server(data_base)
+    server = Server(data_base, secure_socket)
     server.run()
 
 

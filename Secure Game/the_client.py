@@ -34,8 +34,8 @@ KEY = {}
 
 class Client:
 
-    def __init__(self):
-        pass
+    def __init__(self, the_client_socket: socket):
+        self.__the_client_socket = the_client_socket
 
     def run(self):
         """
@@ -47,15 +47,14 @@ class Client:
 
             if res[Raw].load == b'Accept':
 
-                the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
                 time.sleep(2)
 
-                self.initialize_handshakes(the_client_socket, server_ip, server_port)
+                self.initialize_handshakes(server_ip, server_port)
                 time.sleep(2)
 
                 if KEY['encryption'][0] != 1:
-                    self.communicate(the_client_socket)
-                    the_client_socket.close()
+                    self.communicate()
+                    self.__the_client_socket.close()
 
             else:
                 print("TO BAD YOU ARE BANNED!")
@@ -169,10 +168,9 @@ class Client:
         return TCP in packets and Raw in packets and \
             (packets[Raw].load == b'Accept' or packets[Raw].load == b'Denied')
 
-    def initialize_handshakes(self, the_client_socket, server_ip, server_port):
+    def initialize_handshakes(self, server_ip, server_port):
         """
 
-        :param the_client_socket:
         :param server_ip:
         :param server_port:
         """
@@ -180,9 +178,9 @@ class Client:
         while True:
             try:
                 time.sleep(2)
-                the_client_socket.connect((server_ip, server_port))
+                self.__the_client_socket.connect((server_ip, server_port))
 
-                KEY["encryption"] = self.connection_handshakes(server_port, the_client_socket)
+                KEY["encryption"] = self.connection_handshakes(server_port)
                 break
 
             except KeyboardInterrupt:
@@ -192,48 +190,46 @@ class Client:
                 print("Waiting")
                 continue
 
-    def connection_handshakes(self, server_port, the_client_socket):
+    def connection_handshakes(self, server_port):
         """
 
         :param server_port:
-        :param the_client_socket:
         """
 
-        finish_first_handshake, auth = self.the_pre_handshake(server_port, the_client_socket)
-        key = self.secure_handshake(the_client_socket, auth)
+        finish_first_handshake, auth = self.the_pre_handshake(server_port)
+        key = self.secure_handshake(auth)
 
         return key, auth
 
-    def the_pre_handshake(self, server_port, the_client_socket):
+    def the_pre_handshake(self, server_port):
         """
          Initiate the three-way handshake
         :param server_port: The chosen server port
-        :param the_client_socket:
         :return: The ack packet and the authentic client associate
         """
         syn_packet = self.create_syn(server_port)
         time.sleep(2)
 
         while True:
-            the_client_socket.settimeout(3)
+            self.__the_client_socket.settimeout(3)
             try:
                 time.sleep(2)
-                the_client_socket.send(bytes(syn_packet[TCP]))
+                self.__the_client_socket.send(bytes(syn_packet[TCP]))
 
-                server_response = the_client_socket.recv(MAX_MSG_LENGTH)
-                server_message = the_client_socket.recv(MAX_MSG_LENGTH)
+                server_response = self.__the_client_socket.recv(MAX_MSG_LENGTH)
+                server_message = self.__the_client_socket.recv(MAX_MSG_LENGTH)
                 break
 
             except socket.timeout:
                 print('retry')
 
-        the_client_socket.setblocking(True)
+        self.__the_client_socket.setblocking(True)
         res = TCP(server_response) / Raw(server_message)
 
         finish_first_handshake = self.create_acknowledge(res)
-        the_client_socket.send(bytes(finish_first_handshake[TCP]))
+        self.__the_client_socket.send(bytes(finish_first_handshake[TCP]))
 
-        the_client_socket.send(bytes(finish_first_handshake[Raw]))
+        self.__the_client_socket.send(bytes(finish_first_handshake[Raw]))
         time.sleep(2)
 
         letter = syn_packet[Raw].load[0:2]
@@ -280,19 +276,18 @@ class Client:
 
         return res
 
-    def secure_handshake(self, the_client_socket, auth):
+    def secure_handshake(self, auth):
         """
          Start the secure handshake with the server
-        :param the_client_socket: The client socket
         :param auth: The authentic data
         """
 
         client_hello_packet = self.start_security()
-        the_client_socket.send(bytes(client_hello_packet[TLS]))
+        self.__the_client_socket.send(bytes(client_hello_packet[TLS]))
 
-        server_hello = the_client_socket.recv(MAX_MSG_LENGTH)
-        cert = the_client_socket.recv(EXCEPTIONAL_CASE_LENGTH)
-        key = the_client_socket.recv(MAX_MSG_LENGTH)
+        server_hello = self.__the_client_socket.recv(MAX_MSG_LENGTH)
+        cert = self.__the_client_socket.recv(EXCEPTIONAL_CASE_LENGTH)
+        key = self.__the_client_socket.recv(MAX_MSG_LENGTH)
 
         msg_s = TLS(server_hello)
         msg_cert = TLS(cert)
@@ -307,8 +302,8 @@ class Client:
             client_key, cert, private_key = self.create_client_key()
             encryption_key = self.full_encryption(server_point, private_key)
 
-            the_client_socket.send(bytes(client_key[TLS]))
-            server_final = the_client_socket.recv(MAX_MSG_LENGTH)
+            self.__the_client_socket.send(bytes(client_key[TLS]))
+            server_final = self.__the_client_socket.recv(MAX_MSG_LENGTH)
 
             msg_s_f = TLS(server_final)
 
@@ -317,7 +312,7 @@ class Client:
                 return
 
             else:
-                data_iv, data_c_t, data_tag = self.recieve_data(the_client_socket)
+                data_iv, data_c_t, data_tag = self.recieve_data()
 
                 print(self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag))
                 message = b'greetings!'
@@ -328,21 +323,21 @@ class Client:
                 if type(data_msg) is list:
                     for i in range(0, len(data_msg)):
                         message = data_msg[i]
-                        the_client_socket.send(bytes(message[TLS]))
+                        self.__the_client_socket.send(bytes(message[TLS]))
 
                 else:
-                    the_client_socket.send(bytes(data_msg[TLS]))
+                    self.__the_client_socket.send(bytes(data_msg[TLS]))
 
                 print(self.decrypt_data(encryption_key, auth, some_data[0], some_data[1], some_data[2]))
 
                 details = self.details_entry(encryption_key, auth)
 
-                the_client_socket.send(bytes(details[TLS]))
+                self.__the_client_socket.send(bytes(details[TLS]))
 
                 return encryption_key
         else:
             alert_message = self.send_alert()
-            the_client_socket.send(bytes(alert_message[TLS]))
+            self.__the_client_socket.send(bytes(alert_message[TLS]))
             i = 1
             while True:  # THIS WILL BE REMOVED THIS IS AN EMERGENCY PAUSE
                 try:
@@ -422,14 +417,13 @@ class Client:
 
         return derived_k_f
 
-    def recieve_data(self, the_client_socket):
+    def recieve_data(self):
         """
          Dissect the data received from the server
-        :param the_client_socket: The client socket
         :return: The data iv, data and tag
         """
 
-        data_pack = TLS(the_client_socket.recv(MAX_MSG_LENGTH))
+        data_pack = TLS(self.__the_client_socket.recv(MAX_MSG_LENGTH))
 
         data = data_pack[TLS][TLSApplicationData].data
         data_iv = data[:12]
@@ -574,10 +568,9 @@ class Client:
 
         return False
 
-    def communicate(self, the_client_socket):
+    def communicate(self):
         """
 
-        :param the_client_socket:
         """
 
         while True:
@@ -596,10 +589,10 @@ class Client:
                         if type(full_msg) is list:
                             for index in range(0, len(full_msg)):
                                 message = full_msg[index]
-                                the_client_socket.send(bytes(message[TLS]))
+                                self.__the_client_socket.send(bytes(message[TLS]))
 
                         else:
-                            the_client_socket.send(bytes(full_msg[TLS]))
+                            self.__the_client_socket.send(bytes(full_msg[TLS]))
 
                         if msg == "EXIT":
                             break
@@ -621,8 +614,8 @@ def main():
     """
     Main function
     """
-
-    client = Client()
+    the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+    client = Client(the_client_socket)
     client.run()
 
 

@@ -37,7 +37,6 @@ class Security:
 
     def __init__(self, database: DatabaseManager):
         self.__database = database
-        pass
 
     def run(self):
         """
