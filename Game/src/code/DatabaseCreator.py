@@ -171,9 +171,16 @@ def run_tests_a() -> None:
     """
 
     """
+    main_manager = DatabaseManager("PlayerDetails", ['Username', 'Password', 'Cash', 'Status'])
+    manager = DatabaseManager("PlayerDetails", ['Username', 'Password'])
+    print(manager.insert_no_duplicates(["Gafhggfvfsdffgfdgrie", "12sdfs34d5"],
+                                       ['Username', 'Password']))
 
-    manager = DatabaseManager("PlayerDetails", ['Username', 'Password', 'Cash', 'Status'])
+    print(main_manager.set_values(['Cash', 'Status'], ["G33a32rie", "1343423"],
+                            ['Username', 'Password'], ["Gafhggfvfsdffgfdgrie", "12sdfs34d5"]))
+
     manager.close_conn()
+    main_manager.close_conn()
 
 
 def main() -> None:

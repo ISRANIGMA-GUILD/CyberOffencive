@@ -7,7 +7,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, position: tuple, groups, obstacle_sprites, path = '../graphics/brawn_idle.png') -> None:
         super().__init__(groups)
         self.image = pygame.image.load(path).convert_alpha()
-        self.rect = self.image.get_rect(topleft = position)
+        self.rect = self.image.get_rect(topleft=position)
         self.direction = pygame.math.Vector2()
         self.hitbox = self.rect.inflate(-18, -26)
                 
@@ -60,3 +60,11 @@ class Player(pygame.sprite.Sprite):
     def update(self) -> None:
         self.input()
         self.move(5.0)
+
+    def get_location(self):
+        """
+
+        :return:
+        """
+
+        return f"L {self.rect.x} {self.rect.y}"
