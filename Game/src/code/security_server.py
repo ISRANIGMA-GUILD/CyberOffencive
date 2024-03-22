@@ -71,6 +71,9 @@ class Security:
             except ConnectionRefusedError:
                 break
 
+            except ConnectionResetError:
+                break
+
             except KeyboardInterrupt:
                 the_server_socket.close()
                 break

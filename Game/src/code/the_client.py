@@ -52,9 +52,8 @@ class Client:
                 self.initialize_handshakes(server_ip, server_port)
                 time.sleep(2)
 
-                if KEY['encryption'][0] != 1:
-                    self.communicate()
-                    self.__the_client_socket.close()
+                #if KEY['encryption'][0] != 1:
+                 #   self.communicate()
 
             else:
                 print("TO BAD YOU ARE BANNED!")
@@ -568,46 +567,51 @@ class Client:
 
         return False
 
-    def communicate(self):
+    def communicate(self, location):
+        """
+        :param location:
         """
 
-        """
+        try:
+            if 1 not in KEY:
+                key, auth = KEY['encryption'][0], KEY['encryption'][1]
+                message = str(location)
 
-        while True:
-            try:
-                if 1 not in KEY:
-                    key, auth = KEY['encryption'][0], KEY['encryption'][1]
-                    msg = input("Enter a message\n")
+                if not self.malicious_message(message):
+                    message = message.encode()
+                #    print(message)
 
-                    if not self.malicious_message(msg):
-                        message = msg.encode()
-                        print(message)
+                    data = [self.encrypt_data(key, message, auth)]
+                    full_msg = self.create_message(data)
 
-                        data = [self.encrypt_data(key, message, auth)]
-                        full_msg = self.create_message(data)
+                    if type(full_msg) is list:
+                        for index in range(0, len(full_msg)):
+                            message = full_msg[index]
+                            self.__the_client_socket.send(bytes(message[TLS]))
 
-                        if type(full_msg) is list:
-                            for index in range(0, len(full_msg)):
-                                message = full_msg[index]
-                                self.__the_client_socket.send(bytes(message[TLS]))
-
-                        else:
-                            self.__the_client_socket.send(bytes(full_msg[TLS]))
-
-                        if msg == "EXIT":
-                            break
                     else:
-                        print("ILLEGAL")
+                        self.__the_client_socket.send(bytes(full_msg[TLS]))
 
-            except ConnectionRefusedError:
-                print("Retrying")
+                    if message == "EXIT":
+                        self.__the_client_socket.close()
+                        return
+                else:
+                    print("ILLEGAL")
 
-            except ConnectionAbortedError:
-                break
+        except ConnectionResetError:
+            time.sleep(0.1)
 
-            except KeyboardInterrupt:
-                print("Server is shutting down")
-                break
+        except ConnectionRefusedError:
+            print("Retrying")
+
+        except ConnectionAbortedError:
+            self.__the_client_socket.close()
+            return
+
+        except KeyboardInterrupt:
+            print("Server is shutting down")
+            self.__the_client_socket.close()
+            return
 
 
 def main():

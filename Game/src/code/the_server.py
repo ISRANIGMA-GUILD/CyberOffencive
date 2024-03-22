@@ -43,14 +43,16 @@ CLIENTS = {}
 CREDENTIALS = {}
 MESSAGES = []
 MAX_CLIENT = 5
-PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Cash', 'Status']}
+PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Cash', 'Status'],
+              "NODUP": ['Username', 'Password'], "DUP": ['Cash', 'Status']}
 
 
 class Server:
 
-    def __init__(self, database: DatabaseManager, secure_socket: socket):
+    def __init__(self, main_data_base: DatabaseManager, login_data_base: DatabaseManager, secure_socket: socket):
         self.__secure_socket = secure_socket
-        self.__database = database
+        self.__main_data_base = main_data_base
+        self.__login_data_base = login_data_base
 
     def run(self):
         """
@@ -712,21 +714,25 @@ class Server:
         """
 
         data_pack = the_client_socket.recv(MAX_MSG_LENGTH)
-        if not data_pack:
+        try:
+            if not data_pack:
+                return
+
+            elif TLSAlert in TLS(data_pack):
+                print("THAT IS A SNEAKY CLIENT")
+                return 0, 1, 2
+
+            else:
+                data_pack = TLS(data_pack)
+
+                data = data_pack[TLS][TLSApplicationData].data
+                data_iv = data[:12]
+
+                data_tag = data[len(data) - 16:len(data)]
+                data_c_t = data[12:len(data) - 16]
+
+        except IndexError:
             return
-
-        elif TLSAlert in TLS(data_pack):
-            print("THAT IS A SNEAKY CLIENT")
-            return 0, 1, 2
-
-        else:
-            data_pack = TLS(data_pack)
-
-            data = data_pack[TLS][TLSApplicationData].data
-            data_iv = data[:12]
-
-            data_tag = data[len(data) - 16:len(data)]
-            data_c_t = data[12:len(data) - 16]
 
         return data_iv, data_c_t, data_tag
 
@@ -788,11 +794,19 @@ class Server:
                 self.start_handling(number_of_clients, response_threads, login_threads)
 
                 if self.empty_server():
-                    self.__database.close_conn()
+                    self.__login_data_base.close_conn()
+                    self.__main_data_base.close_conn()
                     self.__secure_socket.close()
                     break
 
                 threads = []
+
+            except AttributeError:
+                pass
+
+            except ConnectionResetError:
+                print("Server will end service")
+                break
 
             except KeyboardInterrupt:
                 print("Server will end service")
@@ -850,8 +864,8 @@ class Server:
             if CREDENTIALS[str(index)] is not None and CLIENTS[str(index)] is not None:
                 response_threads[index].start()
 
-                if MESSAGES:
-                    self.send_to_chat()
+               # if MESSAGES:
+                  #  self.send_to_chat()
 
             else:
                 login_threads[index].start()
@@ -876,12 +890,11 @@ class Server:
         if KEY[str(number)] is not None:
             client_socket = CLIENTS[str(number)]
             enc_key = KEY[str(number)][0]
-
             auth = KEY[str(number)][1]
-            client_socket.settimeout(SOCKET_TIMEOUT)
 
-            while True:
-                try:
+            try:
+                client_socket.settimeout(SOCKET_TIMEOUT)
+                while True:
                     data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
 
                     if self.invalid_data(data_iv, data_c_t, data_tag):
@@ -895,19 +908,24 @@ class Server:
                             self.organize_credentials(number)
                             break
 
-                except TypeError:
-                    print("Problematic")
-                    self.eliminate_socket(number)
-                    return
+            except TypeError:
+                print("Problematic")
+                self.eliminate_socket(number)
+                lock.release()
+                return
 
-                except socket.timeout:
-                    print(CLIENTS[str(number)].getpeername())
+            except AttributeError:
+                lock.release()
+                return
 
-                    if CREDENTIALS[str(number)] is not None:
-                        self.organize_credentials(number)
+            except socket.timeout:
+                print(CLIENTS[str(number)].getpeername())
 
-                    lock.release()
-                    return
+                if CREDENTIALS[str(number)] is not None:
+                    self.organize_credentials(number)
+
+                lock.release()
+                return
 
         lock.release()
 
@@ -923,7 +941,7 @@ class Server:
         if KEY[str(index_of_client)] is not None:
             client_socket = CLIENTS[str(index_of_client)]
             enc_key, auth = KEY[str(index_of_client)]
-            client_socket.settimeout(SOCKET_TIMEOUT)
+            client_socket.settimeout(0.1)
 
             try:
                 data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
@@ -935,11 +953,14 @@ class Server:
                 if data_iv == 0 and data_c_t == 1 and data_tag == 2:
                     self.eliminate_socket(index_of_client)
                     lock.release()
-
                     return
 
                 decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
-                print("Client", index_of_client + 1, "says:", decrypted_data)
+                if decrypted_data.decode()[0] == 'L':
+                    print("Client", index_of_client + 1, "is at", decrypted_data)
+
+                else:
+                    print("Client", index_of_client + 1, "says", decrypted_data)
 
                 if decrypted_data == b'EXIT':
                     print("Client", index_of_client + 1, client_socket.getpeername(), "has left the server")
@@ -948,6 +969,7 @@ class Server:
             except TypeError:
                 print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")
                 self.eliminate_socket(index_of_client)
+                print("Waited")
 
             except socket.timeout:
                 pass
@@ -983,14 +1005,14 @@ class Server:
         for client_number in range(0, len(CREDENTIALS)):
             if CREDENTIALS[str(client_number)] is not None:
                 if not self.account_exists(client_number):
-                    print(self.__database.insert_no_duplicates(values=[CREDENTIALS[str(client_number)][0],
-                                                               CREDENTIALS[str(client_number)][1], "0", "None"],
-                                                               no_duplicate_params=PARAMETERS["PlayerDetails"]))
+                    print(self.__login_data_base.insert_no_duplicates(values=[CREDENTIALS[str(client_number)][0],
+                                                                      CREDENTIALS[str(client_number)][1]],
+                                                                      no_duplicate_params=PARAMETERS["NODUP"]))
 
                 else:
                     self.view_status(client_number)
 
-                print(self.__database.get_content())
+                print(self.__main_data_base.get_content())
 
     def account_exists(self, client_number):
         """
@@ -999,7 +1021,8 @@ class Server:
         :return:
         """
 
-        return [CREDENTIALS[str(client_number)][0], CREDENTIALS[str(client_number)][1]] in self.__database.get_content()
+        return ([CREDENTIALS[str(client_number)][0], CREDENTIALS[str(client_number)][1]]
+                in self.__login_data_base.get_content())
 
     def view_status(self, client_number):
         """
@@ -1007,8 +1030,9 @@ class Server:
         :param client_number:
         """
 
-        print(self.__database.find(return_params=['Status'], input_params=['Username', 'Password'],
-                                   values=(CREDENTIALS[str(client_number)][0], CREDENTIALS[str(client_number)][1])))
+        print(self.__main_data_base.find(return_params=['Status'], input_params=['Username', 'Password'],
+                                         values=(CREDENTIALS[str(client_number)][0],
+                                                 CREDENTIALS[str(client_number)][1])))
 
     def send_to_chat(self):
         """
@@ -1028,8 +1052,10 @@ def main():
     Main function
     """
     secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-    data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
-    server = Server(data_base, secure_socket)
+    main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
+    login_database = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
+
+    server = Server(main_data_base, login_database, secure_socket)
     server.run()
 
 
