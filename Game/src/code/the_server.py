@@ -42,6 +42,7 @@ SOCKETS = {}
 CLIENTS = {}
 CREDENTIALS = {}
 MESSAGES = []
+LOCATIONS = []
 MAX_CLIENT = 5
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Cash', 'Status'],
               "NODUP": ['Username', 'Password'], "DUP": ['Cash', 'Status']}
@@ -785,7 +786,7 @@ class Server:
         """
 
         self.create_credential_list(number_of_clients)
-
+        print(CREDENTIALS)
         while True:
             try:
                 login_threads = self.create_credential_threads(number_of_clients, lock)
@@ -914,6 +915,13 @@ class Server:
                 lock.release()
                 return
 
+            except ConnectionResetError:
+                print("Client", number + 1, client_socket.getpeername(), "unexpectedly left")
+                self.eliminate_socket(number)
+                print("Waited")
+                lock.release()
+                return
+
             except AttributeError:
                 lock.release()
                 return
@@ -944,35 +952,53 @@ class Server:
             client_socket.settimeout(0.1)
 
             try:
-                data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
+                data = self.deconstruct_data(client_socket)
 
-                if not data_iv and not data_c_t and not data_tag:
+                if not data:
                     lock.release()
                     return
-
-                if data_iv == 0 and data_c_t == 1 and data_tag == 2:
-                    self.eliminate_socket(index_of_client)
-                    lock.release()
-                    return
-
-                decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
-                if decrypted_data.decode()[0] == 'L':
-                    print("Client", index_of_client + 1, "is at", decrypted_data)
 
                 else:
-                    print("Client", index_of_client + 1, "says", decrypted_data)
+                    data_iv, data_c_t, data_tag = data
 
-                if decrypted_data == b'EXIT':
-                    print("Client", index_of_client + 1, client_socket.getpeername(), "has left the server")
-                    self.eliminate_socket(index_of_client)
+                    if data_iv == 0 and data_c_t == 1 and data_tag == 2:
+                        self.eliminate_socket(index_of_client)
+                        lock.release()
+                        return
+
+                    decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
+                    if decrypted_data.decode()[0] == 'L':
+                        LOCATIONS.append(decrypted_data)
+                        print("Client", index_of_client + 1, "is at", decrypted_data)
+
+                    else:
+                        print("Client", index_of_client + 1, "says", decrypted_data)
+
+                    if decrypted_data == b'EXIT':
+                        print("Client", index_of_client + 1, client_socket.getpeername(), "has left the server")
+                        self.eliminate_socket(index_of_client)
 
             except TypeError:
                 print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")
                 self.eliminate_socket(index_of_client)
                 print("Waited")
 
+            except ConnectionResetError:
+                print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")
+                self.eliminate_socket(index_of_client)
+                print("Waited")
+
             except socket.timeout:
                 pass
+
+            for i in range(0, len(CLIENTS)):
+                if i != index_of_client and LOCATIONS and CLIENTS[str(i)] is not None:
+                    en = self.encrypt_data(KEY[str(i)][0], LOCATIONS[0], KEY[str(i)][1])
+                    CLIENTS[str(i)].send(bytes(self.create_message(en)[TLS]))
+
+            if LOCATIONS:
+                LOCATIONS.pop(0)
+
         lock.release()
 
     def eliminate_socket(self, number):
@@ -1001,9 +1027,12 @@ class Server:
         """
 
         """
-
         for client_number in range(0, len(CREDENTIALS)):
-            if CREDENTIALS[str(client_number)] is not None:
+            print(CREDENTIALS[str(client_number)])
+            if not CREDENTIALS[str(client_number)]:
+                pass
+
+            else:
                 if not self.account_exists(client_number):
                     print(self.__login_data_base.insert_no_duplicates(values=[CREDENTIALS[str(client_number)][0],
                                                                       CREDENTIALS[str(client_number)][1]],

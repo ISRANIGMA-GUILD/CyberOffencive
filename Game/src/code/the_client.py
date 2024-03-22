@@ -10,7 +10,9 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 import time
 import socket
+import pygame
 
+pygame.init()
 SYN = 2
 ACK = 16
 MY_IP = conf.route.route('0.0.0.0')[1]
@@ -30,6 +32,11 @@ PARAM_LIST = {"0": 0x0303, "1": 0x16, "2": 0x15, "3": 0x14, "4": 0x1}
 SECP = [0x6a6a, 0x001d, 0x0017, 0x0018]
 SIGNATURE_ALGORITHIM = [0x0403, 0x0804, 0x0401, 0x0503, 0x0805, 0x0501, 0x0806, 0x0601]
 KEY = {}
+FONT = pygame.font.Font(None, 42)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GRAY = (200, 200, 200)
+IMAGE = 'LoginScreen\\login.png'
 
 
 class Client:
@@ -51,9 +58,6 @@ class Client:
 
                 self.initialize_handshakes(server_ip, server_port)
                 time.sleep(2)
-
-                #if KEY['encryption'][0] != 1:
-                 #   self.communicate()
 
             else:
                 print("TO BAD YOU ARE BANNED!")
@@ -421,16 +425,24 @@ class Client:
          Dissect the data received from the server
         :return: The data iv, data and tag
         """
+        try:
+            data_pack = self.__the_client_socket.recv(MAX_MSG_LENGTH)
 
-        data_pack = TLS(self.__the_client_socket.recv(MAX_MSG_LENGTH))
+            if not data_pack:
+                return
 
-        data = data_pack[TLS][TLSApplicationData].data
-        data_iv = data[:12]
+            else:
+                data_pack = TLS(data_pack)
+                data = data_pack[TLS][TLSApplicationData].data
+                data_iv = data[:12]
 
-        data_tag = data[len(data) - 16:len(data)]
-        data_c_t = data[12:len(data) - 16]
+                data_tag = data[len(data) - 16:len(data)]
+                data_c_t = data[12:len(data) - 16]
 
-        return data_iv, data_c_t, data_tag
+            return data_iv, data_c_t, data_tag
+
+        except IndexError:
+            return
 
     def encrypt_data(self, key, plaintext, associated_data):
         """
@@ -501,9 +513,9 @@ class Client:
         :param auth: The authenticator
         :return: The full data message
         """
+
         while True:
-            user = input("Enter your username\n")
-            passw = input("Enter your password\n")
+            user, passw = self.main_account_screen()
 
             if self.empty_string(user) or self.empty_string(passw):
                 print("Please enter the requested information")
@@ -527,6 +539,85 @@ class Client:
         pack = self.create_message(data)
 
         return pack
+
+    def main_account_screen(self):
+        """
+
+        """
+        username = ""
+        password = ""
+
+        screen_width = 1200
+        screen_height = 730
+
+        screen = pygame.display.set_mode((screen_width, screen_height))
+        pygame.display.set_caption("Login Screen")
+
+        font = pygame.font.SysFont('arial', 32)
+        entering_username = True
+
+        while True:
+            img = pygame.image.load(IMAGE)
+            screen.blit(img, (0, 0))
+            pygame.display.flip()
+
+            if entering_username:
+                if len(username) < 13:
+                    self.draw_text(username, font, BLACK, screen, 246, 420)
+                else:
+                    self.draw_text(username[3:], font, BLACK, screen, 246, 420)
+            else:
+                if len(password) < 13:
+                    self.draw_text('*' * len(password), font, BLACK, screen, 246, 522)
+                else:
+                    self.draw_text('*' * len(password[3:]), font, BLACK, screen, 246, 522)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_BACKSPACE:
+                        if entering_username:
+                            if username:
+                                username = username[:-1]
+                        else:
+                            if password:
+                                password = password[:-1]
+                    elif event.key == pygame.K_RETURN:
+                        if entering_username:
+                            entering_username = False
+                        else:
+                            if username is not None and password is not None:
+                                print("Login successful!")
+                                return username, password
+                            else:
+                                print("Login failed!")
+                    else:
+                        if entering_username:
+                            if len(username) < 20:
+                                username += event.unicode
+                        else:
+                            if len(password) < 20:
+                                password += event.unicode
+
+            pygame.display.update()
+
+    def draw_text(self, text, font, color, surface, x, y):
+        """
+
+        :param text:
+        :param font:
+        :param color:
+        :param surface:
+        :param x:
+        :param y:
+        """
+
+        textobj = font.render(text, 1, color)
+        textrect = textobj.get_rect()
+        textrect.topleft = (x, y)
+        surface.blit(textobj, textrect)
 
     def is_there_an_alert(self, message):
         """
@@ -567,10 +658,21 @@ class Client:
 
         return False
 
-    def communicate(self, location):
+    def communicate(self, location, prev_location):
         """
         :param location:
         """
+
+        if location != prev_location:
+            self.change_location(location)
+
+        if 1 not in KEY:
+            key, auth = KEY['encryption'][0], KEY['encryption'][1]
+            return self.receive_location(key, auth)
+
+        return
+
+    def change_location(self, location):
 
         try:
             if 1 not in KEY:
@@ -579,7 +681,6 @@ class Client:
 
                 if not self.malicious_message(message):
                     message = message.encode()
-                #    print(message)
 
                     data = [self.encrypt_data(key, message, auth)]
                     full_msg = self.create_message(data)
@@ -599,7 +700,7 @@ class Client:
                     print("ILLEGAL")
 
         except ConnectionResetError:
-            time.sleep(0.1)
+            return
 
         except ConnectionRefusedError:
             print("Retrying")
@@ -608,9 +709,32 @@ class Client:
             self.__the_client_socket.close()
             return
 
+        except socket.timeout:
+            return
+
         except KeyboardInterrupt:
             print("Server is shutting down")
             self.__the_client_socket.close()
+            return
+
+
+    def receive_location(self, key, auth):
+        """
+
+        :param key:
+        :param auth:
+        :return:
+        """
+
+        try:
+            self.__the_client_socket.settimeout(0.01)
+            data_recv = self.recieve_data()
+            if not data_recv:
+                pass
+            else:
+                return self.decrypt_data(key, auth, data_recv[0], data_recv[1], data_recv[2])
+
+        except socket.timeout:
             return
 
 
