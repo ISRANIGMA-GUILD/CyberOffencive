@@ -25,6 +25,8 @@ class Game:
 
         self.prev_frame_time = 0
         self.new_frame_time = 0
+
+        self.text_surface = 0
         self.prev_loc = 0
 
     def run(self) -> None:
@@ -45,11 +47,11 @@ class Game:
             if game_state == "game":
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_SPACE]:
-                    game_state = "game"
                     self.network.run()
                     game_state = "continue"
 
             if game_state == "continue":
+                pygame.display.set_caption("Cyber Offensive")
                 self.new_frame_time = time.time()
                 self.screen.fill((0, 0, 0))
 
@@ -82,8 +84,7 @@ class Game:
                             print(other_coordinates)
                             prev_loc_other = other_coordinates
 
-                        self.screen.blit(source=pygame.image.load('../graphics/brawn_idle.png'),
-                                         dest=other_coordinates)
+                            p = Player(prev_loc_other, self.level.visible_sprites, self.level.obstacles_sprites)
                         pygame.display.flip()
 
                 pygame.display.update()

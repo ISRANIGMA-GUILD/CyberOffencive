@@ -144,18 +144,22 @@ class Client:
         sendp(tcp_packet)
 
         while True:
-            vert = sniff(count=1, lfilter=self.filter_tcp)
-            vert[0].show()
-
-            if vert[0][IP].src != server_ip:
-                print("Send an emergency request")
-                tcp_packet[Raw].load = b'URGENT'
-
-                tcp_packet[TCP].seq = RandShort()
+            vert = sniff(count=1, lfilter=self.filter_tcp, timeout=20)
+            if not vert:
                 sendp(tcp_packet)
 
             else:
-                break
+                vert[0].show()
+
+                if vert[0][IP].src != server_ip:
+                    print("Send an emergency request")
+                    tcp_packet[Raw].load = b'URGENT'
+
+                    tcp_packet[TCP].seq = RandShort()
+                    sendp(tcp_packet)
+
+                else:
+                    break
 
         res = vert[0]
 
@@ -226,7 +230,7 @@ class Client:
             except socket.timeout:
                 print('retry')
 
-        self.__the_client_socket.setblocking(True)
+        #self.__the_client_socket.setblocking(True)
         res = TCP(server_response) / Raw(server_message)
 
         finish_first_handshake = self.create_acknowledge(res)
@@ -333,11 +337,16 @@ class Client:
 
                 print(self.decrypt_data(encryption_key, auth, some_data[0], some_data[1], some_data[2]))
 
-                details = self.details_entry(encryption_key, auth)
+                while True:
+                    details = self.details_entry(encryption_key, auth)
 
-                self.__the_client_socket.send(bytes(details[TLS]))
+                    if self.check_success(encryption_key, auth, details):
+                        return encryption_key
 
-                return encryption_key
+                    else:
+                        print("fail")
+                        pass
+
         else:
             alert_message = self.send_alert()
             self.__the_client_socket.send(bytes(alert_message[TLS]))
@@ -444,6 +453,9 @@ class Client:
         except IndexError:
             return
 
+        except socket.timeout:
+            return
+
     def encrypt_data(self, key, plaintext, associated_data):
         """
          Encrypt data before sending it to the client
@@ -515,32 +527,34 @@ class Client:
         """
 
         while True:
-            user, passw = self.main_account_screen()
+            try:
+                user, password = self.login()
 
-            if self.empty_string(user) or self.empty_string(passw):
-                print("Please enter the requested information")
+                if self.empty_string(user) or self.empty_string(password):
+                    print("Please enter the requested information")
 
-            elif user == 'EXIT' or passw == 'EXIT':
-                print("YOU CAN'T EXIT AT LOGIN!")
+                elif user == 'EXIT' or password == 'EXIT':
+                    print("YOU CAN'T EXIT AT LOGIN!")
 
-            elif self.malicious_message(user) or self.malicious_message(passw):
-                print("Don't mess with Shmulik")
+                elif self.malicious_message(user) or self.malicious_message(password):
+                    print("Don't mess with Shmulik")
 
-            else:
-                break
+                else:
+                    user = user.encode()
+                    password = password.encode()
 
-        user = user.encode()
-        passw = passw.encode()
+                    credentials = user + " ".encode() + password
+                    encrypted_credentials = self.encrypt_data(key, credentials, auth)
 
-        credentials = user + " ".encode() + passw
-        encrypted_credentials = self.encrypt_data(key, credentials, auth)
+                    data = encrypted_credentials
+                    pack = self.create_message(data)
 
-        data = encrypted_credentials
-        pack = self.create_message(data)
+                    return pack
 
-        return pack
+            except socket.timeout():
+                pass
 
-    def main_account_screen(self):
+    def login(self):
         """
 
         """
@@ -616,8 +630,42 @@ class Client:
 
         textobj = font.render(text, 1, color)
         textrect = textobj.get_rect()
+
         textrect.topleft = (x, y)
         surface.blit(textobj, textrect)
+
+    def check_success(self, key, auth, details):
+        """
+
+        :param key:
+        :param auth:
+        :param details:
+        :return:
+        """
+
+        self.__the_client_socket.send(bytes(details[TLS]))
+        try:
+            #self.__the_client_socket.settimeout(0.5)
+            success = self.recieve_data()
+
+            if not success:
+                print("Fail")
+                return False
+
+            else:
+                decrypt = self.decrypt_data(key, auth, success[0], success[1], success[2])
+                print(decrypt)
+
+                if decrypt.decode() == "Success":
+                    print("succes", decrypt)
+                    return True
+
+                else:
+                    print("wrong password or username")
+                    return False
+
+        except socket.timeout:
+            return False
 
     def is_there_an_alert(self, message):
         """
@@ -626,7 +674,7 @@ class Client:
         :return:
         """
 
-        return TLSAlert in message
+        return TLS in message and TLSAlert in message
 
     def send_alert(self):
         """
@@ -660,7 +708,9 @@ class Client:
 
     def communicate(self, location, prev_location):
         """
+
         :param location:
+        :param prev_location:
         """
 
         if location != prev_location:
@@ -716,7 +766,6 @@ class Client:
             print("Server is shutting down")
             self.__the_client_socket.close()
             return
-
 
     def receive_location(self, key, auth):
         """
