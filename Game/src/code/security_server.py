@@ -1,15 +1,4 @@
-import sys
-from scapy.all import *
-from scapy.layers.l2 import *
-from scapy.layers.dns import *
-from scapy.layers.tls.all import *
-import socket
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives.kdf.hkdf import HKDF
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import serialization
+from server_handshake import *
 from DatabaseCreator import *
 
 
@@ -29,14 +18,16 @@ THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6
                 "25": "CREATE USER", "26": "`", "27": "select", "28": "from", "29": "union", "30": "union",
                 "31": "create user", "32": "sleep", "33": "all", "34": "and", "35": "INSERT", "36": "UPDATE",
                 "37": "DELETE"}
-
 PARAMETERS = {"IPs": ["IP", "MAC", "Status"]}
 
 
 class Security:
 
-    def __init__(self, database: DatabaseManager):
+    def __init__(self, database: DatabaseManager, the_server_socket: socket):
         self.__database = database
+        self.__the_server_socket = the_server_socket
+        self.__secret_security_key = 0
+        self.__secret_message = 0
 
     def run(self):
         """
@@ -50,18 +41,18 @@ class Security:
         """
 
         """
-        the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-        the_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        the_server_socket.bind((MY_IP, SECURITY_PORT))  # Bind the server IP and Port into a tuple
-        the_server_socket.listen()  # Listen to client
+        i = 0
 
         while True:
             try:
                 print("Server is up and running")
-                connection, service_address = the_server_socket.accept()  # Accept clients request
+                connection, service_address = self.__the_server_socket.accept()  # Accept clients request
 
                 print("Client connected")
                 service_socket = connection
+                if i == 0:
+                    self.security_start(service_socket)
+                    i += 1
 
                 self.receive_requests(service_socket)
 
@@ -75,13 +66,32 @@ class Security:
                 break
 
             except KeyboardInterrupt:
-                the_server_socket.close()
+                self.__the_server_socket.close()
                 break
 
             else:
                 print("Error message try again")
+                i = 0
 
         print("connect to the main server")
+
+    def security_start(self, service_socket):
+        """
+
+        :param service_socket:
+        """
+
+        handshake_initializer = ServerHandshake(service_socket)
+
+        while True:
+            security_for_server = handshake_initializer.run()
+
+            if not security_for_server:
+                pass
+
+            else:
+                self.__secret_security_key, self.__secret_message = security_for_server
+                break
 
     def receive_requests(self, service_socket):
         """
@@ -126,7 +136,13 @@ class Security:
 def main():
 
     database = DatabaseManager("IPs", PARAMETERS["IPs"])
-    security = Security(database)
+    the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+
+    the_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    the_server_socket.bind((MY_IP, SECURITY_PORT))  # Bind the server IP and Port into a tuple
+
+    the_server_socket.listen()  # Listen to client
+    security = Security(database, the_server_socket)
     security.run()
 
 
