@@ -1,4 +1,5 @@
-import pygame, sys
+import pygame
+import sys
 from level import *
 from settings import *
 from the_client import *
@@ -6,8 +7,8 @@ import socket
 import time
 import os
 
-
 IMAGE = 'LoginScreen\\menuscreen.png'
+
 
 class Game:
     def __init__(self) -> None:
@@ -34,6 +35,8 @@ class Game:
 
         """
         game_state = "start_menu"
+        i = 0
+        p = 0
         while True:
             for event in pygame.event.get():
                 if pygame.QUIT == event.type:
@@ -56,7 +59,6 @@ class Game:
                 self.screen.fill((0, 0, 0))
 
                 self.level.run()
-                i = 0
                 prev_loc_other = (0, 0)
                 fps = 1.0 / (self.new_frame_time - self.prev_frame_time)
 
@@ -67,7 +69,9 @@ class Game:
                 current_loc = self.level.player.get_location()
 
                 other_client = self.network.communicate(current_loc, self.prev_loc)
-                self.prev_loc = current_loc
+                current_loc = current_loc[2:len(current_loc)].split(' ')
+                if current_loc[0].isnumeric() and current_loc[1].isnumeric():
+                    self.prev_loc = (int(current_loc[0]), int(current_loc[1]))
 
                 if not other_client:
                     pass
@@ -84,8 +88,14 @@ class Game:
                             print(other_coordinates)
                             prev_loc_other = other_coordinates
 
-                            p = Player(prev_loc_other, self.level.visible_sprites, self.level.obstacles_sprites)
-                        pygame.display.flip()
+                            if i == 0:
+                                p = Player(prev_loc_other, self.level.visible_sprites, self.level.obstacles_sprites)
+                                pygame.display.flip()
+                                i += 1
+
+                            if (abs(prev_loc_other[1] - self.prev_loc[1]) <= 30 and
+                                    (abs(prev_loc_other[0] - self.prev_loc[0]) <= 30)):
+                                p.update()
 
                 pygame.display.update()
                 self.clock.tick(FPS)
@@ -106,7 +116,7 @@ class Game:
         pygame.display.flip()
 
         self.screen.blit(start_button, (self.screen.get_width() / 2 - start_button.get_width() / 2,
-                         self.screen.get_height() / 2 + start_button.get_height() / 2))
+                                        self.screen.get_height() / 2 + start_button.get_height() / 2))
 
         pygame.display.update()
 

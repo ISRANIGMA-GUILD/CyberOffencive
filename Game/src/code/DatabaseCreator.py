@@ -45,6 +45,10 @@ class DatabaseManager:
         print(res.fetchall())
         return res.fetchall()
 
+    def get_cursor(self):
+
+        return self.__cursor
+
     def insert(self, values: iter) -> bool:
         """
         Function that inserts values into the database

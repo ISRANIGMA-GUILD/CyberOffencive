@@ -1,5 +1,3 @@
-import time
-
 from scapy.all import *
 from scapy.layers.l2 import *
 from cryptography.hazmat.primitives.serialization import *
@@ -10,7 +8,6 @@ import os
 import threading
 import hashlib
 
-# ""todo: add succcess packet sent""#
 SYN = 2
 ACK = 16
 THE_USUAL_IP = '0.0.0.0'
@@ -38,6 +35,7 @@ KEY = {}
 SOCKETS = {}
 CLIENTS = {}
 CREDENTIALS = {}
+NEW_CREDENTIALS = []
 SUCCESSES = {}
 MESSAGES = []
 LOCATIONS = []
@@ -61,6 +59,25 @@ class Server:
 
         """
         time.sleep(2)
+        # """":TODO: Add anti ddos functions and check for session injection vulnerabilities """#
+        # """":TODO: Try to speed the pre handshake """#
+        # """":TODO: Speed up server closure after all clients exit """#
+        # """":TODO: Check if users are banned """#
+        # """":TODO: Check if users cheat(in speed, cash etc.)"""#
+        # """":TODO: Allow for two players to see each other in the correct locations"""#
+        # """":TODO: Make sure client can see other clients (not just one more)"""#
+        # """":TODO: Create chat"""#
+        # """":TODO: Connect to docker"""#
+        # """":TODO: Return details after login"""#
+        # """":TODO: Block connections from banned users and duplicate connections"""#
+
+        c = self.__main_data_base.get_cursor()
+        c.execute("SELECT Username, Password FROM PlayerDetails")
+
+        results = c.fetchall()
+        list_of_existing = [important for important in results]
+
+        print(list_of_existing)
         self.security_first()
 
         print("The server will now wait for clients")
@@ -76,7 +93,7 @@ class Server:
         threads = self.accept_clients(accepted_clients, the_server_sockets, lock, threads)
         self.initiate_handshakes(threads, accepted_clients)
 
-        self.handle_clients(accepted_clients, lock)
+        self.handle_clients(accepted_clients, lock, list_of_existing)
 
     def security_first(self):
         """
@@ -304,7 +321,7 @@ class Server:
         :param server_port:
         """
 
-        print("creating for five clients", server_port)
+        print(f"creating for {len(server_port)} clients", server_port)
         for port_number in range(0, len(server_port)):
             the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
             print(server_port[port_number])
@@ -791,9 +808,10 @@ class Server:
         CREDENTIALS[str(number)] = (user, passw)
         print(CREDENTIALS)
 
-    def handle_clients(self, number_of_clients, lock):
+    def handle_clients(self, number_of_clients, lock, list_of_existing):
         """
 
+        :param list_of_existing:
         :param number_of_clients:
         :param lock:
         """
@@ -802,12 +820,13 @@ class Server:
 
         while True:
             try:
-                login_threads = self.create_credential_threads(number_of_clients, lock)
+                login_threads = self.create_credential_threads(number_of_clients, lock, list_of_existing)
                 response_threads = self.create_responders(number_of_clients, lock)
 
                 self.start_handling(number_of_clients, response_threads, login_threads)
 
                 if self.empty_server():
+                    self.update_database()
                     self.__login_data_base.close_conn()
                     self.__main_data_base.close_conn()
                     self.__secure_socket.close()
@@ -818,11 +837,21 @@ class Server:
 
             except ConnectionResetError:
                 print("Server will end service")
+                self.update_database()
+                self.__login_data_base.close_conn()
+                self.__main_data_base.close_conn()
+                self.__secure_socket.close()
                 break
 
             except KeyboardInterrupt:
                 print("Server will end service")
+                self.update_database()
+                self.__login_data_base.close_conn()
+                self.__main_data_base.close_conn()
+                self.__secure_socket.close()
                 break
+
+        print("FINISH")
 
     def create_credential_list(self, number_of_clients):
         """
@@ -834,18 +863,19 @@ class Server:
             CREDENTIALS[str(index)] = None
             SUCCESSES[str(index)] = None
 
-    def create_credential_threads(self, number_of_clients, lock):
+    def create_credential_threads(self, number_of_clients, lock, list_of_existing):
         """
 
         :param number_of_clients:
         :param lock:
+        :param list_of_existing:
         :return:
         """
 
         threads = []
 
         for number in range(0, number_of_clients):
-            the_thread = threading.Thread(target=self.receive_credentials, args=(lock, number))
+            the_thread = threading.Thread(target=self.receive_credentials, args=(lock, number, list_of_existing))
             threads.append(the_thread)
 
         return threads
@@ -890,13 +920,13 @@ class Server:
 
             elif login_threads[index].is_alive():
                 login_threads[index].join()
-                self.check_account()
 
-    def receive_credentials(self, lock, number):
+    def receive_credentials(self, lock, number, list_of_existing):
         """
 
         :param lock:
         :param number:
+        :param list_of_existing:
         :return:
         """
 
@@ -918,6 +948,7 @@ class Server:
 
                     else:
                         CREDENTIALS[str(number)] = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
+                        self.check_account(number, list_of_existing)
                         lock.release()
                         return
 
@@ -965,16 +996,6 @@ class Server:
         if KEY[str(index_of_client)] is not None:
             client_socket = CLIENTS[str(index_of_client)]
             enc_key, auth = KEY[str(index_of_client)]
-
-            if SUCCESSES[str(index_of_client)] is None:
-                SUCCESSES[str(index_of_client)] = 1
-                success = "Success".encode()
-                success_msg = self.encrypt_data(enc_key, success, auth)
-
-                success_pack = self.create_message(success_msg)
-                client_socket.send(bytes(success_pack[TLS]))
-                lock.release()
-                return
 
             client_socket.settimeout(0.1)
 
@@ -1026,9 +1047,12 @@ class Server:
             for i in range(0, len(CLIENTS)):
                 if (i != index_of_client and LOCATIONS and CLIENTS[str(i)] is not None
                         and CREDENTIALS[str(i)] is not None):
+                    try:
+                        en = self.encrypt_data(KEY[str(i)][0], LOCATIONS[0], KEY[str(i)][1])
+                        CLIENTS[str(i)].send(bytes(self.create_message(en)[TLS]))
 
-                    en = self.encrypt_data(KEY[str(i)][0], LOCATIONS[0], KEY[str(i)][1])
-                    CLIENTS[str(i)].send(bytes(self.create_message(en)[TLS]))
+                    except ConnectionResetError:
+                        pass
 
             if LOCATIONS:
                 LOCATIONS.pop(0)
@@ -1057,56 +1081,78 @@ class Server:
         count_none = [client for client in range(0, len(CLIENTS)) if CLIENTS[str(client)] is None]
         return len(count_none) == len(CLIENTS)
 
-    def check_account(self):
+    def check_account(self, client_number, list_of_existing):
         """
 
+        :param client_number:
+        :param list_of_existing:
         """
-        for client_number in range(0, len(CREDENTIALS)):
-            if not CREDENTIALS[str(client_number)]:
-                pass
+
+        if not CREDENTIALS[str(client_number)]:
+            pass
+
+        else:
+
+            self.organize_credentials(client_number)
+            tuple_of_credentials = CREDENTIALS[str(client_number)]
+
+            list_of_existing_users = [tup[0] for tup in list_of_existing]
+            print(list_of_existing_users)
+            print(self.username_exists(list_of_existing_users, tuple_of_credentials),
+                  self.password_exists(list_of_existing, tuple_of_credentials))
+
+            if tuple_of_credentials in list_of_existing:
+                print("Succcessful")
+                success = "Success".encode()
+                success_msg = self.encrypt_data(KEY[str(client_number)][0], success, KEY[str(client_number)][1])
+
+                success_pack = self.create_message(success_msg)
+                CLIENTS[str(client_number)].send(bytes(success_pack[TLS]))
 
             else:
-                self.organize_credentials(client_number)
-                if (self.__login_data_base.insert_no_duplicates(values=[CREDENTIALS[str(client_number)][0],
-                                                                        CREDENTIALS[str(client_number)][1]],
-                                                                no_duplicate_params=PARAMETERS["NODUP"])):
-                    self.view_status(client_number)
-                    print(self.__main_data_base.get_content())
+
+                if (self.username_exists(list_of_existing_users, tuple_of_credentials) and
+                   not self.password_exists(list_of_existing, tuple_of_credentials)):
+
+                    print("Wrong username or password")
+                    success = "Failure".encode()
+
+                    success_msg = self.encrypt_data(KEY[str(client_number)][0], success, KEY[str(client_number)][1])
+                    success_pack = self.create_message(success_msg)
+
+                    CLIENTS[str(client_number)].send(bytes(success_pack[TLS]))
+                    CREDENTIALS[str(client_number)] = None
 
                 else:
-                    if not self.password_exists(client_number):
-                        print("Wrong username or password")
 
-                        print(self.__main_data_base.get_content())
-                        CREDENTIALS[str(client_number)] = None
+                    NEW_CREDENTIALS.append(tuple_of_credentials)
+                    print("NEW ACCOUNT YAY :)")
 
-                    elif not self.username_exists(client_number):
-                        print("Wrong username or password")
+                    success = "Success".encode()
+                    success_msg = self.encrypt_data(KEY[str(client_number)][0], success, KEY[str(client_number)][1])
 
-                        print(self.__main_data_base.get_content())
-                        CREDENTIALS[str(client_number)] = None
+                    success_pack = self.create_message(success_msg)
+                    CLIENTS[str(client_number)].send(bytes(success_pack[TLS]))
 
-    def username_exists(self, client_number):
+    def username_exists(self, list_of_existing, tuple_of_credentials):
         """
 
-        :param client_number:
+        :param list_of_existing:
+        :param tuple_of_credentials:
         :return:
         """
 
-        return (self.__main_data_base.find(return_params=['Username'], input_params=['Username', 'Password'],
-                                           values=(
-                                           CREDENTIALS[str(client_number)][0], CREDENTIALS[str(client_number)][1])))
+        return tuple_of_credentials[0] in list_of_existing
 
-    def password_exists(self, client_number):
+    def password_exists(self, list_of_existing, tuple_of_credentials):
         """
 
-        :param client_number:
+        :param list_of_existing:
+        :param tuple_of_credentials:
         :return:
         """
 
-        return (self.__main_data_base.find(return_params=['Password'], input_params=['Username', 'Password'],
-                                           values=(
-                                           CREDENTIALS[str(client_number)][0], CREDENTIALS[str(client_number)][1])))
+        return tuple_of_credentials[1] in list_of_existing
 
     def view_status(self, client_number):
         """
@@ -1130,6 +1176,15 @@ class Server:
 
         MESSAGES.pop(0)
 
+    def update_database(self):
+        """
+
+        """
+
+        for index in range(0, len(NEW_CREDENTIALS)):
+            self.__login_data_base.insert_no_duplicates(values=[NEW_CREDENTIALS[index][0], NEW_CREDENTIALS[index][1]],
+                                                        no_duplicate_params=PARAMETERS["NODUP"])
+
 
 def main():
     """
@@ -1137,9 +1192,11 @@ def main():
     """
     secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
-    login_database = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
+    login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
 
-    server = Server(main_data_base, login_database, secure_socket)
+    print(login_data_base.get_content())
+
+    server = Server(main_data_base, login_data_base, secure_socket)
     server.run()
 
 

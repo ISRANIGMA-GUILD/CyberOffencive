@@ -12,6 +12,9 @@ import time
 import socket
 import pygame
 
+
+"""TODO: Return failure message to rewrite password"""
+
 pygame.init()
 SYN = 2
 ACK = 16
@@ -230,18 +233,16 @@ class Client:
             except socket.timeout:
                 print('retry')
 
-        #self.__the_client_socket.setblocking(True)
         res = TCP(server_response) / Raw(server_message)
-
         finish_first_handshake = self.create_acknowledge(res)
+
         self.__the_client_socket.send(bytes(finish_first_handshake[TCP]))
-
         self.__the_client_socket.send(bytes(finish_first_handshake[Raw]))
+
         time.sleep(2)
-
         letter = syn_packet[Raw].load[0:2]
-        dot = finish_first_handshake[Raw].load[0:4]
 
+        dot = finish_first_handshake[Raw].load[0:4]
         authentic = letter + dot
 
         return finish_first_handshake, authentic
@@ -337,14 +338,18 @@ class Client:
 
                 print(self.decrypt_data(encryption_key, auth, some_data[0], some_data[1], some_data[2]))
 
-                while True:
-                    details = self.details_entry(encryption_key, auth)
+                details = self.details_entry(encryption_key, auth)
 
-                    if self.check_success(encryption_key, auth, details):
+                while True:
+
+                    if self.check_success(encryption_key, details, auth) == "Success":
                         return encryption_key
 
+                    elif self.check_success(encryption_key, details, auth) == "Failure":
+                        details = self.details_entry(encryption_key, auth)
+
                     else:
-                        print("fail")
+                        print("retry")
                         pass
 
         else:
@@ -628,44 +633,45 @@ class Client:
         :param y:
         """
 
-        textobj = font.render(text, 1, color)
-        textrect = textobj.get_rect()
+        text_tobj = font.render(text, 1, color)
+        text_rect = text_tobj.get_rect()
 
-        textrect.topleft = (x, y)
-        surface.blit(textobj, textrect)
+        text_rect.topleft = (x, y)
+        surface.blit(text_tobj, text_rect)
 
-    def check_success(self, key, auth, details):
+    def check_success(self, key, details, auth):
         """
 
         :param key:
-        :param auth:
         :param details:
+        :param auth:
         :return:
         """
 
         self.__the_client_socket.send(bytes(details[TLS]))
-        try:
-            #self.__the_client_socket.settimeout(0.5)
-            success = self.recieve_data()
 
-            if not success:
-                print("Fail")
-                return False
+        while True:
+            try:
+                success = self.recieve_data()
 
-            else:
-                decrypt = self.decrypt_data(key, auth, success[0], success[1], success[2])
-                print(decrypt)
-
-                if decrypt.decode() == "Success":
-                    print("succes", decrypt)
-                    return True
+                if not success:
+                    print("Fail")
+                    pass
 
                 else:
-                    print("wrong password or username")
-                    return False
+                    decrypt = self.decrypt_data(key, auth, success[0], success[1], success[2])
+                    print(decrypt)
 
-        except socket.timeout:
-            return False
+                    if decrypt.decode() == "Success":
+                        print("succes", decrypt)
+                        return decrypt.decode()
+
+                    elif decrypt.decode() == "Failure":
+                        print("wrong password or username")
+                        return decrypt.decode()
+
+            except socket.timeout:
+                return
 
     def is_there_an_alert(self, message):
         """
@@ -724,9 +730,9 @@ class Client:
 
     def change_location(self, location):
 
-        try:
-            if 1 not in KEY:
-                key, auth = KEY['encryption'][0], KEY['encryption'][1]
+        if 1 not in KEY:
+            key, auth = KEY['encryption'][0], KEY['encryption'][1]
+            try:
                 message = str(location)
 
                 if not self.malicious_message(message):
@@ -743,29 +749,48 @@ class Client:
                     else:
                         self.__the_client_socket.send(bytes(full_msg[TLS]))
 
-                    if message == "EXIT":
+                    if message == 'EXIT':
                         self.__the_client_socket.close()
                         return
                 else:
                     print("ILLEGAL")
 
-        except ConnectionResetError:
-            return
+            except ConnectionResetError:
+                message = 'EXIT'.encode()
+                data = [self.encrypt_data(key, message, auth)]
 
-        except ConnectionRefusedError:
-            print("Retrying")
+                full_msg = self.create_message(data)
+                self.__the_client_socket.send(bytes(full_msg[TLS]))
 
-        except ConnectionAbortedError:
-            self.__the_client_socket.close()
-            return
+                self.__the_client_socket.close()
+                return
 
-        except socket.timeout:
-            return
+            except ConnectionRefusedError:
+                print("Retrying")
 
-        except KeyboardInterrupt:
-            print("Server is shutting down")
-            self.__the_client_socket.close()
-            return
+            except ConnectionAbortedError:
+                message = 'EXIT'.encode()
+                data = [self.encrypt_data(key, message, auth)]
+
+                full_msg = self.create_message(data)
+                self.__the_client_socket.send(bytes(full_msg[TLS]))
+
+                self.__the_client_socket.close()
+                return
+
+            except socket.timeout:
+                return
+
+            except KeyboardInterrupt:
+                print("Server is shutting down")
+                message = 'EXIT'.encode()
+
+                data = [self.encrypt_data(key, message, auth)]
+                full_msg = self.create_message(data)
+
+                self.__the_client_socket.send(bytes(full_msg[TLS]))
+                self.__the_client_socket.close()
+                return
 
     def receive_location(self, key, auth):
         """
