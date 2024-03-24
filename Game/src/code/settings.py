@@ -44,6 +44,7 @@ INVISIBLE: str = 'invisible'
 BOUNDARY: str = 'boundary'
 GRASS: str = 'grass'
 OBJECT: str = 'object'
+PLAYER_OBJECT: str = 'player_object'
 #=============================
 
 

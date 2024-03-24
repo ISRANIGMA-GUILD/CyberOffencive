@@ -45,7 +45,7 @@ class Level:
                             object_surface = graphics[OBJECT][int(col)]
                             Tile((x, y), [self.visible_sprites, self.obstacles_sprites], OBJECT, object_surface)
 
-        self.player = Player((2000, 1500), [self.visible_sprites], self.obstacles_sprites, '../graphics/brawn_idle.png')    
+        self.player = Player((2000, 1500), [self.visible_sprites, self.obstacles_sprites], self.obstacles_sprites, '../graphics/brawn_idle.png')
 
     def run(self) -> None:
         self.visible_sprites.custom_draw(self.player)

@@ -69,7 +69,9 @@ class Server:
         # """":TODO: Create chat"""#
         # """":TODO: Connect to docker"""#
         # """":TODO: Return details after login"""#
-        # """":TODO: Block connections from banned users and duplicate connections"""#
+        # """":TODO: Block connections from banned users"""#
+        # """":TODO: Make sure client supports TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"""#
+        # """":TODO: Send coordinates only when they change and if new client connects:"""#
 
         c = self.__main_data_base.get_cursor()
         c.execute("SELECT Username, Password FROM PlayerDetails")
@@ -1096,43 +1098,63 @@ class Server:
             self.organize_credentials(client_number)
             tuple_of_credentials = CREDENTIALS[str(client_number)]
 
-            list_of_existing_users = [tup[0] for tup in list_of_existing]
-            print(list_of_existing_users)
-            print(self.username_exists(list_of_existing_users, tuple_of_credentials),
-                  self.password_exists(list_of_existing, tuple_of_credentials))
+            count = 0
 
-            if tuple_of_credentials in list_of_existing:
-                print("Succcessful")
-                success = "Success".encode()
-                success_msg = self.encrypt_data(KEY[str(client_number)][0], success, KEY[str(client_number)][1])
+            for i in range(0, len(CREDENTIALS)):
+                if CREDENTIALS[str(client_number)] == CREDENTIALS[str(i)]:
+                    count += 1
 
-                success_pack = self.create_message(success_msg)
-                CLIENTS[str(client_number)].send(bytes(success_pack[TLS]))
+            if count <= 1:
 
-            else:
+                list_of_existing_users = [tup[0] for tup in list_of_existing]
+                print(list_of_existing_users)
+                print(self.username_exists(list_of_existing_users, tuple_of_credentials),
+                      self.password_exists(list_of_existing, tuple_of_credentials))
 
-                if (self.username_exists(list_of_existing_users, tuple_of_credentials) and
-                   not self.password_exists(list_of_existing, tuple_of_credentials)):
-
-                    print("Wrong username or password")
-                    success = "Failure".encode()
-
-                    success_msg = self.encrypt_data(KEY[str(client_number)][0], success, KEY[str(client_number)][1])
-                    success_pack = self.create_message(success_msg)
-
-                    CLIENTS[str(client_number)].send(bytes(success_pack[TLS]))
-                    CREDENTIALS[str(client_number)] = None
-
-                else:
-
-                    NEW_CREDENTIALS.append(tuple_of_credentials)
-                    print("NEW ACCOUNT YAY :)")
-
+                if tuple_of_credentials in list_of_existing:
+                    print("Succcessful")
                     success = "Success".encode()
                     success_msg = self.encrypt_data(KEY[str(client_number)][0], success, KEY[str(client_number)][1])
 
                     success_pack = self.create_message(success_msg)
                     CLIENTS[str(client_number)].send(bytes(success_pack[TLS]))
+
+                else:
+
+                    if (self.username_exists(list_of_existing_users, tuple_of_credentials) and
+                       not self.password_exists(list_of_existing, tuple_of_credentials)):
+
+                        print("Wrong username or password")
+                        success = "Failure".encode()
+
+                        success_msg = self.encrypt_data(KEY[str(client_number)][0], success, KEY[str(client_number)][1])
+                        success_pack = self.create_message(success_msg)
+
+                        CLIENTS[str(client_number)].send(bytes(success_pack[TLS]))
+                        CREDENTIALS[str(client_number)] = None
+
+                    else:
+
+                        NEW_CREDENTIALS.append(tuple_of_credentials)
+                        print("NEW ACCOUNT YAY :)")
+
+                        success = "Success".encode()
+                        success_msg = self.encrypt_data(KEY[str(client_number)][0], success, KEY[str(client_number)][1])
+
+                        success_pack = self.create_message(success_msg)
+                        CLIENTS[str(client_number)].send(bytes(success_pack[TLS]))
+
+            else:
+                print("Wrong username or password")
+                success = "Failure".encode()
+
+                success_msg = self.encrypt_data(KEY[str(client_number)][0], success, KEY[str(client_number)][1])
+                success_pack = self.create_message(success_msg)
+
+                CLIENTS[str(client_number)].send(bytes(success_pack[TLS]))
+                CREDENTIALS[str(client_number)] = None
+
+
 
     def username_exists(self, list_of_existing, tuple_of_credentials):
         """

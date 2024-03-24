@@ -13,8 +13,6 @@ import socket
 import pygame
 
 
-"""TODO: Return failure message to rewrite password"""
-
 pygame.init()
 SYN = 2
 ACK = 16
