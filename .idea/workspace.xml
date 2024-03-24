@@ -5,10 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/basic_com.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/Database/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/Database/database.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/DatabaseCreator.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/DatabaseCreator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/the_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_client.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/the_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_server.py" afterDir="false" />
@@ -21,7 +19,12 @@
       <change beforePath="$PROJECT_DIR$/TheGame/src/code/tile.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/tile.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TheGame/src/code/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/utils.py" afterDir="false" />
     </list>
-    <list id="d7579d5f-ca4f-4ae4-a4e6-5ed88bba3f09" name="Changes by Giga Gavriel" comment="" />
+    <list id="d7579d5f-ca4f-4ae4-a4e6-5ed88bba3f09" name="Changes by Giga Gavriel" comment="">
+      <change beforePath="$PROJECT_DIR$/Game/src/code/level.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/level.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/player.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/settings.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -37,6 +40,14 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="LineStatusTrackerManager">
+    <file path="$PROJECT_DIR$/Game/src/code/main.py">
+      <ranges>
+        <range start1="39" end1="39" start2="39" end2="41" changelist="d7579d5f-ca4f-4ae4-a4e6-5ed88bba3f09" />
+        <range start1="90" end1="98" start2="92" end2="109" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
+      </ranges>
+    </file>
+  </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
@@ -51,37 +62,37 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
-    &quot;Python.DatabaseCreator.executor&quot;: &quot;Run&quot;,
-    &quot;Python.certificate_creator (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.certificate_creator.executor&quot;: &quot;Run&quot;,
-    &quot;Python.client (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.main (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.security_server (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.security_server (2).executor&quot;: &quot;Run&quot;,
-    &quot;Python.security_server.executor&quot;: &quot;Run&quot;,
-    &quot;Python.server (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.test_array.executor&quot;: &quot;Run&quot;,
-    &quot;Python.the_client (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.the_client.executor&quot;: &quot;Run&quot;,
-    &quot;Python.the_server (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.the_server.executor&quot;: &quot;Run&quot;,
-    &quot;Python.tls_client_oop (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.tls_client_oop.executor&quot;: &quot;Run&quot;,
-    &quot;Python.tls_server_oops (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.tls_server_oops.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;tls&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/basic_com/Game/src/code&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "Python.DatabaseCreator.executor": "Run",
+    "Python.certificate_creator (1).executor": "Run",
+    "Python.certificate_creator.executor": "Run",
+    "Python.client (1).executor": "Run",
+    "Python.main (1).executor": "Run",
+    "Python.main.executor": "Run",
+    "Python.security_server (1).executor": "Run",
+    "Python.security_server (2).executor": "Run",
+    "Python.security_server.executor": "Run",
+    "Python.server (1).executor": "Run",
+    "Python.test_array.executor": "Run",
+    "Python.the_client (1).executor": "Run",
+    "Python.the_client.executor": "Run",
+    "Python.the_server (1).executor": "Run",
+    "Python.the_server.executor": "Run",
+    "Python.tls_client_oop (1).executor": "Run",
+    "Python.tls_client_oop.executor": "Run",
+    "Python.tls_server_oops (1).executor": "Run",
+    "Python.tls_server_oops.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "tls",
+    "last_opened_file_path": "C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/basic_com/Game/src/code",
+    "run.code.analysis.last.selected.profile": "aDefault",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Game\src\code" />
@@ -91,7 +102,7 @@
       <recent name="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Secure Game\Certificates\Certificate_crts" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.security_server (2)">
+  <component name="RunManager" selected="Python.main (1)">
     <configuration name="DatabaseCreator" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="basic_com" />
       <option name="ENV_FILES" value="" />

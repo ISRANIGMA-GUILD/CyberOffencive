@@ -37,6 +37,8 @@ class Game:
         game_state = "start_menu"
         i = 0
         p = 0
+        p_image = None
+        temp_p = None
         while True:
             for event in pygame.event.get():
                 if pygame.QUIT == event.type:
@@ -88,14 +90,23 @@ class Game:
                             print(other_coordinates)
                             prev_loc_other = other_coordinates
 
-                            if i == 0:
-                                p = Player(prev_loc_other, self.level.visible_sprites, self.level.obstacles_sprites)
-                                pygame.display.flip()
-                                i += 1
+                           # if (abs(prev_loc_other[1] - self.prev_loc[1]) != 0 or
+                             #       (abs(prev_loc_other[0] - self.prev_loc[0]) != 0)):
+                            print('working silviu shtesel')
+                            if temp_p:
+                                self.level.visible_sprites.remove(temp_p)
+                                self.level.obstacles_sprites.remove(temp_p)
+                                temp_p.kill()
 
-                            if (abs(prev_loc_other[1] - self.prev_loc[1]) <= 30 and
-                                    (abs(prev_loc_other[0] - self.prev_loc[0]) <= 30)):
-                                p.update()
+                            p_image = pygame.image.load('../graphics/brawn_idle.png').convert_alpha()
+                            temp_p = Tile(prev_loc_other,
+                                          [self.level.visible_sprites, self.level.obstacles_sprites], PLAYER_OBJECT,
+                                          p_image)
+
+                            pygame.display.flip()
+                                #del temp_p
+                                #temp_p = None
+                                #p.update()
 
                 pygame.display.update()
                 self.clock.tick(FPS)
