@@ -340,7 +340,7 @@ class Client:
 
                 while True:
 
-                    if self.check_success(encryption_key, details, auth) == "Success":
+                    if "Success" in self.check_success(encryption_key, details, auth)[0:9]:
                         return encryption_key
 
                     elif self.check_success(encryption_key, details, auth) == "Failure":
@@ -660,7 +660,7 @@ class Client:
                     decrypt = self.decrypt_data(key, auth, success[0], success[1], success[2])
                     print(decrypt)
 
-                    if decrypt.decode() == "Success":
+                    if "Success" in decrypt.decode()[0:9]:
                         print("succes", decrypt)
                         return decrypt.decode()
 
