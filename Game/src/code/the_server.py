@@ -7,6 +7,7 @@ from DatabaseCreator import *
 import os
 import threading
 import hashlib
+import pickle
 
 SYN = 2
 ACK = 16
@@ -38,7 +39,7 @@ CREDENTIALS = {}
 NEW_CREDENTIALS = []
 SUCCESSES = {}
 MESSAGES = []
-LOCATIONS = []
+LOCATIONS = {}
 MAX_CLIENT = 5
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Cash', 'Status'],
               "NODUP": ['Username', 'Password'], "DUP": ['Cash', 'Status']}
@@ -59,27 +60,33 @@ class Server:
 
         """
         time.sleep(2)
-        # """":TODO: Add anti ddos functions and check for session injection vulnerabilities """#
-        # """":TODO: Try to speed the pre handshake """#
-        # """":TODO: Speed up server closure after all clients exit """#
-        # """":TODO: Check if users are banned """#
-        # """":TODO: Check if users cheat(in speed, cash etc.)"""#
-        # """":TODO: Allow for two players to see each other in the correct locations"""#
-        # """":TODO: Make sure client can see other clients (not just one more)"""#
-        # """":TODO: Create chat"""#
-        # """":TODO: Connect to docker"""#
-        # """":TODO: Return details after login"""#
-        # """":TODO: Block connections from banned users"""#
-        # """":TODO: Make sure client supports TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"""#
-        # """":TODO: Send coordinates only when they change and if new client connects:"""#
+        # """:TODO: Add anti ddos functions and check for session injection vulnerabilities """#
+        # """:TODO: Try to speed the pre handshake """#
+        # """:TODO: Speed up server closure after all clients exit """#
+        # """:TODO(almost finished): Check if users are banned """#
+        # """:TODO: Check if users cheat(in speed, cash etc.) """#
+        # """:TODO: Make sure client can see other clients (more than two clients) """#
+        # """:TODO: Create chat """#
+        # """:TODO: Connect to docker """#
+        # """:TODO(almost finished): Return details after login, and update details on exit """#
+        # """:TODO: Block connections from banned users """#
+        # """:TODO: Send coordinates only when they change and if new client connects """#
+        # """:TODO: Loading screen between menu and login screens """#
+        # """:TODO: Split register and login """#
 
-        c = self.__main_data_base.get_cursor()
-        c.execute("SELECT Username, Password FROM PlayerDetails")
+        main_cursor = self.__main_data_base.get_cursor()
+        main_cursor.execute("SELECT Username, Password FROM PlayerDetails")
 
-        results = c.fetchall()
-        list_of_existing = [important for important in results]
+        main_resource_cursor = self.__main_data_base.get_cursor()
+        main_cursor.execute("SELECT Cash, Status FROM PlayerDetails")
 
-        print(list_of_existing)
+        info = main_cursor.fetchall()
+        resource_info = main_resource_cursor.fetchall()
+
+        list_of_existing_credentials = [vital_info for vital_info in info]
+        list_of_existing_resources = [vital_resources for vital_resources in resource_info]
+
+        print(list_of_existing_credentials, "\n", list_of_existing_resources)
         self.security_first()
 
         print("The server will now wait for clients")
@@ -95,7 +102,7 @@ class Server:
         threads = self.accept_clients(accepted_clients, the_server_sockets, lock, threads)
         self.initiate_handshakes(threads, accepted_clients)
 
-        self.handle_clients(accepted_clients, lock, list_of_existing)
+        self.handle_clients(accepted_clients, lock, list_of_existing_credentials, list_of_existing_resources)
 
     def security_first(self):
         """
@@ -518,7 +525,8 @@ class Server:
 
         return (TLS in t_client_hello and TLSClientHello in t_client_hello and
                 t_client_hello[TLS][TLSClientHello].version == TLS_MID_VERSION
-                and t_client_hello[TLS].version == TLS_MID_VERSION)
+                and t_client_hello[TLS].version == TLS_MID_VERSION and
+                RECOMMENDED_CIPHER in t_client_hello[TLS][TLSClientHello].ciphers)
 
     def create_session_id(self):
         """
@@ -810,19 +818,21 @@ class Server:
         CREDENTIALS[str(number)] = (user, passw)
         print(CREDENTIALS)
 
-    def handle_clients(self, number_of_clients, lock, list_of_existing):
+    def handle_clients(self, number_of_clients, lock, list_of_existing, list_of_existing_resources):
         """
 
         :param list_of_existing:
         :param number_of_clients:
         :param lock:
+        :param list_of_existing_resources:
         """
 
         self.create_credential_list(number_of_clients)
 
         while True:
             try:
-                login_threads = self.create_credential_threads(number_of_clients, lock, list_of_existing)
+                login_threads = self.create_credential_threads(number_of_clients, lock,
+                                                               list_of_existing, list_of_existing_resources)
                 response_threads = self.create_responders(number_of_clients, lock)
 
                 self.start_handling(number_of_clients, response_threads, login_threads)
@@ -864,20 +874,23 @@ class Server:
         for index in range(0, number_of_clients):
             CREDENTIALS[str(index)] = None
             SUCCESSES[str(index)] = None
+            LOCATIONS[str(index)] = None
 
-    def create_credential_threads(self, number_of_clients, lock, list_of_existing):
+    def create_credential_threads(self, number_of_clients, lock, list_of_existing, list_of_existing_resources):
         """
 
         :param number_of_clients:
         :param lock:
         :param list_of_existing:
+        :param list_of_existing_resources:
         :return:
         """
 
         threads = []
 
         for number in range(0, number_of_clients):
-            the_thread = threading.Thread(target=self.receive_credentials, args=(lock, number, list_of_existing))
+            the_thread = threading.Thread(target=self.receive_credentials,
+                                          args=(lock, number, list_of_existing, list_of_existing_resources))
             threads.append(the_thread)
 
         return threads
@@ -923,12 +936,13 @@ class Server:
             elif login_threads[index].is_alive():
                 login_threads[index].join()
 
-    def receive_credentials(self, lock, number, list_of_existing):
+    def receive_credentials(self, lock, number, list_of_existing, list_of_existing_resources):
         """
 
         :param lock:
         :param number:
         :param list_of_existing:
+        :param list_of_existing_resources:
         :return:
         """
 
@@ -950,7 +964,7 @@ class Server:
 
                     else:
                         CREDENTIALS[str(number)] = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
-                        self.check_account(number, list_of_existing)
+                        self.check_account(number, list_of_existing, list_of_existing_resources)
                         lock.release()
                         return
 
@@ -1018,7 +1032,7 @@ class Server:
 
                     decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
                     if decrypted_data.decode()[0] == 'L':
-                        LOCATIONS.append(decrypted_data)
+                        LOCATIONS[str(index_of_client)] = decrypted_data
                         print("Client", index_of_client + 1, "is at", decrypted_data)
 
                     else:
@@ -1046,18 +1060,18 @@ class Server:
             except socket.timeout:
                 pass
 
+            print(LOCATIONS)
+
             for i in range(0, len(CLIENTS)):
                 if (i != index_of_client and LOCATIONS and CLIENTS[str(i)] is not None
                         and CREDENTIALS[str(i)] is not None):
                     try:
-                        en = self.encrypt_data(KEY[str(i)][0], LOCATIONS[0], KEY[str(i)][1])
+                        byte_data = pickle.dumps(LOCATIONS)
+                        en = self.encrypt_data(KEY[str(i)][0], byte_data, KEY[str(i)][1])
                         CLIENTS[str(i)].send(bytes(self.create_message(en)[TLS]))
 
                     except ConnectionResetError:
                         pass
-
-            if LOCATIONS:
-                LOCATIONS.pop(0)
 
         lock.release()
 
@@ -1083,11 +1097,12 @@ class Server:
         count_none = [client for client in range(0, len(CLIENTS)) if CLIENTS[str(client)] is None]
         return len(count_none) == len(CLIENTS)
 
-    def check_account(self, client_number, list_of_existing):
+    def check_account(self, client_number, list_of_existing, list_of_existing_resources):
         """
 
         :param client_number:
         :param list_of_existing:
+        :param list_of_existing_resources:
         """
 
         if not CREDENTIALS[str(client_number)]:
@@ -1111,9 +1126,10 @@ class Server:
                 print(self.username_exists(list_of_existing_users, tuple_of_credentials),
                       self.password_exists(list_of_existing, tuple_of_credentials))
 
-                if tuple_of_credentials in list_of_existing:
-                    print("Succcessful")
-                    success = "Success".encode()
+                if (tuple_of_credentials in list_of_existing and
+                        list_of_existing_resources[client_number][1] != "Banned"):
+                    print("Succcessful", list_of_existing_resources[client_number])
+                    success = f"Success {list_of_existing_resources[client_number]}".encode()
                     success_msg = self.encrypt_data(KEY[str(client_number)][0], success, KEY[str(client_number)][1])
 
                     success_pack = self.create_message(success_msg)
@@ -1153,8 +1169,6 @@ class Server:
 
                 CLIENTS[str(client_number)].send(bytes(success_pack[TLS]))
                 CREDENTIALS[str(client_number)] = None
-
-
 
     def username_exists(self, list_of_existing, tuple_of_credentials):
         """
