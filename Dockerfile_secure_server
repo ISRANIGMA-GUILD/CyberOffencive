@@ -1,0 +1,22 @@
+# Set the base image
+FROM mcr.microsoft.com/windows:ltsc2019
+
+# Loop through the port range
+EXPOSE 6969
+
+# Create the directory if it doesn't exist (optional)
+RUN mkdir C:\\app
+
+# Set the working directory
+WORKDIR C:\\app
+
+# Copy the current directory contents into the container at /app
+COPY . .
+
+# Download and install Python 3.11 from a community source (replace with a valid URL)
+#RUN powershell -ExecutionPolicy Bypass -Command Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://example.com/python-3.11-windows.msi') -NoProfile -InputFormat None
+
+#RUN pip install -r requirements.txt
+
+# Set the entrypoint command to run your Python script
+ENTRYPOINT [ "python", "Game/src/code/security_server.py" ]
