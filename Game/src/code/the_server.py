@@ -1,3 +1,5 @@
+import time
+
 from scapy.all import *
 from scapy.layers.l2 import *
 from cryptography.hazmat.primitives.serialization import *
@@ -32,6 +34,7 @@ SECP = 0x0017
 SIGNATURE_ALGORITHIM = 0x0401
 SOCKET_TIMEOUT = 0.5
 THE_LIST = {}
+AUTHORITY_DATA = {}
 KEY = {}
 SOCKETS = {}
 CLIENTS = {}
@@ -41,6 +44,7 @@ SUCCESSES = {}
 MESSAGES = []
 LOCATIONS = {}
 MAX_CLIENT = 5
+MSG_TCP_PACK = 56
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Cash', 'Status'],
               "NODUP": ['Username', 'Password'], "DUP": ['Cash', 'Status']}
 
@@ -60,36 +64,35 @@ class Server:
 
         """
         time.sleep(2)
+        # """:TODO: Fix the newly made faster handshake """#
         # """:TODO: Add anti ddos functions and check for session injection vulnerabilities """#
         # """:TODO: Try to speed the pre handshake """#
-        # """:TODO: Speed up server closure after all clients exit """#
         # """:TODO(almost finished): Check if users are banned """#
         # """:TODO: Check if users cheat(in speed, cash etc.) """#
-        # """:TODO: Make sure client can see other clients (more than two clients) """#
         # """:TODO: Create chat """#
-        # """:TODO: Connect to docker """#
-        # """:TODO(almost finished): Return details after login, and update details on exit """#
+        # """:TODO(almost finished): Connect to docker """#
+        # """:TODO(almost finished): Return details after login """#
         # """:TODO: Block connections from banned users """#
         # """:TODO: Send coordinates only when they change and if new client connects """#
         # """:TODO: Loading screen between menu and login screens """#
         # """:TODO: Split register and login """#
+        # """:TODO: Limit conditions for kick due to manipulated handshakes """#
 
         main_cursor = self.__main_data_base.get_cursor()
         main_cursor.execute("SELECT Username, Password FROM PlayerDetails")
 
-        main_resource_cursor = self.__main_data_base.get_cursor()
-        main_cursor.execute("SELECT Cash, Status FROM PlayerDetails")
-
         info = main_cursor.fetchall()
+        main_resource_cursor = self.__main_data_base.get_cursor()
+
+        main_resource_cursor.execute("SELECT Cash, Status FROM PlayerDetails")
         resource_info = main_resource_cursor.fetchall()
 
         list_of_existing_credentials = [vital_info for vital_info in info]
         list_of_existing_resources = [vital_resources for vital_resources in resource_info]
 
-        print(list_of_existing_credentials, "\n", list_of_existing_resources)
         self.security_first()
-
         print("The server will now wait for clients")
+
         accepted_clients, port_list = self.receive_client_connection_request()
         self.create_server_sockets(port_list)
 
@@ -99,8 +102,7 @@ class Server:
         lock = threading.Lock()
         print("Server is up and running")
 
-        threads = self.accept_clients(accepted_clients, the_server_sockets, lock, threads)
-        self.initiate_handshakes(threads, accepted_clients)
+        self.accept_clients(accepted_clients, the_server_sockets)
 
         self.handle_clients(accepted_clients, lock, list_of_existing_credentials, list_of_existing_resources)
 
@@ -338,45 +340,25 @@ class Server:
             the_server_socket.bind((THE_USUAL_IP, server_port[port_number]))  # Bind the server IP and Port into a tuple
             SOCKETS[str(port_number)] = the_server_socket
 
-    def accept_clients(self, number_of_clients, the_server_socket, lock, threads):
+    def accept_clients(self, number_of_clients, the_server_socket):
         """
 
         :param number_of_clients:
         :param the_server_socket:
-        :param lock:
-        :param threads:
         :return:
         """
 
         for number in range(0, number_of_clients):
             the_server_socket[str(number)].listen()  # Listen to client
             time.sleep(2)
+
             connection, client_address = the_server_socket[str(number)].accept()  # Accept clients request
-
             print(f"Client connected {connection.getpeername()}")
-            client_socket = connection
 
-            the_thread = threading.Thread(target=self.create_handshakes, args=(lock, client_socket, number,))
-            threads.append(the_thread)
+            client_socket = connection
             CLIENTS[str(number)] = client_socket
 
-        return threads
-
-    def initiate_handshakes(self, threads, number_of_clients):
-        """
-
-        :param threads:
-        :param number_of_clients:
-        """
-
-        for number in range(0, number_of_clients):
-            threads[number].start()
-            print(f"client {number + 1}")
-
-        for number in range(0, number_of_clients):
-            threads[number].join()
-
-    def create_handshakes(self, lock, client_socket, number):
+    def tcp_handshake(self, lock, client_socket, number):
         """
 
         :param lock:
@@ -388,17 +370,48 @@ class Server:
         lock.acquire()
 
         while True:
-            acked, auth = self.first_handshake(client_socket, number)
+            first_handshake_data = self.first_handshake(client_socket, number)
 
-            if auth is None:
-                pass
+            if not first_handshake_data:
+                lock.release()
+                return
 
             else:
-                enc_key = self.secure_handshake(client_socket, auth, number)
+                acked, auth = first_handshake_data[0], first_handshake_data[1]
+                AUTHORITY_DATA[str(number)] = auth
                 break
 
-        CLIENTS[str(number)] = client_socket
-        KEY[str(number)] = (enc_key, auth)
+        lock.release()
+
+    def tls_handshake(self, lock, client_socket, number):
+        """
+
+        :param client_socket:
+        :param number:
+        :param lock:
+        :return:
+        """
+        lock.acquire()
+
+        while True:
+
+            s = time.time()
+
+            print("success")
+            enc_key = self.secure_handshake(client_socket, AUTHORITY_DATA[str(number)], number)
+
+            if not enc_key:
+                lock.release()
+                return
+
+            else:
+
+                CLIENTS[str(number)] = client_socket
+                KEY[str(number)] = (enc_key, AUTHORITY_DATA[str(number)])
+
+                e = time.time()
+                print("Time for handshake", abs(s-e))
+                break
 
         lock.release()
 
@@ -410,38 +423,43 @@ class Server:
         :return: The ack packet and the server port used the client will use
         """
 
-        while True:
-            first_packet = the_client_socket.recv(MAX_MSG_LENGTH)
-            first_data = the_client_socket.recv(MAX_MSG_LENGTH)
+        the_client_socket.settimeout(0.5)
 
-            if not first_packet and not first_data:
-                print("retrying")
-                pass
+        try:
+            first_packet = the_client_socket.recv(MSG_TCP_PACK)
+
+            if not first_packet:
+                return
 
             else:
-                break
+                the_client_socket.settimeout(None)
+                syn_packet = TCP(first_packet)
+                clients_letter = syn_packet[Raw].load[0:2]
 
-        syn_packet = TCP(first_packet)
-        syn_data = Raw(first_data)
+                response = self.create_response(syn_packet, number)
+                the_client_socket.send(bytes(response[TCP]))
 
-        syn_packet = syn_packet / syn_data
-        clients_letter = syn_packet[Raw].load[0:2]
+                the_client_socket.settimeout(0.5)
+                last_pack = the_client_socket.recv(140)
 
-        response = self.create_response(syn_packet, number)
-        the_client_socket.send(bytes(response[TCP]))
+                ack_packet = TCP(last_pack)
 
-        time.sleep(2)
-        the_client_socket.send(bytes(response[Raw]))
+                clients_dot = ack_packet[Raw].load[0:4]
+                auth = clients_letter + clients_dot
 
-        last_pack = the_client_socket.recv(MAX_MSG_LENGTH)
-        last_pack_data = the_client_socket.recv(MAX_MSG_LENGTH)
+                return ack_packet, auth
 
-        ack_packet = TCP(last_pack) / Raw(last_pack_data)
+        except TypeError:
+            print("Send alert")
+            return
 
-        clients_dot = ack_packet[Raw].load[0:4]
-        auth = clients_letter + clients_dot
+        except ConnectionResetError:
+            print("Eliminate socket")
+            return
 
-        return ack_packet, auth
+        except socket.timeout:
+            print("out of time")
+            return
 
     def create_response(self, syn_packet, number):
         """
@@ -477,13 +495,43 @@ class Server:
         :param auth: The associate data
         """
 
-        client_hello = client_socket.recv(MAX_MSG_LENGTH)
-        t_client_hello = TLS(client_hello)
+        client_socket.settimeout(0.5)
 
-        keys, private_key = self.server_authentication(t_client_hello, number, client_socket)
-        encryption_key = self.exchange_server_key(keys, private_key, client_socket, auth)
+        try:
+            client_hello = client_socket.recv(MAX_MSG_LENGTH)
+            if not client_hello:
+                return
 
-        return encryption_key
+            else:
+                client_socket.settimeout(None)
+                t_client_hello = TLS(client_hello)
+              #  t_client_hello.show()
+                private_keys = self.server_authentication(t_client_hello, number, client_socket)
+
+                if not private_keys:
+                    return
+
+                else:
+                    keys, private_key = private_keys[0], private_keys[1]
+                    encryption_key = self.exchange_server_key(keys, private_key, client_socket, auth)
+
+                    if not encryption_key:
+                        return
+
+                    else:
+                        return encryption_key
+
+        except TypeError:
+            print("Send alert")
+            return
+
+        except ConnectionResetError:
+            print("Eliminate socket")
+            return
+
+        except socket.timeout:
+            print("out of time")
+            return
 
     def server_authentication(self, t_client_hello, number, client_socket):
         """
@@ -498,18 +546,38 @@ class Server:
             s_sid = self.create_session_id()
             sec_res = self.new_secure_session(s_sid)
 
-            certificate, key, server_key_ex, private_key = self.certificate_and_key(number)
-            client_socket.send(bytes(sec_res[TLS]))  # Server hello
+            certificate, key, private_key = self.certificate_and_key(number)
+            print("lengths", len(bytes(sec_res[TLS])), len(bytes(certificate[TLS])))
 
-            client_socket.send(bytes(certificate[TLS]))  # Certificate
-            time.sleep(2)
+            hello_man = sec_res[TLS] / certificate[TLS]
+            hello_man = self.prepare_packet_structure(hello_man)
 
-            client_socket.send(bytes(server_key_ex[TLS]))  # Server key exchange
-            client_key_exchange = client_socket.recv(MAX_MSG_LENGTH)
+            client_socket.send(bytes(hello_man[TLS]))  # Server hello
+            client_socket.settimeout(1)
+            try:
+                client_key_exchange = client_socket.recv(MAX_MSG_LENGTH)
 
-            keys = TLS(client_key_exchange)
+                if not client_key_exchange:
+                    print("resend key exchange")
+                    return
 
-            return keys, private_key
+                else:
+                    keys = TLS(client_key_exchange)
+                    keys.show()
+
+                    return keys, private_key
+
+            except TypeError:
+                print("Send alert")
+                return
+
+            except ConnectionResetError:
+                print("Eliminate socket")
+                return
+
+            except socket.timeout:
+                print("out of time")
+                return
 
         else:
             print("Client has not used tls properly")
@@ -573,16 +641,14 @@ class Server:
         ec_params = ServerECDHNamedCurveParams(named_curve=SECP, point=enc_master_c)
 
         d_sign = scapy.layers.tls.keyexchange._TLSSignature(sig_alg=SIGNATURE_ALGORITHIM, sig_val=sig)
-        cert_tls = (TLS(msg=TLSCertificate(certs=all_certs)))
-
-        server_key_ex = (TLS(msg=TLSServerKeyExchange(params=ec_params, sig=d_sign)) /
-                         TLS(msg=TLSServerHelloDone()))
-        ske_msg = server_key_ex
+        cert_tls = (TLS(msg=TLSCertificate(certs=all_certs)) /
+                    TLS(msg=TLSServerKeyExchange(params=ec_params, sig=d_sign)) /
+                    TLS(msg=TLSServerHelloDone()))
 
         cert_msg = self.prepare_packet_structure(cert_tls)
         cert_msg.show()
 
-        return cert_msg, key, ske_msg, private_key
+        return cert_msg, key, private_key
 
     def get_authenticators(self, number):
         """
@@ -653,17 +719,31 @@ class Server:
 
             data_msg = self.create_message(some_data)  # Application data
 
-            client_socket.send(bytes(data_msg[TLS]))
-            data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
+            while True:
+                client_socket.send(bytes(data_msg[TLS]))
 
-            if self.invalid_data(data_iv, data_c_t, data_tag):
-                return
+                try:
+                    client_socket.settimeout(0.1)
+                    data = self.deconstruct_data(client_socket)
 
-            else:
-                print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
-                return enc_key
+                    if not data:
+                        pass
 
-        else:
+                    else:
+
+                        data_iv, data_c_t, data_tag = data[0], data[1], data[2]
+
+                        if self.invalid_data(data_iv, data_c_t, data_tag):
+                            return
+
+                        else:
+                            print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
+                            return enc_key
+
+                except socket.timeout:
+                    pass
+
+        else:  # This may be removed, as it is not common practice
             print("Error in key exchange")
             self.send_alert(client_socket)
             return
@@ -675,7 +755,7 @@ class Server:
         :return:
         """
 
-        return TLS in keys and TLSClientKeyExchange in keys and keys[TLS].version == TLS_MID_VERSION
+        return TLS in keys and TLSClientKeyExchange in keys[TLS] and keys[TLS].version == TLS_MID_VERSION
 
     def create_encryption_key(self, private_key, client_point):
         """
@@ -756,6 +836,7 @@ class Server:
         """
 
         data_pack = the_client_socket.recv(MAX_MSG_LENGTH)
+
         try:
             if not data_pack:
                 return
@@ -772,6 +853,10 @@ class Server:
 
                 data_tag = data[len(data) - 16:len(data)]
                 data_c_t = data[12:len(data) - 16]
+
+        except socket.timeout:
+            print("out of time")
+            return
 
         except IndexError:
             return
@@ -831,11 +916,16 @@ class Server:
 
         while True:
             try:
+
+                tcp_handshakes = self.create_tcp_handshake_threads(number_of_clients, lock)
+
+                tls_handshakes = self.create_tls_handshake_threads(number_of_clients, lock)
+
                 login_threads = self.create_credential_threads(number_of_clients, lock,
                                                                list_of_existing, list_of_existing_resources)
                 response_threads = self.create_responders(number_of_clients, lock)
 
-                self.start_handling(number_of_clients, response_threads, login_threads)
+                self.start_handling(number_of_clients, response_threads, login_threads, tcp_handshakes, tls_handshakes)
 
                 if self.empty_server():
                     self.update_database()
@@ -874,7 +964,43 @@ class Server:
         for index in range(0, number_of_clients):
             CREDENTIALS[str(index)] = None
             SUCCESSES[str(index)] = None
+
             LOCATIONS[str(index)] = None
+            KEY[str(index)] = None
+
+            AUTHORITY_DATA[str(index)] = None
+
+    def create_tcp_handshake_threads(self, number_of_clients, lock):
+        """
+
+        :param number_of_clients:
+        :param lock:
+        :return:
+        """
+
+        threads = []
+
+        for number in range(0, number_of_clients):
+            the_thread = threading.Thread(target=self.tcp_handshake, args=(lock, CLIENTS[str(number)], number))
+            threads.append(the_thread)
+
+        return threads
+
+    def create_tls_handshake_threads(self, number_of_clients, lock):
+        """
+
+        :param number_of_clients:
+        :param lock:
+        :return:
+        """
+
+        threads = []
+
+        for number in range(0, number_of_clients):
+            the_thread = threading.Thread(target=self.tls_handshake, args=(lock, CLIENTS[str(number)], number))
+            threads.append(the_thread)
+
+        return threads
 
     def create_credential_threads(self, number_of_clients, lock, list_of_existing, list_of_existing_resources):
         """
@@ -911,16 +1037,24 @@ class Server:
 
         return threads
 
-    def start_handling(self, number_of_clients, response_threads, login_threads):
+    def start_handling(self, number_of_clients, response_threads, login_threads, tcp_handshakes, tls_handshakes):
         """
 
         :param number_of_clients:
         :param response_threads:
         :param login_threads:
+        :param tcp_handshakes:
+        :param tls_handshakes:
         """
 
         for index in range(0, number_of_clients):
-            if CREDENTIALS[str(index)] is not None and CLIENTS[str(index)] is not None:
+            if AUTHORITY_DATA[str(index)] is None:
+                tcp_handshakes[index].start()
+
+            elif KEY[str(index)] is None and AUTHORITY_DATA[str(index)] is not None:
+                tls_handshakes[index].start()
+
+            elif CREDENTIALS[str(index)] is not None and CLIENTS[str(index)] is not None:
                 response_threads[index].start()
 
             #               #  if MESSAGES:
@@ -930,11 +1064,31 @@ class Server:
                 login_threads[index].start()
 
         for index in range(0, number_of_clients):
-            if response_threads[index].is_alive():
+            if tcp_handshakes[index].is_alive():
+                tcp_handshakes[index].join()
+
+            elif tls_handshakes[index].is_alive():
+                tls_handshakes[index].join()
+
+            elif response_threads[index].is_alive():
                 response_threads[index].join()
 
             elif login_threads[index].is_alive():
                 login_threads[index].join()
+
+        for i in range(0, len(CLIENTS)):
+            if LOCATIONS is not None and CLIENTS[str(i)] is not None and CREDENTIALS[str(i)] is not None \
+               and KEY[str(i)] is not None:
+                try:
+                    local_locations = LOCATIONS.copy()
+                    local_locations.pop(str(i))
+
+                    byte_data = pickle.dumps(local_locations)
+                    en = self.encrypt_data(KEY[str(i)][0], byte_data, KEY[str(i)][1])
+                    CLIENTS[str(i)].send(bytes(self.create_message(en)[TLS]))
+
+                except ConnectionResetError:
+                    pass
 
     def receive_credentials(self, lock, number, list_of_existing, list_of_existing_resources):
         """
@@ -956,17 +1110,24 @@ class Server:
             try:
                 client_socket.settimeout(SOCKET_TIMEOUT)
                 while True:
-                    data_iv, data_c_t, data_tag = self.deconstruct_data(client_socket)
+                    data = self.deconstruct_data(client_socket)
 
-                    if self.invalid_data(data_iv, data_c_t, data_tag):
-                        lock.release()
-                        return
+                    if not data:
+                        pass
 
                     else:
-                        CREDENTIALS[str(number)] = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
-                        self.check_account(number, list_of_existing, list_of_existing_resources)
-                        lock.release()
-                        return
+
+                        data_iv, data_c_t, data_tag = data[0], data[1], data[2]
+
+                        if self.invalid_data(data_iv, data_c_t, data_tag):
+                            lock.release()
+                            return
+
+                        else:
+                            CREDENTIALS[str(number)] = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
+                            self.check_account(number, list_of_existing, list_of_existing_resources)
+                            lock.release()
+                            return
 
             except TypeError:
                 print("Problematic")
@@ -1031,9 +1192,9 @@ class Server:
                         return
 
                     decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
+
                     if decrypted_data.decode()[0] == 'L':
                         LOCATIONS[str(index_of_client)] = decrypted_data
-                        print("Client", index_of_client + 1, "is at", decrypted_data)
 
                     else:
                         print("Client", index_of_client + 1, "says", decrypted_data)
@@ -1059,19 +1220,6 @@ class Server:
 
             except socket.timeout:
                 pass
-
-            print(LOCATIONS)
-
-            for i in range(0, len(CLIENTS)):
-                if (i != index_of_client and LOCATIONS and CLIENTS[str(i)] is not None
-                        and CREDENTIALS[str(i)] is not None):
-                    try:
-                        byte_data = pickle.dumps(LOCATIONS)
-                        en = self.encrypt_data(KEY[str(i)][0], byte_data, KEY[str(i)][1])
-                        CLIENTS[str(i)].send(bytes(self.create_message(en)[TLS]))
-
-                    except ConnectionResetError:
-                        pass
 
         lock.release()
 
@@ -1122,18 +1270,29 @@ class Server:
             if count <= 1:
 
                 list_of_existing_users = [tup[0] for tup in list_of_existing]
-                print(list_of_existing_users)
+                print("USERS", list_of_existing_users, "\n", list_of_existing)
                 print(self.username_exists(list_of_existing_users, tuple_of_credentials),
                       self.password_exists(list_of_existing, tuple_of_credentials))
 
-                if (tuple_of_credentials in list_of_existing and
-                        list_of_existing_resources[client_number][1] != "Banned"):
-                    print("Succcessful", list_of_existing_resources[client_number])
-                    success = f"Success {list_of_existing_resources[client_number]}".encode()
-                    success_msg = self.encrypt_data(KEY[str(client_number)][0], success, KEY[str(client_number)][1])
+                if tuple_of_credentials in list_of_existing:
 
-                    success_pack = self.create_message(success_msg)
-                    CLIENTS[str(client_number)].send(bytes(success_pack[TLS]))
+                    if list_of_existing_resources[client_number][1] != "Banned":
+                        print("Succcessful", list_of_existing_resources[client_number])
+                        success = f"Success {list_of_existing_resources[client_number]}".encode()
+                        success_msg = self.encrypt_data(KEY[str(client_number)][0], success, KEY[str(client_number)][1])
+
+                        success_pack = self.create_message(success_msg)
+                        CLIENTS[str(client_number)].send(bytes(success_pack[TLS]))
+
+                    else:
+                        print("ENTRY DENIED")
+                        success = "Failure".encode()
+
+                        success_msg = self.encrypt_data(KEY[str(client_number)][0], success, KEY[str(client_number)][1])
+                        success_pack = self.create_message(success_msg)
+
+                        CLIENTS[str(client_number)].send(bytes(success_pack[TLS]))
+                        CREDENTIALS[str(client_number)] = None
 
                 else:
 
@@ -1170,15 +1329,15 @@ class Server:
                 CLIENTS[str(client_number)].send(bytes(success_pack[TLS]))
                 CREDENTIALS[str(client_number)] = None
 
-    def username_exists(self, list_of_existing, tuple_of_credentials):
+    def username_exists(self, list_of_existing_users, tuple_of_credentials):
         """
 
-        :param list_of_existing:
+        :param list_of_existing_users:
         :param tuple_of_credentials:
         :return:
         """
 
-        return tuple_of_credentials[0] in list_of_existing
+        return tuple_of_credentials[0] in list_of_existing_users
 
     def password_exists(self, list_of_existing, tuple_of_credentials):
         """

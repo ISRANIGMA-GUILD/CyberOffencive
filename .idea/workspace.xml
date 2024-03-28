@@ -5,8 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/basic_com.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/Database/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/Database/database.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/Database/database.db" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/the_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_client.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/the_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_server.py" afterDir="false" />
@@ -223,9 +224,9 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.security_server (2)" />
         <item itemvalue="Python.main (1)" />
         <item itemvalue="Python.the_server (1)" />
-        <item itemvalue="Python.security_server (2)" />
         <item itemvalue="Python.the_client" />
         <item itemvalue="Python.DatabaseCreator" />
       </list>
