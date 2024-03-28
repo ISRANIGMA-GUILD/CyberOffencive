@@ -38,6 +38,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (200, 200, 200)
 IMAGE = 'LoginScreen\\login.png'
+MAX_TCP_LENGTH = 56
 
 
 class Client:
@@ -183,31 +184,53 @@ class Client:
         :param server_port:
         """
 
+        t = 0
+        t_s = 0
+        dat = 0
+
         while True:
             try:
-                time.sleep(2)
                 self.__the_client_socket.connect((server_ip, server_port))
-
-                KEY["encryption"] = self.connection_handshakes(server_port)
                 break
 
             except KeyboardInterrupt:
                 print("refused to play")
 
             except ConnectionRefusedError:
-                print("Waiting")
                 continue
 
-    def connection_handshakes(self, server_port):
-        """
+        while True:
+            try:
 
-        :param server_port:
-        """
+                if t == 0:
+                    first_handshake_data = self.the_pre_handshake(server_port)
 
-        finish_first_handshake, auth = self.the_pre_handshake(server_port)
-        key = self.secure_handshake(auth)
+                    if not first_handshake_data:
+                        pass
 
-        return key, auth
+                    elif t != 1:
+                        finish_first_handshake, auth = first_handshake_data[0], first_handshake_data[1]
+                        print("Success")
+                        t += 1
+                        dat = auth
+
+                if t == 1 and t_s == 0:
+                    auth = dat
+                    key = self.secure_handshake(auth)
+
+                    if not key:
+                        pass
+
+                    else:
+                        KEY["encryption"] = key, auth
+                        t_s += 1
+                        break
+
+            except KeyboardInterrupt:
+                print("refused to play")
+
+            except ConnectionRefusedError:
+                continue
 
     def the_pre_handshake(self, server_port):
         """
@@ -216,28 +239,23 @@ class Client:
         :return: The ack packet and the authentic client associate
         """
         syn_packet = self.create_syn(server_port)
-        time.sleep(2)
 
         while True:
-            self.__the_client_socket.settimeout(3)
             try:
-                time.sleep(2)
                 self.__the_client_socket.send(bytes(syn_packet[TCP]))
 
-                server_response = self.__the_client_socket.recv(MAX_MSG_LENGTH)
-                server_message = self.__the_client_socket.recv(MAX_MSG_LENGTH)
+                self.__the_client_socket.settimeout(0.1)
+                server_response = self.__the_client_socket.recv(MAX_TCP_LENGTH)
                 break
 
             except socket.timeout:
                 print('retry')
 
-        res = TCP(server_response) / Raw(server_message)
+        res = TCP(server_response)
         finish_first_handshake = self.create_acknowledge(res)
 
         self.__the_client_socket.send(bytes(finish_first_handshake[TCP]))
-        self.__the_client_socket.send(bytes(finish_first_handshake[Raw]))
 
-        time.sleep(2)
         letter = syn_packet[Raw].load[0:2]
 
         dot = finish_first_handshake[Raw].load[0:4]
@@ -289,78 +307,71 @@ class Client:
         """
 
         client_hello_packet = self.start_security()
-        self.__the_client_socket.send(bytes(client_hello_packet[TLS]))
 
-        server_hello = self.__the_client_socket.recv(MAX_MSG_LENGTH)
-        cert = self.__the_client_socket.recv(EXCEPTIONAL_CASE_LENGTH)
-        key = self.__the_client_socket.recv(MAX_MSG_LENGTH)
+        while True:
+            msg_cert = self.retrieve_certificates(client_hello_packet)
 
-        msg_s = TLS(server_hello)
-        msg_cert = TLS(cert)
-        msg_key = TLS(key)
+            if not msg_cert:
+                return
 
-        msg_cert.show()
+            else:
+                msg_cert.show()
+                break
 
-        if TLSServerHello in msg_s and TLSCertificate in msg_cert and TLSServerKeyExchange in msg_key:
+        if self.is_there_an_alert(msg_cert):
+            print("YOU ARE BANNED1")
+            return
 
-            server_point = msg_key[TLS][TLSServerKeyExchange][ServerECDHNamedCurveParams].point
+        elif TLSServerHello in msg_cert and TLSCertificate in msg_cert and TLSServerKeyExchange in msg_cert:
+
+            server_point = msg_cert[TLS][TLSServerKeyExchange][ServerECDHNamedCurveParams].point
 
             client_key, cert, private_key = self.create_client_key()
             encryption_key = self.full_encryption(server_point, private_key)
 
-            self.__the_client_socket.send(bytes(client_key[TLS]))
-            server_final = self.__the_client_socket.recv(MAX_MSG_LENGTH)
+            self.receive_final_server_data(client_key)
 
-            msg_s_f = TLS(server_final)
+            while True:
+                data = self.recieve_data()
 
-            if self.is_there_an_alert(msg_s_f):
-                print("YOU ARE BANNED")
-                return
-
-            else:
-                data_iv, data_c_t, data_tag = self.recieve_data()
-
-                print(self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag))
-                message = b'greetings!'
-
-                some_data = self.encrypt_data(encryption_key, message, auth)
-                data_msg = self.create_message(some_data)
-
-                if type(data_msg) is list:
-                    for i in range(0, len(data_msg)):
-                        message = data_msg[i]
-                        self.__the_client_socket.send(bytes(message[TLS]))
+                if not data:
+                    pass
 
                 else:
-                    self.__the_client_socket.send(bytes(data_msg[TLS]))
 
-                print(self.decrypt_data(encryption_key, auth, some_data[0], some_data[1], some_data[2]))
+                    data_iv, data_c_t, data_tag = data[0], data[1], data[2]
 
-                details = self.details_entry(encryption_key, auth)
-
-                while True:
-
-                    if "Success" in self.check_success(encryption_key, details, auth)[0:9]:
-                        return encryption_key
-
-                    elif self.check_success(encryption_key, details, auth) == "Failure":
-                        details = self.details_entry(encryption_key, auth)
-
-                    else:
-                        print("retry")
-                        pass
-
-        else:
-            alert_message = self.send_alert()
-            self.__the_client_socket.send(bytes(alert_message[TLS]))
-            i = 1
-            while True:  # THIS WILL BE REMOVED THIS IS AN EMERGENCY PAUSE
-                try:
-                    if i == 1:
-                        print("ALERT ALERT")
-                        i += 1
-                except KeyboardInterrupt:
+                    print(self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag))
                     break
+
+            message = b'greetings!'
+
+            some_data = self.encrypt_data(encryption_key, message, auth)
+            data_msg = self.create_message(some_data)
+
+            if type(data_msg) is list:
+                for i in range(0, len(data_msg)):
+                    message = data_msg[i]
+                    self.__the_client_socket.send(bytes(message[TLS]))
+
+            else:
+                self.__the_client_socket.send(bytes(data_msg[TLS]))
+
+            print(self.decrypt_data(encryption_key, auth, some_data[0], some_data[1], some_data[2]))
+
+            details = self.details_entry(encryption_key, auth)
+
+            while True:
+
+                if "Success" in self.check_success(encryption_key, details, auth)[0:9]:
+                    return encryption_key
+
+                elif self.check_success(encryption_key, details, auth) == "Failure":
+                    details = self.details_entry(encryption_key, auth)
+
+                else:
+                    print("retry")
+                    pass
 
         return 1
 
@@ -379,6 +390,31 @@ class Client:
         client_hello_packet = client_hello_packet.__class__(bytes(client_hello_packet))
 
         return client_hello_packet
+
+    def retrieve_certificates(self, client_hello_packet):
+        """
+
+        :param client_hello_packet:
+        :return:
+        """
+
+        while True:
+            try:
+                self.__the_client_socket.send(bytes(client_hello_packet[TLS]))
+                self.__the_client_socket.settimeout(0.1)
+
+                cert = self.__the_client_socket.recv(EXCEPTIONAL_CASE_LENGTH)
+                msg_cert = TLS(cert)
+
+                if TLSAlert in msg_cert:
+                    pass
+
+                else:
+                    return msg_cert
+
+            except socket.timeout:
+                print("out of time certificate")
+                return
 
     def create_client_key(self):
         """
@@ -431,6 +467,37 @@ class Client:
         derived_k_f = HKDF(algorithm=THE_SHA_256, length=32, salt=None, info=b'encryption key').derive(shared_secret)
 
         return derived_k_f
+
+    def receive_final_server_data(self, client_key):
+        """
+
+        :param client_key:
+        :return:
+        """
+
+        while True:
+            try:
+                self.__the_client_socket.send(bytes(client_key[TLS]))
+                print("Sent")
+
+                self.__the_client_socket.settimeout(0.1)
+                server_final = self.__the_client_socket.recv(MAX_MSG_LENGTH)
+
+                self.__the_client_socket.settimeout(None)
+                if not server_final:
+                    return
+
+                else:
+                    msg_s_f = TLS(server_final)
+                    if self.is_there_an_alert(msg_s_f):
+                        print("YOU ARE BANNED")
+
+                    else:
+                        break
+
+            except socket.timeout:
+                print("out of time final")
+                self.__the_client_socket.settimeout(None)
 
     def recieve_data(self):
         """
@@ -658,10 +725,9 @@ class Client:
 
                 else:
                     decrypt = self.decrypt_data(key, auth, success[0], success[1], success[2])
-                    print(decrypt)
 
                     if "Success" in decrypt.decode()[0:9]:
-                        print("succes", decrypt)
+                        print("success")
                         return decrypt.decode()
 
                     elif decrypt.decode() == "Failure":
@@ -701,9 +767,6 @@ class Client:
         for index in range(0, len(THE_BIG_LIST)):
             if THE_BIG_LIST.get(str(index)) in message:
                 return True
-
-        if len(message) > 50:
-            return True
 
         if message.isnumeric() and sys.maxsize <= int(message):
             return True
@@ -751,7 +814,7 @@ class Client:
                         self.__the_client_socket.close()
                         return
                 else:
-                    print("ILLEGAL")
+                    print("Illegal")
 
             except ConnectionResetError:
                 message = 'EXIT'.encode()
