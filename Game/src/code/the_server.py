@@ -4,6 +4,7 @@ from scapy.all import *
 from scapy.layers.l2 import *
 from cryptography.hazmat.primitives.serialization import *
 from client_handshake import *
+from server_handshake import *
 import socket
 from DatabaseCreator import *
 import os
@@ -358,31 +359,6 @@ class Server:
             client_socket = connection
             CLIENTS[str(number)] = client_socket
 
-    def tcp_handshake(self, lock, client_socket, number):
-        """
-
-        :param lock:
-        :param client_socket:
-        :param number:
-        :return:
-        """
-
-        lock.acquire()
-
-        while True:
-            first_handshake_data = self.first_handshake(client_socket, number)
-
-            if not first_handshake_data:
-                lock.release()
-                return
-
-            else:
-                acked, auth = first_handshake_data[0], first_handshake_data[1]
-                AUTHORITY_DATA[str(number)] = auth
-                break
-
-        lock.release()
-
     def tls_handshake(self, lock, client_socket, number):
         """
 
@@ -393,394 +369,10 @@ class Server:
         """
         lock.acquire()
 
-        while True:
-
-            s = time.time()
-
-            print("success")
-            enc_key = self.secure_handshake(client_socket, AUTHORITY_DATA[str(number)], number)
-
-            if not enc_key:
-                lock.release()
-                return
-
-            else:
-
-                CLIENTS[str(number)] = client_socket
-                KEY[str(number)] = (enc_key, AUTHORITY_DATA[str(number)])
-
-                e = time.time()
-                print("Time for handshake", abs(s-e))
-                break
+        handshake = ServerHandshake(client_socket)
+        enc_key = handshake.run()
 
         lock.release()
-
-    def first_handshake(self, the_client_socket, number):
-        """
-         The tcp handshake
-        :param the_client_socket: The client socket
-        :param number:
-        :return: The ack packet and the server port used the client will use
-        """
-
-        the_client_socket.settimeout(0.5)
-
-        try:
-            first_packet = the_client_socket.recv(MSG_TCP_PACK)
-
-            if not first_packet:
-                return
-
-            else:
-                the_client_socket.settimeout(None)
-                syn_packet = TCP(first_packet)
-                clients_letter = syn_packet[Raw].load[0:2]
-
-                response = self.create_response(syn_packet, number)
-                the_client_socket.send(bytes(response[TCP]))
-
-                the_client_socket.settimeout(0.5)
-                last_pack = the_client_socket.recv(140)
-
-                ack_packet = TCP(last_pack)
-
-                clients_dot = ack_packet[Raw].load[0:4]
-                auth = clients_letter + clients_dot
-
-                return ack_packet, auth
-
-        except TypeError:
-            print("Send alert")
-            return
-
-        except ConnectionResetError:
-            print("Eliminate socket")
-            return
-
-        except socket.timeout:
-            print("out of time")
-            return
-
-    def create_response(self, syn_packet, number):
-        """
-         Server response
-        :param syn_packet: The SYN packet
-        :param number:
-        :return: packet_auth
-        """
-
-        packet_auth = syn_packet.copy()
-        new_sport = packet_auth[TCP].dport
-        new_dport = packet_auth[TCP].sport
-
-        packet_auth[TCP].ack = packet_auth[TCP].seq + 1
-        packet_auth[TCP].flags = SYN + ACK
-
-        packet_auth[TCP].seq = RandShort()
-        packet_auth[TCP].sport = new_sport
-
-        packet_auth[TCP].dport = new_dport
-        packet_auth[TCP].options = MSS
-
-        packet_auth[Raw].load = f"hello{number}".encode()
-        packet_auth = self.prepare_packet_structure(packet_auth)
-
-        return packet_auth
-
-    def secure_handshake(self, client_socket, auth, number):
-        """
-         The TLS handshake
-        :param client_socket: The client socket
-        :param number:
-        :param auth: The associate data
-        """
-
-        client_socket.settimeout(0.5)
-
-        try:
-            client_hello = client_socket.recv(MAX_MSG_LENGTH)
-            if not client_hello:
-                return
-
-            else:
-                client_socket.settimeout(None)
-                t_client_hello = TLS(client_hello)
-              #  t_client_hello.show()
-                private_keys = self.server_authentication(t_client_hello, number, client_socket)
-
-                if not private_keys:
-                    return
-
-                else:
-                    keys, private_key = private_keys[0], private_keys[1]
-                    encryption_key = self.exchange_server_key(keys, private_key, client_socket, auth)
-
-                    if not encryption_key:
-                        return
-
-                    else:
-                        return encryption_key
-
-        except TypeError:
-            print("Send alert")
-            return
-
-        except ConnectionResetError:
-            print("Eliminate socket")
-            return
-
-        except socket.timeout:
-            print("out of time")
-            return
-
-    def server_authentication(self, t_client_hello, number, client_socket):
-        """
-
-        :param t_client_hello:
-        :param number:
-        :param client_socket:
-        :return:
-        """
-
-        if self.valid_tls(t_client_hello):
-            s_sid = self.create_session_id()
-            sec_res = self.new_secure_session(s_sid)
-
-            certificate, key, private_key = self.certificate_and_key(number)
-            print("lengths", len(bytes(sec_res[TLS])), len(bytes(certificate[TLS])))
-
-            hello_man = sec_res[TLS] / certificate[TLS]
-            hello_man = self.prepare_packet_structure(hello_man)
-
-            client_socket.send(bytes(hello_man[TLS]))  # Server hello
-            client_socket.settimeout(1)
-            try:
-                client_key_exchange = client_socket.recv(MAX_MSG_LENGTH)
-
-                if not client_key_exchange:
-                    print("resend key exchange")
-                    return
-
-                else:
-                    keys = TLS(client_key_exchange)
-                    keys.show()
-
-                    return keys, private_key
-
-            except TypeError:
-                print("Send alert")
-                return
-
-            except ConnectionResetError:
-                print("Eliminate socket")
-                return
-
-            except socket.timeout:
-                print("out of time")
-                return
-
-        else:
-            print("Client has not used tls properly")
-            self.send_alert(client_socket)
-            return
-
-    def valid_tls(self, t_client_hello):
-        """
-
-        :param t_client_hello:
-        :return:
-        """
-
-        return (TLS in t_client_hello and TLSClientHello in t_client_hello and
-                t_client_hello[TLS][TLSClientHello].version == TLS_MID_VERSION
-                and t_client_hello[TLS].version == TLS_MID_VERSION and
-                RECOMMENDED_CIPHER in t_client_hello[TLS][TLSClientHello].ciphers)
-
-    def create_session_id(self):
-        """
-         Create session id
-        :return: TLS session id
-        """
-
-        s_sid = hashlib.sha256()
-        s_sid.update(bytes(N))
-        s_sid = s_sid.hexdigest()
-
-        return s_sid
-
-    def new_secure_session(self, s_sid):
-        """
-         Create the server hello packet
-        :param s_sid: TLS Session ID
-        :return: TLS server hello packet
-        """
-
-        security_layer = (TLS(msg=TLSServerHello(sid=s_sid, cipher=RECOMMENDED_CIPHER,
-                                                 ext=(TLS_Ext_SupportedVersion_SH(version=[TLS_MID_VERSION]) /
-                                                      TLS_Ext_SignatureAlgorithmsCert(sig_algs=[SIGNATURE_ALGORITHIM]) /
-                                                      TLS_Ext_ExtendedMasterSecret() / TLS_Ext_SupportedPointFormat() /
-                                                      TLS_Ext_RenegotiationInfo()))))
-
-        security_packet = self.prepare_packet_structure(security_layer)
-
-        return security_packet
-
-    def certificate_and_key(self, number):
-        """
-         Create TLS certificate packet and server key exchange packet
-        :return: The TLS certificate and server key exchange packet
-        """
-
-        original_cert, key, enc_master_c, private_key = self.get_authenticators(number)
-        server_cert = Cert(original_cert[1])
-
-        all_certs = [Cert(original_cert[0]), server_cert, Cert(original_cert[2]), Cert(original_cert[3])]
-        server_cert.show()
-
-        sig = key.sign(enc_master_c, GOOD_PAD, THE_SHA_256)  # RSA SIGNATURE on the shared secret
-        ec_params = ServerECDHNamedCurveParams(named_curve=SECP, point=enc_master_c)
-
-        d_sign = scapy.layers.tls.keyexchange._TLSSignature(sig_alg=SIGNATURE_ALGORITHIM, sig_val=sig)
-        cert_tls = (TLS(msg=TLSCertificate(certs=all_certs)) /
-                    TLS(msg=TLSServerKeyExchange(params=ec_params, sig=d_sign)) /
-                    TLS(msg=TLSServerHelloDone()))
-
-        cert_msg = self.prepare_packet_structure(cert_tls)
-        cert_msg.show()
-
-        return cert_msg, key, private_key
-
-    def get_authenticators(self, number):
-        """
-         Get the certificates and server key
-        :return: Certificates, private key, point and private key
-        """
-
-        certs, my_key_pem, key = self.retrieve_cert(number)
-        private_key, ec_point = self.generate_public_point()
-
-        return certs, key, ec_point, private_key
-
-    def retrieve_cert(self, number):
-        """
-         Create the server certificate
-        :return: The public key, the certificate and private key
-        """
-
-        certs = []
-
-        for index in range(number, (number + 1) * 4):
-            with open(f'Certificates\\certificate{index}.pem', 'rb') as certificate_first:
-                my_cert_pem = certificate_first.read()
-                certs.append(my_cert_pem)
-
-        with open(f'Keys\\the_key{number}.pem', 'rb') as key_first:
-            my_key_pem = key_first.read()
-            key = load_pem_private_key(my_key_pem, b'gfdgdfgdhffdgfdgfdgdf', backend=default_backend())
-
-        return certs, my_key_pem, key
-
-    def generate_public_point(self):
-        """
-         Generate the ECDH private key and public key
-        :return: The ECDH private key and public key point
-        """
-
-        private_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
-        public_key = private_key.public_key()
-
-        # Server public key point
-        public_key_point = public_key.public_bytes(
-            encoding=serialization.Encoding.X962,
-            format=serialization.PublicFormat.UncompressedPoint
-        )
-
-        return private_key, public_key_point
-
-    def exchange_server_key(self, keys, private_key, client_socket, auth):
-        """
-
-        :param keys:
-        :param private_key:
-        :param client_socket:
-        :param auth:
-        :return:
-        """
-
-        if self.valid_key_exchange(keys):
-            client_point = keys[TLSClientKeyExchange][Raw].load
-            enc_key = self.create_encryption_key(private_key, client_point)
-
-            server_final = self.create_server_final()  # Change Cipher spec
-            client_socket.send(bytes(server_final[TLS]))
-
-            message = b'hello'
-            some_data = self.encrypt_data(enc_key, message, auth)
-
-            data_msg = self.create_message(some_data)  # Application data
-
-            while True:
-                client_socket.send(bytes(data_msg[TLS]))
-
-                try:
-                    client_socket.settimeout(0.1)
-                    data = self.deconstruct_data(client_socket)
-
-                    if not data:
-                        pass
-
-                    else:
-
-                        data_iv, data_c_t, data_tag = data[0], data[1], data[2]
-
-                        if self.invalid_data(data_iv, data_c_t, data_tag):
-                            return
-
-                        else:
-                            print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
-                            return enc_key
-
-                except socket.timeout:
-                    pass
-
-        else:  # This may be removed, as it is not common practice
-            print("Error in key exchange")
-            self.send_alert(client_socket)
-            return
-
-    def valid_key_exchange(self, keys):
-        """
-
-        :param keys:
-        :return:
-        """
-
-        return TLS in keys and TLSClientKeyExchange in keys[TLS] and keys[TLS].version == TLS_MID_VERSION
-
-    def create_encryption_key(self, private_key, client_point):
-        """
-         Create the server encryption key
-        :param client_point: The client point
-        :param private_key: The servers private key
-        :return: The server encryption key
-        """
-
-        client_key = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), client_point[1:])
-        shared_secret = private_key.exchange(ec.ECDH(), client_key)
-        derived_k_f = HKDF(algorithm=THE_SHA_256, length=32, salt=None, info=b'encryption key').derive(shared_secret)
-
-        return derived_k_f
-
-    def create_server_final(self):
-        """
-         Create the finish message
-        :return: The finish message
-        """
-
-        server_key = (TLS(msg=TLSChangeCipherSpec()) / TLS(msg=TLSFinished()))
-        server_ex = self.prepare_packet_structure(server_key)
-
-        return server_ex
 
     def encrypt_data(self, key, plaintext, associated_data):
         """
@@ -917,15 +509,13 @@ class Server:
         while True:
             try:
 
-                tcp_handshakes = self.create_tcp_handshake_threads(number_of_clients, lock)
-
                 tls_handshakes = self.create_tls_handshake_threads(number_of_clients, lock)
 
                 login_threads = self.create_credential_threads(number_of_clients, lock,
                                                                list_of_existing, list_of_existing_resources)
                 response_threads = self.create_responders(number_of_clients, lock)
 
-                self.start_handling(number_of_clients, response_threads, login_threads, tcp_handshakes, tls_handshakes)
+                self.start_handling(number_of_clients, response_threads, login_threads, tls_handshakes)
 
                 if self.empty_server():
                     self.update_database()
@@ -1037,21 +627,17 @@ class Server:
 
         return threads
 
-    def start_handling(self, number_of_clients, response_threads, login_threads, tcp_handshakes, tls_handshakes):
+    def start_handling(self, number_of_clients, response_threads, login_threads, tls_handshakes):
         """
 
         :param number_of_clients:
         :param response_threads:
         :param login_threads:
-        :param tcp_handshakes:
         :param tls_handshakes:
         """
 
         for index in range(0, number_of_clients):
-            if AUTHORITY_DATA[str(index)] is None:
-                tcp_handshakes[index].start()
-
-            elif KEY[str(index)] is None and AUTHORITY_DATA[str(index)] is not None:
+            if KEY[str(index)] is None:
                 tls_handshakes[index].start()
 
             elif CREDENTIALS[str(index)] is not None and CLIENTS[str(index)] is not None:
@@ -1064,10 +650,7 @@ class Server:
                 login_threads[index].start()
 
         for index in range(0, number_of_clients):
-            if tcp_handshakes[index].is_alive():
-                tcp_handshakes[index].join()
-
-            elif tls_handshakes[index].is_alive():
+            if tls_handshakes[index].is_alive():
                 tls_handshakes[index].join()
 
             elif response_threads[index].is_alive():
