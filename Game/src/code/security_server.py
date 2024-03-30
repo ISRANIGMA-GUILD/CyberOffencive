@@ -99,15 +99,18 @@ class Security:
         :param service_socket:
         :return:
         """
-
+        service_socket.settimeout(0.1)
         while True:
+            try:
+                self.find_ddos_attempt()
 
-            self.find_ddos_attempt()
+                data = service_socket.recv(MAX_MSG_LENGTH)
 
-            data = service_socket.recv(MAX_MSG_LENGTH)
+                if not data:
+                    return
 
-            if not data:
-                return
+            except socket.timeout:
+                pass
 
     def find_ddos_attempt(self):
         """

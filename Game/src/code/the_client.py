@@ -8,6 +8,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
+from client_handshake import *
 import time
 import socket
 import pygame
@@ -184,46 +185,19 @@ class Client:
         :param server_port:
         """
 
-        t = 0
-        t_s = 0
-        dat = 0
-
         while True:
             try:
-                self.__the_client_socket.connect((server_ip, server_port))
-                break
+                handshake = ClientHandshake(self.__the_client_socket, server_ip, server_port)
+                KEY['encryption'] = handshake.run()
 
-            except KeyboardInterrupt:
-                print("refused to play")
+                if 'encryption' not in KEY.keys():
+                    continue
 
-            except ConnectionRefusedError:
-                continue
-
-        while True:
-            try:
-
-                if t == 0:
-                    first_handshake_data = self.the_pre_handshake(server_port)
-
-                    if not first_handshake_data:
-                        pass
-
-                    elif t != 1:
-                        finish_first_handshake, auth = first_handshake_data[0], first_handshake_data[1]
-                        print("Success")
-                        t += 1
-                        dat = auth
-
-                if t == 1 and t_s == 0:
-                    auth = dat
-                    key = self.secure_handshake(auth)
-
-                    if not key:
-                        pass
+                else:
+                    if not KEY['encryption']:
+                        continue
 
                     else:
-                        KEY["encryption"] = key, auth
-                        t_s += 1
                         break
 
             except KeyboardInterrupt:
@@ -231,273 +205,6 @@ class Client:
 
             except ConnectionRefusedError:
                 continue
-
-    def the_pre_handshake(self, server_port):
-        """
-         Initiate the three-way handshake
-        :param server_port: The chosen server port
-        :return: The ack packet and the authentic client associate
-        """
-        syn_packet = self.create_syn(server_port)
-
-        while True:
-            try:
-                self.__the_client_socket.send(bytes(syn_packet[TCP]))
-
-                self.__the_client_socket.settimeout(0.1)
-                server_response = self.__the_client_socket.recv(MAX_TCP_LENGTH)
-                break
-
-            except socket.timeout:
-                print('retry')
-
-        res = TCP(server_response)
-        finish_first_handshake = self.create_acknowledge(res)
-
-        self.__the_client_socket.send(bytes(finish_first_handshake[TCP]))
-
-        letter = syn_packet[Raw].load[0:2]
-
-        dot = finish_first_handshake[Raw].load[0:4]
-        authentic = letter + dot
-
-        return finish_first_handshake, authentic
-
-    def create_syn(self, server_port):
-        """
-         Create the syn packet
-        :param server_port: The server port
-        :return: The SYN packet
-        """
-
-        syn_packet = TCP(flags=SYN, sport=RandShort(), dport=server_port, seq=RandShort()) / Raw(load=b"hi")
-
-        syn_packet = syn_packet.__class__(bytes(syn_packet))
-
-        return syn_packet
-
-    def create_acknowledge(self, res):
-        """
-         Create the ACK packet
-        :param res: The SYN + ACK packet
-        :return: The ACK packet
-        """
-
-        new_sport = res[TCP].dport
-        new_dport = res[TCP].sport
-
-        new_ack = res[TCP].seq + 1
-        new_seq = res[TCP].ack + 1
-
-        res[TCP].sport = new_sport
-        res[TCP].dport = new_dport
-        res[TCP].flags = ACK
-        res[TCP].seq = new_seq
-        res[TCP].ack = new_ack
-
-        res[Raw].load = b"thanks"
-        res = res.__class__(bytes(res))
-
-        return res
-
-    def secure_handshake(self, auth):
-        """
-         Start the secure handshake with the server
-        :param auth: The authentic data
-        """
-
-        client_hello_packet = self.start_security()
-
-        while True:
-            msg_cert = self.retrieve_certificates(client_hello_packet)
-
-            if not msg_cert:
-                return
-
-            else:
-                msg_cert.show()
-                break
-
-        if self.is_there_an_alert(msg_cert):
-            print("YOU ARE BANNED1")
-            return
-
-        elif TLSServerHello in msg_cert and TLSCertificate in msg_cert and TLSServerKeyExchange in msg_cert:
-
-            server_point = msg_cert[TLS][TLSServerKeyExchange][ServerECDHNamedCurveParams].point
-
-            client_key, cert, private_key = self.create_client_key()
-            encryption_key = self.full_encryption(server_point, private_key)
-
-            self.receive_final_server_data(client_key)
-
-            while True:
-                data = self.recieve_data()
-
-                if not data:
-                    pass
-
-                else:
-
-                    data_iv, data_c_t, data_tag = data[0], data[1], data[2]
-
-                    print(self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag))
-                    break
-
-            message = b'greetings!'
-
-            some_data = self.encrypt_data(encryption_key, message, auth)
-            data_msg = self.create_message(some_data)
-
-            if type(data_msg) is list:
-                for i in range(0, len(data_msg)):
-                    message = data_msg[i]
-                    self.__the_client_socket.send(bytes(message[TLS]))
-
-            else:
-                self.__the_client_socket.send(bytes(data_msg[TLS]))
-
-            print(self.decrypt_data(encryption_key, auth, some_data[0], some_data[1], some_data[2]))
-
-            details = self.details_entry(encryption_key, auth)
-
-            while True:
-
-                if "Success" in self.check_success(encryption_key, details, auth)[0:9]:
-                    return encryption_key
-
-                elif self.check_success(encryption_key, details, auth) == "Failure":
-                    details = self.details_entry(encryption_key, auth)
-
-                else:
-                    print("retry")
-                    pass
-
-        return 1
-
-    def start_security(self):
-        """
-         Create client hello packet
-        :return: Client hello packet
-        """
-
-        ch_packet = TLS(msg=TLSClientHello(ext=TLS_Ext_SupportedVersion_CH(versions=[TLS_N_VERSION, TLS_M_VERSION]) /
-                        TLS_Ext_SignatureAlgorithms(sig_algs=SIGNATURE_ALGORITHIM) / TLS_Ext_RenegotiationInfo() /
-                        TLS_Ext_ExtendedMasterSecret() / TLS_Ext_SupportedPointFormat() /
-                        TLS_Ext_SupportedGroups(groups=SECP)))
-
-        client_hello_packet = ch_packet
-        client_hello_packet = client_hello_packet.__class__(bytes(client_hello_packet))
-
-        return client_hello_packet
-
-    def retrieve_certificates(self, client_hello_packet):
-        """
-
-        :param client_hello_packet:
-        :return:
-        """
-
-        while True:
-            try:
-                self.__the_client_socket.send(bytes(client_hello_packet[TLS]))
-                self.__the_client_socket.settimeout(0.1)
-
-                cert = self.__the_client_socket.recv(EXCEPTIONAL_CASE_LENGTH)
-                msg_cert = TLS(cert)
-
-                if TLSAlert in msg_cert:
-                    pass
-
-                else:
-                    return msg_cert
-
-            except socket.timeout:
-                print("out of time certificate")
-                return
-
-    def create_client_key(self):
-        """
-         Create client key exchange packet
-        :return: TLS client key exchange packet
-        """
-
-        with open("Certificates\\certificate1.pem", "rb") as cert_file:
-            server_cert = x509.load_pem_x509_certificate(cert_file.read(), default_backend())
-
-        private_key, public_key_point = self.generate_the_point()
-
-        client_parameters = ClientECDiffieHellmanPublic(ecdh_Yc=public_key_point)
-        key_exc = (TLS(msg=TLSClientKeyExchange(exchkeys=client_parameters)) /
-                   TLS(msg=TLSChangeCipherSpec()) /
-                   TLS(msg=TLSFinished()))
-
-        client_key = key_exc
-        client_key = client_key.__class__(bytes(client_key))
-
-        return client_key, server_cert, private_key
-
-    def generate_the_point(self):
-        """
-         Generate the ECDH private key and public key
-        :return: The ECDH private key and public key point
-        """
-
-        private_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
-        public_key = private_key.public_key()
-
-        # Server public key point
-        public_key_point = public_key.public_bytes(
-            encoding=serialization.Encoding.X962,
-            format=serialization.PublicFormat.UncompressedPoint
-        )
-
-        return private_key, public_key_point
-
-    def full_encryption(self, server_point, private_key):
-        """
-         Create the client encryption key
-        :param server_point: The servers point
-        :param private_key: The client private key
-        :return: The server encryption key
-        """
-
-        server_key = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), server_point)
-        shared_secret = private_key.exchange(ec.ECDH(), server_key)
-        derived_k_f = HKDF(algorithm=THE_SHA_256, length=32, salt=None, info=b'encryption key').derive(shared_secret)
-
-        return derived_k_f
-
-    def receive_final_server_data(self, client_key):
-        """
-
-        :param client_key:
-        :return:
-        """
-
-        while True:
-            try:
-                self.__the_client_socket.send(bytes(client_key[TLS]))
-                print("Sent")
-
-                self.__the_client_socket.settimeout(0.1)
-                server_final = self.__the_client_socket.recv(MAX_MSG_LENGTH)
-
-                self.__the_client_socket.settimeout(None)
-                if not server_final:
-                    return
-
-                else:
-                    msg_s_f = TLS(server_final)
-                    if self.is_there_an_alert(msg_s_f):
-                        print("YOU ARE BANNED")
-
-                    else:
-                        break
-
-            except socket.timeout:
-                print("out of time final")
-                self.__the_client_socket.settimeout(None)
 
     def recieve_data(self):
         """

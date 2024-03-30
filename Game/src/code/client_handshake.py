@@ -20,7 +20,9 @@ THE_SHA_256 = hashes.SHA256()
 PARAM_LIST = {"0": 0x0303, "1": 0x16, "2": 0x15, "3": 0x14, "4": 0x1}
 SECP = [0x6a6a, 0x001d, 0x0017, 0x0018]
 SIGNATURE_ALGORITHIM = [0x0403, 0x0804, 0x0401, 0x0503, 0x0805, 0x0501, 0x0806, 0x0601]
+AUTHORITY = []
 KEY = {}
+MESSAGES = {"TLS_VALID_HELLO": (0, TLS()), "FINISH": (0, TLS()), "TLS_FIRST_DATA": (0, TLS())}
 
 
 class ClientHandshake:
@@ -34,7 +36,6 @@ class ClientHandshake:
         """
 
         """
-
         while True:
             try:
                 time.sleep(2)
@@ -42,7 +43,11 @@ class ClientHandshake:
 
                 KEY["encryption"] = self.connection_handshakes()
 
-                return KEY["encryption"]
+                if KEY["encryption"]:
+                    return KEY["encryption"]
+
+                else:
+                    pass
 
             except KeyboardInterrupt:
                 print("refused to play")
@@ -56,14 +61,25 @@ class ClientHandshake:
 
         """
         while True:
-            important = self.the_pre_handshake()
-            if not important:
-                pass
+            if not AUTHORITY:
+                important = self.the_pre_handshake()
+
+                if not important:
+                    pass
+
+                else:
+                    AUTHORITY.append(important)
+
             else:
-                auth = important[1]
+                print("success")
+                auth = AUTHORITY[0]
                 key = self.secure_handshake(auth)
 
-                return key, auth
+                if not key:
+                    pass
+
+                else:
+                    return key, auth
 
     def the_pre_handshake(self):
         """
@@ -97,7 +113,7 @@ class ClientHandshake:
 
                     authentic = letter + dot
 
-                    return finish_first_handshake, authentic
+                    return authentic
 
             except socket.timeout:
                 print('retry')
@@ -147,24 +163,19 @@ class ClientHandshake:
         client_hello_packet = self.start_security()
         self.__the_client_socket.send(bytes(client_hello_packet[TLS]))
 
-        server_hello = self.__the_client_socket.recv(MAX_MSG_LENGTH)
-        cert = self.__the_client_socket.recv(EXCEPTIONAL_CASE_LENGTH)
-        key = self.__the_client_socket.recv(MAX_MSG_LENGTH)
+        server_hello = self.handle_responses()
 
-        msg_s = TLS(server_hello)
-        msg_cert = TLS(cert)
-        msg_key = TLS(key)
-
-        if TLSServerHello in msg_s and TLSCertificate in msg_cert and TLSServerKeyExchange in msg_key:
+        if server_hello or self.server_hello_legit(MESSAGES["TLS_VALID_HELLO"][1]):
 
             print("Successfully authenticated communication!")
-            server_point = msg_key[TLS][TLSServerKeyExchange][ServerECDHNamedCurveParams].point
+            server_hello = MESSAGES["TLS_VALID_HELLO"][1]
+            server_point = server_hello[TLS][TLSServerKeyExchange][ServerECDHNamedCurveParams].point
 
             client_key, cert, private_key = self.create_client_key()
             encryption_key = self.full_encryption(server_point, private_key)
 
             self.__the_client_socket.send(bytes(client_key[TLS]))
-            server_final = self.__the_client_socket.recv(MAX_MSG_LENGTH)
+            server_final = self.handle_responses()
 
             msg_s_f = TLS(server_final)
 
@@ -196,18 +207,7 @@ class ClientHandshake:
         else:
             alert_message = self.send_alert()
             self.__the_client_socket.send(bytes(alert_message[TLS]))
-
-            i = 1
-
-            while True:  # THIS WILL BE REMOVED THIS IS AN EMERGENCY PAUSE
-                try:
-                    if i == 1:
-                        print("ALERT ALERT")
-                        i += 1
-                except KeyboardInterrupt:
-                    break
-
-        return 1
+            return
 
     def start_security(self):
         """
@@ -224,6 +224,101 @@ class ClientHandshake:
         client_hello_packet = client_hello_packet.__class__(bytes(client_hello_packet))
 
         return client_hello_packet
+
+    def handle_responses(self):
+        """
+
+        :return:
+        """
+
+        server_hello = self.receive_server_hello()
+        if server_hello:
+            return server_hello
+
+        finish_message = self.receive_finish_message()
+        if finish_message:
+            return finish_message
+
+    def receive_server_hello(self):
+        """
+
+        :return:
+        """
+
+        try:
+            if MESSAGES["TLS_VALID_HELLO"][0] == 0:
+                server_hello = self.__the_client_socket.recv(EXCEPTIONAL_CASE_LENGTH)
+                if not server_hello:
+                    return
+
+                else:
+                    server_hello = TLS(server_hello)
+
+                    if self.server_hello_legit(server_hello):
+                        MESSAGES["TLS_VALID_HELLO"] = 1, server_hello
+                        server_hello.show()
+
+                        return server_hello
+
+                    else:
+                        return
+
+            else:
+                return
+
+        except socket.timeout:
+            return
+
+    def server_hello_legit(self, server_hello):
+        """
+
+        :param server_hello:
+        :return:
+        """
+
+        return (TLS in server_hello and TLSServerHello in server_hello and TLSCertificate in server_hello and
+                TLSServerKeyExchange in server_hello and
+                server_hello[TLS][TLSServerHello][TLS_Ext_SupportedVersion_SH].version == TLS_M_VERSION and
+                server_hello[TLS][TLSServerHello].cipher == RECOMMENDED_CIPHER)
+
+    def receive_finish_message(self):
+        """
+
+        :return:
+        """
+
+        try:
+            if MESSAGES["FINISH"][0] == 0 and MESSAGES["TLS_VALID_HELLO"][0] == 1:
+                finish = self.__the_client_socket.recv(MAX_MSG_LENGTH)
+
+                if not finish:
+
+                    return
+
+                else:
+                    finish = TLS(finish)
+
+                    if self.finish_legit(finish):
+                        MESSAGES["FINISH"] = 1, finish
+                        return finish
+
+                    else:
+                        return
+
+            else:
+                return
+
+        except socket.timeout:
+            return
+
+    def finish_legit(self, finish):
+        """
+
+        :param finish:
+        :return:
+        """
+
+        return TLS in finish and TLSChangeCipherSpec in finish and TLSFinished in finish
 
     def create_client_key(self):
         """

@@ -31,6 +31,9 @@ EXCEPTIONAL_CASE_LENGTH = 4096
 THE_SHA_256 = hashes.SHA256()
 SECP = 0x0017
 SIGNATURE_ALGORITHIM = 0x0401
+AUTHORITY = []
+PRIVATE_KEY = []
+MESSAGES = {"TLS_VALID_HELLO": (0, TLS()), "KEYS": (0, TLS()), "TLS_FIRST_DATA": (0, TLS())}
 
 
 class ServerHandshake:
@@ -45,15 +48,24 @@ class ServerHandshake:
         """
 
         while True:
-            acked, auth = self.first_handshake()
+            if not AUTHORITY:
+                auth = self.first_handshake()
+                if not auth:
+                    pass
 
-            if auth is None:
-                pass
+                else:
+                    AUTHORITY.append(auth)
 
             else:
-                time.sleep(2)
+                print("success")
+                auth = AUTHORITY[0]
                 enc_key = self.secure_handshake(auth)
-                break
+
+                if enc_key:
+                    break
+
+                else:
+                    pass
 
         return enc_key, auth
 
@@ -92,7 +104,7 @@ class ServerHandshake:
                 clients_dot = ack_packet[Raw].load[0:4]
                 auth = clients_letter + clients_dot
 
-                return ack_packet, auth
+                return auth
 
     def create_response(self, syn_packet):
         """
@@ -134,54 +146,153 @@ class ServerHandshake:
         :param auth: The associate data
         """
 
-        client_hello = self.__client_socket.recv(MAX_MSG_LENGTH)
-        t_client_hello = TLS(client_hello)
+        t_client_hello = self.handle_responses()
 
-        keys, private_key = self.server_authentication(t_client_hello)
-        encryption_key = self.exchange_server_key(keys, private_key, auth)
+        if t_client_hello or self.client_hello_legit(MESSAGES["TLS_VALID_HELLO"][1]):
+            keys_and_privates = self.server_authentication()
 
-        return encryption_key
+            if MESSAGES["TLS_VALID_HELLO"][0] == 1 and MESSAGES["KEYS"][0] == 1:
+                keys, private_key = MESSAGES["KEYS"][1], PRIVATE_KEY[0]
+                print(type(keys))
+                keys.show()
+                encryption_key = self.exchange_server_key(keys, private_key, auth)
 
-    def server_authentication(self, t_client_hello):
+                if encryption_key:
+                    return encryption_key
+
+                else:
+                    return
+
+            else:
+                return
+
+    def handle_responses(self):
         """
 
-        :param t_client_hello:
         :return:
         """
 
-        if self.valid_tls(t_client_hello):
-            print("The client is attempting to hide from someone!")
-            s_sid = self.create_session_id()
-            sec_res = self.new_secure_session(s_sid)
+        client_hello = self.receive_client_hello()
+        if client_hello:
+            return client_hello
 
-            certificate, key, server_key_ex, private_key = self.certificate_and_key()
-            self.__client_socket.send(bytes(sec_res[TLS]))  # Server hello
+        client_keys = self.receive_client_keys()
+        if client_keys:
+            return client_keys
 
-            self.__client_socket.send(bytes(certificate[TLS]))  # Certificate
-            time.sleep(2)
+    def receive_client_hello(self):
+        """
 
-            self.__client_socket.send(bytes(server_key_ex[TLS]))  # Server key exchange
-            client_key_exchange = self.__client_socket.recv(MAX_MSG_LENGTH)
+        :return:
+        """
 
-            keys = TLS(client_key_exchange)
+        try:
+            if MESSAGES["TLS_VALID_HELLO"][0] == 0:
+                self.__client_socket.settimeout(0.5)
+                t_client_hello = self.__client_socket.recv(MAX_MSG_LENGTH)
 
-            return keys, private_key
+                if not t_client_hello:
 
-        else:
-            print("Client has not used tls properly")
-            self.send_alert()
+                    return
+
+                else:
+                    t_client_hello = TLS(t_client_hello)
+                    t_client_hello.show()
+
+                    if self.client_hello_legit(t_client_hello):
+                        MESSAGES["TLS_VALID_HELLO"] = 1, t_client_hello
+                        return t_client_hello
+
+                    else:
+
+                        print("Client has not used tls properly")
+
+                        self.send_alert()
+
+                        return
+
+            else:
+                return
+
+        except socket.timeout:
             return
 
-    def valid_tls(self, t_client_hello):
+    def client_hello_legit(self, t_client_hello):
         """
 
         :param t_client_hello:
         :return:
         """
 
-        return (TLS in t_client_hello and TLSClientHello in t_client_hello and
-                t_client_hello[TLS][TLSClientHello].version == TLS_MID_VERSION
-                and t_client_hello[TLS].version == TLS_MID_VERSION)
+        return (TLS in t_client_hello and (TLSClientHello in t_client_hello and TLS_MID_VERSION in
+                t_client_hello[TLS][TLSClientHello][TLS_Ext_SupportedVersion_CH].versions and
+                RECOMMENDED_CIPHER in t_client_hello[TLS][TLSClientHello].ciphers))
+
+    def receive_client_keys(self):
+        """
+
+        :return:
+        """
+
+        try:
+            if MESSAGES["KEYS"][0] == 0 and MESSAGES["TLS_VALID_HELLO"][0] == 1:
+                self.__client_socket.settimeout(0.5)
+                client_key = self.__client_socket.recv(MAX_MSG_LENGTH)
+
+                if not client_key:
+
+                    return
+
+                else:
+                    client_key = TLS(client_key)
+
+                    if self.legit_key(client_key):
+                        client_key.show()
+                        MESSAGES["KEYS"] = 1, client_key
+                        return client_key
+
+                    else:
+                        return
+
+            else:
+                return
+
+        except socket.timeout:
+            return
+
+    def legit_key(self, client_keys):
+        """
+
+        :param client_keys:
+        :return:
+        """
+
+        return TLS in client_keys and TLSClientKeyExchange in client_keys
+
+    def server_authentication(self):
+        """
+
+        :return:
+        """
+
+        if MESSAGES["TLS_VALID_HELLO"][0] == 0 or MESSAGES["KEYS"][0] == 0:
+            print("The client is attempting to hide from someone!")
+
+            s_sid = self.create_session_id()
+
+            sec_res = self.new_secure_session(s_sid)
+            certificate, key, server_key_ex, private_key = self.certificate_and_key()
+
+            tls_server_hello = sec_res / certificate / server_key_ex
+            tls_server_hello = self.prepare_packet_structure(tls_server_hello)
+
+            self.__client_socket.send(bytes(tls_server_hello[TLS]))
+            keys = self.handle_responses()
+
+            if not PRIVATE_KEY:
+                PRIVATE_KEY.append(private_key)
+
+            return keys, private_key
 
     def create_session_id(self):
         """
@@ -293,9 +404,9 @@ class ServerHandshake:
         :return:
         """
 
-        if self.valid_key_exchange(keys):
+        if keys or self.legit_key(MESSAGES["KEYS"]):
             print("The exchange has been a success!")
-            client_point = keys[TLSClientKeyExchange][Raw].load
+            client_point = keys[TLS][TLSClientKeyExchange][Raw].load
             enc_key = self.create_encryption_key(private_key, client_point)
 
             server_final = self.create_server_final()  # Change Cipher spec
@@ -307,28 +418,25 @@ class ServerHandshake:
             data_msg = self.create_message(some_data)  # Application data
 
             self.__client_socket.send(bytes(data_msg[TLS]))
-            data_iv, data_c_t, data_tag = self.deconstruct_data()
+            data = self.deconstruct_data()
 
-            if self.invalid_data(data_iv, data_c_t, data_tag):
+            if not data:
                 return
 
             else:
-                print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
-                return enc_key
+                data_iv, data_c_t, data_tag = data[0], data[1], data[2]
+
+                if self.invalid_data(data_iv, data_c_t, data_tag):
+                    return
+
+                else:
+                    print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
+                    return enc_key
 
         else:
             print("Error in key exchange")
             self.send_alert()
             return
-
-    def valid_key_exchange(self, keys):
-        """
-
-        :param keys:
-        :return:
-        """
-
-        return TLS in keys and TLSClientKeyExchange in keys and keys[TLS].version == TLS_MID_VERSION
 
     def create_encryption_key(self, private_key, client_point):
         """
@@ -406,9 +514,10 @@ class ServerHandshake:
          Dissect the data received from the server
         :return: The data iv, data and tag
         """
+        self.__client_socket.settimeout(0.5)
 
-        data_pack = self.__client_socket.recv(MAX_MSG_LENGTH)
         try:
+            data_pack = self.__client_socket.recv(MAX_MSG_LENGTH)
             if not data_pack:
                 return
 
@@ -426,6 +535,9 @@ class ServerHandshake:
                 data_c_t = data[12:len(data) - 16]
 
         except IndexError:
+            return
+
+        except socket.timeout:
             return
 
         return data_iv, data_c_t, data_tag
