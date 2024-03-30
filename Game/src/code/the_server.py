@@ -1,5 +1,4 @@
 import time
-
 from scapy.all import *
 from scapy.layers.l2 import *
 from cryptography.hazmat.primitives.serialization import *
@@ -64,10 +63,9 @@ class Server:
         """
 
         """
-        time.sleep(2)
-        # """:TODO: Fix the newly made faster handshake """#
+        # """:TODO: Fix login error """#
         # """:TODO: Add anti ddos functions and check for session injection vulnerabilities """#
-        # """:TODO: Try to speed the pre handshake """#
+        # """:TODO: Try to speed the pre handshake(scapy) """#
         # """:TODO(almost finished): Check if users are banned """#
         # """:TODO: Check if users cheat(in speed, cash etc.) """#
         # """:TODO: Create chat """#
@@ -91,6 +89,14 @@ class Server:
         list_of_existing_credentials = [vital_info for vital_info in info]
         list_of_existing_resources = [vital_resources for vital_resources in resource_info]
 
+        while True:
+            try:
+                self.__secure_socket.connect((MY_IP, SECURITY_PORT))
+                break
+
+            except ConnectionRefusedError:
+                pass
+
         self.security_first()
         print("The server will now wait for clients")
 
@@ -98,13 +104,10 @@ class Server:
         self.create_server_sockets(port_list)
 
         the_server_sockets = SOCKETS
-        threads = []
-
         lock = threading.Lock()
         print("Server is up and running")
 
         self.accept_clients(accepted_clients, the_server_sockets)
-
         self.handle_clients(accepted_clients, lock, list_of_existing_credentials, list_of_existing_resources)
 
     def security_first(self):
@@ -368,9 +371,10 @@ class Server:
         :return:
         """
         lock.acquire()
-
+        print(KEY[str(number)])
         handshake = ServerHandshake(client_socket)
         enc_key = handshake.run()
+        KEY[str(number)] = enc_key
 
         lock.release()
 
@@ -560,22 +564,6 @@ class Server:
 
             AUTHORITY_DATA[str(index)] = None
 
-    def create_tcp_handshake_threads(self, number_of_clients, lock):
-        """
-
-        :param number_of_clients:
-        :param lock:
-        :return:
-        """
-
-        threads = []
-
-        for number in range(0, number_of_clients):
-            the_thread = threading.Thread(target=self.tcp_handshake, args=(lock, CLIENTS[str(number)], number))
-            threads.append(the_thread)
-
-        return threads
-
     def create_tls_handshake_threads(self, number_of_clients, lock):
         """
 
@@ -640,24 +628,21 @@ class Server:
             if KEY[str(index)] is None:
                 tls_handshakes[index].start()
 
-            elif CREDENTIALS[str(index)] is not None and CLIENTS[str(index)] is not None:
-                response_threads[index].start()
-
-            #               #  if MESSAGES:
-            #                  #  self.send_to_chat()
-
             elif CLIENTS[str(index)] is not None and CREDENTIALS[str(index)] is None:
                 login_threads[index].start()
+
+            elif CREDENTIALS[str(index)] is not None and CLIENTS[str(index)] is not None:
+                response_threads[index].start()
 
         for index in range(0, number_of_clients):
             if tls_handshakes[index].is_alive():
                 tls_handshakes[index].join()
 
-            elif response_threads[index].is_alive():
-                response_threads[index].join()
-
             elif login_threads[index].is_alive():
                 login_threads[index].join()
+
+            elif response_threads[index].is_alive():
+                response_threads[index].join()
 
         for i in range(0, len(CLIENTS)):
             if LOCATIONS is not None and CLIENTS[str(i)] is not None and CREDENTIALS[str(i)] is not None \

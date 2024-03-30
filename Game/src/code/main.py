@@ -51,8 +51,10 @@ class Game:
             if game_state == "game":
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_SPACE]:
-                    self.network.run()
+                    ran = self.network.run()
                     game_state = "continue"
+                    if ran == 1:
+                        break
 
             if game_state == "continue":
                 pygame.display.set_caption("Cyber Offensive")
@@ -78,9 +80,10 @@ class Game:
                 if other_client is None:
                     pass
 
-                else:
+                elif type(other_client) is bytes:
                     other_client = pickle.loads(other_client)
                     other_client = list(other_client.values())
+
                     other_client = [(other_client[i].decode().split(' ')[1],
                                     (other_client[i].decode().split(' ')[2]))
                                     for i in range(0, len(other_client))

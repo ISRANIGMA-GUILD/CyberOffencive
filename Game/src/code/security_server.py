@@ -144,7 +144,7 @@ def main():
     the_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     the_server_socket.bind((MY_IP, SECURITY_PORT))  # Bind the server IP and Port into a tuple
 
-    the_server_socket.listen()  # Listen to client
+    the_server_socket.listen(1)  # Listen to client
     security = Security(database, the_server_socket)
     security.run()
 
