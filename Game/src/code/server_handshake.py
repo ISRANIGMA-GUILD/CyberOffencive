@@ -33,7 +33,7 @@ SECP = 0x0017
 SIGNATURE_ALGORITHIM = 0x0401
 AUTHORITY = []
 PRIVATE_KEY = []
-MESSAGES = {"TLS_VALID_HELLO": (0, TLS()), "KEYS": (0, TLS()), "TLS_FIRST_DATA": (0, TLS())}
+MESSAGES = {"TLS_VALID_HELLO": (0, TLS()), "KEYS": (0, TLS()), "TLS_FIRST_DATA": (0, b"")}
 
 
 class ServerHandshake:
@@ -51,13 +51,12 @@ class ServerHandshake:
             if not AUTHORITY:
                 auth = self.first_handshake()
                 if not auth:
-                    pass
+                    return
 
                 else:
                     AUTHORITY.append(auth)
 
             else:
-                print("success")
                 auth = AUTHORITY[0]
                 enc_key = self.secure_handshake(auth)
 
@@ -65,7 +64,7 @@ class ServerHandshake:
                     break
 
                 else:
-                    pass
+                    return
 
         return enc_key, auth
 
@@ -74,37 +73,39 @@ class ServerHandshake:
          The tcp handshake
         :return: The ack packet and the server port used the client will use
         """
+        self.__client_socket.settimeout(0.2)
 
         while True:
-            first_packet = self.__client_socket.recv(MAX_MSG_LENGTH)
-            first_data = self.__client_socket.recv(MAX_MSG_LENGTH)
+            try:
+                first_packet = self.__client_socket.recv(MAX_MSG_LENGTH)
 
-            if not first_packet and not first_data:
-                print("retrying")
-                pass
+                if not first_packet:
+                    print("retrying")
+                    return
 
-            else:
-                syn_packet = TCP(first_packet)
-                syn_data = Raw(first_data)
+                else:
+                    syn_packet = TCP(first_packet)
 
-                syn_packet = syn_packet / syn_data
-                clients_letter = syn_packet[Raw].load[0:2]
+                    syn_packet = syn_packet
+                    clients_letter = syn_packet[Raw].load[0:2]
 
-                response = self.create_response(syn_packet)
-                self.__client_socket.send(bytes(response[TCP]))
+                    response = self.create_response(syn_packet)
+                    self.__client_socket.send(bytes(response[TCP]))
+                    self.__client_socket.send(bytes(response[Raw]))
 
-                time.sleep(2)
-                self.__client_socket.send(bytes(response[Raw]))
+                    self.__client_socket.settimeout(0.2)
+                    last_pack = self.__client_socket.recv(MAX_MSG_LENGTH)
+                    last_pack_data = self.__client_socket.recv(MAX_MSG_LENGTH)
 
-                last_pack = self.__client_socket.recv(MAX_MSG_LENGTH)
-                last_pack_data = self.__client_socket.recv(MAX_MSG_LENGTH)
+                    ack_packet = TCP(last_pack) / Raw(last_pack_data)
 
-                ack_packet = TCP(last_pack) / Raw(last_pack_data)
+                    clients_dot = ack_packet[Raw].load[0:4]
+                    auth = clients_letter + clients_dot
 
-                clients_dot = ack_packet[Raw].load[0:4]
-                auth = clients_letter + clients_dot
+                    return auth
 
-                return auth
+            except socket.timeout:
+                print('retry')
 
     def create_response(self, syn_packet):
         """
@@ -151,10 +152,8 @@ class ServerHandshake:
         if t_client_hello or self.client_hello_legit(MESSAGES["TLS_VALID_HELLO"][1]):
             keys_and_privates = self.server_authentication()
 
-            if MESSAGES["TLS_VALID_HELLO"][0] == 1 and MESSAGES["KEYS"][0] == 1:
+            if MESSAGES["TLS_VALID_HELLO"][0] == 1 and MESSAGES["KEYS"][0] == 1 and MESSAGES["TLS_FIRST_DATA"][0] == 0:
                 keys, private_key = MESSAGES["KEYS"][1], PRIVATE_KEY[0]
-                print(type(keys))
-                keys.show()
                 encryption_key = self.exchange_server_key(keys, private_key, auth)
 
                 if encryption_key:
@@ -197,7 +196,6 @@ class ServerHandshake:
 
                 else:
                     t_client_hello = TLS(t_client_hello)
-                    t_client_hello.show()
 
                     if self.client_hello_legit(t_client_hello):
                         MESSAGES["TLS_VALID_HELLO"] = 1, t_client_hello
@@ -247,7 +245,6 @@ class ServerHandshake:
                     client_key = TLS(client_key)
 
                     if self.legit_key(client_key):
-                        client_key.show()
                         MESSAGES["KEYS"] = 1, client_key
                         return client_key
 
@@ -404,7 +401,7 @@ class ServerHandshake:
         :return:
         """
 
-        if keys or self.legit_key(MESSAGES["KEYS"]):
+        if (keys or self.legit_key(MESSAGES["KEYS"])) and MESSAGES["TLS_FIRST_DATA"][0] == 0:
             print("The exchange has been a success!")
             client_point = keys[TLS][TLSClientKeyExchange][Raw].load
             enc_key = self.create_encryption_key(private_key, client_point)
@@ -418,20 +415,25 @@ class ServerHandshake:
             data_msg = self.create_message(some_data)  # Application data
 
             self.__client_socket.send(bytes(data_msg[TLS]))
-            data = self.deconstruct_data()
 
-            if not data:
-                return
+            if MESSAGES["TLS_FIRST_DATA"][0] == 0:
+                data = self.deconstruct_data()
 
-            else:
-                data_iv, data_c_t, data_tag = data[0], data[1], data[2]
-
-                if self.invalid_data(data_iv, data_c_t, data_tag):
+                if not data:
                     return
 
                 else:
-                    print(self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag))
-                    return enc_key
+                    data_iv, data_c_t, data_tag = data[0], data[1], data[2]
+                    if self.invalid_data(data_iv, data_c_t, data_tag):
+                        return
+
+                    else:
+                        MESSAGES["TLS_FIRST_DATA"] = 1, self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
+                        print(MESSAGES["TLS_FIRST_DATA"])
+                        return enc_key
+
+        elif MESSAGES["TLS_FIRST_DATA"][0] == 1:
+            return
 
         else:
             print("Error in key exchange")

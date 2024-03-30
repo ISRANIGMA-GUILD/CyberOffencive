@@ -55,12 +55,35 @@ class Client:
             server_ip, server_port = self.format_socket()
             res, server_port = self.first_contact(server_ip, server_port)
 
+            while True:
+                try:
+                    self.__the_client_socket.connect((server_ip, server_port))
+                    break
+
+                except ConnectionRefusedError:
+                    pass
+
             if res[Raw].load == b'Accept':
+                if 'encryption' not in KEY.keys():
+                    self.initialize_handshakes(server_ip, server_port)
 
-                time.sleep(2)
+                    if None not in KEY.values():
+                        encryption_key, auth = KEY['encryption'][0], KEY['encryption'][1]
 
-                self.initialize_handshakes(server_ip, server_port)
-                time.sleep(2)
+                        details = self.details_entry(encryption_key, auth)
+
+                        while True:
+
+                            if "Success" in self.check_success(encryption_key, details, auth)[0:9]:
+                                print("Nice")
+                                break
+
+                            elif self.check_success(encryption_key, details, auth) == "Failure":
+                                details = self.details_entry(encryption_key, auth)
+
+                            else:
+                                print("retry")
+                                pass
 
             else:
                 print("TO BAD YOU ARE BANNED!")
@@ -70,6 +93,7 @@ class Client:
 
         except KeyboardInterrupt:
             print("Leaving the game")
+            return 1
 
     def format_socket(self):
         """
@@ -185,26 +209,26 @@ class Client:
         :param server_port:
         """
 
-        while True:
-            try:
-                handshake = ClientHandshake(self.__the_client_socket, server_ip, server_port)
-                KEY['encryption'] = handshake.run()
+        try:
+            handshake = ClientHandshake(self.__the_client_socket, server_ip, server_port)
+            KEY['encryption'] = handshake.run()
 
-                if 'encryption' not in KEY.keys():
-                    continue
+            if 'encryption' not in KEY.keys():
+                return
+
+            else:
+                if not KEY['encryption']:
+                    return
 
                 else:
-                    if not KEY['encryption']:
-                        continue
+                    print(KEY['encryption'])
+                    return
 
-                    else:
-                        break
+        except KeyboardInterrupt:
+            print("refused to play")
 
-            except KeyboardInterrupt:
-                print("refused to play")
-
-            except ConnectionRefusedError:
-                continue
+        except ConnectionRefusedError:
+            pass
 
     def recieve_data(self):
         """
@@ -319,6 +343,7 @@ class Client:
                 else:
                     user = user.encode()
                     password = password.encode()
+                    print(user, password)
 
                     credentials = user + " ".encode() + password
                     encrypted_credentials = self.encrypt_data(key, credentials, auth)
@@ -420,10 +445,9 @@ class Client:
         :return:
         """
 
-        self.__the_client_socket.send(bytes(details[TLS]))
-
         while True:
             try:
+                self.__the_client_socket.send(bytes(details[TLS]))
                 success = self.recieve_data()
 
                 if not success:

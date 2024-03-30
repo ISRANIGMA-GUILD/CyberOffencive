@@ -22,7 +22,7 @@ SECP = [0x6a6a, 0x001d, 0x0017, 0x0018]
 SIGNATURE_ALGORITHIM = [0x0403, 0x0804, 0x0401, 0x0503, 0x0805, 0x0501, 0x0806, 0x0601]
 AUTHORITY = []
 KEY = {}
-MESSAGES = {"TLS_VALID_HELLO": (0, TLS()), "FINISH": (0, TLS()), "TLS_FIRST_DATA": (0, TLS())}
+MESSAGES = {"TLS_VALID_HELLO": (0, TLS()), "FINISH": (0, TLS()), "TLS_FIRST_DATA": (0, b"")}
 
 
 class ClientHandshake:
@@ -38,17 +38,13 @@ class ClientHandshake:
         """
         while True:
             try:
-                time.sleep(2)
-                self.__the_client_socket.connect((self.__server_ip, self.__server_port))
-
                 KEY["encryption"] = self.connection_handshakes()
 
                 if KEY["encryption"]:
                     return KEY["encryption"]
 
                 else:
-                    pass
-
+                    return
             except KeyboardInterrupt:
                 print("refused to play")
 
@@ -87,26 +83,23 @@ class ClientHandshake:
         :return: The ack packet and the authentic client associate
         """
         syn_packet = self.create_syn()
-        self.__the_client_socket.settimeout(3)
+        self.__the_client_socket.settimeout(0.2)
 
         while True:
             try:
                 self.__the_client_socket.send(bytes(syn_packet[TCP]))
 
                 server_response = self.__the_client_socket.recv(MAX_MSG_LENGTH)
-                server_message = self.__the_client_socket.recv(MAX_MSG_LENGTH)
 
-                if not server_response and not server_message:
+                if not server_response:
                     return
 
                 else:
-                    res = TCP(server_response) / Raw(server_message)
+                    res = TCP(server_response)
 
                     finish_first_handshake = self.create_acknowledge(res)
                     self.__the_client_socket.send(bytes(finish_first_handshake[TCP]))
-
                     self.__the_client_socket.send(bytes(finish_first_handshake[Raw]))
-                    time.sleep(2)
 
                     letter = syn_packet[Raw].load[0:2]
                     dot = finish_first_handshake[Raw].load[0:4]
@@ -184,26 +177,36 @@ class ClientHandshake:
                 return
 
             else:
-                data_iv, data_c_t, data_tag = self.recieve_data()
+                data = self.recieve_data()
 
-                print(self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag))
-                message = b'greetings!'
-
-                some_data = self.encrypt_data(encryption_key, message, auth)
-                data_msg = self.create_message(some_data)
-
-                if type(data_msg) is list:
-                    for i in range(0, len(data_msg)):
-                        message = data_msg[i]
-                        self.__the_client_socket.send(bytes(message[TLS]))
+                if not data:
+                    return
 
                 else:
-                    self.__the_client_socket.send(bytes(data_msg[TLS]))
 
-                print(self.decrypt_data(encryption_key, auth, some_data[0], some_data[1], some_data[2]))
-                print("Secrecy has been successfully achieved, good luck decrypting with third parties! :D")
+                    data_iv, data_c_t, data_tag = data[0], data[1], data[2]
+                    if MESSAGES["TLS_FIRST_DATA"][0] == 0:
+                        first_message = self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag)
+                        MESSAGES["TLS_FIRST_DATA"] = 1, first_message
 
-                return encryption_key
+                        print(self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag))
+                        message = b'greetings!'
+
+                        some_data = self.encrypt_data(encryption_key, message, auth)
+                        data_msg = self.create_message(some_data)
+
+                        if type(data_msg) is list:
+                            for i in range(0, len(data_msg)):
+                                message = data_msg[i]
+                                self.__the_client_socket.send(bytes(message[TLS]))
+
+                        else:
+                            self.__the_client_socket.send(bytes(data_msg[TLS]))
+
+                        print(self.decrypt_data(encryption_key, auth, some_data[0], some_data[1], some_data[2]))
+                        print("Secrecy has been successfully achieved, good luck decrypting with third parties! :D")
+
+                        return encryption_key
         else:
             alert_message = self.send_alert()
             self.__the_client_socket.send(bytes(alert_message[TLS]))
@@ -256,7 +259,6 @@ class ClientHandshake:
 
                     if self.server_hello_legit(server_hello):
                         MESSAGES["TLS_VALID_HELLO"] = 1, server_hello
-                        server_hello.show()
 
                         return server_hello
 
