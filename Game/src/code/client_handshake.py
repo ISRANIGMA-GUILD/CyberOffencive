@@ -23,6 +23,7 @@ SIGNATURE_ALGORITHIM = [0x0403, 0x0804, 0x0401, 0x0503, 0x0805, 0x0501, 0x0806, 
 AUTHORITY = []
 KEY = {}
 MESSAGES = {"TLS_VALID_HELLO": (0, TLS()), "FINISH": (0, TLS()), "TLS_FIRST_DATA": (0, b"")}
+MSG_TCP_PACK = 56
 
 
 class ClientHandshake:
@@ -39,7 +40,7 @@ class ClientHandshake:
         while True:
             try:
                 KEY["encryption"] = self.connection_handshakes()
-
+                print(KEY["encryption"])
                 if KEY["encryption"]:
                     return KEY["encryption"]
 
@@ -51,6 +52,7 @@ class ClientHandshake:
             except ConnectionRefusedError:
                 print("Waiting")
                 continue
+        print("finsish")
 
     def connection_handshakes(self):
         """
@@ -83,33 +85,33 @@ class ClientHandshake:
         :return: The ack packet and the authentic client associate
         """
         syn_packet = self.create_syn()
-        self.__the_client_socket.settimeout(0.2)
 
         while True:
             try:
                 self.__the_client_socket.send(bytes(syn_packet[TCP]))
 
-                server_response = self.__the_client_socket.recv(MAX_MSG_LENGTH)
+                server_response = self.__the_client_socket.recv(MSG_TCP_PACK)
 
                 if not server_response:
                     return
 
                 else:
-                    res = TCP(server_response)
-
-                    finish_first_handshake = self.create_acknowledge(res)
-                    self.__the_client_socket.send(bytes(finish_first_handshake[TCP]))
-                    self.__the_client_socket.send(bytes(finish_first_handshake[Raw]))
-
-                    letter = syn_packet[Raw].load[0:2]
-                    dot = finish_first_handshake[Raw].load[0:4]
-
-                    authentic = letter + dot
-
-                    return authentic
+                    break
 
             except socket.timeout:
-                print('retry')
+                print('retry1')
+
+        res = TCP(server_response)
+
+        finish_first_handshake = self.create_acknowledge(res)
+        self.__the_client_socket.send(bytes(finish_first_handshake[TCP]))
+
+        letter = syn_packet[Raw].load[0:2]
+        dot = finish_first_handshake[Raw].load[0:4]
+
+        authentic = letter + dot
+
+        return authentic
 
     def create_syn(self):
         """
@@ -167,6 +169,8 @@ class ClientHandshake:
             client_key, cert, private_key = self.create_client_key()
             encryption_key = self.full_encryption(server_point, private_key)
 
+            print("KEY", encryption_key)
+
             self.__the_client_socket.send(bytes(client_key[TLS]))
             server_final = self.handle_responses()
 
@@ -185,7 +189,10 @@ class ClientHandshake:
                 else:
 
                     data_iv, data_c_t, data_tag = data[0], data[1], data[2]
+
                     if MESSAGES["TLS_FIRST_DATA"][0] == 0:
+                        print(data[0], data[1], data[2], data_iv, data_c_t, data_tag, auth)
+                        print("data", data, len(data), encryption_key)
                         first_message = self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag)
                         MESSAGES["TLS_FIRST_DATA"] = 1, first_message
 
@@ -379,6 +386,8 @@ class ClientHandshake:
          Dissect the data received from the server
         :return: The data iv, data and tag
         """
+        self.__the_client_socket.settimeout(0.1)
+
         try:
             data_pack = self.__the_client_socket.recv(MAX_MSG_LENGTH)
 
@@ -396,6 +405,9 @@ class ClientHandshake:
             return data_iv, data_c_t, data_tag
 
         except IndexError:
+            return
+
+        except socket.timeout:
             return
 
     def encrypt_data(self, key, plaintext, associated_data):

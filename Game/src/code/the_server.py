@@ -63,7 +63,6 @@ class Server:
         """
 
         """
-        # """:TODO: Fix login error """#
         # """:TODO: Add anti ddos functions and check for session injection vulnerabilities """#
         # """:TODO: Try to speed the pre handshake(scapy) """#
         # """:TODO(almost finished): Check if users are banned """#
@@ -362,19 +361,26 @@ class Server:
             client_socket = connection
             CLIENTS[str(number)] = client_socket
 
-    def tls_handshake(self, lock, client_socket, number):
+    def tls_handshake(self, lock, handshake, number):
         """
 
-        :param client_socket:
+        :param handshake:
         :param number:
         :param lock:
         :return:
         """
         lock.acquire()
-        print(KEY[str(number)])
-        handshake = ServerHandshake(client_socket)
-        enc_key = handshake.run()
-        KEY[str(number)] = enc_key
+
+        if CREDENTIALS[str(number)] is None:
+            print("Before", CLIENTS[str(number)].getpeername())
+            enc_key = handshake.run()
+
+            KEY[str(number)] = enc_key
+            print("Key", KEY[str(number)], KEY.values(), number)
+            handshake.stop()
+
+        else:
+            pass
 
         lock.release()
 
@@ -575,7 +581,8 @@ class Server:
         threads = []
 
         for number in range(0, number_of_clients):
-            the_thread = threading.Thread(target=self.tls_handshake, args=(lock, CLIENTS[str(number)], number))
+            handshake = ServerHandshake(CLIENTS[str(number)])
+            the_thread = threading.Thread(target=self.tls_handshake, args=(lock, handshake, number))
             threads.append(the_thread)
 
         return threads
