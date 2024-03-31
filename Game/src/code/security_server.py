@@ -91,6 +91,7 @@ class Security:
 
             else:
                 self.__secret_security_key, self.__secret_message = security_for_server
+                handshake_initializer.stop()
                 break
 
     def receive_requests(self, service_socket):

@@ -83,7 +83,7 @@ class Client:
 
                             else:
                                 print("retry")
-                                pass
+                                continue
 
             else:
                 print("TO BAD YOU ARE BANNED!")
