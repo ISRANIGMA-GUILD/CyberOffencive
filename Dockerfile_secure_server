@@ -10,6 +10,9 @@ RUN mkdir C:\\app
 # Set the working directory
 WORKDIR C:\\app
 
+# Copy the current directory contents into the container at /app
+COPY . .
+
 # Define the custom installation directory
 ENV PYTHON_INSTALL_DIR="\\Python3"
 
@@ -22,15 +25,15 @@ RUN python-installer\\python-3.11.0.exe /quiet TargetDir="C:\\Python3"
 # Debugging: Check the existence of the Python installation directory using PowerShell
 RUN powershell -Command "Get-ChildItem -Path C:\\"
 
-# Manually add Python to PATH and verify Python installation
-RUN setx PATH "%PATH%;C:\Python3" /M
-ENV PATH="%PATH%;C:\Python3"
+# Manually add Python and pip to PATH using ENV
+ENV PATH="C:\Python3;C:\Python3\Scripts;%PATH%"
 
 # Check Python version
 RUN python --version
 
-# Copy the current directory contents into the container at /app
-COPY . .
+# Install Python packages listed in requirements.txt
+RUN pip install --no-cache-dir -r C:/app/Game/src/code/requirements.txt
+RUN pip install https://github.com/secdev/scapy/archive/refs/heads/master.zip
 
 # Set the entrypoint command to run your Python script
 ENTRYPOINT [ "python", "Game/src/code/security_server.py" ]
