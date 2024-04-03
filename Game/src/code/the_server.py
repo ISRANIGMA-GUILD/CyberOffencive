@@ -66,6 +66,7 @@ class Server:
         # """:TODO: Add anti ddos functions and check for session injection vulnerabilities """#
         # """:TODO: Try to speed the pre handshake(scapy) """#
         # """:TODO(almost finished): Check if users are banned """#
+        # """:TODO: Check if an emoji is typed """#
         # """:TODO: Check if users cheat(in speed, cash etc.) """#
         # """:TODO: Create chat """#
         # """:TODO(almost finished): Connect to docker """#
@@ -372,11 +373,8 @@ class Server:
         lock.acquire()
 
         if CREDENTIALS[str(number)] is None:
-            print("Before", CLIENTS[str(number)].getpeername())
             enc_key = handshake.run()
-
             KEY[str(number)] = enc_key
-            print("Key", KEY[str(number)], KEY.values(), number)
             handshake.stop()
 
         else:
@@ -845,14 +843,11 @@ class Server:
             if count <= 1:
 
                 list_of_existing_users = [tup[0] for tup in list_of_existing]
-                print("USERS", list_of_existing_users, "\n", list_of_existing)
-                print(self.username_exists(list_of_existing_users, tuple_of_credentials),
-                      self.password_exists(list_of_existing, tuple_of_credentials))
 
                 if tuple_of_credentials in list_of_existing:
 
                     if list_of_existing_resources[client_number][1] != "Banned":
-                        print("Succcessful", list_of_existing_resources[client_number])
+                        print("Succcessful")
                         success = f"Success {list_of_existing_resources[client_number]}".encode()
                         success_msg = self.encrypt_data(KEY[str(client_number)][0], success, KEY[str(client_number)][1])
 
