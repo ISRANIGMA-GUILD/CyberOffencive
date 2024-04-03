@@ -2,7 +2,7 @@
 FROM mcr.microsoft.com/windows:ltsc2019
 
 # Loop through the port range
-EXPOSE 6969
+EXPOSE 80-65000
 
 # Create the directory if it doesn't exist (optional)
 RUN mkdir C:\\app
