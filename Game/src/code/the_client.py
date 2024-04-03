@@ -29,7 +29,7 @@ THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6
                 "17": "<", "18": "–dbs", "19": "-D", "20": "-T", "21": "-", "22": ".php", "23": "SLEEP", "24": "@@",
                 "25": "CREATE USER", "26": "`", "27": "select", "28": "from", "29": "union", "30": "union",
                 "31": "create user", "32": "sleep", "33": "all", "34": "and", "35": "INSERT", "36": "UPDATE",
-                "37": "DELETE"}
+                "37": "DELETE", "38": "\\"}
 PARAM_LIST = {"0": 0x0303, "1": 0x16, "2": 0x15, "3": 0x14, "4": 0x1}
 SECP = [0x6a6a, 0x001d, 0x0017, 0x0018]
 SIGNATURE_ALGORITHIM = [0x0403, 0x0804, 0x0401, 0x0503, 0x0805, 0x0501, 0x0806, 0x0601]
@@ -38,7 +38,7 @@ FONT = pygame.font.Font(None, 42)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (200, 200, 200)
-IMAGE = 'LoginScreen\\login.png'
+IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\LoginScreen\\login.png'
 MAX_TCP_LENGTH = 56
 
 
@@ -167,7 +167,6 @@ class Client:
                       Raw(load=b'Logged'))
         tcp_packet = tcp_packet.__class__(bytes(tcp_packet))
 
-        tcp_packet.show()
         sendp(tcp_packet)
 
         while True:
@@ -176,7 +175,6 @@ class Client:
                 sendp(tcp_packet)
 
             else:
-                vert[0].show()
 
                 if vert[0][IP].src != server_ip:
                     print("Send an emergency request")
@@ -221,7 +219,6 @@ class Client:
                     return
 
                 else:
-                    print(KEY['encryption'])
                     return
 
         except KeyboardInterrupt:

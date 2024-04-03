@@ -18,14 +18,14 @@ class Level:
     
     def create_map(self) -> None:
         layouts = {
-            BOUNDARY : import_csv_layout('../map/FloorBlocks.csv'),
-            GRASS : import_csv_layout('../map/Grass.csv'),
-            OBJECT : import_csv_layout('../map/Objects.csv'),
+            BOUNDARY: import_csv_layout('C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Map\\FloorBlocks.csv'),
+            GRASS: import_csv_layout('C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Map\\Grass.csv'),
+            OBJECT: import_csv_layout('C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Map\\Objects.csv'),
         }
 
         graphics = {
-            GRASS : import_folder('../graphics/grass'),
-            OBJECT : import_folder('../graphics/objects'),
+            GRASS: import_folder('C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\grass'),
+            OBJECT: import_folder('C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\objects'),
             #../graphics/summer/objects
         }
 
@@ -45,7 +45,7 @@ class Level:
                             object_surface = graphics[OBJECT][int(col)]
                             Tile((x, y), [self.visible_sprites, self.obstacles_sprites], OBJECT, object_surface)
 
-        self.player = Player((2000, 1500), [self.visible_sprites, self.obstacles_sprites], self.obstacles_sprites, '../graphics/brawn_idle.png')
+        self.player = Player((2000, 1500), [self.visible_sprites, self.obstacles_sprites], self.obstacles_sprites, 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\brawn_idle.png')
 
     def run(self) -> None:
         self.visible_sprites.custom_draw(self.player)

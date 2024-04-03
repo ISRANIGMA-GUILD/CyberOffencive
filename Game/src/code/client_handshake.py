@@ -40,7 +40,6 @@ class ClientHandshake:
         while True:
             try:
                 KEY["encryption"] = self.connection_handshakes()
-                print(KEY["encryption"])
                 if KEY["encryption"]:
                     return KEY["encryption"]
 
@@ -99,7 +98,7 @@ class ClientHandshake:
                     break
 
             except socket.timeout:
-                print('retry1')
+                print('retry')
 
         res = TCP(server_response)
 
@@ -161,19 +160,16 @@ class ClientHandshake:
         server_hello = self.handle_responses()
 
         if server_hello or self.server_hello_legit(MESSAGES["TLS_VALID_HELLO"][1]):
-
             print("Successfully authenticated communication!")
             server_hello = MESSAGES["TLS_VALID_HELLO"][1]
+
             server_point = server_hello[TLS][TLSServerKeyExchange][ServerECDHNamedCurveParams].point
+            client_key, private_key = self.create_client_key()
 
-            client_key, cert, private_key = self.create_client_key()
             encryption_key = self.full_encryption(server_point, private_key)
-
-            print("KEY", encryption_key)
-
             self.__the_client_socket.send(bytes(client_key[TLS]))
-            server_final = self.handle_responses()
 
+            server_final = self.handle_responses()
             msg_s_f = TLS(server_final)
 
             if self.is_there_an_alert(msg_s_f):
@@ -191,8 +187,6 @@ class ClientHandshake:
                     data_iv, data_c_t, data_tag = data[0], data[1], data[2]
 
                     if MESSAGES["TLS_FIRST_DATA"][0] == 0:
-                        print(data[0], data[1], data[2], data_iv, data_c_t, data_tag, auth)
-                        print("data", data, len(data), encryption_key)
                         first_message = self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag)
                         MESSAGES["TLS_FIRST_DATA"] = 1, first_message
 
@@ -263,7 +257,6 @@ class ClientHandshake:
 
                 else:
                     server_hello = TLS(server_hello)
-
                     if self.server_hello_legit(server_hello):
                         MESSAGES["TLS_VALID_HELLO"] = 1, server_hello
 
@@ -335,9 +328,6 @@ class ClientHandshake:
         :return: TLS client key exchange packet
         """
 
-        with open("Certificates\\certificate3.pem", "rb") as cert_file:
-            server_cert = x509.load_pem_x509_certificate(cert_file.read(), default_backend())
-
         private_key, public_key_point = self.generate_the_point()
 
         client_parameters = ClientECDiffieHellmanPublic(ecdh_Yc=public_key_point)
@@ -348,7 +338,7 @@ class ClientHandshake:
         client_key = key_exc
         client_key = client_key.__class__(bytes(client_key))
 
-        return client_key, server_cert, private_key
+        return client_key, private_key
 
     def generate_the_point(self):
         """

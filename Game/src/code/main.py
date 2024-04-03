@@ -8,7 +8,7 @@ import time
 import os
 import pickle
 
-IMAGE = 'LoginScreen\\menuscreen.png'
+IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\LoginScreen\\menuscreen.png'
 
 
 class Game:
@@ -57,6 +57,9 @@ class Game:
                         break
 
             if game_state == "continue":
+             #   keys = pygame.key.get_pressed()
+              #  if keys[pygame.K_m]:
+            #        chat = self.start_chat()
                 pygame.display.set_caption("Cyber Offensive")
                 self.new_frame_time = time.time()
                 self.screen.fill((0, 0, 0))
@@ -104,7 +107,7 @@ class Game:
 
                     temp_p = []
 
-                    p_image = pygame.image.load('../graphics/brawn_idle.png').convert_alpha()
+                    p_image = pygame.image.load('C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\brawn_idle.png').convert_alpha()
 
                     for i in range(0, len(prev_loc_other)):
                         player_remote = Tile(position=prev_loc_other[i],

@@ -47,7 +47,6 @@ class ServerHandshake:
 
         :return:
         """
-        print("Did the values change?", self.__messages, self.__client_socket.getpeername())
         while True:
             if not self.__auth:
                 auth = self.first_handshake()
@@ -155,7 +154,6 @@ class ServerHandshake:
 
             if (self.__messages["TLS_VALID_HELLO"][0] == 1 and self.__messages["KEYS"][0] == 1 and
                     self.__messages["TLS_FIRST_DATA"][0] == 0):
-                print("Keys", self.__messages["KEYS"])
                 keys, private_key = self.__messages["KEYS"][1], self.__private_key[0]
                 encryption_key = self.exchange_server_key(keys, private_key, auth)
 
@@ -408,7 +406,6 @@ class ServerHandshake:
             print("The exchange has been a success!")
             client_point = keys[TLS][TLSClientKeyExchange][Raw].load
             enc_key = self.create_encryption_key(private_key, client_point)
-            print("Keys", enc_key)
 
             server_final = self.create_server_final()  # Change Cipher spec
             self.__client_socket.send(bytes(server_final[TLS]))
@@ -416,9 +413,7 @@ class ServerHandshake:
             message = b'hello'
             some_data = self.encrypt_data(enc_key, message, auth)
 
-            print("Data", some_data)
             data_msg = self.create_message(some_data)  # Application data
-
             self.__client_socket.send(bytes(data_msg[TLS]))
 
             if self.__messages["TLS_FIRST_DATA"][0] == 0:
@@ -433,8 +428,9 @@ class ServerHandshake:
                         return
 
                     else:
-                        self.__messages["TLS_FIRST_DATA"] = 1, self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
-                        print(self.__messages["TLS_FIRST_DATA"])
+                        decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
+                        self.__messages["TLS_FIRST_DATA"] = 1, decrypted_data
+
                         return enc_key
 
         elif self.__messages["TLS_FIRST_DATA"][0] == 1:
