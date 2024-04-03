@@ -10,13 +10,27 @@ RUN mkdir C:\\app
 # Set the working directory
 WORKDIR C:\\app
 
+# Define the custom installation directory
+ENV PYTHON_INSTALL_DIR="\\Python3"
+
+# Download Python 3.11 installer from the official Python website
+ADD https://www.python.org/ftp/python/3.11.0/python-3.11.0-amd64.exe python-installer\\python-3.11.0.exe
+
+# Install Python 3.11 to the custom directory (/quiet)
+RUN python-installer\\python-3.11.0.exe /quiet TargetDir="C:\\Python3"
+
+# Debugging: Check the existence of the Python installation directory using PowerShell
+RUN powershell -Command "Get-ChildItem -Path C:\\"
+
+# Manually add Python to PATH and verify Python installation
+RUN setx PATH "%PATH%;C:\Python3" /M
+ENV PATH="%PATH%;C:\Python3"
+
+# Check Python version
+RUN python --version
+
 # Copy the current directory contents into the container at /app
 COPY . .
-
-# Download and install Python 3.11 from a community source (replace with a valid URL)
-#RUN powershell -ExecutionPolicy Bypass -Command Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://example.com/python-3.11-windows.msi') -NoProfile -InputFormat None
-
-#RUN pip install -r requirements.txt
 
 # Set the entrypoint command to run your Python script
 ENTRYPOINT [ "python", "Game/src/code/security_server.py" ]
