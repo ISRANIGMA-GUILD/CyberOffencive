@@ -28,7 +28,6 @@ NEW_CREDENTIALS = []
 SUCCESSES = {}
 MESSAGES = []
 LOCATIONS = {}
-CHAT = {}
 MAX_CLIENT = 5
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Cash', 'Status'],
               "NODUP": ['Username', 'Password'], "DUP": ['Cash', 'Status']}
@@ -53,6 +52,7 @@ class Server:
         # """:TODO(almost finished): Check if users are banned """#
         # """:TODO: Check if an emoji is typed """#
         # """:TODO: Check if users cheat(in speed, cash etc.) """#
+        # """:TODO: Create chat """#
         # """:TODO(almost finished): Connect to docker """#
         # """:TODO(almost finished): Return details after login """#
         # """:TODO: Block connections from banned users """#
@@ -60,7 +60,6 @@ class Server:
         # """:TODO: Loading screen between menu and login screens """#
         # """:TODO: Split register and login """#
         # """:TODO: Limit conditions for kick due to manipulated handshakes """#
-        # """:TODO: Merge with load balancer """#
 
         main_cursor = self.__main_data_base.get_cursor()
         main_cursor.execute("SELECT Username, Password FROM PlayerDetails")
@@ -548,10 +547,9 @@ class Server:
             CREDENTIALS[str(index)] = None
             SUCCESSES[str(index)] = None
 
-            CHAT[str(index)] = None
             LOCATIONS[str(index)] = None
-
             KEY[str(index)] = None
+
             AUTHORITY_DATA[str(index)] = None
 
     def create_tls_handshake_threads(self, number_of_clients, lock):
@@ -642,20 +640,12 @@ class Server:
                     local_locations = LOCATIONS.copy()
                     local_locations.pop(str(i))
 
-                    local_messages = CHAT.copy()
-                    local_messages.pop(str(i))
-
-                    list_data = local_locations, local_messages
-                    byte_data = pickle.dumps(list_data)
-
+                    byte_data = pickle.dumps(local_locations)
                     en = self.encrypt_data(KEY[str(i)][0], byte_data, KEY[str(i)][1])
                     CLIENTS[str(i)].send(bytes(self.create_message(en)[TLS]))
 
                 except ConnectionResetError:
                     pass
-
-        for i in range(0, len(CHAT)):
-            CHAT[str(i)] = None
 
     def receive_credentials(self, lock, number, list_of_existing, list_of_existing_resources):
         """
@@ -763,8 +753,8 @@ class Server:
                     if decrypted_data.decode()[0] == 'L':
                         LOCATIONS[str(index_of_client)] = decrypted_data
 
-                    elif decrypted_data.decode()[0:4] == 'CHAT':
-                        CHAT[str(index_of_client)] = decrypted_data
+                    else:
+                        print("Client", index_of_client + 1, "says", decrypted_data)
 
                     if decrypted_data == b'EXIT':
                         print("Client", index_of_client + 1, client_socket.getpeername(), "has left the server")
@@ -923,6 +913,18 @@ class Server:
                                          values=(CREDENTIALS[str(client_number)][0],
                                                  CREDENTIALS[str(client_number)][1])))
 
+    def send_to_chat(self):
+        """
+
+        """
+
+        for client_number in range(0, len(CLIENTS)):
+            if CLIENTS[str(client_number)] is not None:
+                encrypted_data = self.encrypt_data(KEY[str(client_number)][0], MESSAGES[0], KEY[str(client_number)][1])
+                CLIENTS[str(client_number)].send(bytes(self.create_message(encrypted_data)[TLS]))
+
+        MESSAGES.pop(0)
+
     def update_database(self):
         """
 
@@ -940,6 +942,8 @@ def main():
     secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
     login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
+
+    print(login_data_base.get_content())
 
     server = Server(main_data_base, login_data_base, secure_socket)
     server.run()

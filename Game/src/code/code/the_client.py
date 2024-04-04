@@ -107,15 +107,8 @@ class Client:
         """
 
         server_port = int(RandShort())
-        while True:
-            if server_port == 443:
-                server_port += 1
-
-            elif server_port < 80:
-                server_port = int(RandShort())
-
-            else:
-                break
+        if server_port == 443:
+            server_port += 1
 
         return server_port
 
@@ -502,15 +495,12 @@ class Client:
 
         return False
 
-    def communicate(self, location, prev_location, chat_message):
+    def communicate(self, location, prev_location):
         """
 
         :param location:
         :param prev_location:
-        :param chat_message:
         """
-        if chat_message:
-            self.send_chat_message(chat_message)
 
         if location != prev_location:
             self.change_location(location)
@@ -520,74 +510,6 @@ class Client:
             return self.receive_location(key, auth)
 
         return
-
-    def send_chat_message(self, chat_message):
-        """
-
-        :param chat_message:
-        """
-
-        if 1 not in KEY:
-            key, auth = KEY['encryption'][0], KEY['encryption'][1]
-            try:
-                message = str(chat_message)
-
-                if not self.malicious_message(message):
-                    message = message.encode()
-
-                    data = [self.encrypt_data(key, message, auth)]
-                    full_msg = self.create_message(data)
-
-                    if type(full_msg) is list:
-                        for index in range(0, len(full_msg)):
-                            message = full_msg[index]
-                            self.__the_client_socket.send(bytes(message[TLS]))
-
-                    else:
-                        self.__the_client_socket.send(bytes(full_msg[TLS]))
-
-                    if message == 'EXIT':
-                        self.__the_client_socket.close()
-                        return
-                else:
-                    print("Illegal")
-
-            except ConnectionResetError:
-                message = 'EXIT'.encode()
-                data = [self.encrypt_data(key, message, auth)]
-
-                full_msg = self.create_message(data)
-                self.__the_client_socket.send(bytes(full_msg[TLS]))
-
-                self.__the_client_socket.close()
-                return
-
-            except ConnectionRefusedError:
-                print("Retrying")
-
-            except ConnectionAbortedError:
-                message = 'EXIT'.encode()
-                data = [self.encrypt_data(key, message, auth)]
-
-                full_msg = self.create_message(data)
-                self.__the_client_socket.send(bytes(full_msg[TLS]))
-
-                self.__the_client_socket.close()
-                return
-
-            except socket.timeout:
-                return
-
-            except KeyboardInterrupt:
-                print("Server is shutting down")
-                message = 'EXIT'.encode()
-
-                data = [self.encrypt_data(key, message, auth)]
-                full_msg = self.create_message(data)
-
-                self.__the_client_socket.send(bytes(full_msg[TLS]))
-                self.__the_client_socket.close()
-                return
 
     def change_location(self, location):
 

@@ -31,6 +31,8 @@ class Game:
         self.text_surface = 0
         self.prev_loc = 0
 
+        self.__message = ""
+
     def run(self) -> None:
         """
 
@@ -57,9 +59,12 @@ class Game:
                         break
 
             if game_state == "continue":
-             #   keys = pygame.key.get_pressed()
-              #  if keys[pygame.K_m]:
-            #        chat = self.start_chat()
+                self.__message = ""
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_m]:
+                    self.__message = self.start_chat()
+                    print(f"You:", self.__message[5:])
+
                 pygame.display.set_caption("Cyber Offensive")
                 self.new_frame_time = time.time()
                 self.screen.fill((0, 0, 0))
@@ -74,7 +79,7 @@ class Game:
                 self.screen.blit(self.text_surface, (50, 10))
                 current_loc = self.level.player.get_location()
 
-                other_client = self.network.communicate(current_loc, self.prev_loc)
+                other_client = self.network.communicate(current_loc, self.prev_loc, self.__message)
                 current_loc = current_loc[2:len(current_loc)].split(' ')
 
                 current_loc = (int(current_loc[0]), int(current_loc[1]))
@@ -85,36 +90,76 @@ class Game:
 
                 elif type(other_client) is bytes:
                     other_client = pickle.loads(other_client)
-                    other_client = list(other_client.values())
 
-                    other_client = [(other_client[i].decode().split(' ')[1],
-                                    (other_client[i].decode().split(' ')[2]))
-                                    for i in range(0, len(other_client))
-                                    if other_client[i] is not None]
+                    if type(other_client) is list or type(other_client) is tuple:
+                        self.__message = list(other_client[1].values())
+                        locations = list(other_client[0].values())
 
-                    other_coordinates = [(int(other_client[i][0]), int(other_client[i][1]))
-                                         for i in range(0, len(other_client))
-                                         if other_client[i][0].isnumeric() and other_client[i][1].isnumeric()]
-                    prev_loc_other = [other_coordinates[i] for i in range(0, len(other_coordinates))
-                                      if prev_loc_other != other_coordinates[i]]
+                        for i in range(0, len(self.__message)):
+                            if self.__message[i] is not None:
+                                print(f"Client {i+1}:", self.__message[i].decode()[5:])
 
-                    if temp_p:
-                        for i in range(0, len(temp_p)):
-                            self.level.visible_sprites.remove(temp_p[i])
+                        other_client = locations
+                        other_client = [(other_client[i].decode().split(' ')[1],
+                                         (other_client[i].decode().split(' ')[2]))
+                                        for i in range(0, len(other_client))
+                                        if other_client[i] is not None]
 
-                            self.level.obstacles_sprites.remove(temp_p[i])
-                            temp_p[i].kill()
+                        other_coordinates = [(int(other_client[i][0]), int(other_client[i][1]))
+                                             for i in range(0, len(other_client))
+                                             if other_client[i][0].isnumeric() and other_client[i][1].isnumeric()]
+                        prev_loc_other = [other_coordinates[i] for i in range(0, len(other_coordinates))
+                                          if prev_loc_other != other_coordinates[i]]
 
-                    temp_p = []
+                        if temp_p:
+                            for i in range(0, len(temp_p)):
+                                self.level.visible_sprites.remove(temp_p[i])
 
-                    p_image = pygame.image.load('C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\brawn_idle.png').convert_alpha()
+                                self.level.obstacles_sprites.remove(temp_p[i])
+                                temp_p[i].kill()
 
-                    for i in range(0, len(prev_loc_other)):
-                        player_remote = Tile(position=prev_loc_other[i],
-                                             groups=[self.level.visible_sprites, self.level.obstacles_sprites],
-                                             sprite_type=PLAYER_OBJECT, surface=p_image)
+                        temp_p = []
 
-                        temp_p.append(player_remote)
+                        p_image = pygame.image.load(
+                            'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\brawn_idle.png').convert_alpha()
+
+                        for i in range(0, len(prev_loc_other)):
+                            player_remote = Tile(position=prev_loc_other[i],
+                                                 groups=[self.level.visible_sprites, self.level.obstacles_sprites],
+                                                 sprite_type=PLAYER_OBJECT, surface=p_image)
+
+                            temp_p.append(player_remote)
+                    else:
+                        other_client = list(other_client.values())
+
+                        other_client = [(other_client[i].decode().split(' ')[1],
+                                        (other_client[i].decode().split(' ')[2]))
+                                        for i in range(0, len(other_client))
+                                        if other_client[i] is not None]
+
+                        other_coordinates = [(int(other_client[i][0]), int(other_client[i][1]))
+                                             for i in range(0, len(other_client))
+                                             if other_client[i][0].isnumeric() and other_client[i][1].isnumeric()]
+                        prev_loc_other = [other_coordinates[i] for i in range(0, len(other_coordinates))
+                                          if prev_loc_other != other_coordinates[i]]
+
+                        if temp_p:
+                            for i in range(0, len(temp_p)):
+                                self.level.visible_sprites.remove(temp_p[i])
+
+                                self.level.obstacles_sprites.remove(temp_p[i])
+                                temp_p[i].kill()
+
+                        temp_p = []
+
+                        p_image = pygame.image.load('C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\brawn_idle.png').convert_alpha()
+
+                        for i in range(0, len(prev_loc_other)):
+                            player_remote = Tile(position=prev_loc_other[i],
+                                                 groups=[self.level.visible_sprites, self.level.obstacles_sprites],
+                                                 sprite_type=PLAYER_OBJECT, surface=p_image)
+
+                            temp_p.append(player_remote)
 
                     pygame.display.flip()
 
@@ -141,6 +186,10 @@ class Game:
 
         pygame.display.update()
 
+    def start_chat(self):
+
+        message = f"CHAT {input()}"
+        return message
 
 def main() -> None:
     abspath = os.path.abspath(__file__)
