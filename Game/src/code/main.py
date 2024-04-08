@@ -11,6 +11,7 @@ import pickle
 IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\LoginScreen\\menuscreen.png'
 BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\'
 
+
 class Game:
     def __init__(self) -> None:
         pygame.init()
