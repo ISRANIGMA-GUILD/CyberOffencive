@@ -1,15 +1,6 @@
 from scapy.all import *
 from scapy.layers.l2 import *
-from scapy.layers.dns import *
-from scapy.layers.tls.all import *
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives.kdf.hkdf import HKDF
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives import serialization
 from client_handshake import *
-import time
 import socket
 import pygame
 
@@ -46,6 +37,7 @@ class Client:
 
         """
         try:
+            count = 0
             server_ip, server_port = self.format_socket()
             res, server_port = self.first_contact(server_ip, server_port)
 
@@ -55,6 +47,11 @@ class Client:
                     break
 
                 except ConnectionRefusedError:
+                    count += 1
+                    if count == 3:
+                        server_ip, server_port = self.format_socket()
+                        res, server_port = self.first_contact(server_ip, server_port)
+                        count = 0
                     pass
 
             if res[Raw].load == b'Accept':
@@ -171,7 +168,7 @@ class Client:
         sendp(tcp_packet)
 
         while True:
-            vert = sniff(count=1, lfilter=self.filter_tcp, timeout=20)
+            vert = sniff(count=1, lfilter=self.filter_tcp, timeout=0.01)
             if not vert:
                 sendp(tcp_packet)
 
@@ -186,6 +183,7 @@ class Client:
 
                 else:
                     break
+        vert.show()
 
         res = vert[0]
 

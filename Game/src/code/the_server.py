@@ -1,14 +1,9 @@
-import time
-from scapy.all import *
-from scapy.layers.l2 import *
-from cryptography.hazmat.primitives.serialization import *
 from client_handshake import *
 from server_handshake import *
 import socket
 from DatabaseCreator import *
 import os
 import threading
-import hashlib
 import pickle
 
 SYN = 2
@@ -43,6 +38,8 @@ class Server:
         self.__security_private_handshake = ClientHandshake(self.__secure_socket, MY_IP, SECURITY_PORT)
         self.__private_security_key = 0
         self.__private_message = 0
+        self.__number_of_clients = 1
+        self.__index_client = 0
 
     def run(self):
         """
@@ -56,11 +53,12 @@ class Server:
         # """:TODO(almost finished): Connect to docker """#
         # """:TODO(almost finished): Return details after login """#
         # """:TODO: Block connections from banned users """#
-        # """:TODO: Send coordinates only when they change and if new client connects """#
+        # """:TODO: Send coordinates only when they change and if new client connects(due a technicality this might be removed) """#
         # """:TODO: Loading screen between menu and login screens """#
         # """:TODO: Split register and login """#
         # """:TODO: Limit conditions for kick due to manipulated handshakes """#
         # """:TODO: Merge with load balancer """#
+        # """:TODO: MAke sure all certificate vital data is randomized """#
 
         main_cursor = self.__main_data_base.get_cursor()
         main_cursor.execute("SELECT Username, Password FROM PlayerDetails")
@@ -85,15 +83,10 @@ class Server:
         self.security_first()
         print("The server will now wait for clients")
 
-        accepted_clients, port_list = self.receive_client_connection_request()
-        self.create_server_sockets(port_list)
-
-        the_server_sockets = SOCKETS
         lock = threading.Lock()
         print("Server is up and running")
 
-        self.accept_clients(accepted_clients, the_server_sockets)
-        self.handle_clients(accepted_clients, lock, list_of_existing_credentials, list_of_existing_resources)
+        self.handle_clients(lock, list_of_existing_credentials, list_of_existing_resources)
 
     def security_first(self):
         """
@@ -113,55 +106,59 @@ class Server:
 
         :return:
         """
+        important_connections = self.first_contact()
+        if not important_connections:
+            return
 
-        while True:
-            second, number_of_clients, server_port = self.first_contact()
+        else:
+            second, server_port = important_connections[0], important_connections[1]
+            messages = second[Raw].load
 
-            if second != 1 and number_of_clients != 0 and server_port != 1:
-                messages = [second[index][Raw].load for index in range(0, len(second))]
+            port_client = self.check_for_banned(messages, server_port)
 
-                print(number_of_clients)
-                accepted_clients, port_list = self.check_for_banned(number_of_clients, messages, server_port)
+            if not port_client:
+                return
 
-                if accepted_clients > 0:
-                    return accepted_clients, port_list
+            else:
+                return port_client
 
     def first_contact(self):
         """
          Answer a client that is trying to connect to the server
         :return:
         """
+        requests = self.receive_first_connections()
+        if not requests:
+            return
 
-        requests, number_of_clients = self.receive_first_connections()
-        list_responses = []
+        else:
+            list_responses = []
+            server_port = requests[TCP].dport
+            print(server_port)
 
-        server_port = [requests[index][TCP].dport for index in range(0, len(requests))]
-        print(server_port)
+            fixed_requests, fixed_connections = self.search_for_ddos(server_port, requests)
 
-        number_of_clients, fixed_requests, fixed_connections = self.search_for_ddos(server_port, requests)
+            list_responses = self.analyse_connections(fixed_requests, list_responses)
+            if not list_responses:
+                return
 
-        list_responses = self.analyse_connections(fixed_requests, list_responses)
-        if not list_responses:
-            return 1, 0, 1
+            self.verify_connection_success(list_responses)
+            print(fixed_connections)
 
-        self.verify_connection_success(number_of_clients, list_responses)
-
-        return list_responses, number_of_clients, fixed_connections
+            return requests, server_port
 
     def receive_first_connections(self):
         """
 
         :return:
         """
+        requests = sniff(count=1, lfilter=self.filter_tcp, timeout=0.1)
+        if not requests:
+            return
 
-        while True:
-            requests = sniff(count=MAX_CLIENT, lfilter=self.filter_tcp, timeout=20)
-            number_of_clients = len(requests)
-
-            if number_of_clients > 0 or number_of_clients == MAX_CLIENT:
-                break
-
-        return requests, number_of_clients
+        else:
+            requests.show()
+            return requests[0]
 
     def filter_tcp(self, packets):
         """
@@ -180,19 +177,15 @@ class Server:
         :return:
         """
 
-        fixed_connections = [server_port[index] for index in range(0, len(server_port))
-                             if server_port.count(server_port[index]) == 1]
+        fixed_connections = server_port
 
         print(fixed_connections)
         fixed_requests = []
 
-        for index in range(0, len(requests)):
-            if requests[index][TCP].dport in fixed_connections:
-                fixed_requests.append(requests[index])
+        if fixed_connections:
+            fixed_requests.append(requests)
 
-        number_of_clients = len(fixed_requests)
-
-        return number_of_clients, fixed_requests, fixed_connections
+        return fixed_requests, fixed_connections
 
     def analyse_connections(self, requests, list_responses):
         """
@@ -214,7 +207,6 @@ class Server:
 
         for index in range(0, len(list_responses)):
             sendp(list_responses[index])
-            time.sleep(2)
 
         return list_responses
 
@@ -274,46 +266,42 @@ class Server:
 
         return the_packet.__class__(bytes(the_packet))
 
-    def verify_connection_success(self, number_of_clients, list_responses):
+    def verify_connection_success(self, list_responses):
         """
 
-        :param number_of_clients:
         :param list_responses:
         """
 
         skip = []
 
-        while True:
-            requests = sniff(count=number_of_clients, lfilter=self.filter_tcp, timeout=20)
+        requests = sniff(count=1, lfilter=self.filter_tcp, timeout=0.1)
 
-            if len(skip) == number_of_clients or len(requests) == 0:
-                break
+        if not requests:
+            return
 
-            for index in range(0, len(requests)):
+        for index in range(0, len(requests)):
 
-                if index not in skip:
-                    if requests[index] is None:
-                        print("Connection success")
+            if index not in skip:
+                if requests[index] is None:
+                    print("Connection success")
 
-                    else:
-                        sendp(list_responses[index])
-                        skip.append(index)
-                        time.sleep(2)
+                else:
+                    sendp(list_responses[index])
+                    skip.append(index)
 
-    def check_for_banned(self, number_of_clients, messages, server_port):
+    def check_for_banned(self, messages, server_port):
         """
 
-        :param number_of_clients:
         :param messages:
         :param server_port:
         """
 
-        for index in range(0, number_of_clients):
-            if b'Denied' == messages[index]:
-                number_of_clients -= 1
-                server_port.pop(index)
+        if b'Denied' == messages:
+            if self.__number_of_clients >= 1:
+                self.__number_of_clients -= 1
+            server_port = None
 
-        return number_of_clients, server_port
+        return server_port
 
     def create_server_sockets(self, server_port):
         """
@@ -321,31 +309,30 @@ class Server:
         :param server_port:
         """
 
-        print(f"creating for {len(server_port)} clients", server_port)
-        for port_number in range(0, len(server_port)):
-            the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-            print(server_port[port_number])
+        print(f"creating for another clients", server_port)
+        the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        print(server_port)
 
-            the_server_socket.bind((THE_USUAL_IP, server_port[port_number]))  # Bind the server IP and Port into a tuple
-            SOCKETS[str(port_number)] = the_server_socket
+        the_server_socket.bind((THE_USUAL_IP, server_port))  # Bind the server IP and Port into a tuple
+        SOCKETS[str(self.__index_client)] = the_server_socket
 
-    def accept_clients(self, number_of_clients, the_server_socket):
+        return the_server_socket
+
+    def accept_clients(self, the_server_socket):
         """
 
-        :param number_of_clients:
         :param the_server_socket:
         :return:
         """
 
-        for number in range(0, number_of_clients):
-            the_server_socket[str(number)].listen()  # Listen to client
-            time.sleep(2)
+        the_server_socket.listen()  # Listen to client
+        connection, client_address = the_server_socket.accept()  # Accept clients request
 
-            connection, client_address = the_server_socket[str(number)].accept()  # Accept clients request
-            print(f"Client connected {connection.getpeername()}")
+        print(f"Client connected {connection.getpeername()}")
+        client_socket = connection
 
-            client_socket = connection
-            CLIENTS[str(number)] = client_socket
+        CLIENTS[str(self.__index_client)] = client_socket
+        self.__number_of_clients += 1
 
     def tls_handshake(self, lock, handshake, number):
         """
@@ -488,27 +475,26 @@ class Server:
         CREDENTIALS[str(number)] = (user, passw)
         print(CREDENTIALS)
 
-    def handle_clients(self, number_of_clients, lock, list_of_existing, list_of_existing_resources):
+    def handle_clients(self, lock, list_of_existing, list_of_existing_resources):
         """
 
         :param list_of_existing:
-        :param number_of_clients:
         :param lock:
         :param list_of_existing_resources:
         """
 
-        self.create_credential_list(number_of_clients)
-
         while True:
             try:
+                self.create_credential_list()
 
-                tls_handshakes = self.create_tls_handshake_threads(number_of_clients, lock)
+                connection_threads = self.create_connection_threads(lock)
 
-                login_threads = self.create_credential_threads(number_of_clients, lock,
-                                                               list_of_existing, list_of_existing_resources)
-                response_threads = self.create_responders(number_of_clients, lock)
+                tls_handshakes = self.create_tls_handshake_threads(lock)
 
-                self.start_handling(number_of_clients, response_threads, login_threads, tls_handshakes)
+                login_threads = self.create_credential_threads(lock, list_of_existing, list_of_existing_resources)
+                response_threads = self.create_responders(lock)
+
+                self.start_handling(connection_threads, response_threads, login_threads, tls_handshakes)
 
                 if self.empty_server():
                     self.update_database()
@@ -518,6 +504,7 @@ class Server:
                     break
 
             except AttributeError:
+                print("wait")
                 pass
 
             except ConnectionResetError:
@@ -538,43 +525,57 @@ class Server:
 
         print("FINISH")
 
-    def create_credential_list(self, number_of_clients):
+    def create_credential_list(self):
         """
 
-        :param number_of_clients:
         """
 
-        for index in range(0, number_of_clients):
-            CREDENTIALS[str(index)] = None
-            SUCCESSES[str(index)] = None
+        CREDENTIALS[str(self.__number_of_clients-1)] = None
+        SUCCESSES[str(self.__number_of_clients-1)] = None
 
-            CHAT[str(index)] = None
-            LOCATIONS[str(index)] = None
+        CHAT[str(self.__number_of_clients-1)] = None
+        LOCATIONS[str(self.__number_of_clients-1)] = None
 
-            KEY[str(index)] = None
-            AUTHORITY_DATA[str(index)] = None
+        KEY[str(self.__number_of_clients-1)] = None
+        AUTHORITY_DATA[str(self.__number_of_clients-1)] = None
 
-    def create_tls_handshake_threads(self, number_of_clients, lock):
+        SOCKETS[str(self.__number_of_clients-1)] = None
+        CLIENTS[str(self.__number_of_clients-1)] = None
+
+    def create_connection_threads(self, lock):
         """
 
-        :param number_of_clients:
         :param lock:
         :return:
         """
 
         threads = []
 
-        for number in range(0, number_of_clients):
+        for number in range(0, self.__number_of_clients):
+            the_thread = threading.Thread(target=self.receive_connections, args=(lock,))
+            threads.append(the_thread)
+
+        return threads
+
+    def create_tls_handshake_threads(self, lock):
+        """
+
+        :param lock:
+        :return:
+        """
+
+        threads = []
+
+        for number in range(0, self.__number_of_clients):
             handshake = ServerHandshake(CLIENTS[str(number)])
             the_thread = threading.Thread(target=self.tls_handshake, args=(lock, handshake, number))
             threads.append(the_thread)
 
         return threads
 
-    def create_credential_threads(self, number_of_clients, lock, list_of_existing, list_of_existing_resources):
+    def create_credential_threads(self, lock, list_of_existing, list_of_existing_resources):
         """
 
-        :param number_of_clients:
         :param lock:
         :param list_of_existing:
         :param list_of_existing_resources:
@@ -583,40 +584,43 @@ class Server:
 
         threads = []
 
-        for number in range(0, number_of_clients):
+        for number in range(0, self.__number_of_clients):
             the_thread = threading.Thread(target=self.receive_credentials,
                                           args=(lock, number, list_of_existing, list_of_existing_resources))
             threads.append(the_thread)
 
         return threads
 
-    def create_responders(self, number_of_clients, lock):
+    def create_responders(self, lock):
         """
 
-        :param number_of_clients:
         :param lock:
         :return:
         """
 
         threads = []
 
-        for number in range(0, number_of_clients):
+        for number in range(0, self.__number_of_clients):
             the_thread = threading.Thread(target=self.respond_to_client, args=(lock, number,))
             threads.append(the_thread)
 
         return threads
 
-    def start_handling(self, number_of_clients, response_threads, login_threads, tls_handshakes):
+    def start_handling(self, connection_threads, response_threads, login_threads, tls_handshakes):
         """
 
-        :param number_of_clients:
+        :param connection_threads:
         :param response_threads:
         :param login_threads:
         :param tls_handshakes:
         """
 
-        for index in range(0, number_of_clients):
-            if KEY[str(index)] is None:
+        for index in range(0, self.__number_of_clients):
+            if CLIENTS[str(index)] is None:
+                self.__index_client = index
+                connection_threads[index].start()
+
+            elif CLIENTS[str(index)] is not None and KEY[str(index)] is None:
                 tls_handshakes[index].start()
 
             elif CLIENTS[str(index)] is not None and CREDENTIALS[str(index)] is None:
@@ -625,8 +629,11 @@ class Server:
             elif CREDENTIALS[str(index)] is not None and CLIENTS[str(index)] is not None:
                 response_threads[index].start()
 
-        for index in range(0, number_of_clients):
-            if tls_handshakes[index].is_alive():
+        for index in range(0, self.__number_of_clients):
+            if connection_threads[index].is_alive():
+                connection_threads[index].join()
+
+            elif tls_handshakes[index].is_alive():
                 tls_handshakes[index].join()
 
             elif login_threads[index].is_alive():
@@ -635,7 +642,7 @@ class Server:
             elif response_threads[index].is_alive():
                 response_threads[index].join()
 
-        for i in range(0, len(CLIENTS)):
+        for i in range(0, len(CLIENTS.keys())):
             if LOCATIONS is not None and CLIENTS[str(i)] is not None and CREDENTIALS[str(i)] is not None \
                and KEY[str(i)] is not None:
                 try:
@@ -656,6 +663,29 @@ class Server:
 
         for i in range(0, len(CHAT)):
             CHAT[str(i)] = None
+
+    def receive_connections(self, lock):
+        """
+
+        :param lock:
+        """
+
+        lock.acquire()
+        port_client = self.receive_client_connection_request()
+        if not port_client:
+            lock.release()
+            return
+
+        else:
+            the_server_socket = self.create_server_sockets(port_client)
+            if the_server_socket is None:
+                lock.release()
+                return
+
+            else:
+                self.accept_clients(the_server_socket)
+                lock.release()
+                return
 
     def receive_credentials(self, lock, number, list_of_existing, list_of_existing_resources):
         """
@@ -809,8 +839,7 @@ class Server:
         :return:
         """
 
-        count_none = [client for client in range(0, len(CLIENTS)) if CLIENTS[str(client)] is None]
-        return len(count_none) == len(CLIENTS)
+        return self.__number_of_clients == 0
 
     def check_account(self, client_number, list_of_existing, list_of_existing_resources):
         """
@@ -841,7 +870,7 @@ class Server:
                 if tuple_of_credentials in list_of_existing:
 
                     if list_of_existing_resources[client_number][1] != "Banned":
-                        print("Succcessful")
+                        print("Successful")
                         success = f"Success {list_of_existing_resources[client_number]}".encode()
                         success_msg = self.encrypt_data(KEY[str(client_number)][0], success, KEY[str(client_number)][1])
 
@@ -931,6 +960,10 @@ class Server:
         for index in range(0, len(NEW_CREDENTIALS)):
             self.__login_data_base.insert_no_duplicates(values=[NEW_CREDENTIALS[index][0], NEW_CREDENTIALS[index][1]],
                                                         no_duplicate_params=PARAMETERS["NODUP"])
+
+    def get_local_client_details(self):
+
+        return self.__main_data_base, self.__login_data_base,
 
 
 def main():

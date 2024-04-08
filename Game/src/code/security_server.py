@@ -1,7 +1,6 @@
 from server_handshake import *
 from DatabaseCreator import *
 
-
 SYN = 2
 FIN = 1
 ACK = 16
@@ -50,6 +49,7 @@ class Security:
 
                 print("Client connected")
                 service_socket = connection
+
                 if i == 0:
                     self.security_start(service_socket)
                     i += 1
@@ -103,7 +103,7 @@ class Security:
         service_socket.settimeout(0.1)
         while True:
             try:
-                self.find_ddos_attempt()
+               # self.find_ddos_attempt()
 
                 data = service_socket.recv(MAX_MSG_LENGTH)
 
@@ -146,6 +146,7 @@ def main():
     the_server_socket.bind((MY_IP, SECURITY_PORT))  # Bind the server IP and Port into a tuple
 
     the_server_socket.listen(1)  # Listen to client
+
     security = Security(database, the_server_socket)
     security.run()
 

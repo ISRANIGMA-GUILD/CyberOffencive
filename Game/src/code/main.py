@@ -1,5 +1,5 @@
-import pygame
-import sys
+import pygame.display
+
 from level import *
 from settings import *
 from the_client import *
@@ -9,7 +9,7 @@ import os
 import pickle
 
 IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\LoginScreen\\menuscreen.png'
-
+BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\'
 
 class Game:
     def __init__(self) -> None:
@@ -51,8 +51,28 @@ class Game:
                 game_state = "game"
 
             if game_state == "game":
+                loading_screen_image = pygame.image.load(f'{BASE_PATH}LoginScreen\\menuscreen.png').convert()
+
+                # Font for loading text
+                font = pygame.font.Font(None, 32)
+
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_SPACE]:
+                    for i in range(100):
+                        # Clear the screen
+                        self.screen.fill(BLACK)
+
+                        # Blit the background image (if loaded)
+                        if loading_screen_image:
+                            self.screen.blit(loading_screen_image, (0, 0))
+
+                        # Display loading tex
+
+                        # Update the display
+                        pygame.display.flip()
+
+                        # Simulate some loading time
+                        pygame.time.delay(10)  # Adjust delay as needed
                     ran = self.network.run()
                     game_state = "continue"
                     if ran == 1:
@@ -63,7 +83,10 @@ class Game:
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_m]:
                     self.__message = self.start_chat()
-                    print(f"You:", self.__message[5:])
+                    if self.__message is None:
+                        pass
+                    else:
+                        print(f"You:", self.__message[5:])
 
                 pygame.display.set_caption("Cyber Offensive")
                 self.new_frame_time = time.time()
@@ -100,28 +123,13 @@ class Game:
                                 print(f"Client {i+1}:", self.__message[i].decode()[5:])
 
                         other_client = locations
-                        other_client = [(other_client[i].decode().split(' ')[1],
-                                         (other_client[i].decode().split(' ')[2]))
-                                        for i in range(0, len(other_client))
-                                        if other_client[i] is not None]
+                        prev_loc_other, other_client = self.get_new_locations(other_client, prev_loc_other)
 
-                        other_coordinates = [(int(other_client[i][0]), int(other_client[i][1]))
-                                             for i in range(0, len(other_client))
-                                             if other_client[i][0].isnumeric() and other_client[i][1].isnumeric()]
-                        prev_loc_other = [other_coordinates[i] for i in range(0, len(other_coordinates))
-                                          if prev_loc_other != other_coordinates[i]]
-
-                        if temp_p:
-                            for i in range(0, len(temp_p)):
-                                self.level.visible_sprites.remove(temp_p[i])
-
-                                self.level.obstacles_sprites.remove(temp_p[i])
-                                temp_p[i].kill()
-
+                        self.erase_previous(temp_p)
                         temp_p = []
 
                         p_image = pygame.image.load(
-                            'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\brawn_idle.png').convert_alpha()
+                            f'{BASE_PATH}brawn_idle.png').convert_alpha()
 
                         for i in range(0, len(prev_loc_other)):
                             player_remote = Tile(position=prev_loc_other[i],
@@ -132,27 +140,12 @@ class Game:
                     else:
                         other_client = list(other_client.values())
 
-                        other_client = [(other_client[i].decode().split(' ')[1],
-                                        (other_client[i].decode().split(' ')[2]))
-                                        for i in range(0, len(other_client))
-                                        if other_client[i] is not None]
+                        prev_loc_other, other_client = self.get_new_locations(other_client, prev_loc_other)
 
-                        other_coordinates = [(int(other_client[i][0]), int(other_client[i][1]))
-                                             for i in range(0, len(other_client))
-                                             if other_client[i][0].isnumeric() and other_client[i][1].isnumeric()]
-                        prev_loc_other = [other_coordinates[i] for i in range(0, len(other_coordinates))
-                                          if prev_loc_other != other_coordinates[i]]
-
-                        if temp_p:
-                            for i in range(0, len(temp_p)):
-                                self.level.visible_sprites.remove(temp_p[i])
-
-                                self.level.obstacles_sprites.remove(temp_p[i])
-                                temp_p[i].kill()
-
+                        self.erase_previous(temp_p)
                         temp_p = []
 
-                        p_image = pygame.image.load('C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\brawn_idle.png').convert_alpha()
+                        p_image = pygame.image.load(f'{BASE_PATH}brawn_idle.png').convert_alpha()
 
                         for i in range(0, len(prev_loc_other)):
                             player_remote = Tile(position=prev_loc_other[i],
@@ -188,17 +181,108 @@ class Game:
 
     def start_chat(self):
 
-        message = f"CHAT {input()}"
-        return message
+        username = ""
 
-def main() -> None:
+        font = pygame.font.SysFont('arial', 32)
+        entering_username = True
+
+        while True:
+
+            if entering_username:
+                if len(username) < 20:
+                    self.draw_text(username, font, BLACK, self.screen, 166, 100)
+                elif 20 < len(username) < 40:
+                    self.draw_text(username[21:], font, BLACK, self.screen, 166, 100)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_BACKSPACE:
+                        if entering_username:
+                            if username:
+                                username = username[0:len(username)-1]
+                                pygame.display.flip()
+
+                    elif event.key == pygame.K_RETURN:
+                        if entering_username:
+                            entering_username = False
+
+                            if username is not None:
+                                return username
+                            else:
+                                return
+
+                    elif event.key == pygame.K_m:
+                        return username
+
+                    else:
+                        if entering_username:
+                            username += event.unicode
+
+            pygame.display.update()
+
+    def draw_text(self, text, font, color, surface, x, y):
+        """
+
+        :param text:
+        :param font:
+        :param color:
+        :param surface:
+        :param x:
+        :param y:
+        """
+
+        text_tobj = font.render(text, 1, color)
+        text_rect = text_tobj.get_rect()
+
+        text_rect.topleft = (x, y)
+        surface.blit(text_tobj, text_rect)
+
+    def get_new_locations(self, other_client, prev_loc_other):
+        """
+
+        :param other_client:
+        :param prev_loc_other:
+        :return:
+        """
+
+        other_client = [(other_client[i].decode().split(' ')[1],
+                         (other_client[i].decode().split(' ')[2]))
+                        for i in range(0, len(other_client))
+                        if other_client[i] is not None]
+
+        other_coordinates = [(int(other_client[i][0]), int(other_client[i][1]))
+                             for i in range(0, len(other_client))
+                             if other_client[i][0].isnumeric() and other_client[i][1].isnumeric()]
+        prev_loc_other = [other_coordinates[i] for i in range(0, len(other_coordinates))
+                          if prev_loc_other != other_coordinates[i]]
+
+        return prev_loc_other, other_client
+
+    def erase_previous(self, temp_p):
+        """
+
+        :param temp_p:
+        :return:
+        """
+
+        if temp_p:
+            for i in range(0, len(temp_p)):
+                self.level.visible_sprites.remove(temp_p[i])
+
+                self.level.obstacles_sprites.remove(temp_p[i])
+                temp_p[i].kill()
+
+
+def main():
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
+
     os.chdir(dname)
-
-    # TODO: create client and connect with server
-
     print("Starting Game!!!")
+
     game = Game()
     game.run()
 
