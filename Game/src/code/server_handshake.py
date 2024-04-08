@@ -74,7 +74,7 @@ class ServerHandshake:
          The tcp handshake
         :return: The ack packet and the server port used the client will use
         """
-        self.__client_socket.settimeout(0.5)
+        self.__client_socket.settimeout(0.2)
 
         try:
             first_packet = self.__client_socket.recv(MSG_TCP_PACK)
@@ -88,20 +88,27 @@ class ServerHandshake:
                 syn_packet = TCP(first_packet)
 
                 syn_packet = syn_packet
-                clients_letter = syn_packet[Raw].load[0:2]
+                if Raw not in syn_packet:
+                    return
 
-                response = self.create_response(syn_packet)
-                self.__client_socket.send(bytes(response[TCP]))
+                else:
+                    clients_letter = syn_packet[Raw].load[0:2]
 
-                self.__client_socket.settimeout(0.5)
-                last_pack = self.__client_socket.recv(MSG_TCP_PACK)
+                    response = self.create_response(syn_packet)
+                    self.__client_socket.send(bytes(response[TCP]))
 
-                ack_packet = TCP(last_pack)
+                    self.__client_socket.settimeout(0.1)
+                    last_pack = self.__client_socket.recv(MSG_TCP_PACK)
 
-                clients_dot = ack_packet[Raw].load[0:4]
-                auth = clients_letter + clients_dot
+                    ack_packet = TCP(last_pack)
+                    if Raw not in ack_packet:
+                        return
 
-                return auth
+                    else:
+                        clients_dot = ack_packet[Raw].load[0:4]
+                        auth = clients_letter + clients_dot
+
+                        return auth
 
         except socket.timeout:
             print('retry')

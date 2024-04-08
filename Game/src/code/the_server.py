@@ -45,20 +45,21 @@ class Server:
         """
 
         """
-        # """:TODO: Add anti ddos functions and check for session injection vulnerabilities """#
-        # """:TODO: Try to speed the pre handshake(scapy) """#
+        # """:TODO: Add and fix, anti ddos functions and check for session injection vulnerabilities """#
         # """:TODO(almost finished): Check if users are banned """#
         # """:TODO: Check if an emoji is typed """#
         # """:TODO: Check if users cheat(in speed, cash etc.) """#
-        # """:TODO(almost finished): Connect to docker """#
-        # """:TODO(almost finished): Return details after login """#
+        # """:TODO(finished?): Connect to docker """#
+        # """:TODO(finished?): Return details after login """#
         # """:TODO: Block connections from banned users """#
-        # """:TODO: Send coordinates only when they change and if new client connects(due a technicality this might be removed) """#
+        # """:TODO: Send coordinates only when they change """#
+        # """:TODO: if new client connects(due a technicality this might be removed) """#
         # """:TODO: Loading screen between menu and login screens """#
         # """:TODO: Split register and login """#
         # """:TODO: Limit conditions for kick due to manipulated handshakes """#
         # """:TODO: Merge with load balancer """#
         # """:TODO: MAke sure all certificate vital data is randomized """#
+        # """:TODO: Check for missing data during communication, and  communication deadlock"""#
 
         main_cursor = self.__main_data_base.get_cursor()
         main_cursor.execute("SELECT Username, Password FROM PlayerDetails")
@@ -106,6 +107,7 @@ class Server:
 
         :return:
         """
+
         important_connections = self.first_contact()
         if not important_connections:
             return
@@ -127,6 +129,7 @@ class Server:
          Answer a client that is trying to connect to the server
         :return:
         """
+
         requests = self.receive_first_connections()
         if not requests:
             return
@@ -308,7 +311,7 @@ class Server:
 
         :param server_port:
         """
-
+        #####Deadlock occurs here
         print(f"creating for another clients", server_port)
         the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
         print(server_port)
@@ -324,9 +327,12 @@ class Server:
         :param the_server_socket:
         :return:
         """
-
+        #####Deadlock occurs here
+        print("Stopped?beforelisten")
         the_server_socket.listen()  # Listen to client
+        print("Stopped?afterlisten")
         connection, client_address = the_server_socket.accept()  # Accept clients request
+        print("Stopped?afteraccept")
 
         print(f"Client connected {connection.getpeername()}")
         client_socket = connection
@@ -485,15 +491,13 @@ class Server:
 
         while True:
             try:
-                self.create_credential_list()
-
+                self.update_credential_list()
                 connection_threads = self.create_connection_threads(lock)
 
                 tls_handshakes = self.create_tls_handshake_threads(lock)
-
                 login_threads = self.create_credential_threads(lock, list_of_existing, list_of_existing_resources)
-                response_threads = self.create_responders(lock)
 
+                response_threads = self.create_responders(lock)
                 self.start_handling(connection_threads, response_threads, login_threads, tls_handshakes)
 
                 if self.empty_server():
@@ -525,7 +529,7 @@ class Server:
 
         print("FINISH")
 
-    def create_credential_list(self):
+    def update_credential_list(self):
         """
 
         """
@@ -672,7 +676,7 @@ class Server:
 
         lock.acquire()
         port_client = self.receive_client_connection_request()
-        if not port_client:
+        if port_client is None:
             lock.release()
             return
 
@@ -767,7 +771,6 @@ class Server:
         """
 
         lock.acquire()
-        print(CHAT)
         if KEY[str(index_of_client)] is not None:
             client_socket = CLIENTS[str(index_of_client)]
             enc_key, auth = KEY[str(index_of_client)]

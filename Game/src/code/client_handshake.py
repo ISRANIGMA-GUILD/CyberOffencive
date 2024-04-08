@@ -1,6 +1,5 @@
 from scapy.layers.dns import *
 from scapy.layers.tls.all import *
-from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.padding import *
@@ -99,6 +98,7 @@ class ClientHandshake:
 
             except socket.timeout:
                 print('retry')
+                return
 
         res = TCP(server_response)
 
