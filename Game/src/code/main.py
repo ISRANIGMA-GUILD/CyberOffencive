@@ -209,7 +209,7 @@ class Game:
                         if entering_username:
                             entering_username = False
 
-                            if username is not None:
+                            if not entering_username:
                                 return username
                             else:
                                 return

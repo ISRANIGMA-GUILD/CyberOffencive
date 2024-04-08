@@ -767,6 +767,7 @@ class Server:
         """
 
         lock.acquire()
+        print(CHAT)
         if KEY[str(index_of_client)] is not None:
             client_socket = CLIENTS[str(index_of_client)]
             enc_key, auth = KEY[str(index_of_client)]
@@ -795,6 +796,7 @@ class Server:
 
                     elif decrypted_data.decode()[0:4] == 'CHAT':
                         CHAT[str(index_of_client)] = decrypted_data
+                        print(CHAT)
 
                     if decrypted_data == b'EXIT':
                         print("Client", index_of_client + 1, client_socket.getpeername(), "has left the server")
