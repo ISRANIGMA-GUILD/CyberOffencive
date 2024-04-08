@@ -1,10 +1,11 @@
-import pygame
 from entity import *
 from settings import *
 
+BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\'
+
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, position: tuple, groups, obstacle_sprites, path='C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\brawn_idle.png') -> None:
+    def __init__(self, position: tuple, groups, obstacle_sprites, path=f'{BASE_PATH}brawn_idle.png') -> None:
         super().__init__(groups)
         self.image = pygame.image.load(path).convert_alpha()
         self.rect = self.image.get_rect(topleft=position)
