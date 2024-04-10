@@ -329,15 +329,21 @@ class Server:
         """
         #####Deadlock occurs here
         print("Stopped?beforelisten")
-        the_server_socket.listen()  # Listen to client
+        the_server_socket.listen(1)  # Listen to client
         print("Stopped?afterlisten")
-        connection, client_address = the_server_socket.accept()  # Accept clients request
-        print("Stopped?afteraccept")
+        the_server_socket.settimeout(0.5)
+        try:
+            connection, client_address = the_server_socket.accept()  # Accept clients request
+            print("Stopped?afteraccept")
 
-        print(f"Client connected {connection.getpeername()}")
-        client_socket = connection
+            print(f"Client connected {connection.getpeername()}")
+            client_socket = connection
 
-        CLIENTS[str(self.__index_client)] = client_socket
+            CLIENTS[str(self.__index_client)] = client_socket
+
+        except socket.timeout:
+            return
+
         self.__number_of_clients += 1
 
     def tls_handshake(self, lock, handshake, number):
