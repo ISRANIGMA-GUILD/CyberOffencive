@@ -5,103 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Game/src/code/find_server.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/basic_com.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/basic_com.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/Database/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/Database/database.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate0.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate1.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate10.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate11.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate12.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate13.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate14.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate15.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate16.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate17.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate18.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate19.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate2.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate3.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate4.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate5.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate6.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate7.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate8.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/Certificate_crts/certificate9.crt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate0.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate1.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate10.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate11.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate12.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate13.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate14.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate15.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate16.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate17.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate18.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate19.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate2.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate3.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate4.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate5.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate6.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate7.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate8.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Certificates/certificate9.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Database/database.db" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/DatabaseCreator.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key0.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key1.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key10.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key11.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key12.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key13.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key14.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key15.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key16.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key17.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key18.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key19.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key2.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key3.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key4.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key5.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key6.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key7.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key8.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Keys/the_key9.pem" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/LoginScreen/login.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/LoginScreen/menuscreen.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/Setup1.vdproj" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/camera.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/certificate_creator.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/client_handshake.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/dist/cyberoffensive.msi" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/dist/main.exe" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/dist/thegame-SetupFiles/thegame.msi" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/dist/thegame-cache/cacheIndex.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/dist/thegame-cache/part2/disk1.cab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/dist/thegame-cache/part2/output-info.ini" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/dist/thegame.back-SetupFiles/thegame.back.msi" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/dist/thegame.back-cache/cacheIndex.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/dist/thegame.back-cache/part1/disk1.cab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/dist/thegame.back-cache/part1/output-info.ini" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/dist/thegame.back.back(20.7.1)-cache/cacheIndex.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/dist/thegame.back.back(20.7.1)-cache/part1/disk1.cab" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/dist/thegame.back.back(20.7.1)-cache/part1/output-info.ini" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/dist/thegame.back.back(20.7.1).aip" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/entity.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/level.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/main.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/player.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/security_server.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/server_handshake.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/settings.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/the_client.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/the_server.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/tile.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/code/utils.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/dist/main.exe" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/dist/main.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/find_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/find_server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/the_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_client.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/the_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_server.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TheGame" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TheGame/src/code/camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/camera.py" afterDir="false" />
@@ -141,39 +50,39 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "Python.DatabaseCreator.executor": "Run",
-    "Python.certificate_creator (1).executor": "Run",
-    "Python.certificate_creator.executor": "Run",
-    "Python.client (1).executor": "Run",
-    "Python.find_server.executor": "Run",
-    "Python.main (1).executor": "Run",
-    "Python.main.executor": "Run",
-    "Python.security_server (1).executor": "Run",
-    "Python.security_server (2).executor": "Run",
-    "Python.security_server.executor": "Run",
-    "Python.server (1).executor": "Run",
-    "Python.server_handshake.executor": "Run",
-    "Python.test_array.executor": "Run",
-    "Python.the_client (1).executor": "Run",
-    "Python.the_client.executor": "Run",
-    "Python.the_server (1).executor": "Run",
-    "Python.the_server.executor": "Run",
-    "Python.tls_client_oop (1).executor": "Run",
-    "Python.tls_client_oop.executor": "Run",
-    "Python.tls_server_oops (1).executor": "Run",
-    "Python.tls_server_oops.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "tls",
-    "last_opened_file_path": "C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/basic_com/Game/src/code",
-    "run.code.analysis.last.selected.profile": "aDefault",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;Python.DatabaseCreator.executor&quot;: &quot;Run&quot;,
+    &quot;Python.certificate_creator (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.certificate_creator.executor&quot;: &quot;Run&quot;,
+    &quot;Python.client (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.find_server.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.security_server (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.security_server (2).executor&quot;: &quot;Run&quot;,
+    &quot;Python.security_server.executor&quot;: &quot;Run&quot;,
+    &quot;Python.server (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.server_handshake.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test_array.executor&quot;: &quot;Run&quot;,
+    &quot;Python.the_client (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.the_client.executor&quot;: &quot;Run&quot;,
+    &quot;Python.the_server (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.the_server.executor&quot;: &quot;Run&quot;,
+    &quot;Python.tls_client_oop (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.tls_client_oop.executor&quot;: &quot;Run&quot;,
+    &quot;Python.tls_server_oops (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.tls_server_oops.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;tls&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/basic_com/Game/src/code&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Game\src\code" />
@@ -183,7 +92,7 @@
       <recent name="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Secure Game\Certificates\Certificate_crts" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.find_server">
+  <component name="RunManager" selected="Python.main (1)">
     <configuration name="find_server" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="basic_com" />
       <option name="ENV_FILES" value="" />
@@ -296,11 +205,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.find_server" />
         <item itemvalue="Python.the_server (1)" />
         <item itemvalue="Python.security_server (2)" />
         <item itemvalue="Python.main (1)" />
         <item itemvalue="Python.the_client" />
+        <item itemvalue="Python.find_server" />
       </list>
     </recent_temporary>
   </component>

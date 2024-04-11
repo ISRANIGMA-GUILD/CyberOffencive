@@ -54,6 +54,10 @@ class Client:
                         count = 0
                     pass
 
+                except TimeoutError:
+                    count = 0
+                    pass
+
             if res[Raw].load == b'Accept':
                 if 'encryption' not in KEY.keys():
                     self.initialize_handshakes(server_ip, server_port)
