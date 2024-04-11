@@ -45,6 +45,7 @@ class Server:
         """
 
         """
+        # """:TODO: Fix port already from the client side (seperate the accept_client and create socket functions) """#
         # """:TODO: Add and fix, anti ddos functions and check for session injection vulnerabilities """#
         # """:TODO(almost finished): Check if users are banned """#
         # """:TODO: Check if an emoji is typed """#
@@ -58,8 +59,8 @@ class Server:
         # """:TODO: Split register and login """#
         # """:TODO: Limit conditions for kick due to manipulated handshakes """#
         # """:TODO: Merge with load balancer """#
+        # """:TODO: Fix client exit unconfirmed when exiting before login """#
         # """:TODO: MAke sure all certificate vital data is randomized """#
-        # """:TODO: Check for missing data during communication, and  communication deadlock"""#
 
         main_cursor = self.__main_data_base.get_cursor()
         main_cursor.execute("SELECT Username, Password FROM PlayerDetails")
@@ -311,7 +312,6 @@ class Server:
 
         :param server_port:
         """
-        #####Deadlock occurs here
         print(f"creating for another clients", server_port)
         the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
         print(server_port)
@@ -327,18 +327,14 @@ class Server:
         :param the_server_socket:
         :return:
         """
-        #####Deadlock occurs here
-        print("Stopped?beforelisten")
-        the_server_socket.listen(1)  # Listen to client
-        print("Stopped?afterlisten")
-        the_server_socket.settimeout(0.5)
+        the_server_socket.listen()  # Listen to client
+        the_server_socket.settimeout(1)
+
         try:
             connection, client_address = the_server_socket.accept()  # Accept clients request
-            print("Stopped?afteraccept")
-
             print(f"Client connected {connection.getpeername()}")
-            client_socket = connection
 
+            client_socket = connection
             CLIENTS[str(self.__index_client)] = client_socket
 
         except socket.timeout:

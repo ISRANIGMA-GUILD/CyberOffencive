@@ -13,7 +13,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 SERVER_NAME = "www.cyberoffensive.com."
 SERVER_IP = conf.route.route("0.0.0.0")[1]
-THE_PEM = serialization.Encoding.PEM
+THE_PEM = serialization.Encoding.DER
 
 
 class ServerSearcher:
@@ -25,6 +25,7 @@ class ServerSearcher:
         """
 
         """
+
         full_base = Ether(dst=Ether().src) / IP(src=SERVER_IP, dst=SERVER_IP) / UDP(dport=53)
         with open(f'Certificates\\certificate{1}.pem', 'rb') as certificate_first:
             my_cert_pem = load_pem_x509_certificate(certificate_first.read())
@@ -36,16 +37,22 @@ class ServerSearcher:
                      an=DNSRR(rrname=SERVER_NAME, rdata=SERVER_IP) /
                      DNSRRDS(rrname=SERVER_NAME), ar=DNSRRRSIG(rrname=SERVER_NAME) /
                      DNSRRDNSKEY(rrname=SERVER_NAME, publickey=my_cert_pem.public_key().public_bytes(encoding=THE_PEM,
-                                                               format=serialization.PublicFormat.SubjectPublicKeyInfo)))
+                                 format=serialization.PublicFormat.PKCS1)))
+
+        m_key = load_der_public_key(my_cert_pem.public_key().public_bytes(encoding=THE_PEM,
+                                    format=serialization.PublicFormat.PKCS1))
+        print("Working key on client side", m_key.key_size)
 
         full_pack = (full_base / a_pack)
-        sendp(full_pack)
+        full_pack = self.prepare_packet(full_pack)
+       # sendp(full_pack)
 
         p_pack = self.prepare_packet(p_pack)
         a_pack = self.prepare_packet(a_pack)
 
         self.show_packet(p_pack)
         self.show_packet(a_pack)
+        self.show_packet(full_pack)
 
     def prepare_packet(self, the_packet):
         """
