@@ -1,5 +1,4 @@
 import pygame.display
-
 from level import *
 from settings import *
 from the_client import *
@@ -85,9 +84,10 @@ class Game:
                 if keys[pygame.K_m]:
                     self.__message = self.start_chat()
                     if self.__message is None:
+                        print("Hello")
                         pass
                     else:
-                        print(f"You:", self.__message[5:])
+                        print(f"You:", self.__message)
 
                 pygame.display.set_caption("Cyber Offensive")
                 self.new_frame_time = time.time()
@@ -203,7 +203,7 @@ class Game:
                     if event.key == pygame.K_BACKSPACE:
                         if entering_username:
                             if username:
-                                username = username[0:len(username)-1]
+                                username = username[:-1]
                                 pygame.display.flip()
 
                     elif event.key == pygame.K_RETURN:
