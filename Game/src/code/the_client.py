@@ -1,6 +1,7 @@
 from scapy.all import *
 from scapy.layers.l2 import *
 from client_handshake import *
+from dnssec_client import *
 import socket
 import pygame
 
@@ -31,7 +32,8 @@ class Client:
 
     def __init__(self, the_client_socket: socket):
         self.__the_client_socket = the_client_socket
-
+        self.__enc_key = None
+        self.__auth = None
     def run(self):
         """
 
@@ -58,30 +60,56 @@ class Client:
                     count = 0
                     pass
 
-            if res[Raw].load == b'Accept':
-                if 'encryption' not in KEY.keys():
-                    self.initialize_handshakes(server_ip, server_port)
+            try:
+                if res[Raw].load == b'Accept':
+                    if 'encryption' not in KEY.keys():
+                        self.initialize_handshakes(server_ip, server_port)
 
-                    if None not in KEY.values():
-                        encryption_key, auth = KEY['encryption'][0], KEY['encryption'][1]
-
-                        details = self.details_entry(encryption_key, auth)
-
-                        while True:
-
-                            if "Success" in self.check_success(encryption_key, details, auth)[0:9]:
-                                print("Nice")
-                                break
-
-                            elif self.check_success(encryption_key, details, auth) == "Failure":
+                        if None not in KEY.values():
+                            encryption_key, auth = KEY['encryption'][0], KEY['encryption'][1]
+                            try:
                                 details = self.details_entry(encryption_key, auth)
 
-                            else:
-                                print("retry")
-                                continue
+                                while True:
 
-            else:
-                print("TO BAD YOU ARE BANNED!")
+                                    if "Success" in self.check_success(encryption_key, details, auth)[0:9]:
+                                        print("Nice")
+                                        break
+
+                                    elif self.check_success(encryption_key, details, auth) == "Failure":
+                                        details = self.details_entry(encryption_key, auth)
+
+                                    else:
+                                        print("retry")
+                                        continue
+
+                            except TypeError:
+                                print("Leaving the game")
+                                message = 'EXIT'.encode()
+                                data = [self.encrypt_data(encryption_key, message, auth)]
+
+                                full_msg = self.create_message(data)
+                                self.__the_client_socket.send(bytes(full_msg[TLS]))
+
+                                self.__the_client_socket.close()
+                                return 1
+
+                            except KeyboardInterrupt:
+                                print("Leaving the game")
+                                message = 'EXIT'.encode()
+                                data = [self.encrypt_data(encryption_key, message, auth)]
+
+                                full_msg = self.create_message(data)
+                                self.__the_client_socket.send(bytes(full_msg[TLS]))
+
+                                self.__the_client_socket.close()
+                                return 1
+
+                else:
+                    print("TO BAD YOU ARE BANNED!")
+
+            except TypeError:
+                return 1
 
         except ConnectionRefusedError:
             print("Connection refused check your internet")
@@ -126,7 +154,7 @@ class Client:
         :return:
         """
         while True:
-            server_ip = input("Enter the ip of the server\n")
+            server_ip = ServerSearcher().run()
 
             if self.ip_v_four_format(server_ip) and not self.empty_string(server_ip):
                 return server_ip
@@ -353,6 +381,16 @@ class Client:
 
                     return pack
 
+            except KeyboardInterrupt:
+                message = 'EXIT'.encode()
+                data = [self.encrypt_data(key, message, auth)]
+
+                full_msg = self.create_message(data)
+                self.__the_client_socket.send(bytes(full_msg[TLS]))
+
+                self.__the_client_socket.close()
+                return
+
             except socket.timeout():
                 pass
 
@@ -532,7 +570,7 @@ class Client:
         if 1 not in KEY:
             key, auth = KEY['encryption'][0], KEY['encryption'][1]
             try:
-                message = str(chat_message)
+                message = f'CHAT {str(chat_message)}'
 
                 if not self.malicious_message(message):
                     message = message.encode()

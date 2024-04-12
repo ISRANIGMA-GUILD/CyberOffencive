@@ -25,8 +25,8 @@ MESSAGES = []
 LOCATIONS = {}
 CHAT = {}
 MAX_CLIENT = 5
-PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Cash', 'Status'],
-              "NODUP": ['Username', 'Password'], "DUP": ['Cash', 'Status']}
+PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
+              "NODUP": ['Username', 'Password'], "DUP": ['Status', 'Items', 'Weapons']}
 
 
 class Server:
@@ -45,9 +45,10 @@ class Server:
         """
 
         """
-        # """:TODO: Fix port already from the client side (seperate the accept_client and create socket functions) """#
+        # """:TODO(Almost finished): Fix port already from the client side (seperate the accept_client and create socket functions) """#
         # """:TODO: Add and fix, anti ddos functions and check for session injection vulnerabilities """#
         # """:TODO(almost finished): Check if users are banned """#
+        # """:TODO: Transport databases between servers at the end and updating them accordingly """#
         # """:TODO: Check if an emoji is typed """#
         # """:TODO: Check if users cheat(in speed, cash etc.) """#
         # """:TODO(finished?): Connect to docker """#
@@ -59,7 +60,7 @@ class Server:
         # """:TODO: Split register and login """#
         # """:TODO: Limit conditions for kick due to manipulated handshakes """#
         # """:TODO: Merge with load balancer """#
-        # """:TODO: Fix client exit unconfirmed when exiting before login """#
+        # """:TODO(Almost finished): Fix client exit unconfirmed when exiting before login """#
         # """:TODO: MAke sure all certificate vital data is randomized """#
 
         main_cursor = self.__main_data_base.get_cursor()
@@ -68,7 +69,7 @@ class Server:
         info = main_cursor.fetchall()
         main_resource_cursor = self.__main_data_base.get_cursor()
 
-        main_resource_cursor.execute("SELECT Cash, Status FROM PlayerDetails")
+        main_resource_cursor.execute("SELECT Status, Items, Weapons FROM PlayerDetails")
         resource_info = main_resource_cursor.fetchall()
 
         list_of_existing_credentials = [vital_info for vital_info in info]
@@ -312,12 +313,16 @@ class Server:
 
         :param server_port:
         """
-        print(f"creating for another clients", server_port)
-        the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-        print(server_port)
+        try:
+            print(f"creating for another clients", server_port)
+            the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+            print(server_port)
 
-        the_server_socket.bind((THE_USUAL_IP, server_port))  # Bind the server IP and Port into a tuple
-        SOCKETS[str(self.__index_client)] = the_server_socket
+            the_server_socket.bind((THE_USUAL_IP, server_port))  # Bind the server IP and Port into a tuple
+            SOCKETS[str(self.__index_client)] = the_server_socket
+
+        except OSError:
+            return
 
         return the_server_socket
 
@@ -837,6 +842,7 @@ class Server:
         SOCKETS[str(number)].close()
 
         CREDENTIALS[str(number)] = None
+
         SOCKETS[str(number)] = None
         CLIENTS[str(number)] = None
 
@@ -846,7 +852,7 @@ class Server:
         :return:
         """
 
-        return self.__number_of_clients == 0
+        return len(list(CLIENTS.values())) > 1 and len(list(CLIENTS.values())) == list(CLIENTS.values()).count(None)
 
     def check_account(self, client_number, list_of_existing, list_of_existing_resources):
         """
