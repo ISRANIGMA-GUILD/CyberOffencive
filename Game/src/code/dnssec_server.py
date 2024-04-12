@@ -87,7 +87,7 @@ class DomainProvider:
         """
 
         pack = sniff(count=1, lfilter=self.filter_dns_sec)
-        pack.show()
+        self.show_packet(pack)
 
         full_pack_c = self.prepare_packet(full_pack_c)
         full_pack_c[IP].dst = pack[0][IP].src

@@ -1,7 +1,6 @@
 import pygame
 from csv import reader
-from os import walk, chdir
-import os.path
+from os import walk
 from settings import *
 
 

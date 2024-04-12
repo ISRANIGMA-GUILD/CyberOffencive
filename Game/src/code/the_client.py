@@ -1,5 +1,3 @@
-from scapy.all import *
-from scapy.layers.l2 import *
 from client_handshake import *
 from dnssec_client import *
 import socket
@@ -34,6 +32,7 @@ class Client:
         self.__the_client_socket = the_client_socket
         self.__enc_key = None
         self.__auth = None
+
     def run(self):
         """
 

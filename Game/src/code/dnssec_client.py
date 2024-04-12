@@ -73,9 +73,8 @@ class ServerSearcher:
                     pass
 
                 else:
-                    pack[0].show()
+                    self.show_packet(pack)
                     return pack[0]
-                    break
 
             except KeyboardInterrupt:
                 break

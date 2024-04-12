@@ -54,14 +54,14 @@ class Server:
         # """:TODO(finished?): Connect to docker """#
         # """:TODO(finished?): Return details after login """#
         # """:TODO: Block connections from banned users """#
-        # """:TODO: Send coordinates only when they change """#
-        # """:TODO: if new client connects(due a technicality this might be removed) """#
+        # """:TODO: (X) Send coordinates only when they change if new client connects (X) """#
         # """:TODO: Loading screen between menu and login screens """#
         # """:TODO: Split register and login """#
         # """:TODO: Limit conditions for kick due to manipulated handshakes """#
         # """:TODO: Merge with load balancer """#
         # """:TODO(Almost finished): Fix client exit unconfirmed when exiting before login """#
-        # """:TODO: MAke sure all certificate vital data is randomized """#
+        # """:TODO(almost finished): MAke sure all certificate vital data is randomized """#
+        # """:TODO: Check the ip at the start via getmacbyip any wrongs will cause a ban (CLIENT SIDE)"""#
 
         main_cursor = self.__main_data_base.get_cursor()
         main_cursor.execute("SELECT Username, Password FROM PlayerDetails")

@@ -370,13 +370,14 @@ class ServerHandshake:
         """
 
         certs = []
-
-        for index in range(3, (3 + 1) * 4):
+        list_numbers = [i for i in range(0, 5)]
+        index = random.choice(list_numbers)
+        for index in range(index, (index + 1) * 4):
             with open(f'Certificates\\certificate{index}.pem', 'rb') as certificate_first:
                 my_cert_pem = certificate_first.read()
                 certs.append(my_cert_pem)
 
-        with open(f'Keys\\the_key{3}.pem', 'rb') as key_first:
+        with open(f'Keys\\the_key{index}.pem', 'rb') as key_first:
             my_key_pem = key_first.read()
             key = load_pem_private_key(my_key_pem, b'gfdgdfgdhffdgfdgfdgdf', backend=default_backend())
 

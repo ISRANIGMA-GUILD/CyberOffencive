@@ -50,7 +50,6 @@ class ClientHandshake:
             except ConnectionRefusedError:
                 print("Waiting")
                 continue
-        print("finsish")
 
     def connection_handshakes(self):
         """
@@ -190,7 +189,6 @@ class ClientHandshake:
                         first_message = self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag)
                         MESSAGES["TLS_FIRST_DATA"] = 1, first_message
 
-                        print(self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag))
                         message = b'greetings!'
 
                         some_data = self.encrypt_data(encryption_key, message, auth)
@@ -204,7 +202,6 @@ class ClientHandshake:
                         else:
                             self.__the_client_socket.send(bytes(data_msg[TLS]))
 
-                        print(self.decrypt_data(encryption_key, auth, some_data[0], some_data[1], some_data[2]))
                         print("Secrecy has been successfully achieved, good luck decrypting with third parties! :D")
 
                         return encryption_key

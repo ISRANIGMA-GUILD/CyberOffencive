@@ -53,9 +53,6 @@ class Game:
             if game_state == "game":
                 loading_screen_image = pygame.image.load(f'{BASE_PATH}LoginScreen\\menuscreen.png').convert()
 
-                # Font for loading text
-                font = pygame.font.Font(None, 32)
-
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_SPACE]:
                     for i in range(100):

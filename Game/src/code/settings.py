@@ -32,23 +32,23 @@ HITBOX_OFFSETS: dict = {
 }
 
 INFLATE_X: int = -6
-#=============================
+# =============================
 
 
-#====== Sprite Types ========= 
+# ====== Sprite Types =========
 INVISIBLE: str = 'invisible'
-#=============================
+# =============================
 
 
-#========== Layers ===========
+# ========== Layers ===========
 BOUNDARY: str = 'boundary'
 GRASS: str = 'grass'
 OBJECT: str = 'object'
 PLAYER_OBJECT: str = 'player_object'
-#=============================
+# =============================
 
 
-#===== Useful Characters =====
+# ===== Useful Characters =====
 COMMA: str = ','
 SLASH: str = '/'
-#=============================
+# =============================
