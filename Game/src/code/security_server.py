@@ -1,3 +1,5 @@
+import pickle
+
 from server_handshake import *
 from DatabaseCreator import *
 
@@ -17,7 +19,7 @@ THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6
                 "25": "CREATE USER", "26": "`", "27": "select", "28": "from", "29": "union", "30": "union",
                 "31": "create user", "32": "sleep", "33": "all", "34": "and", "35": "INSERT", "36": "UPDATE",
                 "37": "DELETE"}
-PARAMETERS = {"IPs": ["IP", "MAC", "Status"]}
+PARAMETERS = {"IPs": ["IP", "MAC", "Status"], "PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons']}
 
 
 class Security:
@@ -25,18 +27,29 @@ class Security:
     def __init__(self, database: DatabaseManager, the_server_socket: socket):
         self.__database = database
         self.__the_server_socket = the_server_socket
-        self.__secret_security_key = 0
-        self.__secret_message = 0
+        self.__secret_security_key = b''
+        self.__secret_message = b''
+        self.__upcoming_bans = []
+        self.__currently_banned = []
+        self.__service_socket = 0
 
     def run(self):
         """
 
         """
+        main_cursor = self.__database.get_cursor()
+        main_cursor.execute("SELECT IP, MAC, Status FROM IPs")
 
         print("secure")
-        self.create_server()
 
-    def create_server(self):
+        info = main_cursor.fetchall()
+
+        list_of_banned_addresses = [vital_info for vital_info in info]
+        print(list_of_banned_addresses)
+
+        self.create_server(list_of_banned_addresses)
+
+    def create_server(self, list_of_banned_addresses):
         """
 
         """
@@ -49,12 +62,13 @@ class Security:
 
                 print("Client connected")
                 service_socket = connection
+                self.__service_socket = service_socket
 
                 if i == 0:
                     self.security_start(service_socket)
                     i += 1
-
-                self.receive_requests(service_socket)
+                    if self.__secret_security_key is not None and self.__secret_message is not None:
+                        break
 
             except ConnectionAbortedError:
                 break
@@ -70,10 +84,35 @@ class Security:
                 break
 
             else:
-                print("Error message try again")
                 i = 0
 
+        while True:
+            try:
+                self.receive_requests(self.__service_socket, list_of_banned_addresses)
+                if self.__upcoming_bans:
+                    for i in range(0, len(self.__upcoming_bans)):
+                        self.__database.insert_no_duplicates(values=[self.__upcoming_bans[i][0],
+                                                                     self.__upcoming_bans[i][1], 'Banned'],
+                                                             no_duplicate_params=PARAMETERS['IPs'])
+
+            except ConnectionAbortedError:
+                break
+
+            except ConnectionRefusedError:
+                break
+
+            except ConnectionResetError:
+                break
+
+            except KeyboardInterrupt:
+                self.__the_server_socket.close()
+                break
+
+            else:
+                pass
+
         print("connect to the main server")
+        self.__database.close_conn()
 
     def security_start(self, service_socket):
         """
@@ -94,18 +133,40 @@ class Security:
                 handshake_initializer.stop()
                 break
 
-    def receive_requests(self, service_socket):
+    def receive_requests(self, service_socket, list_of_banned_addresses):
         """
 
+        :param list_of_banned_addresses:
         :param service_socket:
         :return:
         """
-        service_socket.settimeout(0.1)
+        #  time.sleep(2)
+        service_socket.settimeout(4)
         while True:
             try:
-               # self.find_ddos_attempt()
+                banned_addresses = self.find_ddos_attempt()
 
-                data = service_socket.recv(MAX_MSG_LENGTH)
+                if not banned_addresses:
+                    pass
+
+                else:
+                    banned_addresses = self.remove_known_users(banned_addresses, list_of_banned_addresses)
+
+                    if not banned_addresses:
+                        pass
+
+                    else:
+                        banned_addresses = pickle.dumps(banned_addresses)
+
+                        encrypted_message = self.encrypt_data(banned_addresses)
+                        banned_message = self.create_message(encrypted_message)
+
+                        service_socket.send(bytes(banned_message[TLS]))
+
+                        print("sent")
+                        self.__upcoming_bans = pickle.loads(banned_addresses)
+
+                data = self.deconstruct_data(service_socket)
 
                 if not data:
                     return
@@ -118,14 +179,28 @@ class Security:
 
         """
 
-        requests = sniff(count=5, lfilter=self.filter_tcp, timeout=2)
+        requests = sniff(count=100, lfilter=self.filter_tcp, timeout=2)
         ports = [requests[i][TCP].sport for i in range(0, len(requests))]
 
+        banned = []
         for i in range(0, len(ports)):
-            if ports.count(ports[i]) > 1:
-                print("Ban")
+            if ports.count(ports[i]) >= 100:
+                list_banned = [(requests[i][IP].src, requests[i][Ether].src) for i in range(0, len(requests))]
+                banned = list_banned
+
             else:
                 print("No error")
+
+        list_clear = []
+        for i in range(0, len(banned)):
+            if banned[i] not in list_clear:
+                list_clear.append(banned[i])
+
+        if not list_clear:
+            return
+
+        else:
+            return list_clear
 
     def filter_tcp(self, packets):
         """
@@ -136,9 +211,124 @@ class Security:
 
         return TCP in packets and Raw in packets and (packets[Raw].load == b'Logged' or packets[Raw].load == b'Urgent')
 
+    def encrypt_data(self, plaintext):
+        """
+         Encrypt data before sending it to the client
+        :param key: The server encryption key
+        :param plaintext: The data which will be encrypted
+        :param associated_data: Data which is associated with yet not encrypted
+        :return: The iv, the encrypted data and the encryption tag
+        """
+
+        iv = os.urandom(12)
+        encryptor = Cipher(algorithms.AES(self.__secret_security_key), modes.GCM(iv)).encryptor()
+
+        encryptor.authenticate_additional_data(self.__secret_message)
+        ciphertext = encryptor.update(plaintext) + encryptor.finalize()
+
+        return iv, ciphertext, encryptor.tag
+
+    def decrypt_data(self, iv, ciphertext, tag):
+        """
+         Decrypt the data received by the client
+        :param iv: The iv
+        :param ciphertext: The encrypted data
+        :param tag: The encryption tag
+        :return: The decrypted data
+        """
+
+        decryptor = Cipher(algorithms.AES(self.__secret_security_key), modes.GCM(iv, tag)).decryptor()
+        decryptor.authenticate_additional_data(self.__secret_message)
+
+        return decryptor.update(ciphertext) + decryptor.finalize()
+
+    def create_message(self, some_data):
+        """
+         Turn the data into a proper message
+        :param some_data: The data parts
+        :return: The full data message
+        """
+
+        full_data = some_data[0] + some_data[1] + some_data[2]
+        data_packet = TLS(msg=TLSApplicationData(data=full_data))
+        data_message = self.prepare_packet_structure(data_packet)
+
+        return data_message
+
+    def prepare_packet_structure(self, the_packet):
+        """
+
+        :param the_packet:
+        :return:
+        """
+
+        return the_packet.__class__(bytes(the_packet))
+
+    def deconstruct_data(self, service_socket):
+        """
+         Dissect the data received from the server
+        :param service_socket:
+        :return: The data iv, data and tag
+        """
+        service_socket.settimeout(0.5)
+
+        try:
+            data_pack = service_socket.recv(MAX_MSG_LENGTH)
+            if not data_pack:
+                return
+
+            elif TLSAlert in TLS(data_pack):
+                print("THAT IS A SNEAKY CLIENT")
+                return 0, 1, 2
+
+            else:
+                data_pack = TLS(data_pack)
+
+                data = data_pack[TLS][TLSApplicationData].data
+                data_iv = data[:12]
+
+                data_tag = data[len(data) - 16:len(data)]
+                data_c_t = data[12:len(data) - 16]
+
+        except IndexError:
+            return
+
+        except socket.timeout:
+            return
+
+        return data_iv, data_c_t, data_tag
+
+    def invalid_data(self, data_iv, data_c_t, data_tag):
+        """
+
+        :param data_iv:
+        :param data_c_t:
+        :param data_tag:
+        :return:
+        """
+
+        return data_iv == 0 and data_c_t == 1 and data_tag == 2
+
+    def remove_known_users(self, banned_addresses, list_of_banned_addresses):
+        """
+
+        :param banned_addresses:
+        :param list_of_banned_addresses:
+        """
+
+        for i in range(0, len(banned_addresses)):
+            if ((banned_addresses[i][0], banned_addresses[i][1]) in
+                    self.__currently_banned):
+                banned_addresses.pop(i)
+
+            else:
+                self.__currently_banned.append(banned_addresses[i])
+
+        return banned_addresses
+
 
 def main():
-
+    servers_database = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
     database = DatabaseManager("IPs", PARAMETERS["IPs"])
     the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
 
@@ -146,9 +336,10 @@ def main():
     the_server_socket.bind((MY_IP, SECURITY_PORT))  # Bind the server IP and Port into a tuple
 
     the_server_socket.listen(1)  # Listen to client
-
     security = Security(database, the_server_socket)
+
     security.run()
+    servers_database.close_conn()
 
 
 if __name__ == '__main__':

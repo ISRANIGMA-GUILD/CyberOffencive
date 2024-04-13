@@ -30,8 +30,8 @@ class Client:
 
     def __init__(self, the_client_socket: socket):
         self.__the_client_socket = the_client_socket
-        self.__enc_key = None
-        self.__auth = None
+        self.__timer = 0
+        self.__start_time = 0
 
     def run(self):
         """
@@ -65,9 +65,19 @@ class Client:
                         self.initialize_handshakes(server_ip, server_port)
 
                         if None not in KEY.values():
+                            self.__start_time = time.time()
                             encryption_key, auth = KEY['encryption'][0], KEY['encryption'][1]
                             try:
                                 details = self.details_entry(encryption_key, auth)
+
+                                if details == 1:
+                                    message = 'EXIT'.encode()
+                                    data = [self.encrypt_data(encryption_key, message, auth)]
+
+                                    full_msg = self.create_message(data)
+                                    self.__the_client_socket.send(bytes(full_msg[TLS]))
+
+                                    return 1
 
                                 while True:
 
@@ -90,7 +100,6 @@ class Client:
                                 full_msg = self.create_message(data)
                                 self.__the_client_socket.send(bytes(full_msg[TLS]))
 
-                                self.__the_client_socket.close()
                                 return 1
 
                             except KeyboardInterrupt:
@@ -101,14 +110,18 @@ class Client:
                                 full_msg = self.create_message(data)
                                 self.__the_client_socket.send(bytes(full_msg[TLS]))
 
-                                self.__the_client_socket.close()
                                 return 1
 
                 else:
                     print("TO BAD YOU ARE BANNED!")
 
             except TypeError:
+                print("Leaving the game")
                 return 1
+
+        except TypeError:
+            print("Leaving the game")
+            return 1
 
         except ConnectionRefusedError:
             print("Connection refused check your internet")
@@ -358,6 +371,9 @@ class Client:
             try:
                 user, password = self.login()
 
+                if user == 1 and password == 1:
+                    return 1
+
                 if self.empty_string(user) or self.empty_string(password):
                     print("Please enter the requested information")
 
@@ -390,9 +406,6 @@ class Client:
                 self.__the_client_socket.close()
                 return
 
-            except socket.timeout():
-                pass
-
     def login(self):
         """
 
@@ -413,6 +426,13 @@ class Client:
             img = pygame.image.load(IMAGE)
             screen.blit(img, (0, 0))
             pygame.display.flip()
+
+            self.__timer = time.time() - self.__start_time
+            hour, minutes, seconds = time.strftime("%Hh %Mm %Ss",
+                                                   time.gmtime(self.__timer)).split(' ')
+            if '01' in minutes:
+                self.__the_client_socket.close()
+                return 1, 1
 
             if entering_username:
                 if len(username) < 13:
@@ -629,7 +649,12 @@ class Client:
                 return
 
     def change_location(self, location):
+        """
 
+        :param location:
+        :return:
+        """
+        
         if 1 not in KEY:
             key, auth = KEY['encryption'][0], KEY['encryption'][1]
             try:

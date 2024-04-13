@@ -12,7 +12,6 @@ THE_USUAL_IP = '0.0.0.0'
 MY_IP = conf.route.route('0.0.0.0')[1]
 SECURITY_PORT = 443
 MAX_MSG_LENGTH = 1024
-SOCKET_TIMEOUT = 0.5
 THE_LIST = {}
 AUTHORITY_DATA = {}
 KEY = {}
@@ -24,44 +23,48 @@ SUCCESSES = {}
 MESSAGES = []
 LOCATIONS = {}
 CHAT = {}
+TIME_LOGIN = {}
 MAX_CLIENT = 5
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
-              "NODUP": ['Username', 'Password'], "DUP": ['Status', 'Items', 'Weapons']}
+              "NODUP": ['Username', 'Password'], "DUP": ['Status', 'Items', 'Weapons'],
+              "IPs": ["IP", "MAC", "Status"]}
 
 
 class Server:
 
-    def __init__(self, main_data_base: DatabaseManager, login_data_base: DatabaseManager, secure_socket: socket):
+    def __init__(self, main_data_base, login_data_base, secure_socket, ips_data_base):
         self.__secure_socket = secure_socket
         self.__main_data_base = main_data_base
         self.__login_data_base = login_data_base
+        self.__ips_data_base = ips_data_base
         self.__security_private_handshake = ClientHandshake(self.__secure_socket, MY_IP, SECURITY_PORT)
         self.__private_security_key = 0
         self.__private_message = 0
         self.__number_of_clients = 1
         self.__index_client = 0
+        self.__banned_ips = []
+        self.__banned_macs = []
 
     def run(self):
         """
 
         """
         # """:TODO(Almost finished): Fix port already from the client side (seperate the accept_client and create socket functions) """#
-        # """:TODO: Add and fix, anti ddos functions and check for session injection vulnerabilities """#
+        # """:TODO: Check for session injection vulnerabilities """#
         # """:TODO(almost finished): Check if users are banned """#
         # """:TODO: Transport databases between servers at the end and updating them accordingly """#
         # """:TODO: Check if an emoji is typed """#
         # """:TODO: Check if users cheat(in speed, cash etc.) """#
         # """:TODO(finished?): Connect to docker """#
         # """:TODO(finished?): Return details after login """#
-        # """:TODO: Block connections from banned users """#
-        # """:TODO: (X) Send coordinates only when they change if new client connects (X) """#
+        # """:TODO(Almost finished): Block connections from banned users """#
+        # """:TODO: (X) Send coordinates only when they change (X) """#
         # """:TODO: Loading screen between menu and login screens """#
         # """:TODO: Split register and login """#
         # """:TODO: Limit conditions for kick due to manipulated handshakes """#
         # """:TODO: Merge with load balancer """#
-        # """:TODO(Almost finished): Fix client exit unconfirmed when exiting before login """#
         # """:TODO(almost finished): MAke sure all certificate vital data is randomized """#
-        # """:TODO: Check the ip at the start via getmacbyip any wrongs will cause a ban (CLIENT SIDE)"""#
+        # """:TODO(almost finished): Check the ip at the start via getmacbyip any wrongs will cause a ban (CLIENT SIDE)"""#
 
         main_cursor = self.__main_data_base.get_cursor()
         main_cursor.execute("SELECT Username, Password FROM PlayerDetails")
@@ -72,8 +75,18 @@ class Server:
         main_resource_cursor.execute("SELECT Status, Items, Weapons FROM PlayerDetails")
         resource_info = main_resource_cursor.fetchall()
 
+        main_ip_cursor = self.__ips_data_base.get_cursor()
+        main_ip_cursor.execute("SELECT IP, MAC FROM IPs")
+
+        ip_info = main_ip_cursor.fetchall()
+
         list_of_existing_credentials = [vital_info for vital_info in info]
         list_of_existing_resources = [vital_resources for vital_resources in resource_info]
+
+        self.__banned_ips = [vital_info[0] for vital_info in ip_info]
+        self.__banned_macs = [vital_info[1] for vital_info in ip_info]
+
+        print(self.__banned_ips, self.__banned_macs)
 
         while True:
             try:
@@ -172,7 +185,8 @@ class Server:
         :return: If the packet has TCP in it
         """
 
-        return TCP in packets and Raw in packets and (packets[Raw].load == b'Logged' or packets[Raw].load == b'Urgent')
+        return (TCP in packets and Raw in packets and (packets[Raw].load == b'Logged' or packets[Raw].load == b'Urgent')
+                and packets[Ether].src not in self.__banned_macs and packets[IP].src not in self.__banned_ips)
 
     def search_for_ddos(self, server_port, requests):
         """
@@ -346,6 +360,7 @@ class Server:
             return
 
         self.__number_of_clients += 1
+        TIME_LOGIN[str(self.__index_client)] = (time.time(), 0)
 
     def tls_handshake(self, lock, handshake, number):
         """
@@ -512,6 +527,7 @@ class Server:
                     self.__login_data_base.close_conn()
                     self.__main_data_base.close_conn()
                     self.__secure_socket.close()
+                    self.__ips_data_base.close_conn()
                     break
 
             except AttributeError:
@@ -524,6 +540,7 @@ class Server:
                 self.__login_data_base.close_conn()
                 self.__main_data_base.close_conn()
                 self.__secure_socket.close()
+                self.__ips_data_base.close_conn()
                 break
 
             except KeyboardInterrupt:
@@ -532,6 +549,7 @@ class Server:
                 self.__login_data_base.close_conn()
                 self.__main_data_base.close_conn()
                 self.__secure_socket.close()
+                self.__ips_data_base.close_conn()
                 break
 
         print("FINISH")
@@ -552,6 +570,7 @@ class Server:
 
         SOCKETS[str(self.__number_of_clients-1)] = None
         CLIENTS[str(self.__number_of_clients-1)] = None
+        TIME_LOGIN[str(self.__number_of_clients-1)] = None
 
     def create_connection_threads(self, lock):
         """
@@ -611,8 +630,10 @@ class Server:
 
         threads = []
 
+        lock1 = threading.Lock()
+
         for number in range(0, self.__number_of_clients):
-            the_thread = threading.Thread(target=self.respond_to_client, args=(lock, number,))
+            the_thread = threading.Thread(target=self.respond_to_client, args=(lock1, number,))
             threads.append(the_thread)
 
         return threads
@@ -630,6 +651,7 @@ class Server:
             if CLIENTS[str(index)] is None:
                 self.__index_client = index
                 connection_threads[index].start()
+                self.handle_security()
 
             elif CLIENTS[str(index)] is not None and KEY[str(index)] is None:
                 tls_handshakes[index].start()
@@ -641,16 +663,16 @@ class Server:
                 response_threads[index].start()
 
         for index in range(0, self.__number_of_clients):
-            if connection_threads[index].is_alive():
+            if CLIENTS[str(index)] is None and connection_threads[index].is_alive():
                 connection_threads[index].join()
 
-            elif tls_handshakes[index].is_alive():
+            elif CLIENTS[str(index)] is not None and KEY[str(index)] is None and tls_handshakes[index].is_alive():
                 tls_handshakes[index].join()
 
-            elif login_threads[index].is_alive():
+            elif CLIENTS[str(index)] is not None and CREDENTIALS[str(index)] is None and login_threads[index].is_alive():
                 login_threads[index].join()
 
-            elif response_threads[index].is_alive():
+            elif CREDENTIALS[str(index)] is not None and CLIENTS[str(index)] is not None and response_threads[index].is_alive():
                 response_threads[index].join()
 
         for i in range(0, len(CLIENTS.keys())):
@@ -674,6 +696,50 @@ class Server:
 
         for i in range(0, len(CHAT)):
             CHAT[str(i)] = None
+
+    def handle_security(self):
+        """
+
+        :return:
+        """
+
+        ban_users = self.security_server_report()
+        if not ban_users:
+            pass
+
+        else:
+            if not self.__banned_ips and not self.__banned_macs:
+                self.__banned_ips, self.__banned_macs = ([ban_users[i][0] for i in range(0, len(ban_users))],
+                                                         [ban_users[i][1] for i in range(0, len(ban_users))])
+            else:
+                for i in range(0, len(ban_users)):
+                    if ban_users[i][0] not in self.__banned_ips:
+                        self.__banned_ips.append(ban_users[i][0])
+
+                    if ban_users[i][1] not in self.__banned_ips:
+                        self.__banned_macs.append(ban_users[i][1])
+
+    def security_server_report(self):
+        """
+
+        """
+
+        try:
+            self.__secure_socket.settimeout(0.1)
+            data = self.deconstruct_data(self.__secure_socket)
+
+            if not data:
+                return
+
+            else:
+                key, auth = self.__private_security_key, self.__private_message
+                decrypted_data = self.decrypt_data(key, auth, data[0], data[1], data[2])
+                unpacked_data = pickle.loads(decrypted_data)
+
+                return unpacked_data
+
+        except socket.timeout:
+            return
 
     def receive_connections(self, lock):
         """
@@ -716,26 +782,24 @@ class Server:
             auth = KEY[str(number)][1]
 
             try:
-                client_socket.settimeout(SOCKET_TIMEOUT)
-                while True:
-                    data = self.deconstruct_data(client_socket)
+                client_socket.settimeout(0.1)
+                data = self.deconstruct_data(client_socket)
+                if not data:
+                    lock.release()
+                    return
 
-                    if not data:
-                        pass
+                else:
+                    data_iv, data_c_t, data_tag = data[0], data[1], data[2]
+
+                    if self.invalid_data(data_iv, data_c_t, data_tag):
+                        lock.release()
+                        return
 
                     else:
-
-                        data_iv, data_c_t, data_tag = data[0], data[1], data[2]
-
-                        if self.invalid_data(data_iv, data_c_t, data_tag):
-                            lock.release()
-                            return
-
-                        else:
-                            CREDENTIALS[str(number)] = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
-                            self.check_account(number, list_of_existing, list_of_existing_resources)
-                            lock.release()
-                            return
+                        CREDENTIALS[str(number)] = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
+                        self.check_account(number, list_of_existing, list_of_existing_resources)
+                        lock.release()
+                        return
 
             except TypeError:
                 print("Problematic")
@@ -757,7 +821,6 @@ class Server:
 
             except socket.timeout:
                 print(CLIENTS[str(number)].getpeername())
-
                 lock.release()
                 return
 
@@ -769,15 +832,15 @@ class Server:
         lock.release()
         return
 
-    def respond_to_client(self, lock, index_of_client):
+    def respond_to_client(self, lock1, index_of_client):
         """
 
-        :param lock:
+        :param lock1:
         :param index_of_client:
         :return:
         """
 
-        lock.acquire()
+        lock1.acquire()
         if KEY[str(index_of_client)] is not None:
             client_socket = CLIENTS[str(index_of_client)]
             enc_key, auth = KEY[str(index_of_client)]
@@ -788,7 +851,7 @@ class Server:
                 data = self.deconstruct_data(client_socket)
 
                 if not data:
-                    lock.release()
+                    lock1.release()
                     return
 
                 else:
@@ -796,7 +859,7 @@ class Server:
 
                     if data_iv == 0 and data_c_t == 1 and data_tag == 2:
                         self.eliminate_socket(index_of_client)
-                        lock.release()
+                        lock1.release()
                         return
 
                     decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
@@ -830,7 +893,7 @@ class Server:
             except socket.timeout:
                 pass
 
-        lock.release()
+        lock1.release()
 
     def eliminate_socket(self, number):
         """
@@ -851,7 +914,6 @@ class Server:
 
         :return:
         """
-
         return len(list(CLIENTS.values())) > 1 and len(list(CLIENTS.values())) == list(CLIENTS.values()).count(None)
 
     def check_account(self, client_number, list_of_existing, list_of_existing_resources):
@@ -986,8 +1048,9 @@ def main():
     secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
     login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
+    ips_data_base = DatabaseManager("IPs", PARAMETERS["NODUP"])
 
-    server = Server(main_data_base, login_data_base, secure_socket)
+    server = Server(main_data_base, login_data_base, secure_socket, ips_data_base)
     server.run()
 
 

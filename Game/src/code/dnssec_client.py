@@ -74,11 +74,27 @@ class ServerSearcher:
 
                 else:
                     self.show_packet(pack)
-                    return pack[0]
+                    if self.check_source(pack):
+                        return pack[0]
+
+                    else:
+                        pass
 
             except KeyboardInterrupt:
                 break
 
+    def check_source(self, pack):
+        """
+
+        :param pack:
+        :return:
+        """
+
+        if pack[0][IP].src == SERVER_IP:
+            return Ether().src == pack[0][Ether].src
+
+        elif pack[0][IP].src != SERVER_IP:
+            return getmacbyip(pack[0][IP].src) == pack[0][Ether].src
 
 def main():
 
