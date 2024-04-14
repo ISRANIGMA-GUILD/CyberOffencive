@@ -78,6 +78,7 @@ class Security:
                     break
 
                 except ConnectionResetError:
+                    self.__the_server_socket.close()
                     break
 
                 except KeyboardInterrupt:
@@ -201,19 +202,21 @@ class Security:
                 list_banned = [(requests[i][IP].src, requests[i][Ether].src) for i in range(0, len(requests))]
                 banned = list_banned
 
-            else:
-                print("No error")
-
-        list_clear = []
-        for i in range(0, len(banned)):
-            if banned[i] not in list_clear and (banned[i][0], banned[i][1], 'Banned') not in list_of_banned_addresses:
-                list_clear.append(banned[i])
-
-        if not list_clear:
+        if not banned:
+            print("No error")
             return
 
         else:
-            return list_clear
+            list_clear = []
+            for i in range(0, len(banned)):
+                if banned[i] not in list_clear and (banned[i][0], banned[i][1], 'Banned') not in list_of_banned_addresses:
+                    list_clear.append(banned[i])
+
+            if not list_clear:
+                return
+
+            else:
+                return list_clear
 
     def filter_tcp(self, packets):
         """

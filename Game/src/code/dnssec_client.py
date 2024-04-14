@@ -97,6 +97,7 @@ class ServerSearcher:
         elif pack[0][IP].src != SERVER_IP:
             return getmacbyip(pack[0][IP].src) == pack[0][Ether].src
 
+
 def main():
 
     searcher = ServerSearcher()

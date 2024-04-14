@@ -77,9 +77,15 @@ class DomainProvider:
         the_packet.show()
 
     def filter_dns_sec(self, packets):
+        """
+
+        :param packets:
+        :return:
+        """
 
         return (DNS in packets and DNSQR in packets and DNSRR not in packets and DNSRRRSIG not in packets
-                and packets[DNSQR].qname == b'mad.cyberoffensive.org.')
+                and packets[DNSQR].qname == b'mad.cyberoffensive.org.' and packets[DNS].ancount == 0
+                and packets[DNS].nscount == 0 and packets[DNS].arcount == 0)
 
     def handle_client(self, full_pack_c):
         """
