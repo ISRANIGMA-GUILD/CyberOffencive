@@ -1,9 +1,8 @@
 import pygame
 from settings import *
 
-
 class Tile(pygame.sprite.Sprite):
-    def __init__(self, position: tuple, groups, sprite_type, surface=pygame.Surface((TILE_WIDTH, TILE_HEIGHT))):
+    def __init__(self, position: tuple, groups, sprite_type, surface=pygame.Surface((TILE_WIDTH, TILE_HEIGHT))) -> None:
         super().__init__(groups)
         self.sprite_type = sprite_type
         self.image = surface

@@ -46,6 +46,7 @@ class ServerHandshake:
 
         :return:
         """
+
         while True:
             if not self.__auth:
                 auth = self.first_handshake()

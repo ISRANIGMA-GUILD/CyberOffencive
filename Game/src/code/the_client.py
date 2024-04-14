@@ -561,109 +561,33 @@ class Client:
 
         return False
 
-    def communicate(self, location, prev_location, chat_message):
+    def communicate(self, data):
         """
 
-        :param location:
-        :param prev_location:
-        :param chat_message:
-        """
-        if chat_message:
-            self.send_chat_message(chat_message)
-
-        if location != prev_location:
-            self.change_location(location)
-
-        if 1 not in KEY:
-            key, auth = KEY['encryption'][0], KEY['encryption'][1]
-            return self.receive_location(key, auth)
-
-        return
-
-    def send_chat_message(self, chat_message):
+        :param data:
         """
 
-        :param chat_message:
+        self.update_server(data)
+
+        key, auth = KEY['encryption'][0], KEY['encryption'][1]
+        return self.receive_location(key, auth)
+
+    def update_server(self, data):
         """
 
-        if 1 not in KEY:
-            key, auth = KEY['encryption'][0], KEY['encryption'][1]
-            try:
-                message = f'CHAT {str(chat_message)}'
-
-                if not self.malicious_message(message):
-                    message = message.encode()
-
-                    data = [self.encrypt_data(key, message, auth)]
-                    full_msg = self.create_message(data)
-
-                    if type(full_msg) is list:
-                        for index in range(0, len(full_msg)):
-                            message = full_msg[index]
-                            self.__the_client_socket.send(bytes(message[TLS]))
-
-                    else:
-                        self.__the_client_socket.send(bytes(full_msg[TLS]))
-
-                    if message == 'EXIT':
-                        self.__the_client_socket.close()
-                        return
-                else:
-                    print("Illegal")
-
-            except ConnectionResetError:
-                message = 'EXIT'.encode()
-                data = [self.encrypt_data(key, message, auth)]
-
-                full_msg = self.create_message(data)
-                self.__the_client_socket.send(bytes(full_msg[TLS]))
-
-                self.__the_client_socket.close()
-                return
-
-            except ConnectionRefusedError:
-                print("Retrying")
-
-            except ConnectionAbortedError:
-                message = 'EXIT'.encode()
-                data = [self.encrypt_data(key, message, auth)]
-
-                full_msg = self.create_message(data)
-                self.__the_client_socket.send(bytes(full_msg[TLS]))
-
-                self.__the_client_socket.close()
-                return
-
-            except socket.timeout:
-                return
-
-            except KeyboardInterrupt:
-                print("Server is shutting down")
-                message = 'EXIT'.encode()
-
-                data = [self.encrypt_data(key, message, auth)]
-                full_msg = self.create_message(data)
-
-                self.__the_client_socket.send(bytes(full_msg[TLS]))
-                self.__the_client_socket.close()
-                return
-
-    def change_location(self, location):
-        """
-
-        :param location:
+        :param data:
         :return:
         """
         
         if 1 not in KEY:
             key, auth = KEY['encryption'][0], KEY['encryption'][1]
             try:
-                message = str(location)
 
-                if not self.malicious_message(message):
-                    message = message.encode()
+                if not self.malicious_message(data[1]):
+                    after = [str(data[0]).encode(), f'CHAT {data[1]}'.encode(), f'STATUS {data[2]}'.encode()]
+                    after = pickle.dumps(after)
 
-                    data = [self.encrypt_data(key, message, auth)]
+                    data = [self.encrypt_data(key, after, auth)]
                     full_msg = self.create_message(data)
 
                     if type(full_msg) is list:
@@ -674,9 +598,9 @@ class Client:
                     else:
                         self.__the_client_socket.send(bytes(full_msg[TLS]))
 
-                    if message == 'EXIT':
-                        self.__the_client_socket.close()
-                        return
+                    #if message == 'EXIT':
+                      #  self.__the_client_socket.close()
+                      #  return
                 else:
                     print("Illegal")
 
@@ -735,6 +659,8 @@ class Client:
 
         except socket.timeout:
             return
+
+
 
 
 def main():

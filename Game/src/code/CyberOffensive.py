@@ -16,8 +16,10 @@ class Game:
         pygame.init()
         pygame.font.init()
 
-        self.font = pygame.font.SysFont('Arial Bold', 60)
-        self.screen = pygame.display.set_mode((WIDTH, HEIGTH))
+        self.font = pygame.font.Font(FONT_PATH, 60)
+        pygame.event.set_allowed([QUIT, KEYDOWN, KEYUP])
+
+        self.screen = pygame.display.set_mode((WIDTH, HEIGTH), FLAGS, BITS_PER_PIXEL)
 
         pygame.display.set_caption('Cyber Offensive')
         self.clock = pygame.time.Clock()
@@ -30,6 +32,7 @@ class Game:
 
         self.text_surface = 0
         self.prev_loc = 0
+        self.__previous_status = 0
 
         self.__message = ""
 
@@ -91,6 +94,7 @@ class Game:
                 self.screen.fill((0, 0, 0))
 
                 self.level.run()
+
                 prev_loc_other = (0, 0)
                 fps = 1.0 / (self.new_frame_time - self.prev_frame_time)
 
@@ -100,7 +104,11 @@ class Game:
                 self.screen.blit(self.text_surface, (50, 10))
                 current_loc = self.level.player.get_location()
 
-                other_client = self.network.communicate(current_loc, self.prev_loc, self.__message)
+                list_of_details = [current_loc, self.__message, self.level.player.status]
+
+                other_client = self.network.communicate(list_of_details)
+                self.__previous_status = self.level.player.status
+
                 current_loc = current_loc[2:len(current_loc)].split(' ')
 
                 current_loc = (int(current_loc[0]), int(current_loc[1]))
@@ -113,44 +121,34 @@ class Game:
                     other_client = pickle.loads(other_client)
 
                     if type(other_client) is list or type(other_client) is tuple:
+                        statuses = list(other_client[2].values())
                         self.__message = list(other_client[1].values())
+
                         locations = list(other_client[0].values())
 
                         for i in range(0, len(self.__message)):
-                            if self.__message[i] is not None:
-                                print(f"Client {i+1}:", self.__message[i].decode()[5:])
+                            if self.__message[i] is not None or '':
+                                print(f"Client {i+1}:", self.__message[i])
 
-                        other_client = locations
-                        prev_loc_other, other_client = self.get_new_locations(other_client, prev_loc_other)
-
-                        self.erase_previous(temp_p)
-                        temp_p = []
-
-                        p_image = pygame.image.load(
-                            f'{BASE_PATH}brawn_idle.png').convert_alpha()
-
-                        for i in range(0, len(prev_loc_other)):
-                            player_remote = Tile(position=prev_loc_other[i],
-                                                 groups=[self.level.visible_sprites, self.level.obstacles_sprites],
-                                                 sprite_type=PLAYER_OBJECT, surface=p_image)
-
-                            temp_p.append(player_remote)
-                    else:
-                        other_client = list(other_client.values())
-
-                        prev_loc_other, other_client = self.get_new_locations(other_client, prev_loc_other)
+                        prev_loc_other, other_client = self.get_new_locations(locations, prev_loc_other)
 
                         self.erase_previous(temp_p)
                         temp_p = []
 
-                        p_image = pygame.image.load(f'{BASE_PATH}brawn_idle.png').convert_alpha()
+                        p_image = [pygame.image.load(
+                            f'../graphics/player/{statuses[i]}/{statuses[i]}.png').convert_alpha()
+                                   for i in range(0, len(statuses)) if statuses[i] is not None]
 
-                        for i in range(0, len(prev_loc_other)):
-                            player_remote = Tile(position=prev_loc_other[i],
-                                                 groups=[self.level.visible_sprites, self.level.obstacles_sprites],
-                                                 sprite_type=PLAYER_OBJECT, surface=p_image)
+                        if not p_image:
+                            pass
 
-                            temp_p.append(player_remote)
+                        else:
+                            for i in range(0, len(prev_loc_other)):
+                                player_remote = Tile(position=prev_loc_other[i],
+                                                     groups=[self.level.visible_sprites, self.level.obstacles_sprites],
+                                                     sprite_type=PLAYER_OBJECT, surface=p_image[i])
+
+                                temp_p.append(player_remote)
 
                     pygame.display.flip()
 
@@ -245,19 +243,17 @@ class Game:
         :param prev_loc_other:
         :return:
         """
-
-        other_client = [(other_client[i].decode().split(' ')[1],
-                         (other_client[i].decode().split(' ')[2]))
-                        for i in range(0, len(other_client))
-                        if other_client[i] is not None]
+        other_client = [(other_client[i].split(' ')[0], other_client[i].split(' ')[1])
+                        for i in range(0, len(other_client)) if other_client[i] is not None]
 
         other_coordinates = [(int(other_client[i][0]), int(other_client[i][1]))
                              for i in range(0, len(other_client))
                              if other_client[i][0].isnumeric() and other_client[i][1].isnumeric()]
+
         prev_loc_other = [other_coordinates[i] for i in range(0, len(other_coordinates))
                           if prev_loc_other != other_coordinates[i]]
 
-        return prev_loc_other, other_client
+        return prev_loc_other, other_coordinates
 
     def erase_previous(self, temp_p):
         """
