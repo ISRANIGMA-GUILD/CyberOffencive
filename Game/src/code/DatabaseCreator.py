@@ -181,7 +181,7 @@ def run_tests_a() -> None:
                                        ['Username', 'Password']))
 
     print(main_manager.set_values(['Cash', 'Status'], ["G33a32rie", "1343423"],
-                            ['Username', 'Password'], ["Gafhggfvfsdffgfdgrie", "12sdfs34d5"]))
+                                  ['Username', 'Password'], ["Gafhggfvfsdffgfdgrie", "12sdfs34d5"]))
 
     manager.close_conn()
     main_manager.close_conn()

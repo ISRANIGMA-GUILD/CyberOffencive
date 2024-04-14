@@ -1,7 +1,6 @@
-import pickle
-
 from server_handshake import *
 from DatabaseCreator import *
+from dnssec_server import *
 
 SYN = 2
 FIN = 1
@@ -29,9 +28,11 @@ class Security:
         self.__the_server_socket = the_server_socket
         self.__secret_security_key = b''
         self.__secret_message = b''
+        self.__cert, self.__key = get_certs()
+        self.__domain_provider = DomainProvider(self.__cert, self.__key)
         self.__upcoming_bans = []
         self.__currently_banned = []
-        self.__service_socket = 0
+        self.__service_socket = None
 
     def run(self):
         """
@@ -55,6 +56,44 @@ class Security:
         """
         i = 0
 
+        if self.allow_server_connection():
+
+            dns_pack = self.__domain_provider.run()
+
+            while True:
+                try:
+                    self.__domain_provider.handle_client(dns_pack)
+                    self.receive_requests(list_of_banned_addresses)
+
+                    if self.__upcoming_bans:
+                        for i in range(0, len(self.__upcoming_bans)):
+                            self.__database.insert_no_duplicates(values=[self.__upcoming_bans[i][0],
+                                                                         self.__upcoming_bans[i][1], 'Banned'],
+                                                                 no_duplicate_params=PARAMETERS['IPs'])
+
+                except ConnectionAbortedError:
+                    break
+
+                except ConnectionRefusedError:
+                    break
+
+                except ConnectionResetError:
+                    break
+
+                except KeyboardInterrupt:
+                    self.__the_server_socket.close()
+                    break
+
+                else:
+                    pass
+
+            print("connect to the main server")
+            self.__database.close_conn()
+
+    def allow_server_connection(self):
+
+        i = 0
+
         while True:
             try:
                 print("Server is up and running")
@@ -68,51 +107,23 @@ class Security:
                     self.security_start(service_socket)
                     i += 1
                     if self.__secret_security_key is not None and self.__secret_message is not None:
-                        break
+                        return True
 
             except ConnectionAbortedError:
-                break
+                return False
 
             except ConnectionRefusedError:
-                break
+                return False
 
             except ConnectionResetError:
-                break
+                return False
 
             except KeyboardInterrupt:
                 self.__the_server_socket.close()
-                break
+                return False
 
             else:
                 i = 0
-
-        while True:
-            try:
-                self.receive_requests(self.__service_socket, list_of_banned_addresses)
-                if self.__upcoming_bans:
-                    for i in range(0, len(self.__upcoming_bans)):
-                        self.__database.insert_no_duplicates(values=[self.__upcoming_bans[i][0],
-                                                                     self.__upcoming_bans[i][1], 'Banned'],
-                                                             no_duplicate_params=PARAMETERS['IPs'])
-
-            except ConnectionAbortedError:
-                break
-
-            except ConnectionRefusedError:
-                break
-
-            except ConnectionResetError:
-                break
-
-            except KeyboardInterrupt:
-                self.__the_server_socket.close()
-                break
-
-            else:
-                pass
-
-        print("connect to the main server")
-        self.__database.close_conn()
 
     def security_start(self, service_socket):
         """
@@ -120,37 +131,39 @@ class Security:
         :param service_socket:
         """
 
-        handshake_initializer = ServerHandshake(service_socket)
+        if service_socket is not None:
+            handshake_initializer = ServerHandshake(service_socket)
 
-        while True:
-            security_for_server = handshake_initializer.run()
+            while True:
+                security_for_server = handshake_initializer.run()
 
-            if not security_for_server:
-                pass
+                if not security_for_server:
+                    pass
 
-            else:
-                self.__secret_security_key, self.__secret_message = security_for_server
-                handshake_initializer.stop()
-                break
+                else:
+                    self.__secret_security_key, self.__secret_message = security_for_server
+                    handshake_initializer.stop()
+                    break
 
-    def receive_requests(self, service_socket, list_of_banned_addresses):
+        else:
+            return
+
+    def receive_requests(self, list_of_banned_addresses):
         """
 
-        :param list_of_banned_addresses:
-        :param service_socket:
         :return:
         """
-        #  time.sleep(2)
-        service_socket.settimeout(4)
+
+        self.__service_socket.settimeout(4)
         while True:
             try:
-                banned_addresses = self.find_ddos_attempt()
+                banned_addresses = self.find_ddos_attempt(list_of_banned_addresses)
 
                 if not banned_addresses:
                     pass
 
                 else:
-                    banned_addresses = self.remove_known_users(banned_addresses, list_of_banned_addresses)
+                    banned_addresses = self.remove_known_users(banned_addresses)
 
                     if not banned_addresses:
                         pass
@@ -161,12 +174,12 @@ class Security:
                         encrypted_message = self.encrypt_data(banned_addresses)
                         banned_message = self.create_message(encrypted_message)
 
-                        service_socket.send(bytes(banned_message[TLS]))
+                        self.__service_socket.send(bytes(banned_message[TLS]))
 
                         print("sent")
                         self.__upcoming_bans = pickle.loads(banned_addresses)
 
-                data = self.deconstruct_data(service_socket)
+                data = self.deconstruct_data()
 
                 if not data:
                     return
@@ -174,7 +187,7 @@ class Security:
             except socket.timeout:
                 pass
 
-    def find_ddos_attempt(self):
+    def find_ddos_attempt(self, list_of_banned_addresses):
         """
 
         """
@@ -193,7 +206,7 @@ class Security:
 
         list_clear = []
         for i in range(0, len(banned)):
-            if banned[i] not in list_clear:
+            if banned[i] not in list_clear and (banned[i][0], banned[i][1], 'Banned') not in list_of_banned_addresses:
                 list_clear.append(banned[i])
 
         if not list_clear:
@@ -214,9 +227,7 @@ class Security:
     def encrypt_data(self, plaintext):
         """
          Encrypt data before sending it to the client
-        :param key: The server encryption key
         :param plaintext: The data which will be encrypted
-        :param associated_data: Data which is associated with yet not encrypted
         :return: The iv, the encrypted data and the encryption tag
         """
 
@@ -264,16 +275,15 @@ class Security:
 
         return the_packet.__class__(bytes(the_packet))
 
-    def deconstruct_data(self, service_socket):
+    def deconstruct_data(self):
         """
          Dissect the data received from the server
-        :param service_socket:
         :return: The data iv, data and tag
         """
-        service_socket.settimeout(0.5)
+        self.__service_socket.settimeout(0.5)
 
         try:
-            data_pack = service_socket.recv(MAX_MSG_LENGTH)
+            data_pack = self.__service_socket.recv(MAX_MSG_LENGTH)
             if not data_pack:
                 return
 
@@ -309,11 +319,10 @@ class Security:
 
         return data_iv == 0 and data_c_t == 1 and data_tag == 2
 
-    def remove_known_users(self, banned_addresses, list_of_banned_addresses):
+    def remove_known_users(self, banned_addresses):
         """
 
         :param banned_addresses:
-        :param list_of_banned_addresses:
         """
 
         for i in range(0, len(banned_addresses)):
