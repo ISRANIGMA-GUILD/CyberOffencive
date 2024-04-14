@@ -37,7 +37,6 @@
     <ROW Directory="LoginScreen_Dir" Directory_Parent="NewFolder_1_Dir" DefaultDir="LOGINS~1|LoginScreen"/>
     <ROW Directory="Map_Dir" Directory_Parent="NewFolder_Dir" DefaultDir="Map"/>
     <ROW Directory="NewFolder_1_Dir" Directory_Parent="NewFolder_Dir" DefaultDir="Graphics"/>
-    <ROW Directory="NewFolder_2_Dir" Directory_Parent="NewFolder_Dir" DefaultDir="CERTIF~1|Certificates"/>
     <ROW Directory="NewFolder_Dir" Directory_Parent="CommonFilesFolder" DefaultDir="CYBERO~1|CyberOffensive"/>
     <ROW Directory="Objects_Dir" Directory_Parent="SproutLandsSpritesBasicpack_Dir" DefaultDir="Objects"/>
     <ROW Directory="Png_Dir" Directory_Parent="Water7_Dir" DefaultDir="Png"/>
@@ -67,7 +66,6 @@
     <ROW Component="Basic_Furniture.png" ComponentId="{1F6FC1FF-BAF2-4BF3-85FA-008086A74E22}" Directory_="Objects_Dir" Attributes="0" KeyPath="Basic_Furniture.png" Type="0"/>
     <ROW Component="Bitmaskreferences1.png" ComponentId="{291E0BCF-4710-48A3-853A-1E9BB1476715}" Directory_="Tilesets_Dir" Attributes="0" KeyPath="Bitmaskreferences1.png" Type="0"/>
     <ROW Component="Details.csv" ComponentId="{D4FD325C-EF9C-48E1-89C6-48691DF245A3}" Directory_="Map_Dir" Attributes="0" KeyPath="Details.csv" Type="0"/>
-    <ROW Component="NewFolder" ComponentId="{660AABC4-86A9-4ED2-87A2-5E94536CF068}" Directory_="NewFolder_2_Dir" Attributes="0"/>
     <ROW Component="ProductInformation" ComponentId="{E8E638F7-DF77-4AD6-BDE7-7DEE1097FF18}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
     <ROW Component="SproutLandsdefautltpalettesnip.PNG" ComponentId="{2B9B8847-8833-4EA6-B240-17D0A1F22406}" Directory_="SproutLandscolorpallet_Dir" Attributes="0" KeyPath="SproutLandsdefautltpalettesnip.PNG" Type="0"/>
     <ROW Component="Water7.atlas.txt" ComponentId="{21D2D06F-BA66-44F8-A453-8BCA6886DC07}" Directory_="spine_Dir" Attributes="0" KeyPath="Water7.atlas.txt" Type="0"/>
@@ -77,7 +75,7 @@
     <ROW Component="flowers.png" ComponentId="{C62220C3-71E3-48BF-ABB9-6ACCDF0B6FD4}" Directory_="summer_Dir" Attributes="0" KeyPath="flowers.png" Type="0"/>
     <ROW Component="grass_1.png" ComponentId="{4A2E024F-2219-4AF4-99E9-74480A96CB10}" Directory_="grass_Dir" Attributes="0" KeyPath="grass_1.png" Type="0"/>
     <ROW Component="login.png" ComponentId="{6A1658A2-08E3-4183-84B3-1DCAB420B6CA}" Directory_="LoginScreen_Dir" Attributes="0" KeyPath="login.png" Type="0"/>
-    <ROW Component="main.exe" ComponentId="{B5576929-A738-43E0-A915-874168BD1B2A}" Directory_="Game_Dir" Attributes="0" KeyPath="main.exe"/>
+    <ROW Component="main.exe" ComponentId="{99600F92-AE19-4341-AC7E-E08729E46F45}" Directory_="Game_Dir" Attributes="0" KeyPath="main.exe"/>
     <ROW Component="png" ComponentId="{101537FB-9449-4554-B33A-223CFC0C66E2}" Directory_="objects_1_Dir" Attributes="0" KeyPath="png" Type="0"/>
     <ROW Component="png_1" ComponentId="{D2EA1AEA-2398-4E3D-83BA-43C38BF3D900}" Directory_="objects_Dir" Attributes="0" KeyPath="png_1" Type="0"/>
     <ROW Component="png_2" ComponentId="{8F2E7713-36AB-49C6-94F7-264FA439AF32}" Directory_="objects_2_Dir" Attributes="0" KeyPath="png_22" Type="0"/>
@@ -207,7 +205,7 @@
     <ROW File="login.png_1" Component_="login.png" FileName="LOGIN~1.PNG|login.png~" Attributes="0" SourcePath="..\LoginScreen\login.png~" SelfReg="false"/>
     <ROW File="menuscreen.png" Component_="login.png" FileName="MENUSC~1.PNG|menuscreen.png" Attributes="0" SourcePath="..\LoginScreen\menuscreen.png" SelfReg="false"/>
     <ROW File="menuscreen.png_1" Component_="login.png" FileName="MENUSC~2.PNG|menuscreen.png~" Attributes="0" SourcePath="..\LoginScreen\menuscreen.png~" SelfReg="false"/>
-    <ROW File="main.exe" Component_="main.exe" FileName="main.exe" Attributes="0" SourcePath="main.exe" SelfReg="false" DigSign="true"/>
+    <ROW File="main.exe" Component_="main.exe" FileName="CYBERO~1.EXE|CyberOffensive.exe" Attributes="0" SourcePath="main.exe" SelfReg="false" DigSign="true"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" Options="2"/>
@@ -274,7 +272,6 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCreateFolderComponent">
     <ROW Directory_="APPDIR" Component_="APPDIR" ManualDelete="true"/>
-    <ROW Directory_="NewFolder_2_Dir" Component_="NewFolder" ManualDelete="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCustActComponent">
     <ROW Action="AI_ApplyShortcutFlags" Type="3073" Source="ShortcutFlags.dll" Target="UpdateShortcutFlags" WithoutSeq="true"/>
@@ -335,7 +332,6 @@
     <ROW Feature_="MainFeature" Component_="brawn_idle.png"/>
     <ROW Feature_="MainFeature" Component_="Details.csv"/>
     <ROW Feature_="MainFeature" Component_="login.png"/>
-    <ROW Feature_="MainFeature" Component_="NewFolder"/>
     <ROW Feature_="MainFeature" Component_="main.exe"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
@@ -383,7 +379,7 @@
     <ROW Registry="Version" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Version" Value="[ProductVersion]" Component_="ProductInformation"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
-    <ROW Shortcut="main" Directory_="DesktopFolder" Name="main" Component_="main.exe" Target="[#main.exe]" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="Game_Dir"/>
+    <ROW Shortcut="main" Directory_="DesktopFolder" Name="CYBERO~1|CyberOffensive" Component_="main.exe" Target="[#main.exe]" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="Game_Dir" CustomFlags="1"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiThemeComponent">
     <ATTRIBUTE name="UsedTheme" value="classic"/>

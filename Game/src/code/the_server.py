@@ -50,7 +50,7 @@ class Server:
 
         """
         # """:TODO(Almost finished): Fix port already from the client side (seperate the accept_client and create socket functions) """#
-        # """:TODO: Check for session injection vulnerabilities """#
+        # """:TODO(If they are possible): Check for session injection vulnerabilities """#
         # """:TODO(almost finished): Check if users are banned """#
         # """:TODO: Transport databases between servers at the end and updating them accordingly """#
         # """:TODO: Check if an emoji is typed """#
@@ -58,13 +58,16 @@ class Server:
         # """:TODO(finished?): Connect to docker """#
         # """:TODO(finished?): Return details after login """#
         # """:TODO(Almost finished): Block connections from banned users """#
-        # """:TODO: (X) Send coordinates only when they change (X) """#
         # """:TODO: Loading screen between menu and login screens """#
         # """:TODO: Split register and login """#
-        # """:TODO: Limit conditions for kick due to manipulated handshakes """#
+        # """:TODO(Probably finished): Limit conditions for kick due to manipulated handshakes """#
         # """:TODO: Merge with load balancer """#
+        # """:TODO: Counter attack mechanism (security server) """#
         # """:TODO(almost finished): MAke sure all certificate vital data is randomized """#
         # """:TODO(almost finished): Check the ip at the start via getmacbyip any wrongs will cause a ban (CLIENT SIDE)"""#
+        # """:TODO(almost finished): Display chat in the game not in the terminal """#
+        # """:TODO: Make the whole game abstract from terminal """#
+        # """:TODO: Try-except on everything """#
 
         main_cursor = self.__main_data_base.get_cursor()
         main_cursor.execute("SELECT Username, Password FROM PlayerDetails")
@@ -669,10 +672,12 @@ class Server:
             elif CLIENTS[str(index)] is not None and KEY[str(index)] is None and tls_handshakes[index].is_alive():
                 tls_handshakes[index].join()
 
-            elif CLIENTS[str(index)] is not None and CREDENTIALS[str(index)] is None and login_threads[index].is_alive():
+            elif (CLIENTS[str(index)] is not None and CREDENTIALS[str(index)] is None and
+                  login_threads[index].is_alive()):
                 login_threads[index].join()
 
-            elif CREDENTIALS[str(index)] is not None and CLIENTS[str(index)] is not None and response_threads[index].is_alive():
+            elif (CREDENTIALS[str(index)] is not None and CLIENTS[str(index)] is not None and
+                  response_threads[index].is_alive()):
                 response_threads[index].join()
 
         for i in range(0, len(CLIENTS.keys())):

@@ -57,7 +57,8 @@ class ServerSearcher:
         :return:
         """
 
-        return DNS in packets and DNSQR in packets and DNSRRRSIG in packets
+        return (DNS in packets and DNSQR in packets and DNSRRRSIG in packets and
+                packets[DNSQR].qname == b'mad.cyberoffensive.org.')
 
     def contact_domain(self, full_pack):
         """
@@ -68,7 +69,7 @@ class ServerSearcher:
         while True:
             try:
                 sendp(full_pack)
-                pack = sniff(count=1, lfilter=self.filter_dns_sec, timeout=2)
+                pack = sniff(count=1, lfilter=self.filter_dns_sec, timeout=1)
                 if not pack:
                     pass
 

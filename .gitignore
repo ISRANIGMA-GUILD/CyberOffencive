@@ -24,6 +24,13 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+thegame.back-cache/
+thegame.back.back(20.7.1)-cache/
+thegame.back-SetupFiles/
+thegame-cache/
+thegame-SetupFiles/
+dnspython/
+
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -53,6 +60,9 @@ cover/
 # Translations
 *.mo
 *.pot
+*.cab
+*.ini
+*.aip
 
 # Django stuff:
 *.log

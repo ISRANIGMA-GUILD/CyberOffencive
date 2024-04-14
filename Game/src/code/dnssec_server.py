@@ -32,7 +32,7 @@ class DomainProvider:
         full_pack_c = (full_base_k / a_pack)
         full_pack_c = self.prepare_packet(full_pack_c)
 
-        self.handle_client(full_pack_c)
+        return full_pack_c
 
     def create_full_pack(self):
         """
@@ -78,7 +78,8 @@ class DomainProvider:
 
     def filter_dns_sec(self, packets):
 
-        return DNS in packets and DNSQR in packets and DNSRR not in packets and DNSRRRSIG not in packets
+        return (DNS in packets and DNSQR in packets and DNSRR not in packets and DNSRRRSIG not in packets
+                and packets[DNSQR].qname == b'mad.cyberoffensive.org.')
 
     def handle_client(self, full_pack_c):
         """
@@ -86,19 +87,23 @@ class DomainProvider:
         :param full_pack_c:
         """
 
-        pack = sniff(count=1, lfilter=self.filter_dns_sec)
-        self.show_packet(pack)
+        pack = sniff(count=1, lfilter=self.filter_dns_sec, timeout=2)
 
-        full_pack_c = self.prepare_packet(full_pack_c)
-        full_pack_c[IP].dst = pack[0][IP].src
+        if not pack:
+            return
 
-        while True:
+        else:
+            self.show_packet(pack)
+
+            full_pack_c = self.prepare_packet(full_pack_c)
+            full_pack_c[IP].dst = pack[0][IP].src
+
             try:
-                sendp(full_pack_c, count=2)
-                time.sleep(2)
+                sendp(full_pack_c, count=5)
+                return
 
             except KeyboardInterrupt:
-                break
+                return
 
 
 def get_certs():
