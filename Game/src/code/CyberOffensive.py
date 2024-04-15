@@ -3,9 +3,9 @@ from level import *
 from settings import *
 from the_client import *
 import socket
-import time
 import os
 import pickle
+from creepy import *
 
 IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\LoginScreen\\menuscreen.png'
 BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\'
@@ -14,6 +14,7 @@ BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\'
 class Game:
     def __init__(self) -> None:
         pygame.init()
+        pygame.mixer.init()
         pygame.font.init()
 
         self.font = pygame.font.Font(FONT_PATH, 60)
@@ -33,6 +34,7 @@ class Game:
         self.text_surface = 0
         self.prev_loc = 0
         self.__previous_status = 0
+        self.player = CreePy()
 
         self.__message = ""
 
@@ -44,13 +46,19 @@ class Game:
         temp_p = []
 
         while True:
+            v = self.player.get_volume()
+            v.SetMute(0, None)
+            v.SetMasterVolumeLevelScalar(1.0, None)
             for event in pygame.event.get():
                 if pygame.QUIT == event.type:
                     pygame.quit()
                     sys.exit()
 
             if game_state == "start_menu":
+                self.player.run()
+
                 self.draw_start_menu()
+
                 game_state = "game"
 
             if game_state == "game":

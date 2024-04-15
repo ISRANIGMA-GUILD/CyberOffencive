@@ -1,8 +1,8 @@
+from creepy import *
 from client_handshake import *
 from dnssec_client import *
 import socket
 import pygame
-
 
 pygame.init()
 SYN = 2
@@ -32,16 +32,18 @@ class Client:
         self.__the_client_socket = the_client_socket
         self.__timer = 0
         self.__start_time = 0
+        self.player = CreePy()
+        self.v = self.player.get_volume()
 
     def run(self):
         """
 
         """
         try:
+            self.player.run()
             count = 0
             server_ip, server_port = self.format_socket()
             res, server_port = self.first_contact(server_ip, server_port)
-
             while True:
                 try:
                     self.__the_client_socket.connect((server_ip, server_port))
@@ -149,6 +151,7 @@ class Client:
 
         server_port = int(RandShort())
         while True:
+            self.good_music()
             if server_port == 443:
                 server_port += 1
 
@@ -166,6 +169,7 @@ class Client:
         :return:
         """
         while True:
+            self.good_music()
             server_ip = ServerSearcher().run()
 
             if self.ip_v_four_format(server_ip) and not self.empty_string(server_ip):
@@ -212,6 +216,7 @@ class Client:
         sendp(tcp_packet)
 
         while True:
+            self.good_music()
             vert = sniff(count=1, lfilter=self.filter_tcp, timeout=0.01)
             if not vert:
                 sendp(tcp_packet)
@@ -368,6 +373,7 @@ class Client:
         """
 
         while True:
+            self.good_music()
             try:
                 user, password = self.login()
 
@@ -384,11 +390,11 @@ class Client:
                     print("Don't mess with Shmulik")
 
                 else:
-                    user = user.encode()
-                    password = password.encode()
+                    user = user
+                    password = password
                     print(user, password)
 
-                    credentials = user + " ".encode() + password
+                    credentials = pickle.dumps((user, password))
                     encrypted_credentials = self.encrypt_data(key, credentials, auth)
 
                     data = encrypted_credentials
@@ -423,6 +429,7 @@ class Client:
         entering_username = True
 
         while True:
+            self.good_music()
             img = pygame.image.load(IMAGE)
             screen.blit(img, (0, 0))
             pygame.display.flip()
@@ -501,7 +508,7 @@ class Client:
         :param auth:
         :return:
         """
-
+        self.good_music()
         while True:
             try:
                 self.__the_client_socket.send(bytes(details[TLS]))
@@ -513,6 +520,7 @@ class Client:
 
                 else:
                     decrypt = self.decrypt_data(key, auth, success[0], success[1], success[2])
+                    print(decrypt)
 
                     if "Success" in decrypt.decode()[0:9]:
                         print("success")
@@ -551,8 +559,9 @@ class Client:
         :param message:
         :return:
         """
-
+        self.good_music()
         for index in range(0, len(THE_BIG_LIST)):
+            self.good_music()
             if THE_BIG_LIST.get(str(index)) in message:
                 return True
 
@@ -578,7 +587,7 @@ class Client:
         :param data:
         :return:
         """
-        
+        self.good_music()
         if 1 not in KEY:
             key, auth = KEY['encryption'][0], KEY['encryption'][1]
             try:
@@ -627,6 +636,9 @@ class Client:
                 self.__the_client_socket.close()
                 return
 
+            except pickle.PickleError:
+                return
+
             except socket.timeout:
                 return
 
@@ -660,7 +672,9 @@ class Client:
         except socket.timeout:
             return
 
-
+    def good_music(self):
+        self.v.SetMute(0, None)
+        self.v.SetMasterVolumeLevelScalar(1.0, None)
 
 
 def main():

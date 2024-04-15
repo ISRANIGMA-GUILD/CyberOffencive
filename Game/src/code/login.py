@@ -2,7 +2,7 @@ from scapy.layers.tls.all import *
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 import os
 import socket
-
+import pickle
 
 MAX_MSG_LENGTH = 1024
 
@@ -31,7 +31,7 @@ class Login:
     def handle_credentials(self):
 
         try:
-            self.__client_socket.settimeout(0.05)
+            self.__client_socket.settimeout(0.1)
             data = self.deconstruct_data()
             if not data:
                 return
@@ -43,7 +43,7 @@ class Login:
                     return
 
                 else:
-                    self.__credentials[str(self.__number)] = self.decrypt_data(data_iv, data_c_t, data_tag)
+                    self.__credentials[str(self.__number)] = pickle.loads(self.decrypt_data(data_iv, data_c_t, data_tag))
                     self.check_account()
                     return
 
@@ -124,16 +124,6 @@ class Login:
 
         return data_iv == 0 and data_c_t == 1 and data_tag == 2
 
-    def organize_credentials(self, number):
-        """
-
-        :param number:
-        """
-
-        user, passw = self.__credentials[str(number)].decode().split(' ')
-        self.__credentials[str(number)] = (user, passw)
-        print(self.__credentials)
-
     def check_account(self):
         """
 
@@ -144,7 +134,6 @@ class Login:
 
         else:
 
-            self.organize_credentials(self.__number)
             tuple_of_credentials = self.__credentials[str(self.__number)]
 
             count = 0
@@ -167,6 +156,7 @@ class Login:
 
                         success_pack = self.create_message(success_msg)
                         self.__client_socket.send(bytes(success_pack[TLS]))
+                        return True
 
                     else:
                         print("ENTRY DENIED")
@@ -177,6 +167,7 @@ class Login:
 
                         self.__client_socket.send(bytes(success_pack[TLS]))
                         self.__credentials[str(self.__number)] = None
+                        return False
 
                 else:
 
@@ -191,6 +182,7 @@ class Login:
 
                         self.__client_socket.send(bytes(success_pack[TLS]))
                         self.__credentials[str(self.__number)] = None
+                        return False
 
                     else:
 
@@ -202,6 +194,7 @@ class Login:
 
                         success_pack = self.create_message(success_msg)
                         self.__client_socket.send(bytes(success_pack[TLS]))
+                        return True
 
             else:
                 print("Wrong username or password")
@@ -212,6 +205,7 @@ class Login:
 
                 self.__client_socket.send(bytes(success_pack[TLS]))
                 self.__credentials[str(self.__number)] = None
+                return False
 
     def username_exists(self, list_of_existing_users, tuple_of_credentials):
         """
