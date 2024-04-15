@@ -4,11 +4,12 @@ from os import walk, chdir
 import os.path
 from settings import *
 
+
 def import_csv_layout(path: str) -> list:
     terrain_map = []
 
     with open(path) as map_file:
-        layout = reader(map_file, delimiter = COMMA)
+        layout = reader(map_file, delimiter=COMMA)
         for row in layout:
             terrain_map.append(list(row))
 

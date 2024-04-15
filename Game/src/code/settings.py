@@ -29,35 +29,35 @@ VERTICAL: str = 'Vertical'
 PLAYER: str = 'player'
 
 HITBOX_OFFSETS: dict = {
-	'player' : -26,
-	'object' : -40,
-	'grass' : -10,
-	'invisible' : 0
+	'player': -26,
+	'object': -40,
+	'grass': -10,
+	'invisible': 0
 }
 
 INFLATE_X: int = -6
-#=============================
+# =============================
 
 
-#====== Sprite Types ========= 
+# ====== Sprite Types =========
 INVISIBLE: str = 'invisible'
-#=============================
+# =============================
 
 
-#========== Layers ===========
+# ========== Layers ===========
 BOUNDARY: str = 'boundary'
 GRASS: str = 'grass'
 OBJECT: str = 'object'
-#=============================
+# =============================
 
 
-#===== Useful Characters =====
+# ===== Useful Characters =====
 COMMA: str = ','
 SLASH: str = '/'
 UNDERSCORE: str = '_'
-#=============================
+# =============================
 
-#====== Player Statuses ======
+# ====== Player Statuses ======
 UP: str = 'up'
 DOWN: str = 'down'
 LEFT: str = 'left'
@@ -70,26 +70,26 @@ HEALTH: str = 'health'
 ENERGY: str = 'energy'
 DAMAGE: str = 'damage'
 SPEED: str = 'speed'
-#=============================
+# =============================
 
-#========= Weapons ===========
+# ========= Weapons ===========
 WEAPON_DATA: dict = {
-	'sword' : {
-		'cooldown' : 100,
-		'damage' : 15,
-		'path' : '../graphics/weapons/sword/full.png',
+	'sword': {
+		'cooldown': 100,
+		'damage': 15,
+		'path': '../graphics/weapons/sword/full.png',
 	},
 }
-#=============================
+# =============================
 
-#==== Inventory Settings =====
-INVENTORY_CAPACITY: int = 1 # TODO to change this value: add more weapons and items
-#============================= 
+# ==== Inventory Settings =====
+INVENTORY_CAPACITY: int = 1  # TODO to change this value: add more weapons and items
+# =============================
 
-#===== Useful Constants ======
+# ===== Useful Constants ======
 INC: int = 1
 DEC: int = 1
-#=============================
+# =============================
 
 # = User Interface Settings ==
 # ~~~ General ~~~
@@ -108,10 +108,10 @@ HEALTH_BAR_COLOR: str = 'red'
 # ~~~ Energy Bar ~~~
 ENERGY_BAR_HEIGHT: int = 20
 ENERGY_BAR_WIDTH: int = 140
-ENERGY_BAR_COLOR: int = 'blue'
+ENERGY_BAR_COLOR: str = 'blue'
 
 # ~~~ Font ~~~
 FONT_PATH: str = '../fonts/TheWildBreathOfZelda-15Lv.ttf'
 FONT_SIZE: int = 18
 PLAYER_OBJECT: str = 'player_object'
-#=============================
+# =============================

@@ -6,9 +6,19 @@
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/CyberOffensive.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/CyberOffensive.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/Database/database.db" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/the_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/camera.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/entity.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/entity.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/level.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/level.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/melee_weapon.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/melee_weapon.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/player.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/ranged_weapon.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/ranged_weapon.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/security_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/security_server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/tile.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/tile.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/ui.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/ui.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/weapon.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/weapon.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TheGame" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TheGame/src/code/camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/camera.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TheGame/src/code/entity.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/entity.py" afterDir="false" />
@@ -37,7 +47,7 @@
     <option name="stateVersion" value="1" />
   </component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="CurrentFile" />
+    <option name="selectedTabId" value="QODANA_PROBLEMS_VIEW_TAB" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 5
@@ -87,6 +97,23 @@
     &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
 }</component>
+  <component name="QodanaHighlightedReportService">
+    <option name="localRunNotPublishedPersistedInfo">
+      <LocalReportPersistedInfo>
+        <option name="path" value="C:\Users\imper\AppData\Local\Temp\qodana_output\qodana.sarif.json" />
+        <option name="reportGuid" value="3d0ee4e6-093d-49c1-bdb2-ea34e7b09fcf" />
+        <option name="reportName" value="basic_com/qodana/2024-04-16" />
+      </LocalReportPersistedInfo>
+    </option>
+  </component>
+  <component name="QodanaIsSelectedPersistenceService">
+    <option name="selectedOrLoading" value="true" />
+  </component>
+  <component name="QodanaReportsService">
+    <option name="descriptions">
+      <ReportDescription localRun="true" path="C:\Users\imper\AppData\Local\Temp\qodana_output\qodana.sarif.json" reportGuid="3d0ee4e6-093d-49c1-bdb2-ea34e7b09fcf" reportId="basic_com/qodana/2024-04-16" />
+    </option>
+  </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Game\src\code" />
@@ -96,7 +123,7 @@
       <recent name="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Secure Game\Certificates\Certificate_crts" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.CyberOffensive (1)">
+  <component name="RunManager" selected="Python.security_server">
     <configuration name="CyberOffensive (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="basic_com" />
       <option name="ENV_FILES" value="" />

@@ -54,7 +54,6 @@ class Security:
         """
 
         """
-        i = 0
 
         if self.allow_server_connection():
 
@@ -209,7 +208,8 @@ class Security:
         else:
             list_clear = []
             for i in range(0, len(banned)):
-                if banned[i] not in list_clear and (banned[i][0], banned[i][1], 'Banned') not in list_of_banned_addresses:
+                if (banned[i] not in list_clear and (banned[i][0], banned[i][1], 'Banned') not in
+                        list_of_banned_addresses):
                     list_clear.append(banned[i])
 
             if not list_clear:
