@@ -5,7 +5,8 @@ from utils import *
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, position: tuple, groups, obstacle_sprites, create_attack, destroy_weapon, path = '../graphics/brawn_idle.png') -> None:
+    def __init__(self, position: tuple, groups, obstacle_sprites, create_attack, destroy_weapon,
+                 path='../graphics/brawn_idle.png') -> None:
         super().__init__(groups)
         self.image = pygame.image.load(path).convert_alpha()
         self.rect = self.image.get_rect(topleft=position)
@@ -57,18 +58,18 @@ class Player(pygame.sprite.Sprite):
         
     def import_player_assets(self, path: str = '../graphics/player/') -> None:
         self.animations = {
-            'up' : [],
-            'down' : [],
-            'left' : [],
-            'right' : [],
-            'up_idle' : [],
-            'down_idle' : [],
-            'left_idle' : [],
-            'right_idle' : [],
-            'up_attack' : [],
-            'down_attack' : [],
-            'left_attack' : [],
-            'right_attack' : [],
+            'up': [],
+            'down': [],
+            'left': [],
+            'right': [],
+            'up_idle': [],
+            'down_idle': [],
+            'left_idle': [],
+            'right_idle': [],
+            'up_attack': [],
+            'down_attack': [],
+            'left_attack': [],
+            'right_attack': [],
         }
         
         for animation in self.animations.keys():
@@ -109,18 +110,18 @@ class Player(pygame.sprite.Sprite):
         elif keys[pygame.K_q] and self.can_switch_items:
             self.can_switch_items = False
             self.item_switch_time = pygame.time.get_ticks()
-            self.active_item_index = int((self.active_item_index + INC) % (INVENTORY_CAPACITY))
+            self.active_item_index = int((self.active_item_index + INC) % INVENTORY_CAPACITY)
             self.active_item = list(WEAPON_DATA.keys())[self.active_item_index]
     
     def get_status(self) -> None:
         if not self.direction.x and not self.direction.y:
-            if not IDLE in self.status and not ATTACK in self.status:
+            if IDLE not in self.status and ATTACK not in self.status:
                 self.status += IDLE
         
         if self.attacking:
             self.direction.x = 0
             self.direction.y = 0
-            if not ATTACK in self.status:
+            if ATTACK not in self.status:
                 if IDLE in self.status:
                     self.status = self.status.replace(IDLE, ATTACK)
                 else:    
@@ -137,8 +138,7 @@ class Player(pygame.sprite.Sprite):
         self.hitbox.y += self.direction.y * self.stats[SPEED]
         self.collision(VERTICAL)    
         self.rect.center = self.hitbox.center
-           
-            
+
     def collision(self, direction: str) -> None:
         if HORIZONTAL == direction:
             for obstacle in self.obstacle_sprites:
@@ -176,9 +176,8 @@ class Player(pygame.sprite.Sprite):
             self.frame_index = 0
         
         self.image = animation[int(self.frame_index)]
-        self.rect = self.image.get_rect(center = self.hitbox.center)
-                
-            
+        self.rect = self.image.get_rect(center=self.hitbox.center)
+
     def update(self) -> None:
         self.input()
         self.cooldowns()

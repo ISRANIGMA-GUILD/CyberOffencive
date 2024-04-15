@@ -1,6 +1,7 @@
 import pygame
 from settings import *
 
+
 class Entity(pygame.sprite.Sprite):
     def __init__(self, groups):
         super().__init__(groups)
@@ -37,4 +38,4 @@ class Entity(pygame.sprite.Sprite):
                         self.hitbox.bottom = sprite.hitbox.top
                     # Movement up
                     if self.direction.y < 0:
-                        self.hitbox.top = sprite.hitbox.bottom    
+                        self.hitbox.top = sprite.hitbox.bottom
