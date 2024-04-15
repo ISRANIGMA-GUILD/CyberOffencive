@@ -9,29 +9,35 @@ MAX_MSG_LENGTH = 1024
 
 class Login:
 
-    def __init__(self, client_socket, encryption_key, auth, list_of_existing, list_of_existing_resources, time_log,
-                 credentials, number, new_credentials, server_socket):
-        self.__client_socket = client_socket
-        self.__encryption_key = encryption_key
-        self.__auth = auth
+    def __init__(self, details, list_of_existing, list_of_existing_resources,
+                 credentials, number, new_credentials, number_of_clients):
+        self.__details = details
         self.__list_of_existing = list_of_existing
         self.__list_of_existing_resources = list_of_existing_resources
         self.__credentials = credentials
         self.__number = number
-        self.__time = time_log
         self.__new_credentials = new_credentials
-        self.__server_socket = server_socket
+        self.__number_of_clients = number_of_clients
 
     def run(self):
         self.handle_credentials()
+        if self.__details["Credentials"] is None:
+            elapsed = time.time() - self.__details["Timer"][0]
 
-        return (self.__client_socket, self.__credentials, self.__list_of_existing, self.__list_of_existing_resources,
-                self.__time, self.__new_credentials, self.__server_socket)
+            hour, minutes, seconds = time.strftime("%Hh %Mm %Ss",
+                                                   time.gmtime(elapsed)).split(' ')
+            self.__details["Timer"] = (self.__details["Timer"][0], minutes)
+
+            if '01' in minutes:
+                self.eliminate_socket(self.__number)
+
+        return (self.__details, self.__credentials, self.__list_of_existing, self.__list_of_existing_resources,
+                self.__new_credentials, self.__number_of_clients)
 
     def handle_credentials(self):
 
         try:
-            self.__client_socket.settimeout(0.1)
+            self.__details["Client"].settimeout(0.1)
             data = self.deconstruct_data()
             if not data:
                 return
@@ -43,9 +49,15 @@ class Login:
                     return
 
                 else:
-                    self.__credentials[str(self.__number)] = pickle.loads(self.decrypt_data(data_iv, data_c_t, data_tag))
-                    self.check_account()
-                    return
+                    data = self.decrypt_data(data_iv, data_c_t, data_tag)
+                    if data == b'EXIT':
+                        self.eliminate_socket(self.__number)
+                        return
+                    else:
+                        self.__details["Credentials"] = pickle.loads(data)
+                        self.check_account()
+                        self.__credentials[str(self.__number)] = self.__details["Credentials"]
+                        return
 
         except TypeError:
             print("Problematic")
@@ -53,7 +65,7 @@ class Login:
             return
 
         except ConnectionResetError:
-            print("Client", self.__number + 1, self.__client_socket.getpeername(),
+            print("Client", self.__number + 1, self.__details["Client"].getpeername(),
                   "unexpectedly left")
             self.eliminate_socket(self.__number)
 
@@ -64,11 +76,11 @@ class Login:
             return
 
         except socket.timeout:
-            elapsed = time.time() - self.__time[0]
+            elapsed = time.time() - self.__details["Timer"][0]
 
             hour, minutes, seconds = time.strftime("%Hh %Mm %Ss",
                                                    time.gmtime(elapsed)).split(' ')
-            self.__time = (self.__time[0], minutes)
+            self.__details["Timer"] = (self.__details["Timer"][0], minutes)
 
             if '01' in minutes:
                 self.eliminate_socket(self.__number)
@@ -77,11 +89,12 @@ class Login:
 
         except KeyboardInterrupt:
             print("Server will end service")
+            self.eliminate_socket(self.__number)
             return
 
     def deconstruct_data(self):
 
-        data_pack = self.__client_socket.recv(MAX_MSG_LENGTH)
+        data_pack = self.__details["Client"].recv(MAX_MSG_LENGTH)
 
         try:
             if not data_pack:
@@ -129,17 +142,17 @@ class Login:
 
         """
 
-        if not self.__credentials[str(self.__number)]:
+        if not self.__details["Credentials"]:
             pass
 
         else:
 
-            tuple_of_credentials = self.__credentials[str(self.__number)]
+            tuple_of_credentials = self.__details["Credentials"]
 
             count = 0
 
             for i in range(0, len(self.__credentials)):
-                if self.__credentials[str(self.__number)] == self.__credentials[str(i)]:
+                if self.__details["Credentials"] == self.__credentials[str(i)]:
                     count += 1
 
             if count <= 1:
@@ -151,22 +164,22 @@ class Login:
                     if self.__list_of_existing_resources[self.__number][1] != "Banned":
                         print("Successful")
                         success = f"Success {self.__list_of_existing_resources[self.__number]}".encode()
-                        success_msg = self.encrypt_data(self.__encryption_key, success,
-                                                        self.__auth)
+                        success_msg = self.encrypt_data(self.__details["Keys"][0], success,
+                                                        self.__details["Keys"][1])
 
                         success_pack = self.create_message(success_msg)
-                        self.__client_socket.send(bytes(success_pack[TLS]))
+                        self.__details["Client"].send(bytes(success_pack[TLS]))
                         return True
 
                     else:
                         print("ENTRY DENIED")
                         success = "Failure".encode()
 
-                        success_msg = self.encrypt_data(self.__encryption_key, success, self.__auth)
+                        success_msg = self.encrypt_data(self.__details["Keys"][0], success, self.__details["Keys"][1])
                         success_pack = self.create_message(success_msg)
 
-                        self.__client_socket.send(bytes(success_pack[TLS]))
-                        self.__credentials[str(self.__number)] = None
+                        self.__details["Client"].send(bytes(success_pack[TLS]))
+                        self.__details["Credentials"] = None
                         return False
 
                 else:
@@ -177,11 +190,11 @@ class Login:
                         print("Wrong username or password")
                         success = "Failure".encode()
 
-                        success_msg = self.encrypt_data(self.__encryption_key, success, self.__auth)
+                        success_msg = self.encrypt_data(self.__details["Keys"][0], success, self.__details["Keys"][1])
                         success_pack = self.create_message(success_msg)
 
-                        self.__client_socket.send(bytes(success_pack[TLS]))
-                        self.__credentials[str(self.__number)] = None
+                        self.__details["Client"].send(bytes(success_pack[TLS]))
+                        self.__details["Credentials"] = None
                         return False
 
                     else:
@@ -190,21 +203,21 @@ class Login:
                         print("NEW ACCOUNT YAY :)")
 
                         success = "Success".encode()
-                        success_msg = self.encrypt_data(self.__encryption_key, success, self.__auth)
+                        success_msg = self.encrypt_data(self.__details["Keys"][0], success, self.__details["Keys"][1])
 
                         success_pack = self.create_message(success_msg)
-                        self.__client_socket.send(bytes(success_pack[TLS]))
+                        self.__details["Client"].send(bytes(success_pack[TLS]))
                         return True
 
             else:
                 print("Wrong username or password")
                 success = "Failure".encode()
 
-                success_msg = self.encrypt_data(self.__encryption_key, success, self.__auth)
+                success_msg = self.encrypt_data(self.__details["Keys"][0], success, self.__details["Keys"][1])
                 success_pack = self.create_message(success_msg)
 
-                self.__client_socket.send(bytes(success_pack[TLS]))
-                self.__credentials[str(self.__number)] = None
+                self.__details["Client"].send(bytes(success_pack[TLS]))
+                self.__details["Credentials"] = None
                 return False
 
     def username_exists(self, list_of_existing_users, tuple_of_credentials):
@@ -275,8 +288,8 @@ class Login:
         :return: The decrypted data
         """
 
-        decryptor = Cipher(algorithms.AES(self.__encryption_key), modes.GCM(iv, tag)).decryptor()
-        decryptor.authenticate_additional_data(self.__auth)
+        decryptor = Cipher(algorithms.AES(self.__details["Keys"][0]), modes.GCM(iv, tag)).decryptor()
+        decryptor.authenticate_additional_data(self.__details["Keys"][1])
 
         return decryptor.update(ciphertext) + decryptor.finalize()
 
@@ -286,10 +299,10 @@ class Login:
         :param number:
         """
 
-        self.__client_socket.close()
-        self.__server_socket.close()
+        self.__details[str(number)]["Client"].close()
+        self.__details[str(number)]["Socket"].close()
 
-        self.__server_socket = None
-        self.__client_socket = None
+        self.__details[str(number)] = None
         self.__credentials[str(number)] = None
 
+        self.__number_of_clients -= 1

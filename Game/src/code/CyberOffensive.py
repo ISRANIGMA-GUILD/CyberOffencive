@@ -47,8 +47,9 @@ class Game:
 
         while True:
             v = self.player.get_volume()
-            v.SetMute(0, None)
+            v.SetMute(1, None)
             v.SetMasterVolumeLevelScalar(1.0, None)
+
             for event in pygame.event.get():
                 if pygame.QUIT == event.type:
                     pygame.quit()
@@ -62,25 +63,9 @@ class Game:
                 game_state = "game"
 
             if game_state == "game":
-                loading_screen_image = pygame.image.load(f'{BASE_PATH}LoginScreen\\menuscreen.png').convert()
 
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_SPACE]:
-                    for i in range(100):
-                        # Clear the screen
-                        self.screen.fill(BLACK)
-
-                        # Blit the background image (if loaded)
-                        if loading_screen_image:
-                            self.screen.blit(loading_screen_image, (0, 0))
-
-                        # Display loading tex
-
-                        # Update the display
-                        pygame.display.flip()
-
-                        # Simulate some loading time
-                        pygame.time.delay(10)  # Adjust delay as needed
                     ran = self.network.run()
                     game_state = "continue"
                     if ran == 1:
@@ -132,7 +117,7 @@ class Game:
                         statuses = list(other_client[2].values())
                         self.__message = list(other_client[1].values())
 
-                        locations = list(other_client[0].values())
+                        locations = list(other_client[0])
 
                         for i in range(0, len(self.__message)):
                             if self.__message[i] is not None or '':
