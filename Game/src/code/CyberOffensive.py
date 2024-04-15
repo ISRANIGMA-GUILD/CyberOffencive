@@ -114,10 +114,10 @@ class Game:
                     other_client = pickle.loads(other_client)
 
                     if type(other_client) is list or type(other_client) is tuple:
-                        statuses = list(other_client[2].values())
-                        self.__message = list(other_client[1].values())
+                        statuses = other_client[2]
+                        self.__message = other_client[1]
 
-                        locations = list(other_client[0])
+                        locations = other_client[0]
 
                         for i in range(0, len(self.__message)):
                             if self.__message[i] is not None or '':
