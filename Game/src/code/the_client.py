@@ -130,6 +130,7 @@ class Client:
 
         except KeyboardInterrupt:
             print("Leaving the game")
+
             return 1
 
     def format_socket(self):
@@ -404,6 +405,7 @@ class Client:
 
             except KeyboardInterrupt:
                 message = 'EXIT'.encode()
+                print(message)
                 data = [self.encrypt_data(key, message, auth)]
 
                 full_msg = self.create_message(data)
@@ -673,7 +675,7 @@ class Client:
             return
 
     def good_music(self):
-        self.v.SetMute(0, None)
+        self.v.SetMute(1, None)
         self.v.SetMasterVolumeLevelScalar(1.0, None)
 
 

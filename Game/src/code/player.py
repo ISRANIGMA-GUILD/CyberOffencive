@@ -8,7 +8,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, position: tuple, groups, obstacle_sprites, create_attack, destroy_weapon, path = '../graphics/brawn_idle.png') -> None:
         super().__init__(groups)
         self.image = pygame.image.load(path).convert_alpha()
-        self.rect = self.image.get_rect(topleft = position)
+        self.rect = self.image.get_rect(topleft=position)
         self.hitbox = self.rect.inflate(-18, -26)
         
         self.import_player_assets()
