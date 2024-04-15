@@ -35,18 +35,17 @@ class Server:
         self.__private_message = 0
         self.__number_of_clients = 1
 
-        self.__index_client = 0
         self.__banned_ips = []
-
         self.__banned_macs = []
+
         self.__new_credentials = []
-
         self.__all_details = []
-        self.__credentials = {}
 
+        self.__credentials = {}
         self.__locations = []
-        self.__chat = {}
-        self.__status = {}
+
+        self.__chat = []
+        self.__status = []
 
     def run(self):
         """
@@ -57,7 +56,7 @@ class Server:
         # """:TODO(almost finished): Check if users are banned """#
         # """:TODO: Transport databases between servers at the end and updating them accordingly """#
         # """:TODO(Relevance?): Check if an emoji is typed """#
-        # """:TODO: Check if users cheat(in speed, cash etc.) """#
+        # """:TODO: Check if users cheat(in speed, damage, etc.) """#
         # """:TODO(finished?): Connect to docker """#
         # """:TODO(finished?): Return details after login """#
         # """:TODO(Almost finished): Block connections from banned users """#
@@ -70,7 +69,7 @@ class Server:
         # """:TODO(almost finished): Check the ip at the start via getmacbyip any wrongs will cause a ban (CLIENT SIDE)"""#
         # """:TODO(almost finished): Display chat in the game not in the terminal """#
         # """:TODO: Make the whole game abstract from terminal """#
-        # """:TODO: Try-except on everything """#
+        # """:TODO(almost finished): Try-except on everything """#
         # """:TODO: Make sure communication with security server works """#
         # """:TODO: Fix the server deadlock after a client leaves"""#
 
@@ -334,10 +333,11 @@ class Server:
 
         return server_port
 
-    def create_server_sockets(self, server_port):
+    def create_server_sockets(self, server_port, number):
         """
 
         :param server_port:
+        :param number:
         """
         try:
             print(f"creating for another clients", server_port)
@@ -345,7 +345,7 @@ class Server:
             print(server_port)
 
             the_server_socket.bind((THE_USUAL_IP, server_port))  # Bind the server IP and Port into a tuple
-            self.__all_details[self.__index_client]["Socket"] = the_server_socket
+            self.__all_details[number]["Socket"] = the_server_socket
 
         except OSError:
             return
@@ -355,10 +355,11 @@ class Server:
 
         return the_server_socket
 
-    def accept_clients(self, the_server_socket):
+    def accept_clients(self, the_server_socket, number):
         """
 
         :param the_server_socket:
+        :param number:
         :return:
         """
         the_server_socket.listen()  # Listen to client
@@ -369,7 +370,7 @@ class Server:
             print(f"Client connected {connection.getpeername()}")
 
             client_socket = connection
-            self.__all_details[self.__index_client]["Client"] = client_socket
+            self.__all_details[number]["Client"] = client_socket
 
         except socket.timeout:
             return
@@ -378,7 +379,7 @@ class Server:
             return
 
         self.__number_of_clients += 1
-        self.__all_details[self.__index_client]["Timer"] = (time.time(), 0)
+        self.__all_details[number]["Timer"] = (time.time(), 0)
 
     def tls_handshake(self, lock, handshake, number):
         """
@@ -388,10 +389,11 @@ class Server:
         :param lock:
         :return:
         """
+
         lock.acquire()
         try:
-            if (self.__all_details[number]["Credentials"] is None and self.__all_details[number]["Client"]
-                    is not None and self.__all_details[number]["Keys"] is None):
+            if (self.__all_details[number].get("Credentials") is None and self.__all_details[number].get("Client")
+                    is not None and self.__all_details[number].get("Keys") is None):
                 enc_key = handshake.run()
                 self.__all_details[number]["Keys"] = enc_key
                 handshake.stop()
@@ -577,9 +579,14 @@ class Server:
 
         if self.__number_of_clients - 1 >= len(self.__locations) or len(self.__locations) == 0:
             self.__locations.append(None)
-        self.__chat[str(self.__number_of_clients - 1)] = None
-        self.__status[str(self.__number_of_clients - 1)] = None
-        print(self.__locations, self.__all_details)
+
+        if self.__number_of_clients - 1 >= len(self.__chat) or len(self.__chat) == 0:
+            self.__chat.append(None)
+
+        if self.__number_of_clients - 1 >= len(self.__status) or len(self.__status) == 0:
+            self.__status.append(None)
+
+        print(self.__locations, "\n", self.__all_details, "\n", self.__status)
 
     def create_connection_threads(self, lock):
         """
@@ -606,7 +613,7 @@ class Server:
         threads = []
 
         for number in range(0, len(self.__all_details)):
-            handshake = ServerHandshake(self.__all_details[number]["Client"])
+            handshake = ServerHandshake(self.__all_details[number].get("Client"))
             the_thread = threading.Thread(target=self.tls_handshake, args=(lock, handshake, number))
             threads.append(the_thread)
 
@@ -670,17 +677,10 @@ class Server:
         :param detail_threads:
         """
 
-        for index in range(0, len(connection_threads)):
-            self.__index_client = index
-            connection_threads[index].start()
-
         [thread.start() for thread in
-         (tls_handshakes + login_threads + response_threads + detail_threads)]
+         (connection_threads + tls_handshakes + login_threads + response_threads + detail_threads)]
 
-        for index in range(0, len(connection_threads)):
-            connection_threads[index].join()
-
-        for thread in (tls_handshakes + login_threads + response_threads + detail_threads):
+        for thread in (connection_threads + tls_handshakes + login_threads + response_threads + detail_threads):
             thread.join()
 
         # self.handle_security()
@@ -738,7 +738,7 @@ class Server:
 
         try:
             if number < len(self.__all_details):
-                if self.__all_details[number]["Client"] is None:
+                if self.__all_details[number].get("Client") is None:
                     lock.acquire()
                     port_client = self.receive_client_connection_request()
                     if port_client is None:
@@ -746,13 +746,13 @@ class Server:
                         return
 
                     else:
-                        the_server_socket = self.create_server_sockets(port_client)
+                        the_server_socket = self.create_server_sockets(port_client, number)
                         if the_server_socket is None:
                             lock.release()
                             return
 
                         else:
-                            self.accept_clients(the_server_socket)
+                            self.accept_clients(the_server_socket, number)
                             lock.release()
                             return
 
@@ -770,8 +770,8 @@ class Server:
         """
 
         try:
-            if (self.__all_details[number]["Credentials"] is None and self.__all_details[number]["Keys"]
-                    is not None and self.__all_details[number]["Client"] is not None):
+            if (self.__all_details[number].get("Credentials") is None and self.__all_details[number].get("Keys")
+                    is not None and self.__all_details[number].get("Client") is not None):
                 lock.acquire()
 
                 loging = Login(self.__all_details[number], list_of_existing, list_of_existing_resources,
@@ -793,13 +793,13 @@ class Server:
         :return:
         """
         try:
-            if (self.__all_details[index_of_client]["Keys"] is not None and
-                    self.__all_details[index_of_client]["Credentials"] is not None and
-                    self.__all_details[index_of_client]["Client"] is not None):
+            if (self.__all_details[index_of_client].get("Keys") is not None and
+                    self.__all_details[index_of_client].get("Credentials") is not None and
+                    self.__all_details[index_of_client].get("Client") is not None):
 
                 lock.acquire()
-                client_socket = self.__all_details[index_of_client]["Client"]
-                enc_key, auth = self.__all_details[index_of_client]["Keys"]
+                client_socket = self.__all_details[index_of_client].get("Client")
+                enc_key, auth = self.__all_details[index_of_client].get("Keys")
 
                 client_socket.settimeout(0.1)
 
@@ -832,12 +832,12 @@ class Server:
                                 self.__locations[index_of_client] = the_data[0].decode()[2:]
 
                                 if the_data[1].decode() == 'CHAT ':
-                                    self.__chat[str(index_of_client)] = None
+                                    self.__chat[index_of_client] = None
                                 else:
-                                    self.__chat[str(index_of_client)] = the_data[1].decode()[6:]
+                                    self.__chat[index_of_client] = the_data[1].decode()[6:]
                                 print(self.__chat, the_data[1].decode()[6:])
 
-                                self.__status[str(index_of_client)] = the_data[2].decode()[7:]
+                                self.__status[index_of_client] = the_data[2].decode()[7:]
 
                             if decrypted_data == b'EXIT':
                                 print("Client", index_of_client + 1, client_socket.getpeername(), "has left the server")
@@ -891,31 +891,31 @@ class Server:
         """
 
         try:
-            if (self.__locations is not None and self.__all_details[number]["Client"] is not None and
-                    self.__all_details[number]["Credentials"] is not None and
-                    self.__all_details[number]["Keys"] is not None):
+            if (self.__locations is not None and self.__all_details[number].get("Client") is not None and
+                    self.__all_details[number].get("Credentials") is not None and
+                    self.__all_details[number].get("Keys") is not None):
                 lock.acquire()
                 try:
                     local_locations = self.__locations.copy()
                     local_locations.pop(number)
 
                     local_messages = self.__chat.copy()
-                    local_messages.pop(str(number))
+                    local_messages.pop(number)
 
                     local_statuses = self.__status.copy()
-                    local_statuses.pop(str(number))
+                    local_statuses.pop(number)
 
                     list_data = local_locations, local_messages, local_statuses
                     byte_data = pickle.dumps(list_data)
 
-                    en = self.encrypt_data(self.__all_details[number]["Keys"][0], byte_data,
-                                           self.__all_details[number]["Keys"][1])
-                    self.__all_details[number]["Client"].send(bytes(self.create_message(en)[TLS]))
+                    en = self.encrypt_data(self.__all_details[number].get("Keys")[0], byte_data,
+                                           self.__all_details[number].get("Keys")[1])
+                    self.__all_details[number].get("Client").send(bytes(self.create_message(en)[TLS]))
 
                 except ConnectionResetError:
                     pass
 
-                self.__chat[str(number)] = None
+                self.__chat[number] = None
 
                 lock.release()
 
@@ -928,8 +928,8 @@ class Server:
         :param number:
         """
 
-        self.__all_details[number]["Client"].close()
-        self.__all_details[number]["Socket"].close()
+        self.__all_details[number].get("Client").close()
+        self.__all_details[number].get("Socket").close()
 
         self.__all_details.pop(number)
         self.__credentials[str(number)] = None
