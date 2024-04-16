@@ -20,6 +20,7 @@ class Login:
         self.__number_of_clients = number_of_clients
 
     def run(self):
+        print("b")
         self.handle_credentials()
         if self.__details["Credentials"] is None:
             elapsed = time.time() - self.__details["Timer"][0]
@@ -29,7 +30,7 @@ class Login:
             self.__details["Timer"] = (self.__details["Timer"][0], minutes)
 
             if '01' in minutes:
-                self.eliminate_socket(self.__number)
+                self.__details["Connected"] = 1
 
         return (self.__details, self.__credentials, self.__list_of_existing, self.__list_of_existing_resources,
                 self.__new_credentials, self.__number_of_clients)
@@ -51,7 +52,7 @@ class Login:
                 else:
                     data = self.decrypt_data(data_iv, data_c_t, data_tag)
                     if data == b'EXIT':
-                        self.eliminate_socket(self.__number)
+                        self.__details["Connected"] = 1
                         return
                     else:
                         self.__details["Credentials"] = pickle.loads(data)
@@ -61,13 +62,13 @@ class Login:
 
         except TypeError:
             print("Problematic")
-            self.eliminate_socket(self.__number)
+            self.__details["Connected"] = 1
             return
 
         except ConnectionResetError:
             print("Client", self.__number + 1, self.__details["Client"].getpeername(),
                   "unexpectedly left")
-            self.eliminate_socket(self.__number)
+            self.__details["Connected"] = 1
 
             print("Waited")
             return
@@ -83,13 +84,13 @@ class Login:
             self.__details["Timer"] = (self.__details["Timer"][0], minutes)
 
             if '01' in minutes:
-                self.eliminate_socket(self.__number)
+                self.__details["Connected"] = 1
 
             return
 
         except KeyboardInterrupt:
             print("Server will end service")
-            self.eliminate_socket(self.__number)
+            self.__details["Connected"] = 1
             return
 
     def deconstruct_data(self):
@@ -293,16 +294,3 @@ class Login:
 
         return decryptor.update(ciphertext) + decryptor.finalize()
 
-    def eliminate_socket(self, number):
-        """
-
-        :param number:
-        """
-
-        self.__details[str(number)]["Client"].close()
-        self.__details[str(number)]["Socket"].close()
-
-        self.__details[str(number)] = None
-        self.__credentials[str(number)] = None
-
-        self.__number_of_clients -= 1
