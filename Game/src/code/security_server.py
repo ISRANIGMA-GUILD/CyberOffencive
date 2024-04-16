@@ -192,12 +192,12 @@ class Security:
 
         """
 
-        requests = sniff(count=100, lfilter=self.filter_tcp, timeout=2)
+        requests = sniff(count=500, lfilter=self.filter_tcp, timeout=2)
         ports = [requests[i][TCP].sport for i in range(0, len(requests))]
 
         banned = []
         for i in range(0, len(ports)):
-            if ports.count(ports[i]) >= 100:
+            if ports.count(ports[i]) >= 500:
                 list_banned = [(requests[i][IP].src, requests[i][Ether].src) for i in range(0, len(requests))]
                 banned = list_banned
 

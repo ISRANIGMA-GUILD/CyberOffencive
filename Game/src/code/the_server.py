@@ -61,7 +61,6 @@ class Server:
         # """:TODO(finished?): Return details after login """#
         # """:TODO(Almost finished): Block connections from banned users """#
         # """:TODO: Loading screen between menu and login screens """#
-        # """:TODO: Split register and login """#
         # """:TODO(Probably finished): Limit conditions for kick due to manipulated handshakes """#
         # """:TODO: Merge with load balancer """#
         # """:TODO: Counter attack mechanism (security server) """#
@@ -70,8 +69,6 @@ class Server:
         # """:TODO(almost finished): Display chat in the game not in the terminal """#
         # """:TODO: Make the whole game abstract from terminal """#
         # """:TODO(almost finished): Try-except on everything """#
-        # """:TODO: Make sure communication with security server works """#
-        # """:TODO: Fix the server deadlock after a client leaves"""#
 
         main_cursor = self.__main_data_base.get_cursor()
         main_cursor.execute("SELECT Username, Password FROM PlayerDetails")
@@ -111,9 +108,13 @@ class Server:
 
         the_lock = threading.Lock()
         login_lock = threading.Lock()
+
+        modification_lock = threading.Lock()
+        security_lock = threading.Lock()
         print("Server is up and running")
 
-        self.handle_clients(the_lock, login_lock, list_of_existing_credentials, list_of_existing_resources)
+        self.handle_clients(the_lock, login_lock, modification_lock, security_lock,
+                            list_of_existing_credentials, list_of_existing_resources)
 
     def security_first(self):
         """
@@ -353,6 +354,9 @@ class Server:
         except TypeError:
             return
 
+        except IndexError:
+            return
+
         return the_server_socket
 
     def accept_clients(self, the_server_socket, number):
@@ -378,6 +382,9 @@ class Server:
         except TypeError:
             return
 
+        except IndexError:
+            return
+
         self.__number_of_clients += 1
         self.__all_details[number]["Timer"] = (time.time(), 0)
 
@@ -390,24 +397,25 @@ class Server:
         :return:
         """
 
-        lock.acquire()
-        try:
-            if (self.__all_details[number].get("Credentials") is None and self.__all_details[number].get("Client")
-                    is not None and self.__all_details[number].get("Keys") is None):
-                enc_key = handshake.run()
-                self.__all_details[number]["Keys"] = enc_key
-                handshake.stop()
+        with lock:
+            try:
+                if (self.__all_details[number].get("Credentials") is None and self.__all_details[number].get("Client")
+                        is not None and self.__all_details[number].get("Keys") is None):
+                    enc_key = handshake.run()
+                    self.__all_details[number]["Keys"] = enc_key
+                    handshake.stop()
 
-            else:
+                else:
+                    pass
+
+            except AttributeError:
                 pass
 
-        except AttributeError:
-            pass
+            except TypeError:
+                return
 
-        except TypeError:
-            return
-
-        lock.release()
+            except IndexError:
+                return
 
     def encrypt_data(self, key, plaintext, associated_data):
         """
@@ -504,11 +512,14 @@ class Server:
         alert = self.prepare_packet_structure(alert)
         client_socket.send(bytes(alert[TLS]))
 
-    def handle_clients(self, the_lock, login_lock, list_of_existing, list_of_existing_resources):
+    def handle_clients(self, the_lock, login_lock, security_lock, modification_lock, list_of_existing,
+                       list_of_existing_resources):
         """
 
         :param login_lock:
         :param the_lock:
+        :param security_lock:
+        :param modification_lock:
         :param list_of_existing:
         :param list_of_existing_resources:
         """
@@ -516,16 +527,18 @@ class Server:
         while True:
             try:
                 self.update_credential_list()
+                security_thread = self.create_security_threads(security_lock)
                 connection_threads = self.create_connection_threads(the_lock)
-
                 tls_handshakes = self.create_tls_handshake_threads(the_lock)
+
                 login_threads = self.create_credential_threads(login_lock, list_of_existing, list_of_existing_resources)
-
                 response_threads = self.create_responders(the_lock)
-                details_threads = self.create_detail_threads(the_lock)
 
-                self.start_handling(connection_threads, response_threads, login_threads, tls_handshakes,
-                                    details_threads)
+                details_threads = self.create_detail_threads(the_lock)
+                disconnect_threads = self.create_disconnect_threads(modification_lock)
+
+                self.start_handling(security_thread, connection_threads, login_threads, tls_handshakes,
+                                    response_threads, disconnect_threads, details_threads)
 
                 if self.empty_server():
                     self.update_database()
@@ -573,20 +586,49 @@ class Server:
         """
         if self.__number_of_clients - 1 >= len(self.__all_details) or len(self.__all_details) == 0:
             self.__all_details.append({"Credentials": None, "Keys": None, "Socket": None,
-                                       "Client": None, "Timer": None})
+                                       "Client": None, "Timer": None, "Connected": 0})
+            print("s")
+
+        else:
+            print("E")
 
         self.__credentials[str(self.__number_of_clients - 1)] = None
 
         if self.__number_of_clients - 1 >= len(self.__locations) or len(self.__locations) == 0:
             self.__locations.append(None)
+            print("sL")
+
+        else:
+            print("El")
 
         if self.__number_of_clients - 1 >= len(self.__chat) or len(self.__chat) == 0:
             self.__chat.append(None)
+            print("sC")
+
+        else:
+            print("Ec")
 
         if self.__number_of_clients - 1 >= len(self.__status) or len(self.__status) == 0:
             self.__status.append(None)
+            print("sST")
+
+        else:
+            print("Est")
 
         print(self.__locations, "\n", self.__all_details, "\n", self.__status)
+
+    def create_security_threads(self, lock):
+        """
+
+        :param lock:
+        :return:
+        """
+
+        threads = []
+        the_thread = threading.Thread(target=self.handle_security, args=(lock,))
+        threads.append(the_thread)
+
+        return threads
 
     def create_connection_threads(self, lock):
         """
@@ -667,45 +709,58 @@ class Server:
 
         return threads
 
-    def start_handling(self, connection_threads, response_threads, login_threads, tls_handshakes, detail_threads):
+    def create_disconnect_threads(self, lock):
+
+        threads = []
+
+        for number in range(0, len(self.__all_details)):
+            the_thread = threading.Thread(target=self.eliminate_socket, args=(lock, number,))
+            threads.append(the_thread)
+
+        return threads
+
+    def start_handling(self, security_thread, connection_threads, login_threads, tls_handshakes, response_threads,
+                       disconnect_threads, detail_threads):
         """
 
+        :param security_thread:
         :param connection_threads:
         :param response_threads:
         :param login_threads:
         :param tls_handshakes:
+        :param disconnect_threads:
         :param detail_threads:
         """
 
         [thread.start() for thread in
-         (connection_threads + tls_handshakes + login_threads + response_threads + detail_threads)]
+         (security_thread + connection_threads + tls_handshakes + login_threads + response_threads + detail_threads +
+          disconnect_threads)]
 
-        for thread in (connection_threads + tls_handshakes + login_threads + response_threads + detail_threads):
+        for thread in (security_thread + connection_threads + tls_handshakes + login_threads + response_threads +
+                       detail_threads + disconnect_threads):
             thread.join()
 
-        # self.handle_security()
-
-    def handle_security(self):
+    def handle_security(self, lock):
         """
 
         :return:
         """
+        with lock:
+            ban_users = self.security_server_report()
+            if not ban_users:
+                pass
 
-        ban_users = self.security_server_report()
-        if not ban_users:
-            pass
-
-        else:
-            if not self.__banned_ips and not self.__banned_macs:
-                self.__banned_ips, self.__banned_macs = ([ban_users[i][0] for i in range(0, len(ban_users))],
-                                                         [ban_users[i][1] for i in range(0, len(ban_users))])
             else:
-                for i in range(0, len(ban_users)):
-                    if ban_users[i][0] not in self.__banned_ips:
-                        self.__banned_ips.append(ban_users[i][0])
+                if not self.__banned_ips and not self.__banned_macs:
+                    self.__banned_ips, self.__banned_macs = ([ban_users[i][0] for i in range(0, len(ban_users))],
+                                                             [ban_users[i][1] for i in range(0, len(ban_users))])
+                else:
+                    for i in range(0, len(ban_users)):
+                        if ban_users[i][0] not in self.__banned_ips:
+                            self.__banned_ips.append(ban_users[i][0])
 
-                    if ban_users[i][1] not in self.__banned_ips:
-                        self.__banned_macs.append(ban_users[i][1])
+                        if ban_users[i][1] not in self.__banned_ips:
+                            self.__banned_macs.append(ban_users[i][1])
 
     def security_server_report(self):
         """
@@ -735,29 +790,26 @@ class Server:
         :param lock:
         :param number:
         """
-
-        try:
-            if number < len(self.__all_details):
-                if self.__all_details[number].get("Client") is None:
-                    lock.acquire()
-                    port_client = self.receive_client_connection_request()
-                    if port_client is None:
-                        lock.release()
-                        return
-
-                    else:
-                        the_server_socket = self.create_server_sockets(port_client, number)
-                        if the_server_socket is None:
-                            lock.release()
+        print("a")
+        with lock:
+            try:
+                if number < len(self.__all_details):
+                    if self.__all_details[number].get("Client") is None:
+                        port_client = self.receive_client_connection_request()
+                        if port_client is None:
                             return
 
                         else:
-                            self.accept_clients(the_server_socket, number)
-                            lock.release()
-                            return
+                            the_server_socket = self.create_server_sockets(port_client, number)
+                            if the_server_socket is None:
+                                return
 
-        except Exception:
-            return
+                            else:
+                                self.accept_clients(the_server_socket, number)
+                                return
+
+            except Exception:
+                return
 
     def receive_credentials(self, lock, number, list_of_existing, list_of_existing_resources):
         """
@@ -768,22 +820,21 @@ class Server:
         :param lock:
         :return:
         """
+        print("b")
+        with lock:
+            try:
+                if (self.__all_details[number].get("Credentials") is None and self.__all_details[number].get("Keys")
+                        is not None and self.__all_details[number].get("Client") is not None):
 
-        try:
-            if (self.__all_details[number].get("Credentials") is None and self.__all_details[number].get("Keys")
-                    is not None and self.__all_details[number].get("Client") is not None):
-                lock.acquire()
+                    loging = Login(self.__all_details[number], list_of_existing, list_of_existing_resources,
+                                   self.__credentials, number, self.__new_credentials, self.__number_of_clients)
 
-                loging = Login(self.__all_details[number], list_of_existing, list_of_existing_resources,
-                               self.__credentials, number, self.__new_credentials, self.__number_of_clients)
+                    (self.__all_details[number], self.__credentials, list_of_existing, list_of_existing_resources,
+                     self.__new_credentials, self.__number_of_clients) = loging.run()
 
-                (self.__all_details[number], self.__credentials, list_of_existing, list_of_existing_resources,
-                 self.__new_credentials, self.__number_of_clients) = loging.run()
 
-                lock.release()
-
-        except Exception:
-            return
+            except Exception:
+                return
 
     def respond_to_client(self, lock, index_of_client):
         """
@@ -792,96 +843,94 @@ class Server:
         :param index_of_client:
         :return:
         """
-        try:
-            if (self.__all_details[index_of_client].get("Keys") is not None and
-                    self.__all_details[index_of_client].get("Credentials") is not None and
-                    self.__all_details[index_of_client].get("Client") is not None):
+        print("c")
+        with lock:
+            try:
+                if (self.__all_details[index_of_client].get("Keys") is not None and
+                        self.__all_details[index_of_client].get("Credentials") is not None and
+                        self.__all_details[index_of_client].get("Client") is not None):
 
-                lock.acquire()
-                client_socket = self.__all_details[index_of_client].get("Client")
-                enc_key, auth = self.__all_details[index_of_client].get("Keys")
+                    client_socket = self.__all_details[index_of_client].get("Client")
+                    enc_key, auth = self.__all_details[index_of_client].get("Keys")
 
-                client_socket.settimeout(0.1)
+                    client_socket.settimeout(0.1)
 
-                try:
-                    data = self.deconstruct_data(client_socket)
+                    try:
+                        data = self.deconstruct_data(client_socket)
 
-                    if not data:
-                        lock.release()
-                        return
-
-                    else:
-                        data_iv, data_c_t, data_tag = data
-
-                        if data_iv == 0 and data_c_t == 1 and data_tag == 2:
-                            self.eliminate_socket(index_of_client)
-                            lock.release()
+                        if not data:
                             return
 
-                        decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
+                        else:
+                            data_iv, data_c_t, data_tag = data
 
-                        if decrypted_data is not None:
-                            the_data = pickle.loads(decrypted_data)
-                            if type(the_data) is tuple:
-                                print('dup')
-                                lock.release()
+                            if data_iv == 0 and data_c_t == 1 and data_tag == 2:
+                                self.__all_details[index_of_client]["Connected"] = 1
                                 return
 
-                            if the_data[0].decode()[0] == 'L' and the_data[1].decode()[0:4] == 'CHAT' \
-                                    and the_data[2].decode()[0:6] == 'STATUS':
-                                self.__locations[index_of_client] = the_data[0].decode()[2:]
+                            decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
 
-                                if the_data[1].decode() == 'CHAT ':
-                                    self.__chat[index_of_client] = None
-                                else:
-                                    self.__chat[index_of_client] = the_data[1].decode()[6:]
-                                print(self.__chat, the_data[1].decode()[6:])
+                            if decrypted_data is not None:
+                                the_data = pickle.loads(decrypted_data)
+                                if type(the_data) is tuple:
+                                    print('dup')
+                                    return
 
-                                self.__status[index_of_client] = the_data[2].decode()[7:]
+                                if the_data[0].decode()[0] == 'L' and the_data[1].decode()[0:4] == 'CHAT' \
+                                        and the_data[2].decode()[0:6] == 'STATUS':
+                                    self.__locations[index_of_client] = the_data[0].decode()[2:]
 
-                            if decrypted_data == b'EXIT':
-                                print("Client", index_of_client + 1, client_socket.getpeername(), "has left the server")
-                                self.eliminate_socket(index_of_client)
-                                lock.release()
-                                return
+                                    if the_data[1].decode() == 'CHAT ':
+                                        self.__chat[index_of_client] = None
+                                    else:
+                                        self.__chat[index_of_client] = the_data[1].decode()[6:]
+                                    print(self.__chat, the_data[1].decode()[6:])
 
-                except TypeError:
-                    print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")
-                    self.eliminate_socket(index_of_client)
+                                    self.__status[index_of_client] = the_data[2].decode()[7:]
 
-                    print("Waited")
-                    lock.release()
+                                if decrypted_data == b'EXIT':
+                                    print("Client", index_of_client + 1, client_socket.getpeername(), "has left the server")
+                                    self.__all_details[index_of_client]["Connected"] = 1
+                                    return
+
+                    except TypeError:
+                        print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")
+                        self.__all_details[index_of_client]["Connected"] = 1
+
+                        print("Waited")
+                        return
+
+                    except ConnectionAbortedError:
+                        print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")
+                        self.__all_details[index_of_client]["Connected"] = 1
+
+                        print("Waited")
+                        return
+
+                    except ConnectionResetError:
+                        print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")
+                        self.__all_details[index_of_client]["Connected"] = 1
+
+                        print("Waited")
+                        return
+
+                    except IndexError:
+                        print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")
+                        self.__all_details[index_of_client]["Connected"] = 1
+
+                        print("Waited")
+                        return
+
+                    except pickle.PickleError:
+                        return
+
+                    except socket.timeout:
+                        return
+
                     return
 
-                except ConnectionAbortedError:
-                    print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")
-                    self.eliminate_socket(index_of_client)
-
-                    print("Waited")
-                    lock.release()
-                    return
-
-                except ConnectionResetError:
-                    print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")
-                    self.eliminate_socket(index_of_client)
-
-                    print("Waited")
-                    lock.release()
-                    return
-
-                except pickle.PickleError:
-                    lock.release()
-                    return
-
-                except socket.timeout:
-                    lock.release()
-                    return
-
-                lock.release()
+            except Exception:
                 return
-
-        except Exception:
-            return
 
     def send_updates(self, lock, number):
         """
@@ -889,53 +938,63 @@ class Server:
         :param lock:
         :param number:
         """
+        print("d")
+        with lock:
+            try:
+                if (self.__locations is not None and self.__all_details[number].get("Client") is not None and
+                        self.__all_details[number].get("Credentials") is not None and
+                        self.__all_details[number].get("Keys") is not None):
+                    try:
+                        local_locations = self.__locations.copy()
+                        local_locations.pop(number)
 
-        try:
-            if (self.__locations is not None and self.__all_details[number].get("Client") is not None and
-                    self.__all_details[number].get("Credentials") is not None and
-                    self.__all_details[number].get("Keys") is not None):
-                lock.acquire()
-                try:
-                    local_locations = self.__locations.copy()
-                    local_locations.pop(number)
+                        local_messages = self.__chat.copy()
+                        local_messages.pop(number)
 
-                    local_messages = self.__chat.copy()
-                    local_messages.pop(number)
+                        local_statuses = self.__status.copy()
+                        local_statuses.pop(number)
 
-                    local_statuses = self.__status.copy()
-                    local_statuses.pop(number)
+                        list_data = local_locations, local_messages, local_statuses
+                        byte_data = pickle.dumps(list_data)
 
-                    list_data = local_locations, local_messages, local_statuses
-                    byte_data = pickle.dumps(list_data)
+                        en = self.encrypt_data(self.__all_details[number].get("Keys")[0], byte_data,
+                                               self.__all_details[number].get("Keys")[1])
+                        self.__all_details[number].get("Client").send(bytes(self.create_message(en)[TLS]))
 
-                    en = self.encrypt_data(self.__all_details[number].get("Keys")[0], byte_data,
-                                           self.__all_details[number].get("Keys")[1])
-                    self.__all_details[number].get("Client").send(bytes(self.create_message(en)[TLS]))
+                    except ConnectionResetError:
+                        pass
 
-                except ConnectionResetError:
-                    pass
+                    self.__chat[number] = None
 
-                self.__chat[number] = None
+            except Exception:
+                return
 
-                lock.release()
-
-        except Exception:
-            return
-
-    def eliminate_socket(self, number):
+    def eliminate_socket(self, lock, number):
         """
 
+        :param lock:
         :param number:
         """
+        print("e")
+        with lock:
+            try:
+                if self.__all_details[number].get("Connected") == 1:
 
-        self.__all_details[number].get("Client").close()
-        self.__all_details[number].get("Socket").close()
+                    self.__all_details[number].get("Client").close()
+                    self.__all_details[number].get("Socket").close()
 
-        self.__all_details.pop(number)
-        self.__credentials[str(number)] = None
+                    self.__all_details.pop(number)
+                    self.__credentials[str(number)] = None
 
-        self.__locations.pop(number)
-        self.__number_of_clients -= 1
+                    self.__locations.pop(number)
+                    self.__number_of_clients -= 1
+                    print(self.__number_of_clients, len(self.__all_details))
+
+            except Exception:
+                return
+
+            finally:
+                return
 
     def empty_server(self):
         """
