@@ -64,11 +64,13 @@ class Server:
         # """:TODO(Probably finished): Limit conditions for kick due to manipulated handshakes """#
         # """:TODO: Merge with load balancer """#
         # """:TODO: Counter attack mechanism (security server) """#
-        # """:TODO(almost finished): MAke sure all certificate vital data is randomized """#
+        # """:TODO(almost finished): MAke sure all certificate vital data is randomized and randomize them at start"""#
         # """:TODO(almost finished): Check the ip at the start via getmacbyip any wrongs will cause a ban (CLIENT SIDE)"""#
         # """:TODO(almost finished): Display chat in the game not in the terminal """#
         # """:TODO: Make the whole game abstract from terminal """#
         # """:TODO(almost finished): Try-except on everything """#
+        # """:TODO: Receive info about weapons, enemy locations, item locations """#
+        # """:TODO: Fix client deadlock at connect """#
 
         main_cursor = self.__main_data_base.get_cursor()
         main_cursor.execute("SELECT Username, Password FROM PlayerDetails")
@@ -122,12 +124,16 @@ class Server:
         """
 
         while True:
-            security_items = self.__security_private_handshake.run()
-            if not security_items:
+            try:
+                security_items = self.__security_private_handshake.run()
+                if not security_items:
+                    pass
+                else:
+                    self.__private_security_key, self.__private_message = security_items
+                    break
+
+            except ConnectionResetError:
                 pass
-            else:
-                self.__private_security_key, self.__private_message = security_items
-                break
 
     def receive_client_connection_request(self):
         """
@@ -164,8 +170,8 @@ class Server:
         else:
             list_responses = []
             server_port = requests[TCP].dport
-            print(server_port)
 
+            print(server_port)
             fixed_requests, fixed_connections = self.search_for_ddos(server_port, requests)
 
             list_responses = self.analyse_connections(fixed_requests, list_responses)
@@ -304,7 +310,6 @@ class Server:
         """
 
         skip = []
-
         requests = sniff(count=1, lfilter=self.filter_tcp, timeout=0.1)
 
         if not requests:
@@ -366,10 +371,10 @@ class Server:
         :param number:
         :return:
         """
-        the_server_socket.listen()  # Listen to client
-        the_server_socket.settimeout(1)
-
         try:
+            the_server_socket.listen()  # Listen to client
+            the_server_socket.settimeout(1)
+
             connection, client_address = the_server_socket.accept()  # Accept clients request
             print(f"Client connected {connection.getpeername()}")
 
@@ -401,6 +406,7 @@ class Server:
             try:
                 if (self.__all_details[number].get("Credentials") is None and self.__all_details[number].get("Client")
                         is not None and self.__all_details[number].get("Keys") is None):
+
                     enc_key = handshake.run()
                     self.__all_details[number]["Keys"] = enc_key
                     handshake.stop()
@@ -469,10 +475,9 @@ class Server:
         :param the_client_socket: The client socket
         :return: The data iv, data and tag
         """
-
-        data_pack = the_client_socket.recv(MAX_MSG_LENGTH)
-
         try:
+            data_pack = the_client_socket.recv(MAX_MSG_LENGTH)
+
             if not data_pack:
                 return
 
@@ -482,25 +487,29 @@ class Server:
 
             else:
                 data_pack = TLS(data_pack)
-
                 data = data_pack[TLS][TLSApplicationData].data
-                data_iv = data[:12]
 
+                data_iv = data[:12]
                 data_tag = data[len(data) - 16:len(data)]
+
                 data_c_t = data[12:len(data) - 16]
+
+                return data_iv, data_c_t, data_tag
 
         except struct.error:
             print("dont")
             return
 
         except socket.timeout:
-            print("out of time")
+           # print("out of time")
+            return
+
+        except ConnectionResetError:
+            print("reconnect to secuirty ")
             return
 
         except IndexError:
             return
-
-        return data_iv, data_c_t, data_tag
 
     def send_alert(self, client_socket):
         """
@@ -528,6 +537,7 @@ class Server:
             try:
                 self.update_credential_list()
                 security_thread = self.create_security_threads(security_lock)
+
                 connection_threads = self.create_connection_threads(the_lock)
                 tls_handshakes = self.create_tls_handshake_threads(the_lock)
 
@@ -587,35 +597,39 @@ class Server:
         if self.__number_of_clients - 1 >= len(self.__all_details) or len(self.__all_details) == 0:
             self.__all_details.append({"Credentials": None, "Keys": None, "Socket": None,
                                        "Client": None, "Timer": None, "Connected": 0})
-            print("s")
+         #   print("s")
 
         else:
-            print("E")
+           # print("E")
+            pass
 
         self.__credentials[str(self.__number_of_clients - 1)] = None
 
         if self.__number_of_clients - 1 >= len(self.__locations) or len(self.__locations) == 0:
             self.__locations.append(None)
-            print("sL")
+         #   print("sL")
 
         else:
-            print("El")
+           # print("El")
+            pass
 
         if self.__number_of_clients - 1 >= len(self.__chat) or len(self.__chat) == 0:
             self.__chat.append(None)
-            print("sC")
+           # print("sC")
 
         else:
-            print("Ec")
+         #   print("Ec")
+            pass
 
         if self.__number_of_clients - 1 >= len(self.__status) or len(self.__status) == 0:
             self.__status.append(None)
-            print("sST")
+           # print("sST")
 
         else:
-            print("Est")
+          #  print("Est")
+            pass
 
-        print(self.__locations, "\n", self.__all_details, "\n", self.__status)
+       # print(self.__locations, "\n", self.__all_details, "\n", self.__status)
 
     def create_security_threads(self, lock):
         """
@@ -710,6 +724,11 @@ class Server:
         return threads
 
     def create_disconnect_threads(self, lock):
+        """
+
+        :param lock:
+        :return:
+        """
 
         threads = []
 
@@ -743,8 +762,10 @@ class Server:
     def handle_security(self, lock):
         """
 
+        :param lock:
         :return:
         """
+
         with lock:
             ban_users = self.security_server_report()
             if not ban_users:
@@ -790,7 +811,8 @@ class Server:
         :param lock:
         :param number:
         """
-        print("a")
+
+    #    print("a")
         with lock:
             try:
                 if number < len(self.__all_details):
@@ -820,7 +842,7 @@ class Server:
         :param lock:
         :return:
         """
-        print("b")
+      #  print("b")
         with lock:
             try:
                 if (self.__all_details[number].get("Credentials") is None and self.__all_details[number].get("Keys")
@@ -832,7 +854,6 @@ class Server:
                     (self.__all_details[number], self.__credentials, list_of_existing, list_of_existing_resources,
                      self.__new_credentials, self.__number_of_clients) = loging.run()
 
-
             except Exception:
                 return
 
@@ -843,7 +864,7 @@ class Server:
         :param index_of_client:
         :return:
         """
-        print("c")
+      #  print("c")
         with lock:
             try:
                 if (self.__all_details[index_of_client].get("Keys") is not None and
@@ -888,8 +909,9 @@ class Server:
 
                                     self.__status[index_of_client] = the_data[2].decode()[7:]
 
-                                if decrypted_data == b'EXIT':
-                                    print("Client", index_of_client + 1, client_socket.getpeername(), "has left the server")
+                                elif the_data[0] == b'EXIT':
+                                    print("Client", index_of_client + 1, client_socket.getpeername(),
+                                          "has left the server")
                                     self.__all_details[index_of_client]["Connected"] = 1
                                     return
 
@@ -938,7 +960,7 @@ class Server:
         :param lock:
         :param number:
         """
-        print("d")
+       # print("d")
         with lock:
             try:
                 if (self.__locations is not None and self.__all_details[number].get("Client") is not None and
@@ -975,7 +997,7 @@ class Server:
         :param lock:
         :param number:
         """
-        print("e")
+       # print("e")
         with lock:
             try:
                 if self.__all_details[number].get("Connected") == 1:
@@ -1025,15 +1047,17 @@ class Server:
 
     def get_local_client_details(self):
 
-        return self.__main_data_base, self.__login_data_base,
+        return self.__main_data_base, self.__login_data_base, self.__ips_data_base
 
 
 def main():
     """
     Main function
     """
+
     secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
+
     login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
     ips_data_base = DatabaseManager("IPs", PARAMETERS["NODUP"])
 

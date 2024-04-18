@@ -13,15 +13,19 @@ class Login:
                  credentials, number, new_credentials, number_of_clients):
         self.__details = details
         self.__list_of_existing = list_of_existing
+
         self.__list_of_existing_resources = list_of_existing_resources
         self.__credentials = credentials
+
         self.__number = number
         self.__new_credentials = new_credentials
+
         self.__number_of_clients = number_of_clients
 
     def run(self):
         print("b")
         self.handle_credentials()
+
         if self.__details["Credentials"] is None:
             elapsed = time.time() - self.__details["Timer"][0]
 

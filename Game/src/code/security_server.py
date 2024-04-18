@@ -26,12 +26,16 @@ class Security:
     def __init__(self, database: DatabaseManager, the_server_socket: socket):
         self.__database = database
         self.__the_server_socket = the_server_socket
+
         self.__secret_security_key = b''
         self.__secret_message = b''
+
         self.__cert, self.__key = get_certs()
         self.__domain_provider = DomainProvider(self.__cert, self.__key)
+
         self.__upcoming_bans = []
         self.__currently_banned = []
+
         self.__service_socket = None
 
     def run(self):
@@ -135,15 +139,19 @@ class Security:
             handshake_initializer = ServerHandshake(service_socket)
 
             while True:
-                security_for_server = handshake_initializer.run()
+                try:
+                    security_for_server = handshake_initializer.run()
 
-                if not security_for_server:
+                    if not security_for_server:
+                        pass
+
+                    else:
+                        self.__secret_security_key, self.__secret_message = security_for_server
+                        handshake_initializer.stop()
+                        break
+
+                except ConnectionResetError:
                     pass
-
-                else:
-                    self.__secret_security_key, self.__secret_message = security_for_server
-                    handshake_initializer.stop()
-                    break
 
         else:
             return
@@ -283,9 +291,9 @@ class Security:
          Dissect the data received from the server
         :return: The data iv, data and tag
         """
-        self.__service_socket.settimeout(0.5)
 
         try:
+            self.__service_socket.settimeout(0.5)
             data_pack = self.__service_socket.recv(MAX_MSG_LENGTH)
             if not data_pack:
                 return
@@ -304,6 +312,9 @@ class Security:
                 data_c_t = data[12:len(data) - 16]
 
         except IndexError:
+            return
+
+        except struct.error:
             return
 
         except socket.timeout:

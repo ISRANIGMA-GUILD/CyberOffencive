@@ -1,6 +1,8 @@
 import pygame
 from settings import *
 
+BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\'
+
 
 class YSortCameraGroup(pygame.sprite.Group):
 
@@ -8,10 +10,11 @@ class YSortCameraGroup(pygame.sprite.Group):
         super().__init__()
         self.display_surface = pygame.display.get_surface()
         self.half_width = pygame.display.get_surface().get_size()[0] // 2
+
         self.half_height = pygame.display.get_surface().get_size()[1] // 2
         self.offset = pygame.math.Vector2()
 
-        self.floor_surface = pygame.image.load('../graphics/tilemap/ground.png').convert()
+        self.floor_surface = pygame.image.load(f'{BASE_PATH}graphics\\tilemap\\ground.png').convert()
         self.floor_rect = self.floor_surface.get_rect(topleft=(0, 0))
 
     def custom_draw(self, player) -> None:

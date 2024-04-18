@@ -7,19 +7,19 @@ import os
 import pickle
 from creepy import *
 
-IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\LoginScreen\\menuscreen.png'
-BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\'
+IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\LoginScreen\\menuscreen.png'
+BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\'
 
 
 class Game:
     def __init__(self) -> None:
         pygame.init()
         pygame.mixer.init()
+
         pygame.font.init()
-
         self.font = pygame.font.Font(FONT_PATH, 60)
-        pygame.event.set_allowed([QUIT, KEYDOWN, KEYUP])
 
+        pygame.event.set_allowed([QUIT, KEYDOWN, KEYUP])
         self.screen = pygame.display.set_mode((WIDTH, HEIGTH), FLAGS, BITS_PER_PIXEL)
 
         pygame.display.set_caption('Cyber Offensive')
@@ -33,6 +33,7 @@ class Game:
 
         self.text_surface = 0
         self.prev_loc = 0
+
         self.__previous_status = 0
         self.player = CreePy()
 
@@ -52,6 +53,10 @@ class Game:
 
             for event in pygame.event.get():
                 if pygame.QUIT == event.type:
+                    if game_state == "continue":
+                        list_of_details = ["EXIT", 1]
+
+                        other_client = self.network.communicate(list_of_details)
                     pygame.quit()
                     sys.exit()
 
@@ -97,7 +102,7 @@ class Game:
                 self.screen.blit(self.text_surface, (50, 10))
                 current_loc = self.level.player.get_location()
 
-                list_of_details = [current_loc, self.__message, self.level.player.status]
+                list_of_details = [current_loc, self.__message, self.level.player.status, 0]
 
                 other_client = self.network.communicate(list_of_details)
                 self.__previous_status = self.level.player.status
@@ -129,7 +134,7 @@ class Game:
                         temp_p = []
 
                         p_image = [pygame.image.load(
-                            f'../graphics/player/{statuses[i]}/{statuses[i]}.png').convert_alpha()
+                            f'{BASE_PATH}\\graphics\\player\\{statuses[i]}\\{statuses[i]}.png').convert_alpha()
                                    for i in range(0, len(statuses)) if statuses[i] is not None]
 
                         if not p_image:
@@ -145,8 +150,8 @@ class Game:
 
                     pygame.display.flip()
 
-                pygame.display.update()
-                self.clock.tick(FPS)
+            pygame.display.update()
+            self.clock.tick(FPS)
 
     def draw_start_menu(self):
         """

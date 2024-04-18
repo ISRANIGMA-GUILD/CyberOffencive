@@ -34,65 +34,108 @@
     <ROW Directory="CommonFilesFolder" Directory_Parent="TARGETDIR" DefaultDir="COMMON~1|CommonFilesFolder" IsPseudoRoot="1"/>
     <ROW Directory="DesktopFolder" Directory_Parent="TARGETDIR" DefaultDir="DESKTO~1|DesktopFolder" IsPseudoRoot="1"/>
     <ROW Directory="Game_Dir" Directory_Parent="NewFolder_Dir" DefaultDir="Game"/>
-    <ROW Directory="LoginScreen_Dir" Directory_Parent="NewFolder_1_Dir" DefaultDir="LOGINS~1|LoginScreen"/>
-    <ROW Directory="Map_Dir" Directory_Parent="NewFolder_Dir" DefaultDir="Map"/>
-    <ROW Directory="NewFolder_1_Dir" Directory_Parent="NewFolder_Dir" DefaultDir="Graphics"/>
+    <ROW Directory="LoginScreen_Dir" Directory_Parent="graphics_Dir" DefaultDir="LOGINS~1|LoginScreen"/>
+    <ROW Directory="Music_Dir" Directory_Parent="NewFolder_Dir" DefaultDir="Music"/>
     <ROW Directory="NewFolder_Dir" Directory_Parent="CommonFilesFolder" DefaultDir="CYBERO~1|CyberOffensive"/>
     <ROW Directory="Objects_Dir" Directory_Parent="SproutLandsSpritesBasicpack_Dir" DefaultDir="Objects"/>
     <ROW Directory="Png_Dir" Directory_Parent="Water7_Dir" DefaultDir="Png"/>
-    <ROW Directory="SproutLandsSpritesBasicpack_Dir" Directory_Parent="NewFolder_1_Dir" DefaultDir="SPROUT~1|Sprout Lands - Sprites - Basic pack"/>
+    <ROW Directory="SproutLandsSpritesBasicpack_Dir" Directory_Parent="graphics_Dir" DefaultDir="SPROUT~1|Sprout Lands - Sprites - Basic pack"/>
     <ROW Directory="SproutLandscolorpallet_Dir" Directory_Parent="SproutLandsSpritesBasicpack_Dir" DefaultDir="SPROUT~1|Sprout Lands color pallet"/>
     <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
     <ROW Directory="Tilesets_Dir" Directory_Parent="SproutLandsSpritesBasicpack_Dir" DefaultDir="Tilesets"/>
-    <ROW Directory="Water7_Dir" Directory_Parent="NewFolder_1_Dir" DefaultDir="Water7"/>
-    <ROW Directory="autumn_Dir" Directory_Parent="NewFolder_1_Dir" DefaultDir="autumn"/>
-    <ROW Directory="grass_Dir" Directory_Parent="NewFolder_1_Dir" DefaultDir="grass"/>
+    <ROW Directory="Water7_Dir" Directory_Parent="graphics_Dir" DefaultDir="Water7"/>
+    <ROW Directory="autumn_Dir" Directory_Parent="graphics_Dir" DefaultDir="autumn"/>
+    <ROW Directory="axe_Dir" Directory_Parent="weapons_Dir" DefaultDir="axe"/>
+    <ROW Directory="down_Dir" Directory_Parent="player_Dir" DefaultDir="down"/>
+    <ROW Directory="down_attack_Dir" Directory_Parent="player_Dir" DefaultDir="DOWN_A~1|down_attack"/>
+    <ROW Directory="down_idle_Dir" Directory_Parent="player_Dir" DefaultDir="DOWN_I~1|down_idle"/>
+    <ROW Directory="fonts_Dir" Directory_Parent="NewFolder_Dir" DefaultDir="fonts"/>
+    <ROW Directory="graphics_Dir" Directory_Parent="NewFolder_Dir" DefaultDir="graphics"/>
+    <ROW Directory="grass_Dir" Directory_Parent="graphics_Dir" DefaultDir="grass"/>
     <ROW Directory="image_Dir" Directory_Parent="Water7_Dir" DefaultDir="image"/>
-    <ROW Directory="objects_1_Dir" Directory_Parent="autumn_Dir" DefaultDir="objects"/>
+    <ROW Directory="lance_Dir" Directory_Parent="weapons_Dir" DefaultDir="lance"/>
+    <ROW Directory="left_Dir" Directory_Parent="player_Dir" DefaultDir="left"/>
+    <ROW Directory="left_attack_Dir" Directory_Parent="player_Dir" DefaultDir="LEFT_A~1|left_attack"/>
+    <ROW Directory="left_idle_Dir" Directory_Parent="player_Dir" DefaultDir="LEFT_I~1|left_idle"/>
+    <ROW Directory="map_Dir" Directory_Parent="NewFolder_Dir" DefaultDir="map"/>
+    <ROW Directory="objects_1_Dir" Directory_Parent="graphics_Dir" DefaultDir="objects"/>
     <ROW Directory="objects_2_Dir" Directory_Parent="summer_Dir" DefaultDir="objects"/>
     <ROW Directory="objects_3_Dir" Directory_Parent="winter_Dir" DefaultDir="objects"/>
-    <ROW Directory="objects_Dir" Directory_Parent="NewFolder_1_Dir" DefaultDir="objects"/>
+    <ROW Directory="objects_Dir" Directory_Parent="autumn_Dir" DefaultDir="objects"/>
+    <ROW Directory="player_Dir" Directory_Parent="graphics_Dir" DefaultDir="player"/>
+    <ROW Directory="rapier_Dir" Directory_Parent="weapons_Dir" DefaultDir="rapier"/>
+    <ROW Directory="right_Dir" Directory_Parent="player_Dir" DefaultDir="right"/>
+    <ROW Directory="right_attack_Dir" Directory_Parent="player_Dir" DefaultDir="RIGHT_~1|right_attack"/>
+    <ROW Directory="right_idle_Dir" Directory_Parent="player_Dir" DefaultDir="RIGHT_~2|right_idle"/>
+    <ROW Directory="sai_Dir" Directory_Parent="weapons_Dir" DefaultDir="sai"/>
     <ROW Directory="spine_Dir" Directory_Parent="Water7_Dir" DefaultDir="spine"/>
-    <ROW Directory="summer_Dir" Directory_Parent="NewFolder_1_Dir" DefaultDir="summer"/>
-    <ROW Directory="tilemap_Dir" Directory_Parent="NewFolder_1_Dir" DefaultDir="tilemap"/>
-    <ROW Directory="tiles_1_Dir" Directory_Parent="summer_Dir" DefaultDir="tiles"/>
+    <ROW Directory="summer_Dir" Directory_Parent="graphics_Dir" DefaultDir="summer"/>
+    <ROW Directory="sword_Dir" Directory_Parent="weapons_Dir" DefaultDir="sword"/>
+    <ROW Directory="tilemap_Dir" Directory_Parent="graphics_Dir" DefaultDir="tilemap"/>
+    <ROW Directory="tiles_1_Dir" Directory_Parent="graphics_Dir" DefaultDir="tiles"/>
     <ROW Directory="tiles_2_Dir" Directory_Parent="winter_Dir" DefaultDir="tiles"/>
-    <ROW Directory="tiles_Dir" Directory_Parent="NewFolder_1_Dir" DefaultDir="tiles"/>
-    <ROW Directory="winter_Dir" Directory_Parent="NewFolder_1_Dir" DefaultDir="winter"/>
+    <ROW Directory="tiles_Dir" Directory_Parent="summer_Dir" DefaultDir="tiles"/>
+    <ROW Directory="up_Dir" Directory_Parent="player_Dir" DefaultDir="up"/>
+    <ROW Directory="up_attack_Dir" Directory_Parent="player_Dir" DefaultDir="UP_ATT~1|up_attack"/>
+    <ROW Directory="up_idle_Dir" Directory_Parent="player_Dir" DefaultDir="up_idle"/>
+    <ROW Directory="weapons_Dir" Directory_Parent="graphics_Dir" DefaultDir="weapons"/>
+    <ROW Directory="winter_Dir" Directory_Parent="graphics_Dir" DefaultDir="winter"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="APPDIR" ComponentId="{3EC3CDBC-8699-4501-9B18-DCCE322273F9}" Directory_="APPDIR" Attributes="0"/>
-    <ROW Component="BasicCharakterActions.png" ComponentId="{958369A7-E092-4DC8-A280-61B692464716}" Directory_="Characters_Dir" Attributes="0" KeyPath="BasicCharakterActions.png" Type="0"/>
-    <ROW Component="Basic_Furniture.png" ComponentId="{1F6FC1FF-BAF2-4BF3-85FA-008086A74E22}" Directory_="Objects_Dir" Attributes="0" KeyPath="Basic_Furniture.png" Type="0"/>
-    <ROW Component="Bitmaskreferences1.png" ComponentId="{291E0BCF-4710-48A3-853A-1E9BB1476715}" Directory_="Tilesets_Dir" Attributes="0" KeyPath="Bitmaskreferences1.png" Type="0"/>
-    <ROW Component="CyberOffensive.exe" ComponentId="{21ED09FB-9D4B-45ED-A5A6-932E3FF9AF69}" Directory_="Game_Dir" Attributes="0" KeyPath="CyberOffensive.exe"/>
-    <ROW Component="Details.csv" ComponentId="{D4FD325C-EF9C-48E1-89C6-48691DF245A3}" Directory_="Map_Dir" Attributes="0" KeyPath="Details.csv" Type="0"/>
+    <ROW Component="BasicCharakterActions.png" ComponentId="{CCF66DE3-79EE-4679-898D-0862B82461AD}" Directory_="Characters_Dir" Attributes="0" KeyPath="BasicCharakterActions.png" Type="0"/>
+    <ROW Component="Basic_Furniture.png" ComponentId="{38E73340-4F63-461C-95AE-1CEE02A922A1}" Directory_="Objects_Dir" Attributes="0" KeyPath="Basic_Furniture.png" Type="0"/>
+    <ROW Component="Bitmaskreferences1.png" ComponentId="{949AA24E-75AE-40D3-8354-2EF93CBBB87F}" Directory_="Tilesets_Dir" Attributes="0" KeyPath="Bitmaskreferences1.png" Type="0"/>
+    <ROW Component="CyberOffensive.exe" ComponentId="{F361FD99-C069-4199-9F52-4DD3E82B8C48}" Directory_="Game_Dir" Attributes="0" KeyPath="CyberOffensive.exe"/>
+    <ROW Component="Details.csv" ComponentId="{BFE25962-6B1A-4DEC-9418-88853234BE1C}" Directory_="map_Dir" Attributes="0" KeyPath="Details.csv" Type="0"/>
     <ROW Component="ProductInformation" ComponentId="{E8E638F7-DF77-4AD6-BDE7-7DEE1097FF18}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
-    <ROW Component="SproutLandsdefautltpalettesnip.PNG" ComponentId="{2B9B8847-8833-4EA6-B240-17D0A1F22406}" Directory_="SproutLandscolorpallet_Dir" Attributes="0" KeyPath="SproutLandsdefautltpalettesnip.PNG" Type="0"/>
-    <ROW Component="Water7.atlas.txt" ComponentId="{21D2D06F-BA66-44F8-A453-8BCA6886DC07}" Directory_="spine_Dir" Attributes="0" KeyPath="Water7.atlas.txt" Type="0"/>
-    <ROW Component="brawn_idle.png" ComponentId="{2F20E95D-4F5B-4864-89E8-EC5AD4EF902D}" Directory_="NewFolder_1_Dir" Attributes="0" KeyPath="brawn_idle.png" Type="0"/>
-    <ROW Component="demo.gif" ComponentId="{DFEA553A-83E9-449A-A1F8-6B149E0EAB47}" Directory_="Water7_Dir" Attributes="0" KeyPath="demo.gif" Type="0"/>
-    <ROW Component="details.png" ComponentId="{FB498CBE-72ED-41EB-803E-F4F36AA0A802}" Directory_="tilemap_Dir" Attributes="0" KeyPath="details.png" Type="0"/>
-    <ROW Component="flowers.png" ComponentId="{C62220C3-71E3-48BF-ABB9-6ACCDF0B6FD4}" Directory_="summer_Dir" Attributes="0" KeyPath="flowers.png" Type="0"/>
-    <ROW Component="grass_1.png" ComponentId="{4A2E024F-2219-4AF4-99E9-74480A96CB10}" Directory_="grass_Dir" Attributes="0" KeyPath="grass_1.png" Type="0"/>
-    <ROW Component="login.png" ComponentId="{6A1658A2-08E3-4183-84B3-1DCAB420B6CA}" Directory_="LoginScreen_Dir" Attributes="0" KeyPath="login.png" Type="0"/>
-    <ROW Component="png" ComponentId="{101537FB-9449-4554-B33A-223CFC0C66E2}" Directory_="objects_1_Dir" Attributes="0" KeyPath="png" Type="0"/>
-    <ROW Component="png_1" ComponentId="{D2EA1AEA-2398-4E3D-83BA-43C38BF3D900}" Directory_="objects_Dir" Attributes="0" KeyPath="png_1" Type="0"/>
-    <ROW Component="png_2" ComponentId="{8F2E7713-36AB-49C6-94F7-264FA439AF32}" Directory_="objects_2_Dir" Attributes="0" KeyPath="png_22" Type="0"/>
-    <ROW Component="png_3" ComponentId="{63B3D171-B289-439D-89DA-292284779D26}" Directory_="objects_3_Dir" Attributes="0" KeyPath="png_23" Type="0"/>
-    <ROW Component="read_me.txt" ComponentId="{A88368B1-25D6-41F4-95D8-BA261089DACC}" Directory_="SproutLandsSpritesBasicpack_Dir" Attributes="0" KeyPath="read_me.txt" Type="0"/>
-    <ROW Component="rock.png" ComponentId="{0EB057E7-6C29-47F6-BA71-2ACBDAE3898D}" Directory_="tiles_Dir" Attributes="0" KeyPath="rock.png" Type="0"/>
-    <ROW Component="summer_tile.png" ComponentId="{9FD54581-8476-4087-A696-5ACDF6E08CAA}" Directory_="tiles_1_Dir" Attributes="0" KeyPath="summer_tile.png" Type="0"/>
-    <ROW Component="template.png" ComponentId="{668816AC-F371-420B-897C-F97CD878B548}" Directory_="image_Dir" Attributes="0" KeyPath="template.png" Type="0"/>
-    <ROW Component="water70000.png" ComponentId="{2D319DEE-71AA-4180-8D35-386458B0556E}" Directory_="Png_Dir" Attributes="0" KeyPath="water70000.png_1" Type="0"/>
-    <ROW Component="winter_tile.png" ComponentId="{95ED6785-082E-4BDC-A4BB-13D496604FCF}" Directory_="tiles_2_Dir" Attributes="0" KeyPath="winter_tile.png_1" Type="0"/>
+    <ROW Component="SproutLandsdefautltpalettesnip.PNG" ComponentId="{EB8E7A4C-1F19-41BE-9986-E601E2AABF23}" Directory_="SproutLandscolorpallet_Dir" Attributes="0" KeyPath="SproutLandsdefautltpalettesnip.PNG" Type="0"/>
+    <ROW Component="TheWildBreathOfZelda15Lv.ttf" ComponentId="{CE071A60-63A7-4AFF-A08C-E1BFD71CF42D}" Directory_="fonts_Dir" Attributes="0" Type="0"/>
+    <ROW Component="Water7.atlas.txt" ComponentId="{B9C6A1ED-EE88-4F06-9E84-2BB1C32B6AC5}" Directory_="spine_Dir" Attributes="0" KeyPath="Water7.atlas.txt" Type="0"/>
+    <ROW Component="brawn_idle.png" ComponentId="{19640F46-6745-4F32-AC60-E38CD952607C}" Directory_="graphics_Dir" Attributes="0" KeyPath="brawn_idle.png" Type="0"/>
+    <ROW Component="demo.gif" ComponentId="{252852B7-08E1-4188-9A55-06BF0A67FCE6}" Directory_="Water7_Dir" Attributes="0" KeyPath="demo.gif" Type="0"/>
+    <ROW Component="details.png" ComponentId="{48C8EC02-C038-4418-B4FB-EE58C758B551}" Directory_="tilemap_Dir" Attributes="0" KeyPath="details.png" Type="0"/>
+    <ROW Component="down.png" ComponentId="{7FD2DD3B-25F5-44DA-88AA-682CACEC0926}" Directory_="down_Dir" Attributes="0" KeyPath="down.png" Type="0"/>
+    <ROW Component="down.png_1" ComponentId="{8AC7B8B6-2BF4-44F7-A1D4-5D1CF4C53B8E}" Directory_="axe_Dir" Attributes="0" KeyPath="down.png_1" Type="0"/>
+    <ROW Component="down.png_2" ComponentId="{6F05F26D-63D3-4196-A199-DEB695E2DC1D}" Directory_="lance_Dir" Attributes="0" KeyPath="down.png_2" Type="0"/>
+    <ROW Component="down.png_3" ComponentId="{9A7571F3-98DE-44A2-8AB5-768D18A54825}" Directory_="rapier_Dir" Attributes="0" KeyPath="down.png_3" Type="0"/>
+    <ROW Component="down.png_4" ComponentId="{59F9E322-960C-4275-8E1C-00769461446C}" Directory_="sai_Dir" Attributes="0" KeyPath="down.png_4" Type="0"/>
+    <ROW Component="down.png_5" ComponentId="{E47C8C4F-BF4F-447D-992F-2DF76B7A8350}" Directory_="sword_Dir" Attributes="0" KeyPath="down.png_5" Type="0"/>
+    <ROW Component="down_attack.png" ComponentId="{91B524FB-5DA0-47EF-9BBB-D23855DD1350}" Directory_="down_attack_Dir" Attributes="0" KeyPath="down_attack.png" Type="0"/>
+    <ROW Component="down_idle.png" ComponentId="{8842609D-C110-4C79-A7D1-B494C04B2701}" Directory_="down_idle_Dir" Attributes="0" KeyPath="down_idle.png" Type="0"/>
+    <ROW Component="flowers.png" ComponentId="{F2BCC9D7-EBEB-47AC-9D3A-D388B0F87943}" Directory_="summer_Dir" Attributes="0" KeyPath="flowers.png" Type="0"/>
+    <ROW Component="grass_1.png" ComponentId="{77853094-0B39-40C9-A547-4E2B4BF2DC0E}" Directory_="grass_Dir" Attributes="0" KeyPath="grass_1.png" Type="0"/>
+    <ROW Component="left.png" ComponentId="{137D0156-FE36-4705-A4D1-C8F7C1E3E452}" Directory_="left_Dir" Attributes="0" KeyPath="left.png" Type="0"/>
+    <ROW Component="left_attack.png" ComponentId="{D3268938-07F7-4C6E-861C-76080D59CA5B}" Directory_="left_attack_Dir" Attributes="0" KeyPath="left_attack.png" Type="0"/>
+    <ROW Component="left_idle.png" ComponentId="{64B715CD-7102-4CD1-9C2F-30F0D4294155}" Directory_="left_idle_Dir" Attributes="0" KeyPath="left_idle.png" Type="0"/>
+    <ROW Component="login.png" ComponentId="{A91FF93C-DBCD-4AC3-9383-349EB4D0B5D4}" Directory_="LoginScreen_Dir" Attributes="0" KeyPath="login.png" Type="0"/>
+    <ROW Component="perfectmusic.mp3" ComponentId="{79C5F73A-B6C8-4F8C-BC9D-D4AD0912A0F9}" Directory_="Music_Dir" Attributes="0" KeyPath="perfectmusic.mp3" Type="0"/>
+    <ROW Component="png" ComponentId="{95A00C82-6AC9-4A22-88AE-F224377157DF}" Directory_="objects_Dir" Attributes="0" KeyPath="png" Type="0"/>
+    <ROW Component="png_1" ComponentId="{39BDD9B2-6F92-4859-AE79-530373A04104}" Directory_="objects_1_Dir" Attributes="0" KeyPath="png_1" Type="0"/>
+    <ROW Component="png_2" ComponentId="{076BC9B6-158F-4C8C-BD8E-8A5792A48978}" Directory_="objects_2_Dir" Attributes="0" KeyPath="png_22" Type="0"/>
+    <ROW Component="png_3" ComponentId="{D694A953-7781-45BA-A8CD-8FF7351A3229}" Directory_="objects_3_Dir" Attributes="0" KeyPath="png_23" Type="0"/>
+    <ROW Component="read_me.txt" ComponentId="{1B17BD93-C2C7-4DAA-91E8-372704E5F992}" Directory_="SproutLandsSpritesBasicpack_Dir" Attributes="0" KeyPath="read_me.txt" Type="0"/>
+    <ROW Component="right.png" ComponentId="{0036053E-4695-4334-994C-D8F4532FA9BD}" Directory_="right_Dir" Attributes="0" KeyPath="right.png" Type="0"/>
+    <ROW Component="right_attack.png" ComponentId="{29D3386E-AAB2-4E4D-95B5-709CA74397C3}" Directory_="right_attack_Dir" Attributes="0" KeyPath="right_attack.png" Type="0"/>
+    <ROW Component="right_idle.png" ComponentId="{7469F20C-51D4-45F3-A821-04DED3E38A23}" Directory_="right_idle_Dir" Attributes="0" KeyPath="right_idle.png" Type="0"/>
+    <ROW Component="rock.png" ComponentId="{4DF3DF56-2C45-4819-A5E3-C675BD57B585}" Directory_="tiles_1_Dir" Attributes="0" KeyPath="rock.png" Type="0"/>
+    <ROW Component="summer_tile.png" ComponentId="{68D56757-8853-4872-86AE-809C8F876DE9}" Directory_="tiles_Dir" Attributes="0" KeyPath="summer_tile.png" Type="0"/>
+    <ROW Component="template.png" ComponentId="{43892CDC-8BB8-4A74-B538-CDBAC8F11535}" Directory_="image_Dir" Attributes="0" KeyPath="template.png" Type="0"/>
+    <ROW Component="up.png" ComponentId="{724A227C-56E3-4990-85DC-998384F4F15A}" Directory_="up_Dir" Attributes="0" KeyPath="up.png" Type="0"/>
+    <ROW Component="up_attack.png" ComponentId="{DD34E61A-BB6A-4D57-83D5-4851B33DD6B0}" Directory_="up_attack_Dir" Attributes="0" KeyPath="up_attack.png" Type="0"/>
+    <ROW Component="up_idle.png" ComponentId="{B2FA7935-5031-48D6-BE79-497CD5278ED6}" Directory_="up_idle_Dir" Attributes="0" KeyPath="up_idle.png" Type="0"/>
+    <ROW Component="water70000.png" ComponentId="{11312276-E7B5-4E2F-9F8A-62B8F60A1D8B}" Directory_="Png_Dir" Attributes="0" KeyPath="water70000.png_1" Type="0"/>
+    <ROW Component="winter_tile.png" ComponentId="{731A5A65-2BAB-401A-A78B-047AE8276A5A}" Directory_="tiles_2_Dir" Attributes="0" KeyPath="winter_tile.png_1" Type="0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
     <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0"/>
     <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
+    <ROW File="perfectmusic.mp3" Component_="perfectmusic.mp3" FileName="PERFEC~1.MP3|perfectmusic.mp3" Attributes="0" SourcePath="..\perfectmusic.mp3" SelfReg="false"/>
+    <ROW File="TheWildBreathOfZelda15Lv.ttf" Component_="TheWildBreathOfZelda15Lv.ttf" FileName="THEWIL~1.TTF|TheWildBreathOfZelda-15Lv.ttf" Attributes="0" SourcePath="..\..\fonts\TheWildBreathOfZelda-15Lv.ttf" SelfReg="false"/>
     <ROW File="png" Component_="png" FileName="01.png" Attributes="0" SourcePath="..\..\graphics\autumn\objects\01.png" SelfReg="false"/>
+    <ROW File="brawn_idle.png" Component_="brawn_idle.png" FileName="BRAWN_~1.PNG|brawn_idle.png" Attributes="0" SourcePath="..\..\graphics\brawn_idle.png" SelfReg="false"/>
     <ROW File="grass_1.png" Component_="grass_1.png" FileName="grass_1.png" Attributes="0" SourcePath="..\..\graphics\grass\grass_1.png" SelfReg="false"/>
     <ROW File="grass_2.png" Component_="grass_1.png" FileName="grass_2.png" Attributes="0" SourcePath="..\..\graphics\grass\grass_2.png" SelfReg="false"/>
     <ROW File="grass_3.png" Component_="grass_1.png" FileName="grass_3.png" Attributes="0" SourcePath="..\..\graphics\grass\grass_3.png" SelfReg="false"/>
@@ -117,6 +160,31 @@
     <ROW File="png_19" Component_="png_1" FileName="18.png" Attributes="0" SourcePath="..\..\graphics\objects\18.png" SelfReg="false"/>
     <ROW File="png_20" Component_="png_1" FileName="19.png" Attributes="0" SourcePath="..\..\graphics\objects\19.png" SelfReg="false"/>
     <ROW File="png_21" Component_="png_1" FileName="20.png" Attributes="0" SourcePath="..\..\graphics\objects\20.png" SelfReg="false"/>
+    <ROW File="obtimus_prime.png" Component_="brawn_idle.png" FileName="OBTIMU~1.PNG|obtimus_prime.png" Attributes="0" SourcePath="..\..\graphics\obtimus_prime.png" SelfReg="false"/>
+    <ROW File="down.png" Component_="down.png" FileName="down.png" Attributes="0" SourcePath="..\..\graphics\player\down\down.png" SelfReg="false"/>
+    <ROW File="down_0.png" Component_="down.png" FileName="down_0.png" Attributes="0" SourcePath="..\..\graphics\player\down\down_0.png" SelfReg="false"/>
+    <ROW File="down_1.png" Component_="down.png" FileName="down_1.png" Attributes="0" SourcePath="..\..\graphics\player\down\down_1.png" SelfReg="false"/>
+    <ROW File="down_2.png" Component_="down.png" FileName="down_2.png" Attributes="0" SourcePath="..\..\graphics\player\down\down_2.png" SelfReg="false"/>
+    <ROW File="down_attack.png" Component_="down_attack.png" FileName="DOWN_A~1.PNG|down_attack.png" Attributes="0" SourcePath="..\..\graphics\player\down_attack\down_attack.png" SelfReg="false"/>
+    <ROW File="down_idle.png" Component_="down_idle.png" FileName="DOWN_I~1.PNG|down_idle.png" Attributes="0" SourcePath="..\..\graphics\player\down_idle\down_idle.png" SelfReg="false"/>
+    <ROW File="left.png" Component_="left.png" FileName="left.png" Attributes="0" SourcePath="..\..\graphics\player\left\left.png" SelfReg="false"/>
+    <ROW File="left_0.png" Component_="left.png" FileName="left_0.png" Attributes="0" SourcePath="..\..\graphics\player\left\left_0.png" SelfReg="false"/>
+    <ROW File="left_2.png" Component_="left.png" FileName="left_2.png" Attributes="0" SourcePath="..\..\graphics\player\left\left_2.png" SelfReg="false"/>
+    <ROW File="left_3.png" Component_="left.png" FileName="left_3.png" Attributes="0" SourcePath="..\..\graphics\player\left\left_3.png" SelfReg="false"/>
+    <ROW File="left_attack.png" Component_="left_attack.png" FileName="LEFT_A~1.PNG|left_attack.png" Attributes="0" SourcePath="..\..\graphics\player\left_attack\left_attack.png" SelfReg="false"/>
+    <ROW File="left_idle.png" Component_="left_idle.png" FileName="LEFT_I~1.PNG|left_idle.png" Attributes="0" SourcePath="..\..\graphics\player\left_idle\left_idle.png" SelfReg="false"/>
+    <ROW File="right.png" Component_="right.png" FileName="right.png" Attributes="0" SourcePath="..\..\graphics\player\right\right.png" SelfReg="false"/>
+    <ROW File="right_0.png" Component_="right.png" FileName="right_0.png" Attributes="0" SourcePath="..\..\graphics\player\right\right_0.png" SelfReg="false"/>
+    <ROW File="right_2.png" Component_="right.png" FileName="right_2.png" Attributes="0" SourcePath="..\..\graphics\player\right\right_2.png" SelfReg="false"/>
+    <ROW File="right_3.png" Component_="right.png" FileName="right_3.png" Attributes="0" SourcePath="..\..\graphics\player\right\right_3.png" SelfReg="false"/>
+    <ROW File="right_attack.png" Component_="right_attack.png" FileName="RIGHT_~1.PNG|right_attack.png" Attributes="0" SourcePath="..\..\graphics\player\right_attack\right_attack.png" SelfReg="false"/>
+    <ROW File="right_idle.png" Component_="right_idle.png" FileName="RIGHT_~1.PNG|right_idle.png" Attributes="0" SourcePath="..\..\graphics\player\right_idle\right_idle.png" SelfReg="false"/>
+    <ROW File="up.png" Component_="up.png" FileName="up.png" Attributes="0" SourcePath="..\..\graphics\player\up\up.png" SelfReg="false"/>
+    <ROW File="up_0.png" Component_="up.png" FileName="up_0.png" Attributes="0" SourcePath="..\..\graphics\player\up\up_0.png" SelfReg="false"/>
+    <ROW File="up_2.png" Component_="up.png" FileName="up_2.png" Attributes="0" SourcePath="..\..\graphics\player\up\up_2.png" SelfReg="false"/>
+    <ROW File="up_3.png" Component_="up.png" FileName="up_3.png" Attributes="0" SourcePath="..\..\graphics\player\up\up_3.png" SelfReg="false"/>
+    <ROW File="up_attack.png" Component_="up_attack.png" FileName="UP_ATT~1.PNG|up_attack.png" Attributes="0" SourcePath="..\..\graphics\player\up_attack\up_attack.png" SelfReg="false"/>
+    <ROW File="up_idle.png" Component_="up_idle.png" FileName="up_idle.png" Attributes="0" SourcePath="..\..\graphics\player\up_idle\up_idle.png" SelfReg="false"/>
     <ROW File="BasicCharakterActions.png" Component_="BasicCharakterActions.png" FileName="BASICC~1.PNG|Basic Charakter Actions.png" Attributes="0" SourcePath="..\..\graphics\Sprout Lands - Sprites - Basic pack\Characters\Basic Charakter Actions.png" SelfReg="false"/>
     <ROW File="BasicCharakterSpritesheet.png" Component_="BasicCharakterActions.png" FileName="BASICC~2.PNG|Basic Charakter Spritesheet.png" Attributes="0" SourcePath="..\..\graphics\Sprout Lands - Sprites - Basic pack\Characters\Basic Charakter Spritesheet.png" SelfReg="false"/>
     <ROW File="Egg_And_Nest.png" Component_="BasicCharakterActions.png" FileName="EGG_AN~1.PNG|Egg_And_Nest.png" Attributes="0" SourcePath="..\..\graphics\Sprout Lands - Sprites - Basic pack\Characters\Egg_And_Nest.png" SelfReg="false"/>
@@ -191,10 +259,33 @@
     <ROW File="Water7.kra" Component_="demo.gif" FileName="Water7.kra" Attributes="0" SourcePath="..\..\graphics\Water7\Water7.kra" SelfReg="false"/>
     <ROW File="Water7.psd" Component_="demo.gif" FileName="Water7.psd" Attributes="0" SourcePath="..\..\graphics\Water7\Water7.psd" SelfReg="false"/>
     <ROW File="Water7.spine" Component_="demo.gif" FileName="WATER7~1.SPI|Water7.spine" Attributes="0" SourcePath="..\..\graphics\Water7\Water7.spine" SelfReg="false"/>
+    <ROW File="down.png_1" Component_="down.png_1" FileName="down.png" Attributes="0" SourcePath="..\..\graphics\weapons\axe\down.png" SelfReg="false"/>
+    <ROW File="full.png" Component_="down.png_1" FileName="full.png" Attributes="0" SourcePath="..\..\graphics\weapons\axe\full.png" SelfReg="false"/>
+    <ROW File="left.png_1" Component_="down.png_1" FileName="left.png" Attributes="0" SourcePath="..\..\graphics\weapons\axe\left.png" SelfReg="false"/>
+    <ROW File="right.png_1" Component_="down.png_1" FileName="right.png" Attributes="0" SourcePath="..\..\graphics\weapons\axe\right.png" SelfReg="false"/>
+    <ROW File="up.png_1" Component_="down.png_1" FileName="up.png" Attributes="0" SourcePath="..\..\graphics\weapons\axe\up.png" SelfReg="false"/>
+    <ROW File="down.png_2" Component_="down.png_2" FileName="down.png" Attributes="0" SourcePath="..\..\graphics\weapons\lance\down.png" SelfReg="false"/>
+    <ROW File="full.png_1" Component_="down.png_2" FileName="full.png" Attributes="0" SourcePath="..\..\graphics\weapons\lance\full.png" SelfReg="false"/>
+    <ROW File="left.png_2" Component_="down.png_2" FileName="left.png" Attributes="0" SourcePath="..\..\graphics\weapons\lance\left.png" SelfReg="false"/>
+    <ROW File="right.png_2" Component_="down.png_2" FileName="right.png" Attributes="0" SourcePath="..\..\graphics\weapons\lance\right.png" SelfReg="false"/>
+    <ROW File="up.png_2" Component_="down.png_2" FileName="up.png" Attributes="0" SourcePath="..\..\graphics\weapons\lance\up.png" SelfReg="false"/>
+    <ROW File="down.png_3" Component_="down.png_3" FileName="down.png" Attributes="0" SourcePath="..\..\graphics\weapons\rapier\down.png" SelfReg="false"/>
+    <ROW File="full.png_2" Component_="down.png_3" FileName="full.png" Attributes="0" SourcePath="..\..\graphics\weapons\rapier\full.png" SelfReg="false"/>
+    <ROW File="left.png_3" Component_="down.png_3" FileName="left.png" Attributes="0" SourcePath="..\..\graphics\weapons\rapier\left.png" SelfReg="false"/>
+    <ROW File="right.png_3" Component_="down.png_3" FileName="right.png" Attributes="0" SourcePath="..\..\graphics\weapons\rapier\right.png" SelfReg="false"/>
+    <ROW File="up.png_3" Component_="down.png_3" FileName="up.png" Attributes="0" SourcePath="..\..\graphics\weapons\rapier\up.png" SelfReg="false"/>
+    <ROW File="down.png_4" Component_="down.png_4" FileName="down.png" Attributes="0" SourcePath="..\..\graphics\weapons\sai\down.png" SelfReg="false"/>
+    <ROW File="full.png_3" Component_="down.png_4" FileName="full.png" Attributes="0" SourcePath="..\..\graphics\weapons\sai\full.png" SelfReg="false"/>
+    <ROW File="left.png_4" Component_="down.png_4" FileName="left.png" Attributes="0" SourcePath="..\..\graphics\weapons\sai\left.png" SelfReg="false"/>
+    <ROW File="right.png_4" Component_="down.png_4" FileName="right.png" Attributes="0" SourcePath="..\..\graphics\weapons\sai\right.png" SelfReg="false"/>
+    <ROW File="up.png_4" Component_="down.png_4" FileName="up.png" Attributes="0" SourcePath="..\..\graphics\weapons\sai\up.png" SelfReg="false"/>
+    <ROW File="down.png_5" Component_="down.png_5" FileName="down.png" Attributes="0" SourcePath="..\..\graphics\weapons\sword\down.png" SelfReg="false"/>
+    <ROW File="full.png_4" Component_="down.png_5" FileName="full.png" Attributes="0" SourcePath="..\..\graphics\weapons\sword\full.png" SelfReg="false"/>
+    <ROW File="left.png_5" Component_="down.png_5" FileName="left.png" Attributes="0" SourcePath="..\..\graphics\weapons\sword\left.png" SelfReg="false"/>
+    <ROW File="right.png_5" Component_="down.png_5" FileName="right.png" Attributes="0" SourcePath="..\..\graphics\weapons\sword\right.png" SelfReg="false"/>
+    <ROW File="up.png_5" Component_="down.png_5" FileName="up.png" Attributes="0" SourcePath="..\..\graphics\weapons\sword\up.png" SelfReg="false"/>
     <ROW File="png_23" Component_="png_3" FileName="01.png" Attributes="0" SourcePath="..\..\graphics\winter\objects\01.png" SelfReg="false"/>
     <ROW File="winter_tile.png_1" Component_="winter_tile.png" FileName="WINTER~1.PNG|winter_tile.png" Attributes="0" SourcePath="..\..\graphics\winter\tiles\winter_tile.png" SelfReg="false"/>
-    <ROW File="brawn_idle.png" Component_="brawn_idle.png" FileName="BRAWN_~1.PNG|brawn_idle.png" Attributes="0" SourcePath="..\..\graphics\brawn_idle.png" SelfReg="false"/>
-    <ROW File="obtimus_prime.png" Component_="brawn_idle.png" FileName="OBTIMU~1.PNG|obtimus_prime.png" Attributes="0" SourcePath="..\..\graphics\obtimus_prime.png" SelfReg="false"/>
     <ROW File="Details.csv" Component_="Details.csv" FileName="Details.csv" Attributes="0" SourcePath="..\..\map\Details.csv" SelfReg="false"/>
     <ROW File="Entities.csv" Component_="Details.csv" FileName="Entities.csv" Attributes="0" SourcePath="..\..\map\Entities.csv" SelfReg="false"/>
     <ROW File="Floor.csv" Component_="Details.csv" FileName="Floor.csv" Attributes="0" SourcePath="..\..\map\Floor.csv" SelfReg="false"/>
@@ -310,11 +401,26 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatCompsComponent">
     <ROW Feature_="MainFeature" Component_="APPDIR"/>
     <ROW Feature_="MainFeature" Component_="ProductInformation"/>
+    <ROW Feature_="MainFeature" Component_="TheWildBreathOfZelda15Lv.ttf"/>
     <ROW Feature_="MainFeature" Component_="png"/>
+    <ROW Feature_="MainFeature" Component_="brawn_idle.png"/>
     <ROW Feature_="MainFeature" Component_="grass_1.png"/>
     <ROW Feature_="MainFeature" Component_="png_1"/>
+    <ROW Feature_="MainFeature" Component_="down.png"/>
+    <ROW Feature_="MainFeature" Component_="down_attack.png"/>
+    <ROW Feature_="MainFeature" Component_="down_idle.png"/>
+    <ROW Feature_="MainFeature" Component_="left.png"/>
+    <ROW Feature_="MainFeature" Component_="left_attack.png"/>
+    <ROW Feature_="MainFeature" Component_="left_idle.png"/>
+    <ROW Feature_="MainFeature" Component_="right.png"/>
+    <ROW Feature_="MainFeature" Component_="right_attack.png"/>
+    <ROW Feature_="MainFeature" Component_="right_idle.png"/>
+    <ROW Feature_="MainFeature" Component_="up.png"/>
+    <ROW Feature_="MainFeature" Component_="up_attack.png"/>
+    <ROW Feature_="MainFeature" Component_="up_idle.png"/>
     <ROW Feature_="MainFeature" Component_="BasicCharakterActions.png"/>
     <ROW Feature_="MainFeature" Component_="Basic_Furniture.png"/>
+    <ROW Feature_="MainFeature" Component_="perfectmusic.mp3"/>
     <ROW Feature_="MainFeature" Component_="read_me.txt"/>
     <ROW Feature_="MainFeature" Component_="SproutLandsdefautltpalettesnip.PNG"/>
     <ROW Feature_="MainFeature" Component_="Bitmaskreferences1.png"/>
@@ -327,12 +433,16 @@
     <ROW Feature_="MainFeature" Component_="template.png"/>
     <ROW Feature_="MainFeature" Component_="water70000.png"/>
     <ROW Feature_="MainFeature" Component_="Water7.atlas.txt"/>
+    <ROW Feature_="MainFeature" Component_="down.png_1"/>
+    <ROW Feature_="MainFeature" Component_="down.png_2"/>
+    <ROW Feature_="MainFeature" Component_="down.png_3"/>
+    <ROW Feature_="MainFeature" Component_="down.png_4"/>
+    <ROW Feature_="MainFeature" Component_="down.png_5"/>
     <ROW Feature_="MainFeature" Component_="png_3"/>
     <ROW Feature_="MainFeature" Component_="winter_tile.png"/>
-    <ROW Feature_="MainFeature" Component_="brawn_idle.png"/>
     <ROW Feature_="MainFeature" Component_="Details.csv"/>
-    <ROW Feature_="MainFeature" Component_="login.png"/>
     <ROW Feature_="MainFeature" Component_="CyberOffensive.exe"/>
+    <ROW Feature_="MainFeature" Component_="login.png"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
     <ROW Action="AI_DOWNGRADE" Condition="AI_NEWERPRODUCTFOUND AND (UILevel &lt;&gt; 5)" Sequence="210"/>

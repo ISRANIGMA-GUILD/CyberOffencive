@@ -3,10 +3,11 @@ from entity import *
 from settings import *
 from utils import *
 
+BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\'
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, position: tuple, groups, obstacle_sprites, create_attack, destroy_weapon,
-                 path='../graphics/brawn_idle.png') -> None:
+                 path=f'{BASE_PATH}graphics\\brawn_idle.png') -> None:
         super().__init__(groups)
         self.image = pygame.image.load(path).convert_alpha()
         self.rect = self.image.get_rect(topleft=position)
@@ -56,7 +57,7 @@ class Player(pygame.sprite.Sprite):
         }
         
         
-    def import_player_assets(self, path: str = '../graphics/player/') -> None:
+    def import_player_assets(self, path: str = f'{BASE_PATH}graphics\\player\\') -> None:
         self.animations = {
             'up': [],
             'down': [],

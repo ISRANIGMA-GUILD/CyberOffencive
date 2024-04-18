@@ -1,6 +1,7 @@
 import pygame
 from settings import *
 
+BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\'
 
 class Weapon(pygame.sprite.Sprite):
     def __init__(self, player, groups) -> None:
@@ -11,7 +12,7 @@ class Weapon(pygame.sprite.Sprite):
             return
         
         self.direction = player.status.split(UNDERSCORE, 1)[0]
-        self.full_path = f'../graphics/weapons/{player.active_item}/{self.direction}.png'
+        self.full_path = f'{BASE_PATH}graphics\\weapons\\{player.active_item}\\{self.direction}.png'
         
         self.image = pygame.image.load(self.full_path).convert_alpha()
         self.rect = self.image.get_rect(center=player.rect.center)
