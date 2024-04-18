@@ -26,6 +26,7 @@ class DatabaseManager:
 
         self.__cursor = self.__conn.cursor()
         self.table_name = table_name
+
         self.__list_of_params = list_of_params
         self.__list_of_params_str = ", ".join(list_of_params)
 

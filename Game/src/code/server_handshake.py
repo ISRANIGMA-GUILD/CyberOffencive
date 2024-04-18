@@ -26,7 +26,6 @@ THE_PEM = serialization.Encoding.PEM
 PRIVATE_OPENSSL = serialization.PrivateFormat.TraditionalOpenSSL
 GOOD_PAD = PSS(MGF1(hashes.SHA256()), PSS.MAX_LENGTH)
 MAX_MSG_LENGTH = 1024
-EXCEPTIONAL_CASE_LENGTH = 4096
 THE_SHA_256 = hashes.SHA256()
 SECP = 0x0017
 SIGNATURE_ALGORITHIM = 0x0401
@@ -38,6 +37,7 @@ class ServerHandshake:
     def __init__(self, client_socket: socket):
         self.__client_socket = client_socket
         self.__messages = {"TLS_VALID_HELLO": (0, TLS()), "KEYS": (0, TLS()), "TLS_FIRST_DATA": (0, b"")}
+
         self.__auth = []
         self.__private_key = []
 
@@ -48,23 +48,34 @@ class ServerHandshake:
         """
 
         while True:
-            if not self.__auth:
-                auth = self.first_handshake()
-                if not auth:
-                    return
+            try:
+                if not self.__auth:
+                    auth = self.first_handshake()
+                    if not auth:
+                        return
+
+                    else:
+                        self.__auth.append(auth)
 
                 else:
-                    self.__auth.append(auth)
+                    auth = self.__auth[0]
+                    enc_key = self.secure_handshake(auth)
 
-            else:
-                auth = self.__auth[0]
-                enc_key = self.secure_handshake(auth)
+                    if not enc_key:
+                        return
 
-                if not enc_key:
-                    return
+                    else:
+                        return enc_key, auth
 
-                else:
-                    return enc_key, auth
+            except ConnectionAbortedError:
+                self.__messages = {"TLS_VALID_HELLO": (0, TLS()), "KEYS": (0, TLS()), "TLS_FIRST_DATA": (0, b"")}
+                self.__auth = []
+                self.__private_key = []
+
+            except ConnectionResetError:
+                self.__messages = {"TLS_VALID_HELLO": (0, TLS()), "KEYS": (0, TLS()), "TLS_FIRST_DATA": (0, b"")}
+                self.__auth = []
+                self.__private_key = []
 
     def stop(self):
 

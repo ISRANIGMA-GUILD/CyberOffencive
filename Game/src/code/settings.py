@@ -1,5 +1,7 @@
 from pygame.locals import *
 
+BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\'
+
 # ==== Window Settings =====
 WIDTH: int = 800
 HEIGTH: int = 600
@@ -77,7 +79,7 @@ WEAPON_DATA: dict = {
 	'sword': {
 		'cooldown': 100,
 		'damage': 15,
-		'path': '../graphics/weapons/sword/full.png',
+		'path': f'{BASE_PATH}\\graphics\\weapons\\sword\\full.png',
 	},
 }
 # =============================
@@ -111,7 +113,7 @@ ENERGY_BAR_WIDTH: int = 140
 ENERGY_BAR_COLOR: str = 'blue'
 
 # ~~~ Font ~~~
-FONT_PATH: str = '../fonts/TheWildBreathOfZelda-15Lv.ttf'
+FONT_PATH: str = f'{BASE_PATH}\\Fonts\\TheWildBreathOfZelda-15Lv.ttf'
 FONT_SIZE: int = 18
 PLAYER_OBJECT: str = 'player_object'
 # =============================

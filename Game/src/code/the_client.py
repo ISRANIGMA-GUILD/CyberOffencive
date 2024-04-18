@@ -31,8 +31,10 @@ class Client:
     def __init__(self, the_client_socket: socket):
         self.__the_client_socket = the_client_socket
         self.__timer = 0
+
         self.__start_time = 0
         self.player = CreePy()
+
         self.v = self.player.get_volume()
 
     def run(self):
@@ -46,6 +48,7 @@ class Client:
             res, server_port = self.first_contact(server_ip, server_port)
             while True:
                 try:
+
                     self.__the_client_socket.connect((server_ip, server_port))
                     break
 
@@ -583,6 +586,7 @@ class Client:
         key, auth = KEY['encryption'][0], KEY['encryption'][1]
         return self.receive_location(key, auth)
 
+
     def update_server(self, data):
         """
 
@@ -593,9 +597,25 @@ class Client:
         if 1 not in KEY:
             key, auth = KEY['encryption'][0], KEY['encryption'][1]
             try:
+                print(data)
+                if data[0] == "EXIT":
+                    after = [data[0].encode(), f'CONNECTION {data[1]}'.encode()]
+                    after = pickle.dumps(after)
 
-                if not self.malicious_message(data[1]):
-                    after = [str(data[0]).encode(), f'CHAT {data[1]}'.encode(), f'STATUS {data[2]}'.encode()]
+                    data = [self.encrypt_data(key, after, auth)]
+                    full_msg = self.create_message(data)
+
+                    if type(full_msg) is list:
+                        for index in range(0, len(full_msg)):
+                            message = full_msg[index]
+                            self.__the_client_socket.send(bytes(message[TLS]))
+
+                    else:
+                        self.__the_client_socket.send(bytes(full_msg[TLS]))
+
+                elif not self.malicious_message(data[1]) and len(data) != 2:
+                    after = [str(data[0]).encode(), f'CHAT {data[1]}'.encode(), f'STATUS {data[2]}'.encode(),
+                             f'CONNECTION {data[3]}']
                     after = pickle.dumps(after)
 
                     data = [self.encrypt_data(key, after, auth)]

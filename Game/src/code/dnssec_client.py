@@ -76,6 +76,8 @@ class ServerSearcher:
                 else:
                     self.show_packet(pack)
                     if self.check_source(pack):
+                        self.show_packet(pack[0])
+
                         return pack[0]
 
                     else:

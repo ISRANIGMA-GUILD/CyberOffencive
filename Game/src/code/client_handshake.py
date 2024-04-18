@@ -14,14 +14,13 @@ TLS_M_VERSION = 0x0303
 TLS_N_VERSION = 0x0304
 RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256.val
 MAX_MSG_LENGTH = 1024
-EXCEPTIONAL_CASE_LENGTH = 4096
+EXCEPTIONAL_CASE_LENGTH = 5000
 THE_SHA_256 = hashes.SHA256()
 PARAM_LIST = {"0": 0x0303, "1": 0x16, "2": 0x15, "3": 0x14, "4": 0x1}
 SECP = [0x6a6a, 0x001d, 0x0017, 0x0018]
 SIGNATURE_ALGORITHIM = [0x0403, 0x0804, 0x0401, 0x0503, 0x0805, 0x0501, 0x0806, 0x0601]
 AUTHORITY = []
 KEY = {}
-MESSAGES = {"TLS_VALID_HELLO": (0, TLS()), "FINISH": (0, TLS()), "TLS_FIRST_DATA": (0, b"")}
 MSG_TCP_PACK = 56
 
 
@@ -30,7 +29,12 @@ class ClientHandshake:
     def __init__(self, client_socket: socket, server_ip: str, server_port: int):
         self.__the_client_socket = client_socket
         self.__server_ip = server_ip
+        
         self.__server_port = server_port
+        self.__messages = {"TLS_VALID_HELLO": (0, TLS()), "FINISH": (0, TLS()), "TLS_FIRST_DATA": (0, b"")}
+
+        self.__authority = []
+        self.__key = {}
 
     def run(self):
         """
@@ -51,30 +55,45 @@ class ClientHandshake:
                 print("Waiting")
                 continue
 
+            except ConnectionAbortedError:
+                print("Retrying")
+
     def connection_handshakes(self):
         """
 
         """
         while True:
-            if not AUTHORITY:
-                important = self.the_pre_handshake()
+            try:
+                if not AUTHORITY:
+                    important = self.the_pre_handshake()
 
-                if not important:
-                    pass
+                    if not important:
+                        pass
 
-                else:
-                    AUTHORITY.append(important)
-
-            else:
-                print("success")
-                auth = AUTHORITY[0]
-                key = self.secure_handshake(auth)
-
-                if not key:
-                    pass
+                    else:
+                        AUTHORITY.append(important)
 
                 else:
-                    return key, auth
+                    print("success")
+                    auth = AUTHORITY[0]
+                    key = self.secure_handshake(auth)
+
+                    if not key:
+                        pass
+
+                    else:
+                        return key, auth
+
+            except ConnectionAbortedError:
+                self.__messages = {"TLS_VALID_HELLO": (0, TLS()), "FINISH": (0, TLS()), "TLS_FIRST_DATA": (0, b"")}
+                self.__authority = []
+                self.__key = {}
+
+            except ConnectionResetError:
+                self.__messages = {"TLS_VALID_HELLO": (0, TLS()), "KEYS": (0, TLS()), "TLS_FIRST_DATA": (0, b"")}
+                self.__authority = []
+                self.__key = {}
+
 
     def the_pre_handshake(self):
         """
@@ -158,9 +177,9 @@ class ClientHandshake:
 
         server_hello = self.handle_responses()
 
-        if server_hello or self.server_hello_legit(MESSAGES["TLS_VALID_HELLO"][1]):
+        if server_hello or self.server_hello_legit(self.__messages["TLS_VALID_HELLO"][1]):
             print("Successfully authenticated communication!")
-            server_hello = MESSAGES["TLS_VALID_HELLO"][1]
+            server_hello = self.__messages["TLS_VALID_HELLO"][1]
 
             server_point = server_hello[TLS][TLSServerKeyExchange][ServerECDHNamedCurveParams].point
             client_key, private_key = self.create_client_key()
@@ -185,9 +204,9 @@ class ClientHandshake:
 
                     data_iv, data_c_t, data_tag = data[0], data[1], data[2]
 
-                    if MESSAGES["TLS_FIRST_DATA"][0] == 0:
+                    if self.__messages["TLS_FIRST_DATA"][0] == 0:
                         first_message = self.decrypt_data(encryption_key, auth, data_iv, data_c_t, data_tag)
-                        MESSAGES["TLS_FIRST_DATA"] = 1, first_message
+                        self.__messages["TLS_FIRST_DATA"] = 1, first_message
 
                         message = b'greetings!'
 
@@ -247,7 +266,7 @@ class ClientHandshake:
         """
 
         try:
-            if MESSAGES["TLS_VALID_HELLO"][0] == 0:
+            if self.__messages["TLS_VALID_HELLO"][0] == 0:
                 server_hello = self.__the_client_socket.recv(EXCEPTIONAL_CASE_LENGTH)
                 if not server_hello:
                     return
@@ -255,7 +274,7 @@ class ClientHandshake:
                 else:
                     server_hello = TLS(server_hello)
                     if self.server_hello_legit(server_hello):
-                        MESSAGES["TLS_VALID_HELLO"] = 1, server_hello
+                        self.__messages["TLS_VALID_HELLO"] = 1, server_hello
 
                         return server_hello
 
@@ -287,7 +306,7 @@ class ClientHandshake:
         """
 
         try:
-            if MESSAGES["FINISH"][0] == 0 and MESSAGES["TLS_VALID_HELLO"][0] == 1:
+            if self.__messages["FINISH"][0] == 0 and self.__messages["TLS_VALID_HELLO"][0] == 1:
                 finish = self.__the_client_socket.recv(MAX_MSG_LENGTH)
 
                 if not finish:
@@ -298,7 +317,7 @@ class ClientHandshake:
                     finish = TLS(finish)
 
                     if self.finish_legit(finish):
-                        MESSAGES["FINISH"] = 1, finish
+                        self.__messages["FINISH"] = 1, finish
                         return finish
 
                     else:

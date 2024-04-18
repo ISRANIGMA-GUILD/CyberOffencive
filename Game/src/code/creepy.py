@@ -6,6 +6,9 @@ from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 import time
 
 
+BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\'
+
+
 class CreePy:
     def __init__(self) -> None:
         pygame.init()
@@ -57,7 +60,7 @@ class CreePy:
     
     def _phase_two(self) -> None:
 
-        self.__play_music(r'C:\\Users\\imper\\OneDrive\\Desktop\\Cyber\\gitprojects\\Git\\basic_com\\Game\\src\\code\\perfectmusic.mp3')
+        self.__play_music(f'{BASE_PATH}\\Music\\perfectmusic.mp3')
         self.__increase_volume(1)
 
         time.sleep(self._volume_switch_sleep)
