@@ -46,6 +46,7 @@ class Client:
             count = 0
             server_ip, server_port = self.format_socket()
             res, server_port = self.first_contact(server_ip, server_port)
+
             while True:
                 try:
 
@@ -63,6 +64,11 @@ class Client:
                 except TimeoutError:
                     count = 0
                     pass
+
+                except OSError:
+                    server_ip, server_port = self.format_socket()
+                    res, server_port = self.first_contact(server_ip, server_port)
+                    count = 0
 
             try:
                 if res[Raw].load == b'Accept':
@@ -586,7 +592,6 @@ class Client:
         key, auth = KEY['encryption'][0], KEY['encryption'][1]
         return self.receive_location(key, auth)
 
-
     def update_server(self, data):
         """
 
@@ -597,7 +602,6 @@ class Client:
         if 1 not in KEY:
             key, auth = KEY['encryption'][0], KEY['encryption'][1]
             try:
-                print(data)
                 if data[0] == "EXIT":
                     after = [data[0].encode(), f'CONNECTION {data[1]}'.encode()]
                     after = pickle.dumps(after)

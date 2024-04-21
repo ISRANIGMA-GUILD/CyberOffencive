@@ -47,15 +47,15 @@ class Server:
         self.__chat = []
         self.__status = []
 
+        self.__ports = []
+
     def run(self):
         """
 
         """
-        # """:TODO(Almost finished): Fix port already from the client side (seperate the accept_client and create socket functions) """#
         # """:TODO(If they are possible): Check for session injection vulnerabilities """#
         # """:TODO(almost finished): Check if users are banned """#
         # """:TODO: Transport databases between servers at the end and updating them accordingly """#
-        # """:TODO(Relevance?): Check if an emoji is typed """#
         # """:TODO: Check if users cheat(in speed, damage, etc.) """#
         # """:TODO(finished?): Connect to docker """#
         # """:TODO(finished?): Return details after login """#
@@ -70,7 +70,34 @@ class Server:
         # """:TODO: Make the whole game abstract from terminal """#
         # """:TODO(almost finished): Try-except on everything """#
         # """:TODO: Receive info about weapons, enemy locations, item locations """#
-        # """:TODO: Fix client deadlock at connect """#
+        # """:TODO: Clear ports that are not used"""#
+        # """:TODO: Make sure all clients spawn on time"""#
+        # """:TODO: Remove clients that quit during the handshake"""#
+
+        info, resource_info, ip_info = self.receive_info()
+        list_of_existing_credentials, list_of_existing_resources = self.organize_info(info, resource_info, ip_info)
+
+        print(self.__banned_ips, self.__banned_macs)
+        self.connect_to_security()
+
+        self.security_first()
+        print("The server will now wait for clients")
+
+        the_lock = threading.Lock()
+        login_lock = threading.Lock()
+
+        modification_lock = threading.Lock()
+        security_lock = threading.Lock()
+
+        print("Server is up and running")
+        self.handle_clients(the_lock, login_lock, modification_lock, security_lock,
+                            list_of_existing_credentials, list_of_existing_resources)
+
+    def receive_info(self):
+        """
+
+        :return:
+        """
 
         main_cursor = self.__main_data_base.get_cursor()
         main_cursor.execute("SELECT Username, Password FROM PlayerDetails")
@@ -86,13 +113,25 @@ class Server:
 
         ip_info = main_ip_cursor.fetchall()
 
+        return info, resource_info, ip_info
+
+    def organize_info(self, info, resource_info, ip_info):
+        """
+
+        :param info:
+        :param resource_info:
+        :param ip_info:
+        """
+
         list_of_existing_credentials = [vital_info for vital_info in info]
         list_of_existing_resources = [vital_resources for vital_resources in resource_info]
 
         self.__banned_ips = [vital_info[0] for vital_info in ip_info]
         self.__banned_macs = [vital_info[1] for vital_info in ip_info]
 
-        print(self.__banned_ips, self.__banned_macs)
+        return list_of_existing_credentials, list_of_existing_resources
+
+    def connect_to_security(self):
 
         while True:
             try:
@@ -104,19 +143,6 @@ class Server:
 
             except ConnectionResetError:
                 pass
-
-        self.security_first()
-        print("The server will now wait for clients")
-
-        the_lock = threading.Lock()
-        login_lock = threading.Lock()
-
-        modification_lock = threading.Lock()
-        security_lock = threading.Lock()
-        print("Server is up and running")
-
-        self.handle_clients(the_lock, login_lock, modification_lock, security_lock,
-                            list_of_existing_credentials, list_of_existing_resources)
 
     def security_first(self):
         """
@@ -168,32 +194,34 @@ class Server:
             return
 
         else:
-            list_responses = []
             server_port = requests[TCP].dport
+            response = self.analyse_connections(requests)
 
-            print(server_port)
-            fixed_requests, fixed_connections = self.search_for_ddos(server_port, requests)
-
-            list_responses = self.analyse_connections(fixed_requests, list_responses)
-            if not list_responses:
+            if not response:
                 return
 
-            self.verify_connection_success(list_responses)
-            print(fixed_connections)
+            else:
+                self.verify_connection_success(response)
 
-            return requests, server_port
+                return requests, server_port
 
     def receive_first_connections(self):
         """
 
         :return:
         """
+
         requests = sniff(count=1, lfilter=self.filter_tcp, timeout=0.1)
         if not requests:
             return
 
+        elif requests[0][TCP].dport in self.__ports:
+            return
+
         else:
             requests.show()
+            self.__ports.append(requests[0])
+
             return requests[0]
 
     def filter_tcp(self, packets):
@@ -206,46 +234,24 @@ class Server:
         return (TCP in packets and Raw in packets and (packets[Raw].load == b'Logged' or packets[Raw].load == b'Urgent')
                 and packets[Ether].src not in self.__banned_macs and packets[IP].src not in self.__banned_ips)
 
-    def search_for_ddos(self, server_port, requests):
-        """
-
-        :param server_port:
-        :param requests:
-        :return:
-        """
-
-        fixed_connections = server_port
-
-        print(fixed_connections)
-        fixed_requests = []
-
-        if fixed_connections:
-            fixed_requests.append(requests)
-
-        return fixed_requests, fixed_connections
-
-    def analyse_connections(self, requests, list_responses):
+    def analyse_connections(self, requests):
         """
 
         :param requests:
-        :param list_responses:
         :return:
         """
 
         if not requests:
             return
 
-        for index in range(0, len(requests)):
-            a_pack = requests[index]
+        else:
+            a_pack = requests[0]
             a_pack[Raw].load = self.check_if_eligible(a_pack[Ether].src)
 
-            a_pack = self.create_f_response(a_pack)
-            list_responses.append(a_pack)
+            response = self.create_f_response(a_pack)
+            sendp(response)
 
-        for index in range(0, len(list_responses)):
-            sendp(list_responses[index])
-
-        return list_responses
+            return response
 
     def check_if_eligible(self, identifier):
         """
@@ -303,10 +309,9 @@ class Server:
 
         return the_packet.__class__(bytes(the_packet))
 
-    def verify_connection_success(self, list_responses):
+    def verify_connection_success(self, response):
         """
 
-        :param list_responses:
         """
 
         skip = []
@@ -315,15 +320,14 @@ class Server:
         if not requests:
             return
 
-        for index in range(0, len(requests)):
-
-            if index not in skip:
-                if requests[index] is None:
+        else:
+            if 0 not in skip:
+                if requests[0] is None:
                     print("Connection success")
 
                 else:
-                    sendp(list_responses[index])
-                    skip.append(index)
+                    sendp(response)
+                    skip.append(0)
 
     def check_for_banned(self, messages, server_port):
         """
@@ -501,11 +505,13 @@ class Server:
             return
 
         except socket.timeout:
-           # print("out of time")
+            return
+
+        except OSError:
             return
 
         except ConnectionResetError:
-            print("reconnect to secuirty ")
+            print("reconnect to security")
             return
 
         except IndexError:
@@ -596,40 +602,30 @@ class Server:
         """
         if self.__number_of_clients - 1 >= len(self.__all_details) or len(self.__all_details) == 0:
             self.__all_details.append({"Credentials": None, "Keys": None, "Socket": None,
-                                       "Client": None, "Timer": None, "Connected": 0})
-         #   print("s")
+                                       "Client": None, "Timer": None, "Connected": 0, "Port": 0})
 
         else:
-           # print("E")
             pass
 
         self.__credentials[str(self.__number_of_clients - 1)] = None
 
         if self.__number_of_clients - 1 >= len(self.__locations) or len(self.__locations) == 0:
             self.__locations.append(None)
-         #   print("sL")
 
         else:
-           # print("El")
             pass
 
         if self.__number_of_clients - 1 >= len(self.__chat) or len(self.__chat) == 0:
             self.__chat.append(None)
-           # print("sC")
 
         else:
-         #   print("Ec")
             pass
 
         if self.__number_of_clients - 1 >= len(self.__status) or len(self.__status) == 0:
             self.__status.append(None)
-           # print("sST")
 
         else:
-          #  print("Est")
             pass
-
-       # print(self.__locations, "\n", self.__all_details, "\n", self.__status)
 
     def create_security_threads(self, lock):
         """
@@ -812,7 +808,6 @@ class Server:
         :param number:
         """
 
-    #    print("a")
         with lock:
             try:
                 if number < len(self.__all_details):

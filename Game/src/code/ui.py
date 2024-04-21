@@ -1,5 +1,3 @@
-import time
-
 import pygame
 from settings import *
 
@@ -15,8 +13,9 @@ class UI:
 
     def show_bar(self, current_value: float, max_value: float, background_rect, color_start: tuple, color_end: tuple,
                  text_title: str) -> None:
+
         pygame.draw.rect(self.__display_surface, UI_BACKGROUND_COLOR, background_rect)
-        
+
         ratio = current_value / max_value
         normalized_width = int(background_rect.width * ratio)
         
@@ -31,17 +30,17 @@ class UI:
                              (background_rect.x + i, background_rect.y), 
                              (background_rect.x + i, background_rect.y + background_rect.height))
         
-        pygame.draw.rect(self.__display_surface, UI_BORDER_COLOR, background_rect, 3)  # draw boundary for rect
-
+        pygame.draw.rect(self.__display_surface, UI_BORDER_COLOR, background_rect, 3) # draw boundary for rect
+        
+        
         text = text_title + " :    " + str(current_value) + " / " + str(max_value)
         rendered_text = self.__font.render(text, True, BAR_FONT_COLOR)
 
         rendered_text_rect = rendered_text.get_rect()
         rendered_text_rect.center = (background_rect.centerx - 10 * ratio, background_rect.centery)
+
         self.__display_surface.blit(rendered_text, rendered_text_rect)
 
     def display(self, player) -> None:
-        self.show_bar(player.stats[HEALTH], player.max_stats[HEALTH], self.__health_bar_rect, (0, 0, 128),
-                      (0, 0, 255), "Health")
-        self.show_bar(player.stats[ENERGY], player.max_stats[ENERGY], self.__energy_bar_rect, (0, 0, 200),
-                      (0, 255, 255), "Energy")
+        self.show_bar(player.stats[HEALTH], player.max_stats[HEALTH], self.__health_bar_rect, (128, 0, 0), (255, 0, 0), "Health")
+        self.show_bar(player.stats[ENERGY], player.max_stats[ENERGY], self.__energy_bar_rect, (0, 0, 200), (0, 255, 255), "Energy")
