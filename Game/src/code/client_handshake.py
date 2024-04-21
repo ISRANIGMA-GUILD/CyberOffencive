@@ -29,7 +29,7 @@ class ClientHandshake:
     def __init__(self, client_socket: socket, server_ip: str, server_port: int):
         self.__the_client_socket = client_socket
         self.__server_ip = server_ip
-        
+
         self.__server_port = server_port
         self.__messages = {"TLS_VALID_HELLO": (0, TLS()), "FINISH": (0, TLS()), "TLS_FIRST_DATA": (0, b"")}
 
@@ -93,7 +93,6 @@ class ClientHandshake:
                 self.__messages = {"TLS_VALID_HELLO": (0, TLS()), "KEYS": (0, TLS()), "TLS_FIRST_DATA": (0, b"")}
                 self.__authority = []
                 self.__key = {}
-
 
     def the_pre_handshake(self):
         """
@@ -236,9 +235,10 @@ class ClientHandshake:
         """
 
         ch_packet = TLS(msg=TLSClientHello(ext=TLS_Ext_SupportedVersion_CH(versions=[TLS_N_VERSION, TLS_M_VERSION]) /
-                        TLS_Ext_SignatureAlgorithms(sig_algs=SIGNATURE_ALGORITHIM) / TLS_Ext_RenegotiationInfo() /
-                        TLS_Ext_ExtendedMasterSecret() / TLS_Ext_SupportedPointFormat() /
-                        TLS_Ext_SupportedGroups(groups=SECP)))
+                                               TLS_Ext_SignatureAlgorithms(
+                                                   sig_algs=SIGNATURE_ALGORITHIM) / TLS_Ext_RenegotiationInfo() /
+                                               TLS_Ext_ExtendedMasterSecret() / TLS_Ext_SupportedPointFormat() /
+                                               TLS_Ext_SupportedGroups(groups=SECP)))
 
         client_hello_packet = ch_packet
         client_hello_packet = client_hello_packet.__class__(bytes(client_hello_packet))

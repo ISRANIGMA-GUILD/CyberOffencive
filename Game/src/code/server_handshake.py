@@ -125,6 +125,9 @@ class ServerHandshake:
         except socket.timeout:
             print('retry')
 
+        except struct.error:
+            print("dont")
+
     def create_response(self, syn_packet):
         """
          Server response
@@ -234,6 +237,9 @@ class ServerHandshake:
         except socket.timeout:
             return
 
+        except struct.error:
+            print("dont")
+
     def client_hello_legit(self, t_client_hello):
         """
 
@@ -275,6 +281,9 @@ class ServerHandshake:
 
         except socket.timeout:
             return
+
+        except struct.error:
+            print("dont")
 
     def legit_key(self, client_keys):
         """
@@ -560,6 +569,10 @@ class ServerHandshake:
             return
 
         except socket.timeout:
+            return
+
+        except struct.error:
+            print("dont")
             return
 
         return data_iv, data_c_t, data_tag

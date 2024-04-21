@@ -6,6 +6,7 @@ import socket
 import os
 import pickle
 from creepy import *
+from settings import *
 
 IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\LoginScreen\\menuscreen.png'
 BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\'
@@ -72,9 +73,14 @@ class Game:
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_SPACE]:
                     ran = self.network.run()
-                    game_state = "continue"
-                    if ran == 1:
+                    if ran == 2:
+                        game_state = "start_menu"
+
+                    elif ran == 1:
                         break
+
+                    else:
+                        game_state = "continue"
 
             if game_state == "continue":
                 self.__message = ""
@@ -99,7 +105,7 @@ class Game:
                 self.prev_frame_time = self.new_frame_time
                 self.text_surface = self.font.render("FPS: " + str(int(fps)), True, (128, 0, 128))
 
-                self.screen.blit(self.text_surface, (50, 10))
+                self.screen.blit(self.text_surface, (350, 10))
                 current_loc = self.level.player.get_location()
 
                 list_of_details = [current_loc, self.__message, self.level.player.status, 0]
@@ -114,6 +120,9 @@ class Game:
 
                 if other_client is None:
                     pass
+
+                elif other_client == 1:
+                    break
 
                 elif type(other_client) is bytes:
                     other_client = pickle.loads(other_client)

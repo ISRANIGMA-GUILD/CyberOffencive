@@ -46,7 +46,6 @@ class Security:
         main_cursor.execute("SELECT IP, MAC, Status FROM IPs")
 
         print("secure")
-
         info = main_cursor.fetchall()
 
         list_of_banned_addresses = [vital_info for vital_info in info]

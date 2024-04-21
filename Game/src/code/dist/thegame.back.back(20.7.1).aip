@@ -8,6 +8,7 @@
     <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
     <ROW Property="ALLUSERS" Value="1"/>
     <ROW Property="ARPCOMMENTS" Value="There is only one place in the wide world of web" ValueLocId="*"/>
+    <ROW Property="ARPPRODUCTICON" Value="CyberOffensive.exe" Type="8"/>
     <ROW Property="AiSkipExitDlg" Value="1"/>
     <ROW Property="CTRLS" Value="2"/>
     <ROW Property="Manufacturer" Value="ISRANIGMA-GUILD"/>
@@ -297,6 +298,7 @@
     <ROW File="menuscreen.png" Component_="login.png" FileName="MENUSC~1.PNG|menuscreen.png" Attributes="0" SourcePath="..\LoginScreen\menuscreen.png" SelfReg="false"/>
     <ROW File="menuscreen.png_1" Component_="login.png" FileName="MENUSC~2.PNG|menuscreen.png~" Attributes="0" SourcePath="..\LoginScreen\menuscreen.png~" SelfReg="false"/>
     <ROW File="CyberOffensive.exe" Component_="CyberOffensive.exe" FileName="CYBERO~1.EXE|CyberOffensive.exe" Attributes="0" SourcePath="CyberOffensive.exe" SelfReg="false" DigSign="true"/>
+    <ROW File="text_logo.ico" Component_="brawn_idle.png" FileName="TEXT_L~1.ICO|text_logo.ico" Attributes="0" SourcePath="..\..\graphics\text_logo.ico" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" Options="2"/>
@@ -444,6 +446,9 @@
     <ROW Feature_="MainFeature" Component_="CyberOffensive.exe"/>
     <ROW Feature_="MainFeature" Component_="login.png"/>
   </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
+    <ROW Name="CyberOffensive.exe" SourcePath="..\..\graphics\text_logo.ico" Index="0"/>
+  </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
     <ROW Action="AI_DOWNGRADE" Condition="AI_NEWERPRODUCTFOUND AND (UILevel &lt;&gt; 5)" Sequence="210"/>
     <ROW Action="AI_RESTORE_LOCATION" Condition="APPDIR=&quot;&quot;" Sequence="749"/>
@@ -489,7 +494,7 @@
     <ROW Registry="Version" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Version" Value="[ProductVersion]" Component_="ProductInformation"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
-    <ROW Shortcut="CyberOffensive" Directory_="DesktopFolder" Name="CYBERO~1|CyberOffensive" Component_="CyberOffensive.exe" Target="[#CyberOffensive.exe]" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="Game_Dir" CustomFlags="1"/>
+    <ROW Shortcut="CyberOffensive" Directory_="DesktopFolder" Name="CYBERO~1|CyberOffensive" Component_="CyberOffensive.exe" Target="[#CyberOffensive.exe]" Hotkey="0" Icon_="CyberOffensive.exe" IconIndex="0" ShowCmd="1" WkDir="Game_Dir" CustomFlags="1"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiThemeComponent">
     <ATTRIBUTE name="UsedTheme" value="classic"/>

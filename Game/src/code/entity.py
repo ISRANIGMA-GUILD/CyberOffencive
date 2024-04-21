@@ -1,24 +1,26 @@
 import pygame
 from settings import *
-
+from math import sin
 
 class Entity(pygame.sprite.Sprite):
-    def __init__(self, groups):
+    def __init__(self, groups, speed: float):
         super().__init__(groups)
         self.frame_index = 0
-
         self.animation_speed = 0.15
         self.direction = pygame.math.Vector2()
+        self.speed = speed
         
-    def move(self, speed: float) -> None:
+        
+    def move(self) -> None:
         if self.direction.magnitude():
             self.direction = self.direction.normalize()
         
-        self.hitbox.x += self.direction.x * speed
+        self.hitbox.x += self.direction.x * self.speed
         self.collision(HORIZONTAL)
-        self.hitbox.y += self.direction.y * speed
+        self.hitbox.y += self.direction.y * self.speed
         self.collision(VERTICAL)
         self.rect.center = self.hitbox.center
+        
         
     def collision(self, direction: str) -> None:
         if HORIZONTAL == direction:
@@ -40,3 +42,8 @@ class Entity(pygame.sprite.Sprite):
                     # Movement up
                     if self.direction.y < 0:
                         self.hitbox.top = sprite.hitbox.bottom
+    
+    
+    def wave_value(self) -> float:
+        value = sin(pygame.time.get_ticks())
+        return 255 if value >= 0 else 0
