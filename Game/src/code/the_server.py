@@ -22,17 +22,25 @@ PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weap
 
 class Server:
 
-    def __init__(self, main_data_base, login_data_base, secure_socket, ips_data_base):
+    def __init__(self, main_data_base, login_data_base, secure_socket, ips_data_base, load_balance_socket):
         self.__secure_socket = secure_socket
+        self.__load_balance_socket = load_balance_socket
+
+        self.__load_balance_ip = MY_IP
+        self.__load_balance_port = 1800
         self.__main_data_base = main_data_base
 
         self.__login_data_base = login_data_base
         self.__ips_data_base = ips_data_base
 
         self.__security_private_handshake = ClientHandshake(self.__secure_socket, MY_IP, SECURITY_PORT)
-        self.__private_security_key = 0
 
+        self.__private_security_key = 0
         self.__private_message = 0
+
+        self.__private_l_security_key = 0
+        self.__private_l_message = 0
+
         self.__number_of_clients = 1
 
         self.__banned_ips = []
@@ -48,6 +56,13 @@ class Server:
         self.__status = []
 
         self.__ports = []
+        self.__weapon_status = []
+
+        self.__status_frame_index = []
+        self.__items = []
+
+        self.__hp = []
+        self.__enemy_location = []
 
     def run(self):
         """
@@ -62,14 +77,14 @@ class Server:
         # """:TODO(Almost finished): Block connections from banned users """#
         # """:TODO: Loading screen between menu and login screens """#
         # """:TODO(Probably finished): Limit conditions for kick due to manipulated handshakes """#
-        # """:TODO: Merge with load balancer """#
+        # """:TODO(Work in progress): Merge with load balancer """#
         # """:TODO: Counter attack mechanism (security server) """#
         # """:TODO(almost finished): MAke sure all certificate vital data is randomized and randomize them at start"""#
         # """:TODO(almost finished): Check the ip at the start via getmacbyip any wrongs will cause a ban (CLIENT SIDE)"""#
         # """:TODO(almost finished): Display chat in the game not in the terminal """#
         # """:TODO: Make the whole game abstract from terminal """#
         # """:TODO(almost finished): Try-except on everything """#
-        # """:TODO: Receive info about weapons, enemy locations, item locations """#
+        # """:TODO(Work in progress): Receive info about weapons, enemy locations, item locations """#
         # """:TODO: Clear ports that are not used"""#
         # """:TODO: Make sure all clients spawn on time"""#
         # """:TODO: Remove clients that quit during the handshake"""#
@@ -78,7 +93,10 @@ class Server:
         list_of_existing_credentials, list_of_existing_resources = self.organize_info(info, resource_info, ip_info)
 
         print(self.__banned_ips, self.__banned_macs)
+
         self.connect_to_security()
+        self.connect_to_load_socket()
+        self.first_client_handshake_to_load_balancer()
 
         self.security_first()
         print("The server will now wait for clients")
@@ -144,6 +162,25 @@ class Server:
             except ConnectionResetError:
                 pass
 
+    def connect_to_load_socket(self):
+        """
+
+        """
+
+        while True:
+            try:
+                self.__load_balance_socket.connect((MY_IP, 1800))
+                break
+
+            except ConnectionRefusedError:
+                pass
+
+            except ConnectionResetError:
+                pass
+
+            except OSError:
+                pass
+
     def security_first(self):
         """
 
@@ -154,6 +191,7 @@ class Server:
                 security_items = self.__security_private_handshake.run()
                 if not security_items:
                     pass
+
                 else:
                     self.__private_security_key, self.__private_message = security_items
                     break
@@ -480,6 +518,7 @@ class Server:
         :return: The data iv, data and tag
         """
         try:
+            the_client_socket.settimeout(0.1)
             data_pack = the_client_socket.recv(MAX_MSG_LENGTH)
 
             if not data_pack:
@@ -627,6 +666,18 @@ class Server:
         else:
             pass
 
+        if self.__number_of_clients - 1 >= len(self.__items) or len(self.__items) == 0:
+            self.__items.append(None)
+
+        else:
+            pass
+
+        if self.__number_of_clients - 1 >= len(self.__status_frame_index) or len(self.__status_frame_index) == 0:
+            self.__status_frame_index.append(None)
+
+        else:
+            pass
+
     def create_security_threads(self, lock):
         """
 
@@ -748,10 +799,10 @@ class Server:
         """
 
         [thread.start() for thread in
-         (security_thread + connection_threads + tls_handshakes + login_threads + response_threads + detail_threads +
+         (connection_threads + tls_handshakes + login_threads + response_threads + detail_threads +
           disconnect_threads)]
 
-        for thread in (security_thread + connection_threads + tls_handshakes + login_threads + response_threads +
+        for thread in (connection_threads + tls_handshakes + login_threads + response_threads +
                        detail_threads + disconnect_threads):
             thread.join()
 
@@ -785,7 +836,6 @@ class Server:
         """
 
         try:
-            self.__secure_socket.settimeout(0.1)
             data = self.deconstruct_data(self.__secure_socket)
 
             if not data:
@@ -800,6 +850,25 @@ class Server:
 
         except socket.timeout:
             return
+
+    def first_client_handshake_to_load_balancer(self):
+        """
+
+        """
+        while True:
+            try:
+                client_handshake = ClientHandshake(self.__load_balance_socket, self.__load_balance_ip,
+                                                   self.__load_balance_port)
+                security_items = client_handshake.run()
+                if not security_items:
+                    pass
+
+                else:
+                    self.__private_l_security_key, self.__private_l_message = security_items
+                    break
+
+            except ConnectionResetError:
+                pass
 
     def receive_connections(self, lock, number):
         """
@@ -837,7 +906,7 @@ class Server:
         :param lock:
         :return:
         """
-      #  print("b")
+
         with lock:
             try:
                 if (self.__all_details[number].get("Credentials") is None and self.__all_details[number].get("Keys")
@@ -859,7 +928,6 @@ class Server:
         :param index_of_client:
         :return:
         """
-      #  print("c")
         with lock:
             try:
                 if (self.__all_details[index_of_client].get("Keys") is not None and
@@ -868,8 +936,6 @@ class Server:
 
                     client_socket = self.__all_details[index_of_client].get("Client")
                     enc_key, auth = self.__all_details[index_of_client].get("Keys")
-
-                    client_socket.settimeout(0.1)
 
                     try:
                         data = self.deconstruct_data(client_socket)
@@ -892,23 +958,23 @@ class Server:
                                     print('dup')
                                     return
 
-                                if the_data[0].decode()[0] == 'L' and the_data[1].decode()[0:4] == 'CHAT' \
-                                        and the_data[2].decode()[0:6] == 'STATUS':
-                                    self.__locations[index_of_client] = the_data[0].decode()[2:]
-
-                                    if the_data[1].decode() == 'CHAT ':
-                                        self.__chat[index_of_client] = None
-                                    else:
-                                        self.__chat[index_of_client] = the_data[1].decode()[6:]
-                                    print(self.__chat, the_data[1].decode()[6:])
-
-                                    self.__status[index_of_client] = the_data[2].decode()[7:]
-
-                                elif the_data[0] == b'EXIT':
+                                if the_data[0] == 'EXIT':
                                     print("Client", index_of_client + 1, client_socket.getpeername(),
                                           "has left the server")
                                     self.__all_details[index_of_client]["Connected"] = 1
                                     return
+
+                                else:
+                                    self.__locations[index_of_client] = the_data[0]
+
+                                    self.__chat[index_of_client] = the_data[1]
+                                    print(self.__chat, the_data[1])
+
+                                    self.__status[index_of_client] = the_data[2]
+
+                                    self.__items[index_of_client] = the_data[4]
+
+                                    self.__status_frame_index[index_of_client] = the_data[5]
 
                     except TypeError:
                         print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")
@@ -939,14 +1005,17 @@ class Server:
                         return
 
                     except pickle.PickleError:
+                        print("what?")
                         return
 
                     except socket.timeout:
+                        print("srsly")
                         return
 
                     return
 
             except Exception:
+                print("just stop")
                 return
 
     def send_updates(self, lock, number):
@@ -955,7 +1024,7 @@ class Server:
         :param lock:
         :param number:
         """
-       # print("d")
+
         with lock:
             try:
                 if (self.__locations is not None and self.__all_details[number].get("Client") is not None and
@@ -971,7 +1040,13 @@ class Server:
                         local_statuses = self.__status.copy()
                         local_statuses.pop(number)
 
-                        list_data = local_locations, local_messages, local_statuses
+                        local_items = self.__items.copy()
+                        local_items.pop(number)
+
+                        local_f_indexes = self.__status_frame_index.copy()
+                        local_f_indexes.pop(number)
+
+                        list_data = local_locations, local_messages, local_statuses, local_items, local_f_indexes
                         byte_data = pickle.dumps(list_data)
 
                         en = self.encrypt_data(self.__all_details[number].get("Keys")[0], byte_data,
@@ -992,7 +1067,7 @@ class Server:
         :param lock:
         :param number:
         """
-       # print("e")
+
         with lock:
             try:
                 if self.__all_details[number].get("Connected") == 1:
@@ -1040,6 +1115,11 @@ class Server:
                                                                 self.__new_credentials[index][1]],
                                                         no_duplicate_params=PARAMETERS["NODUP"])
 
+        #for index in range(0, len(self.__new_credentials)): insert weapons and items
+        #    self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
+               #                                                 self.__new_credentials[index][1]],
+            #                                            no_duplicate_params=PARAMETERS["DUP"])
+
     def get_local_client_details(self):
 
         return self.__main_data_base, self.__login_data_base, self.__ips_data_base
@@ -1052,11 +1132,12 @@ def main():
 
     secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
+    load_balance_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
 
     login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
     ips_data_base = DatabaseManager("IPs", PARAMETERS["NODUP"])
 
-    server = Server(main_data_base, login_data_base, secure_socket, ips_data_base)
+    server = Server(main_data_base, login_data_base, secure_socket, ips_data_base, load_balance_socket)
     server.run()
 
 

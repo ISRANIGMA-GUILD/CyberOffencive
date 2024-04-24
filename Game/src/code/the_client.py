@@ -35,14 +35,14 @@ class Client:
         self.__start_time = 0
         self.player = CreePy()
 
-        self.v = self.player.get_volume()
+       # self.v = self.player.get_volume()
 
     def run(self):
         """
 
         """
         try:
-            self.player.run()
+          #  self.player.run()
             count = 0
             server_ip, server_port = self.format_socket()
             res, server_port = self.first_contact(server_ip, server_port)
@@ -161,11 +161,11 @@ class Client:
 
         server_port = int(RandShort())
         while True:
-            self.good_music()
+          #  self.good_music()
             if server_port == 443:
                 server_port += 1
 
-            elif server_port < 80:
+            elif server_port < 80 or 1800 <= server_port <= 1900:
                 server_port = int(RandShort())
 
             else:
@@ -179,7 +179,7 @@ class Client:
         :return:
         """
         while True:
-            self.good_music()
+         #   self.good_music()
             server_ip = ServerSearcher().run()
 
             if self.ip_v_four_format(server_ip) and not self.empty_string(server_ip):
@@ -226,7 +226,7 @@ class Client:
         sendp(tcp_packet)
 
         while True:
-            self.good_music()
+           # self.good_music()
             vert = sniff(count=1, lfilter=self.filter_tcp, timeout=0.01)
             if not vert:
                 sendp(tcp_packet)
@@ -383,7 +383,7 @@ class Client:
         """
 
         while True:
-            self.good_music()
+          #  self.good_music()
             try:
                 user, password = self.login()
 
@@ -440,7 +440,7 @@ class Client:
         entering_username = True
 
         while True:
-            self.good_music()
+           # self.good_music()
             img = pygame.image.load(IMAGE)
             screen.blit(img, (0, 0))
             pygame.display.flip()
@@ -519,7 +519,7 @@ class Client:
         :param auth:
         :return:
         """
-        self.good_music()
+     #   self.good_music()
         while True:
             try:
                 self.__the_client_socket.send(bytes(details[TLS]))
@@ -570,9 +570,9 @@ class Client:
         :param message:
         :return:
         """
-        self.good_music()
+      #  self.good_music()
         for index in range(0, len(THE_BIG_LIST)):
-            self.good_music()
+         #   self.good_music()
             if THE_BIG_LIST.get(str(index)) in message:
                 return True
 
@@ -598,12 +598,13 @@ class Client:
         :param data:
         :return:
         """
-        self.good_music()
+       # self.good_music()
         if 1 not in KEY:
             key, auth = KEY['encryption'][0], KEY['encryption'][1]
             try:
                 if data[0] == "EXIT":
-                    after = [data[0].encode(), f'CONNECTION {data[1]}'.encode()]
+                    print("leaving")
+                    after = [data[0], data[1]]
                     after = pickle.dumps(after)
 
                     data = [self.encrypt_data(key, after, auth)]
@@ -618,8 +619,7 @@ class Client:
                         self.__the_client_socket.send(bytes(full_msg[TLS]))
 
                 elif not self.malicious_message(data[1]) and len(data) != 2:
-                    after = [str(data[0]).encode(), f'CHAT {data[1]}'.encode(), f'STATUS {data[2]}'.encode(),
-                             f'CONNECTION {data[3]}']
+                    after = [data[0], data[1], data[2], data[3], [data[4]], data[5]]
                     after = pickle.dumps(after)
 
                     data = [self.encrypt_data(key, after, auth)]
@@ -633,9 +633,9 @@ class Client:
                     else:
                         self.__the_client_socket.send(bytes(full_msg[TLS]))
 
-                    #if message == 'EXIT':
-                      #  self.__the_client_socket.close()
-                      #  return
+                   # if message == 'EXIT':
+                       # self.__the_client_socket.close()
+                        #return
                 else:
                     print("Illegal")
 
