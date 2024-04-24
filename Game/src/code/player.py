@@ -193,7 +193,7 @@ class Player(Entity):
             self.frame_index = 0
         
         self.image = animation[int(self.frame_index)]
-        self.rect = self.image.get_rect(center = self.hitbox.center)
+        self.rect = self.image.get_rect(center=self.hitbox.center)
         
         if not self.vulnerable:
             alpha = self.wave_value()
@@ -218,4 +218,8 @@ class Player(Entity):
         :return:
         """
 
-        return f"L {self.rect.x} {self.rect.y}"
+        return self.rect.x, self.rect.y
+
+    def get_status_frame_index(self):
+
+        return self.frame_index

@@ -32,6 +32,8 @@ class Game:
             self.screen.fill((0, 0, 0))
 
             self.level.run()
+            print(self.level.player.inventory.hotbar.content)
+            self.find()
             fps = 1.0 / (self.new_frame_time - self.prev_frame_time)
 
             self.prev_frame_time = self.new_frame_time 
@@ -40,6 +42,14 @@ class Game:
             self.screen.blit(self.text_surface, (350, 10))
             pygame.display.update()
             self.clock.tick(FPS)
+
+    def find(self):
+
+        for item_stack in self.level.player.inventory.hotbar.content:
+            if len(item_stack) and issubclass(item_stack[0].__class__, Sword):
+                print("1")
+            else:
+                pass
 
 
 def main() -> None:
