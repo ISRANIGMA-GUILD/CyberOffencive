@@ -1,0 +1,19 @@
+# Dockerfile
+FROM python:3.11-slim-bullseye
+
+# update reposatories
+RUN apt update -y && apt upgrade -y
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the game script
+COPY . .
+
+RUN pip install -r /app/requirements.txt
+RUN pip install https://github.com/secdev/scapy/archive/refs/heads/master.zip
+
+# Set any environment variables if needed
+
+# Run the game script
+CMD ["python", "Game/src/code/the_server.py"]
