@@ -38,6 +38,7 @@ dnspython/
 *.manifest
 *.spec
 *.yaml
+*.xml
 
 # Installer logs
 pip-log.txt
