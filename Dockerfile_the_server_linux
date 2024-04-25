@@ -1,6 +1,9 @@
 # Dockerfile
 FROM python:3.11-slim-bullseye
 
+#expose the port
+EXPOSE 80-65535
+
 # update reposatories
 RUN apt update -y && apt upgrade -y
 
