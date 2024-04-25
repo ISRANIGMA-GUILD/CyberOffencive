@@ -232,10 +232,9 @@ class ClientHandshake:
         """
 
         ch_packet = TLS(msg=TLSClientHello(ext=TLS_Ext_SupportedVersion_CH(versions=[TLS_N_VERSION, TLS_M_VERSION]) /
-                                               TLS_Ext_SignatureAlgorithms(
-                                                   sig_algs=SIGNATURE_ALGORITHIM) / TLS_Ext_RenegotiationInfo() /
-                                               TLS_Ext_ExtendedMasterSecret() / TLS_Ext_SupportedPointFormat() /
-                                               TLS_Ext_SupportedGroups(groups=SECP)))
+                                           TLS_Ext_SignatureAlgorithms(sig_algs=SIGNATURE_ALGORITHIM) /
+                                           TLS_Ext_RenegotiationInfo() / TLS_Ext_ExtendedMasterSecret() /
+                                           TLS_Ext_SupportedPointFormat() / TLS_Ext_SupportedGroups(groups=SECP)))
 
         client_hello_packet = ch_packet
         client_hello_packet = client_hello_packet.__class__(bytes(client_hello_packet))

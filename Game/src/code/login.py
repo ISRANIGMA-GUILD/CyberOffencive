@@ -24,6 +24,7 @@ class Login:
 
     def run(self):
         print("b")
+        start = time.time()
         self.handle_credentials()
 
         if self.__details["Credentials"] is None:
@@ -35,7 +36,9 @@ class Login:
 
             if '01' in minutes:
                 self.__details["Connected"] = 1
+        end = time.time()
 
+        print(time.strftime("%Hh %Mm %Ss", time.gmtime(end - start)).split(' '))
         return (self.__details, self.__credentials, self.__list_of_existing, self.__list_of_existing_resources,
                 self.__new_credentials, self.__number_of_clients)
 
@@ -55,6 +58,7 @@ class Login:
 
                 else:
                     data = self.decrypt_data(data_iv, data_c_t, data_tag)
+
                     if data == b'EXIT':
                         self.__details["Connected"] = 1
                         return
@@ -168,7 +172,9 @@ class Login:
 
                     if self.__list_of_existing_resources[self.__number][1] != "Banned":
                         print("Successful")
-                        success = f"Success {self.__list_of_existing_resources[self.__number]}".encode()
+                        detail = self.__list_of_existing_resources[self.__list_of_existing.index(tuple_of_credentials)]
+
+                        success = pickle.dumps(["Success", detail])
                         success_msg = self.encrypt_data(self.__details["Keys"][0], success,
                                                         self.__details["Keys"][1])
 
@@ -178,7 +184,7 @@ class Login:
 
                     else:
                         print("ENTRY DENIED")
-                        success = "Failure".encode()
+                        success = pickle.dumps(["Failure"])
 
                         success_msg = self.encrypt_data(self.__details["Keys"][0], success, self.__details["Keys"][1])
                         success_pack = self.create_message(success_msg)
@@ -193,7 +199,7 @@ class Login:
                        not self.password_exists(self.__list_of_existing, tuple_of_credentials)):
 
                         print("Wrong username or password")
-                        success = "Failure".encode()
+                        success = pickle.dumps(["Failure"])
 
                         success_msg = self.encrypt_data(self.__details["Keys"][0], success, self.__details["Keys"][1])
                         success_pack = self.create_message(success_msg)
@@ -207,7 +213,7 @@ class Login:
                         self.__new_credentials.append(tuple_of_credentials)
                         print("NEW ACCOUNT YAY :)")
 
-                        success = "Success".encode()
+                        success = pickle.dumps(["Success"])
                         success_msg = self.encrypt_data(self.__details["Keys"][0], success, self.__details["Keys"][1])
 
                         success_pack = self.create_message(success_msg)
@@ -216,7 +222,7 @@ class Login:
 
             else:
                 print("Wrong username or password")
-                success = "Failure".encode()
+                success = pickle.dumps(["Failure"])
 
                 success_msg = self.encrypt_data(self.__details["Keys"][0], success, self.__details["Keys"][1])
                 success_pack = self.create_message(success_msg)

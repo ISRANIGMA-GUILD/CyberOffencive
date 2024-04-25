@@ -11,26 +11,37 @@ class HotBar:
 
         self.active_item_index = 0
         self.__font = pygame.font.Font(FONT_PATH, 24)
-
     
     def apply_active_item(self, player) -> None:
+        """
+
+        :param player:
+        """
 
         if len(self.content[self.active_item_index]) and issubclass(self.content[self.active_item_index][0].__class__, Fruit):
             self.content[self.active_item_index][0].apply(player)
             self.content[self.active_item_index].pop()
-    
-    
+
     def decrease_active_item_index(self) -> None:
+        """
+
+        """
 
         self.active_item_index = (self.active_item_index - DEC) % self.capacity
-    
-    
+
     def increase_active_item_index(self) -> None:
+        """
+
+        """
 
         self.active_item_index = (self.active_item_index + INC) % self.capacity
     
-    
     def insert(self, item: Item) -> bool:
+        """
+
+        :param item:
+        :return:
+        """
 
         for i in range(self.capacity):
             if not len(self.content[i]) or (not issubclass(item.__class__, Weapon) and
@@ -41,9 +52,17 @@ class HotBar:
         return False
 
     def update(self) -> None:
+        """
+
+        """
+
         pass
     
     def display(self) -> None:
+        """
+
+        """
+
         surface = pygame.display.get_surface()
                 
         for i in range(self.capacity):

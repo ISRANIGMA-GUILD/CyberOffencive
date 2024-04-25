@@ -38,7 +38,9 @@ class Game:
         self.player = CreePy()
 
         self.__message = ""
-        self.weapons = {"Gun": 0, "Sword": 0}
+        self.weapons = {"G": 0, "S": 0, "HPF": 0, "EF": 0, "RHPF": 0, "BEF": 0}
+
+        self.items = {"HP Fruit": 0, "Energy Fruit": 0, "Red HP Fruit": 0, "Blue Energy Fruit": 0}
 
     def run(self) -> None:
         """
@@ -82,9 +84,22 @@ class Game:
 
                         else:
                             game_state = "continue"
+                        #    print(ran)
+                            if len(ran) > 1:
+                                items = ran[1][2].split(', ')
+
+                              #  print(items)
+                                if items[0] == '1':
+                                    self.weapons["G"] = 1
+
+                                if items[1] == '1':
+                                    self.weapons["S"] = 1
+                                    self.level.player.inventory.hotbar.insert(Sword((0, 0),
+                                                                                    [self.level.visible_sprites]))
+                        #    self.weapons["Gun"] = items
 
                 if game_state == "continue":
-                    self.__message = ""
+                    self.__message = None
                     keys = pygame.key.get_pressed()
                     if keys[pygame.K_m]:
                         self.__message = self.start_chat()
@@ -109,11 +124,11 @@ class Game:
                     self.screen.blit(self.text_surface, (350, 10))
                     current_loc = self.level.player.get_location()
 
-                    current_status = int(self.level.player.frame_index)
+                    current_status_index = int(self.level.player.frame_index)
                     self.find()
                 #    print(current_status)
                     list_of_details = [current_loc, self.__message, self.level.player.status, 0,
-                                       self.weapons, current_status]
+                                       self.weapons, current_status_index]
 
                     other_client = self.network.communicate(list_of_details)
                     self.__previous_status = self.level.player.status
@@ -128,13 +143,13 @@ class Game:
 
                     elif type(other_client) is bytes:
                         other_client = pickle.loads(other_client)
-                        print(other_client)
+                        print("other_client", other_client)
 
                         if type(other_client) is list or type(other_client) is tuple:
                             statuses = other_client[2]
                             status_frame_indexes = other_client[4]
-                            self.__message = other_client[1]
 
+                            self.__message = other_client[1]
                             locations = other_client[0]
 
                             for i in range(0, len(self.__message)):
@@ -148,12 +163,14 @@ class Game:
 
                             statuses_updated = []
 
+                            statuses = [status for status in statuses if status is not None]
+
                             for i in range(0, len(statuses)):
                                 statuses_updated.append(f'{statuses[i]}_{status_frame_indexes[i]}')
-                            print(statuses_updated)
+                          #  print(statuses_updated)
 
                             p_image = [pygame.image.load(
-                                f'{BASE_PATH}\\graphics\\player\\{statuses[i]}\\{statuses_updated[i]}.png').convert_alpha()
+                                f'{BASE_PATH}graphics\\player\\{statuses[i]}\\{statuses_updated[i]}.png').convert_alpha()
                                        for i in range(0, len(statuses)) if statuses[i] is not None]
 
                             if not p_image:
@@ -219,6 +236,7 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE:
                         if entering_username:
@@ -268,6 +286,7 @@ class Game:
         :param prev_loc_other:
         :return:
         """
+
         other_coordinates = [(other_client[i][0], other_client[i][1])
                              for i in range(0, len(other_client)) if other_client[i] is not None]
 
@@ -294,7 +313,7 @@ class Game:
 
         for item_stack in self.level.player.inventory.hotbar.content:
             if len(item_stack) and issubclass(item_stack[0].__class__, Sword):
-                self.weapons["Sword"] = 1
+                self.weapons["S"] = 1
             else:
                 pass
 

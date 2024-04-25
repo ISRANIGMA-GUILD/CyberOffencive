@@ -66,6 +66,7 @@ class DatabaseManager:
 
         values_str = ", ".join("'" + value + "'" for value in values)
         print(values_str)
+
         self.__cursor.execute(f"INSERT INTO {self.table_name} ({self.__list_of_params_str}) VALUES ({values_str});")
         self.__conn.commit()
         return True
@@ -176,13 +177,20 @@ def run_tests_a() -> None:
     """
 
     """
-    main_manager = DatabaseManager("PlayerDetails", ['Username', 'Password', 'Cash', 'Status'])
+    main_manager = DatabaseManager("PlayerDetails", ['Username', 'Password', 'Status', 'Items', 'Weapons'])
     manager = DatabaseManager("PlayerDetails", ['Username', 'Password'])
-    print(manager.insert_no_duplicates(["Gafhggfvfsdffgfdgrie", "12sdfs34d5"],
-                                       ['Username', 'Password']))
+    manager2 = DatabaseManager("PlayerDetails", ['Status', 'Items', 'Weapons'])
+    #  print(manager.insert_no_duplicates(["Gafhggfvfsdffgfdgrie", "12sdfs34d5"],
+    #                                   ['Username', 'Password']))
 
-    print(main_manager.set_values(['Cash', 'Status'], ["G33a32rie", "1343423"],
-                                  ['Username', 'Password'], ["Gafhggfvfsdffgfdgrie", "12sdfs34d5"]))
+    #    print(manager.insert_no_duplicates(["Gafhggfvfsdffgfdgrie", "12sdfs34d5", 1, 2, 3],
+    #                                     ['Username', 'Password', 'Status', 'Items', 'Weapons']))
+
+    #  print(main_manager.set_values(['Status', 'Items', 'Weapons'], ["G33a32rie", "1343423", "2"],
+    #                            ['Username', 'Password'], ["Gafhggfvfsdffgfdgrie", "12sdfs34d5"]))
+
+    print(main_manager.find(['Status', 'Items', 'Weapons'], ['Username', 'Password'],
+                            ["h", "gfh"]))
 
     manager.close_conn()
     main_manager.close_conn()

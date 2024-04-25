@@ -1,7 +1,3 @@
-import threading
-import time
-import math
-import socket
 from server_handshake import *
 
 # Define zones on the map with their boundary coordinates
@@ -15,19 +11,23 @@ zones = {
 # Define the servers
 servers = ['Server1', 'Server2', 'Server3', 'Server4', 'ServerBuffer']
 
+MAP_CENTER_X = 38400
+MAP_CENTER_Y = 76800
 
 class MainServer:
     def __init__(self):
         self.servers = []  # List of registered servers
         self.ips = []
+
         self.lock = threading.Lock()
         self.sockets = []
+
         self.keys = []
         self.__server_sock = []
 
     def run(self):
 
-        threading.Thread(target=self.start_tls_server, args=('0.0.0.0', 1800, 'server.crt', 'server.key')).start()
+        threading.Thread(target=self.start_tls_server, args=('0.0.0.0', 1800)).start()
 
         # Main server communication
         while True:
@@ -35,10 +35,21 @@ class MainServer:
             time.sleep(5)  # Sleep for a while before checking for communication again
 
     def register_server(self, server):
+        """
+
+        :param server:
+        """
+
         with self.lock:
             self.servers.append(server)
 
     def assign_client_to_server(self, client_coords):
+        """
+
+        :param client_coords:
+        :return:
+        """
+
         with self.lock:
             # Use load balancer to determine the server for the client
             assigned_server = load_balancer(client_coords)
@@ -67,7 +78,10 @@ class MainServer:
                         return
             # If no server has capacity, raise an exception or handle accordingly
 
-    def start_tls_server(self, ip, port, certfile, keyfile):
+    def start_tls_server(self, ip, port):
+        """
+        Start the TLS server.
+        """
         # Create a TCP socket
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -79,23 +93,48 @@ class MainServer:
 
         print("TLS server started. Listening for incoming connections...")
 
-        while True:
+        while len(self.sockets) != 5:
             # Accept incoming connection
             client_socket, client_address = server_socket.accept()
             print("Incoming connection from:", client_address)
             self.sockets.append(client_socket)
 
             # Start a new thread to handle the client connection
-            client_thread = threading.Thread(target=self.handle_client, args=(client_socket,))
-            client_thread.start()
+            self.start_connection_thread(client_socket, client_address)
 
     def handle_client(self, client_socket):
-        # Handle TCP connection
-        print("TCP connection established with client.")
-
-        # Start TLS handshake
+        """
+        Handle the client connection.
+        """
         try:
-            pass
+            # Start a new thread to handle the TLS handshake
+            self.start_handshake_thread(client_socket)
+
+            # Start a new thread to pass information over the TLS connection
+            self.start_pass_information_thread(client_socket)
+
+        except Exception as e:
+            print(f"Error handling client: {e}")
+
+        finally:
+            # Close the TLS connection socket
+            client_socket.close()
+
+            # Remove the closed TLS connection socket from the list of sockets
+            self.sockets.remove(client_socket)
+
+    def start_handshake_thread(self, client_socket):
+        """
+        Start a new thread to handle the TLS handshake.
+        """
+        handshake_thread = threading.Thread(target=self.handle_handshake, args=(client_socket,))
+        handshake_thread.start()
+
+    def handle_handshake(self, client_socket):
+        """
+        Handle the TLS handshake.
+        """
+        try:
             the_handshake = ServerHandshake(client_socket)
             the_key = the_handshake.run()
 
@@ -108,46 +147,124 @@ class MainServer:
         except KeyboardInterrupt:
             return
 
-            # Wrap the client socket with SSL/TLS
-        # Perform handshake
-        #   ssl_socket.do_handshake()
-        #   print("TLS handshake completed successfully.")
+    def start_pass_information_thread(self, client_socket):
+        """
+        Start a new thread to pass information over the TLS connection.
+        """
+        pass_information_thread = threading.Thread(target=self.pass_information, args=(client_socket,))
+        pass_information_thread.start()
 
-        # TLS connection established, handle further communication
-        # For example, send/receive data over the TLS connection
+    def pass_information(self, client_socket):
+        """
+        Pass information over the TLS connection.
+        """
+        try:
+            while True:
+                data = client_socket.recv(1024)
+                if not data:
+                    break
+                print(f"Received data: {data}")
+                self.send_data(client_socket, data)
+        except Exception as e:
+            print(f"Error passing information: {e}")
 
-        # except ssl.SSLError as e:
-        #     print("TLS handshake failed:", e)
+    def start_connection_thread(self, ip, port):
+        """
+                Start a new thread to handle the connection try/except.
+                """
+        connection_thread = threading.Thread(target=self.handle_connection, args=(ip, port))
+        connection_thread.start()
 
-            # Close the connection
-        #   ssl_socket.close()
+    def handle_connection(self, ip, port):
+        """
+                Handle the connection try/except.
+                """
+        try:
+            # Create a TCP socket
+            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+            # Bind the socket to the IP address and port
+            server_socket.bind((ip, port))
+
+            # Listen for incoming connections
+            server_socket.listen()
+
+            print("TLS server started. Listening for incoming connections...")
+
+            while len(self.sockets) != 5:
+                # Accept incoming connection
+                client_socket, client_address = server_socket.accept()
+                print("Incoming connection from:", client_address)
+                self.sockets.append(client_socket)
+
+                # Start a new thread to handle the client connection
+                client_thread = threading.Thread(target=self.handle_client, args=(client_socket,))
+                client_thread.start()
+
+        except Exception as e:
+            print(f"Error handling connection: {e}")
+
+    def send_data(self, client_socket, data):
+        """
+                        Send data over the TLS connection socket.
+                        """
+        try:
+            client_socket.sendall(data)
+        except Exception as e:
+            print(f"Error sending data: {e}")
 
 
 class Server:
     def __init__(self, name, capacity):
         self.name = name
         self.capacity = capacity
+
         self.clients = []
         self.lock = threading.Lock()
 
     def add_client(self, client):
+        """
+
+        :param client:
+        """
         with self.lock:
             self.clients.append(client)
 
     def get_load(self):
+        """
+
+        :return:
+        """
+
         with self.lock:
             return len(self.clients)
 
     def remove_client(self, client):
+        """
+
+        :param client:
+        """
         with self.lock:
             self.clients.remove(client)
 
     def has_capacity(self):
+        """
+
+        :return:
+        """
+
         with self.lock:
             return len(self.clients) < self.capacity
 
 
 def euclidean_distance(coord1, coord2):
+    """
+
+    :param coord1:
+    :param coord2:
+    :return:
+    """
+
     # Calculate Euclidean distance between two coordinates
     return math.sqrt((coord1[0] - coord2[0]) ** 2 + (coord1[1] - coord2[1]) ** 2)
 
@@ -160,19 +277,25 @@ def get_quadrant(coords):
     """
 
     x, y = coords
-    if x < map_center_x:
-        if y < map_center_y:
+    if x < MAP_CENTER_X:
+        if y < MAP_CENTER_Y:
             return 1
         else:
             return 3
     else:
-        if y < map_center_y:
+        if y < MAP_CENTER_Y:
             return 2
         else:
             return 4
 
 
 def load_balancer(client_coords):
+    """
+
+    :param client_coords:
+    :return:
+    """
+
     quadrant_client = get_quadrant(client_coords)
 
     # Find the closest zone to the client
@@ -181,6 +304,7 @@ def load_balancer(client_coords):
     for zone, boundary in zones.items():
         zone_center = ((boundary['min_x'] + boundary['max_x']) / 2, (boundary['min_y'] + boundary['max_y']) / 2)
         distance = euclidean_distance(client_coords, zone_center)
+
         if distance < min_distance:
             min_distance = distance
             closest_zone = zone
@@ -188,6 +312,7 @@ def load_balancer(client_coords):
     # Assign client to the server handling the closest zone
     if closest_zone:
         return closest_zone  # Use the zone name as the server name
+
     else:
         return None  # Unable to determine server
 
@@ -202,14 +327,14 @@ def main():
     server3 = Server("Server3", capacity=50)
     server4 = Server("Server4", capacity=50)
 
-    ServerBuffer = Server("ServerBuffer", capacity=50)
+    serverbuffer = Server("ServerBuffer", capacity=50)
     main_server.register_server(server1)
 
     main_server.register_server(server2)
     main_server.register_server(server3)
 
     main_server.register_server(server4)
-    main_server.register_server(ServerBuffer)
+    main_server.register_server(serverbuffer)
 
     main_server.run()
     # Start TLS server
