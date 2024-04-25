@@ -19,8 +19,6 @@ THE_SHA_256 = hashes.SHA256()
 PARAM_LIST = {"0": 0x0303, "1": 0x16, "2": 0x15, "3": 0x14, "4": 0x1}
 SECP = [0x6a6a, 0x001d, 0x0017, 0x0018]
 SIGNATURE_ALGORITHIM = [0x0403, 0x0804, 0x0401, 0x0503, 0x0805, 0x0501, 0x0806, 0x0601]
-AUTHORITY = []
-KEY = {}
 MSG_TCP_PACK = 56
 
 
@@ -40,23 +38,22 @@ class ClientHandshake:
         """
 
         """
-        while True:
-            try:
-                KEY["encryption"] = self.connection_handshakes()
-                if KEY["encryption"]:
-                    return KEY["encryption"]
+        try:
+            self.__key["encryption"] = self.connection_handshakes()
 
-                else:
-                    return
-            except KeyboardInterrupt:
-                print("refused to play")
+            if self.__key.get("encryption"):
+                return self.__key.get("encryption")
 
-            except ConnectionRefusedError:
-                print("Waiting")
-                continue
+            else:
+                return
+        except KeyboardInterrupt:
+            print("refused to play")
 
-            except ConnectionAbortedError:
-                print("Retrying")
+        except ConnectionRefusedError:
+            print("Waiting")
+
+        except ConnectionAbortedError:
+            print("Retrying")
 
     def connection_handshakes(self):
         """
@@ -64,18 +61,18 @@ class ClientHandshake:
         """
         while True:
             try:
-                if not AUTHORITY:
+                if not self.__authority:
                     important = self.the_pre_handshake()
 
                     if not important:
                         pass
 
                     else:
-                        AUTHORITY.append(important)
+                        self.__authority.append(important)
 
                 else:
                     print("success")
-                    auth = AUTHORITY[0]
+                    auth = self.__authority[0]
                     key = self.secure_handshake(auth)
 
                     if not key:
@@ -235,10 +232,9 @@ class ClientHandshake:
         """
 
         ch_packet = TLS(msg=TLSClientHello(ext=TLS_Ext_SupportedVersion_CH(versions=[TLS_N_VERSION, TLS_M_VERSION]) /
-                                               TLS_Ext_SignatureAlgorithms(
-                                                   sig_algs=SIGNATURE_ALGORITHIM) / TLS_Ext_RenegotiationInfo() /
-                                               TLS_Ext_ExtendedMasterSecret() / TLS_Ext_SupportedPointFormat() /
-                                               TLS_Ext_SupportedGroups(groups=SECP)))
+                                           TLS_Ext_SignatureAlgorithms(sig_algs=SIGNATURE_ALGORITHIM) /
+                                           TLS_Ext_RenegotiationInfo() / TLS_Ext_ExtendedMasterSecret() /
+                                           TLS_Ext_SupportedPointFormat() / TLS_Ext_SupportedGroups(groups=SECP)))
 
         client_hello_packet = ch_packet
         client_hello_packet = client_hello_packet.__class__(bytes(client_hello_packet))

@@ -1,6 +1,5 @@
 import pygame.display
 from level import *
-from settings import *
 from the_client import *
 import socket
 import os
@@ -39,6 +38,9 @@ class Game:
         self.player = CreePy()
 
         self.__message = ""
+        self.weapons = {"G": 0, "S": 0, "HPF": 0, "EF": 0, "RHPF": 0, "BEF": 0}
+
+        self.items = {"HP Fruit": 0, "Energy Fruit": 0, "Red HP Fruit": 0, "Blue Energy Fruit": 0}
 
     def run(self) -> None:
         """
@@ -48,119 +50,152 @@ class Game:
         temp_p = []
 
         while True:
-            v = self.player.get_volume()
-            v.SetMute(1, None)
-            v.SetMasterVolumeLevelScalar(1.0, None)
+         #   v = self.player.get_volume()
+          #  v.SetMute(1, None)
+          #  v.SetMasterVolumeLevelScalar(1.0, None)
+            try:
+                for event in pygame.event.get():
+                    if pygame.QUIT == event.type:
+                        if game_state == "continue":
+                            list_of_details = ["EXIT", 1]
 
-            for event in pygame.event.get():
-                if pygame.QUIT == event.type:
-                    if game_state == "continue":
-                        list_of_details = ["EXIT", 1]
+                            other_client = self.network.communicate(list_of_details)
+                        pygame.quit()
+                        sys.exit()
 
-                        other_client = self.network.communicate(list_of_details)
-                    pygame.quit()
-                    sys.exit()
+                if game_state == "start_menu":
+                   # self.player.run()
 
-            if game_state == "start_menu":
-                self.player.run()
+                    self.draw_start_menu()
 
-                self.draw_start_menu()
+                    game_state = "game"
 
-                game_state = "game"
+                if game_state == "game":
+                    loading_screen_image = pygame.image.load(IMAGE).convert()
+                    keys = pygame.key.get_pressed()
 
-            if game_state == "game":
+                    if keys[pygame.K_SPACE]:
+                        ran = self.network.run()
+                        if ran == 2:
+                            game_state = "start_menu"
 
-                keys = pygame.key.get_pressed()
-                if keys[pygame.K_SPACE]:
-                    ran = self.network.run()
-                    if ran == 2:
-                        game_state = "start_menu"
-
-                    elif ran == 1:
-                        break
-
-                    else:
-                        game_state = "continue"
-
-            if game_state == "continue":
-                self.__message = ""
-                keys = pygame.key.get_pressed()
-                if keys[pygame.K_m]:
-                    self.__message = self.start_chat()
-                    if self.__message is None:
-                        print("Hello")
-                        pass
-                    else:
-                        print(f"You:", self.__message)
-
-                pygame.display.set_caption("Cyber Offensive")
-                self.new_frame_time = time.time()
-                self.screen.fill((0, 0, 0))
-
-                self.level.run()
-
-                prev_loc_other = (0, 0)
-                fps = 1.0 / (self.new_frame_time - self.prev_frame_time)
-
-                self.prev_frame_time = self.new_frame_time
-                self.text_surface = self.font.render("FPS: " + str(int(fps)), True, (128, 0, 128))
-
-                self.screen.blit(self.text_surface, (350, 10))
-                current_loc = self.level.player.get_location()
-
-                list_of_details = [current_loc, self.__message, self.level.player.status, 0]
-
-                other_client = self.network.communicate(list_of_details)
-                self.__previous_status = self.level.player.status
-
-                current_loc = current_loc[2:len(current_loc)].split(' ')
-
-                current_loc = (int(current_loc[0]), int(current_loc[1]))
-                self.prev_loc = current_loc
-
-                if other_client is None:
-                    pass
-
-                elif other_client == 1:
-                    break
-
-                elif type(other_client) is bytes:
-                    other_client = pickle.loads(other_client)
-
-                    if type(other_client) is list or type(other_client) is tuple:
-                        statuses = other_client[2]
-                        self.__message = other_client[1]
-
-                        locations = other_client[0]
-
-                        for i in range(0, len(self.__message)):
-                            if self.__message[i] is not None or '':
-                                print(f"Client {i+1}:", self.__message[i])
-
-                        prev_loc_other, other_client = self.get_new_locations(locations, prev_loc_other)
-
-                        self.erase_previous(temp_p)
-                        temp_p = []
-
-                        p_image = [pygame.image.load(
-                            f'{BASE_PATH}\\graphics\\player\\{statuses[i]}\\{statuses[i]}.png').convert_alpha()
-                                   for i in range(0, len(statuses)) if statuses[i] is not None]
-
-                        if not p_image:
-                            pass
+                        elif ran == 1:
+                            break
 
                         else:
-                            for i in range(0, len(prev_loc_other)):
-                                player_remote = Tile(position=prev_loc_other[i],
-                                                     groups=[self.level.visible_sprites, self.level.obstacles_sprites],
-                                                     sprite_type=PLAYER_OBJECT, surface=p_image[i])
+                            game_state = "continue"
+                        #    print(ran)
+                            if len(ran) > 1:
+                                items = ran[1][2].split(', ')
 
-                                temp_p.append(player_remote)
+                              #  print(items)
+                                if items[0] == '1':
+                                    self.weapons["G"] = 1
 
-                    pygame.display.flip()
+                                if items[1] == '1':
+                                    self.weapons["S"] = 1
+                                    self.level.player.inventory.hotbar.insert(Sword((0, 0),
+                                                                                    [self.level.visible_sprites]))
+                        #    self.weapons["Gun"] = items
 
-            pygame.display.update()
-            self.clock.tick(FPS)
+                if game_state == "continue":
+                    self.__message = None
+                    keys = pygame.key.get_pressed()
+                    if keys[pygame.K_m]:
+                        self.__message = self.start_chat()
+                        if self.__message is None:
+                            print("Hello")
+                            pass
+                        else:
+                            print(f"You:", self.__message)
+
+                    pygame.display.set_caption("Cyber Offensive")
+                    self.new_frame_time = time.time()
+                    self.screen.fill((0, 0, 0))
+
+                    self.level.run()
+
+                    prev_loc_other = (0, 0)
+                    fps = 1.0 / (self.new_frame_time - self.prev_frame_time)
+
+                    self.prev_frame_time = self.new_frame_time
+                    self.text_surface = self.font.render("FPS: " + str(int(fps)), True, (128, 0, 128))
+
+                    self.screen.blit(self.text_surface, (350, 10))
+                    current_loc = self.level.player.get_location()
+
+                    current_status_index = int(self.level.player.frame_index)
+                    self.find()
+                #    print(current_status)
+                    list_of_details = [current_loc, self.__message, self.level.player.status, 0,
+                                       self.weapons, current_status_index]
+
+                    other_client = self.network.communicate(list_of_details)
+                    self.__previous_status = self.level.player.status
+
+                    self.prev_loc = current_loc
+
+                    if other_client is None:
+                        pass
+
+                    elif other_client == 1:
+                        break
+
+                    elif type(other_client) is bytes:
+                        other_client = pickle.loads(other_client)
+                        print("other_client", other_client)
+
+                        if type(other_client) is list or type(other_client) is tuple:
+                            statuses = other_client[2]
+                            status_frame_indexes = other_client[4]
+
+                            self.__message = other_client[1]
+                            locations = other_client[0]
+
+                            for i in range(0, len(self.__message)):
+                                if self.__message[i] is not None or '':
+                                    print(f"Client {i+1}:", self.__message[i])
+
+                            prev_loc_other, other_client = self.get_new_locations(locations, prev_loc_other)
+
+                            self.erase_previous(temp_p)
+                            temp_p = []
+
+                            statuses_updated = []
+
+                            statuses = [status for status in statuses if status is not None]
+
+                            for i in range(0, len(statuses)):
+                                statuses_updated.append(f'{statuses[i]}_{status_frame_indexes[i]}')
+                          #  print(statuses_updated)
+
+                            p_image = [pygame.image.load(
+                                f'{BASE_PATH}graphics\\player\\{statuses[i]}\\{statuses_updated[i]}.png').convert_alpha()
+                                       for i in range(0, len(statuses)) if statuses[i] is not None]
+
+                            if not p_image:
+                                pass
+
+                            else:
+                                for i in range(0, len(prev_loc_other)):
+                                    player_remote = Tile(position=prev_loc_other[i],
+                                                         groups=[self.level.visible_sprites, self.level.obstacles_sprites],
+                                                         sprite_type=PLAYER_OBJECT, surface=p_image[i])
+
+                                    temp_p.append(player_remote)
+
+                        pygame.display.flip()
+
+                pygame.display.update()
+                self.clock.tick(FPS)
+
+            except KeyboardInterrupt:
+                if game_state == "continue":
+                    list_of_details = ["EXIT", 1]
+
+                    other_client = self.network.communicate(list_of_details)
+                pygame.quit()
+                sys.exit()
 
     def draw_start_menu(self):
         """
@@ -201,6 +236,7 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE:
                         if entering_username:
@@ -250,12 +286,9 @@ class Game:
         :param prev_loc_other:
         :return:
         """
-        other_client = [(other_client[i].split(' ')[0], other_client[i].split(' ')[1])
-                        for i in range(0, len(other_client)) if other_client[i] is not None]
 
-        other_coordinates = [(int(other_client[i][0]), int(other_client[i][1]))
-                             for i in range(0, len(other_client))
-                             if other_client[i][0].isnumeric() and other_client[i][1].isnumeric()]
+        other_coordinates = [(other_client[i][0], other_client[i][1])
+                             for i in range(0, len(other_client)) if other_client[i] is not None]
 
         prev_loc_other = [other_coordinates[i] for i in range(0, len(other_coordinates))
                           if prev_loc_other != other_coordinates[i]]
@@ -275,6 +308,14 @@ class Game:
 
                 self.level.obstacles_sprites.remove(temp_p[i])
                 temp_p[i].kill()
+
+    def find(self):
+
+        for item_stack in self.level.player.inventory.hotbar.content:
+            if len(item_stack) and issubclass(item_stack[0].__class__, Sword):
+                self.weapons["S"] = 1
+            else:
+                pass
 
 
 def main():

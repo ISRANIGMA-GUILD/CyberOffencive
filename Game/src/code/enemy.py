@@ -48,6 +48,10 @@ class Enemy(Entity):
         self.attack_type = attack_type
 
     def import_graphics(self) -> None:
+        """
+
+        """
+
         self.animations = {
             'up': [],
             'down': [],
@@ -70,6 +74,12 @@ class Enemy(Entity):
             self.animations[animation] = import_folder(base_path + animation)
 
     def get_player_distance_and_direction(self, player) -> tuple:
+        """
+
+        :param player:
+        :return:
+        """
+
         enemy_vector = pygame.math.Vector2(self.rect.center)
         player_vector = pygame.math.Vector2(player.rect.center)
         distance = (player_vector - enemy_vector).magnitude()
@@ -83,6 +93,12 @@ class Enemy(Entity):
         return (distance, direction)
     
     def get_status(self, player) -> None:
+        """
+
+        :param player:
+        :return:
+        """
+
         distance, self.direction = self.get_player_distance_and_direction(player)
 
         #if DEATH in self.status:
@@ -127,6 +143,11 @@ class Enemy(Entity):
             self.status += IDLE
 
     def actions(self, player) -> None:
+        """
+
+        :param player:
+        """
+
         if ATTACK in self.status:
             self.attack_time = pygame.time.get_ticks()
             self.damage_player(player, self.stats[DAMAGE], self.attack_type)
@@ -138,6 +159,9 @@ class Enemy(Entity):
             self.direction = pygame.math.Vector2(0,0)
 
     def animate(self) -> None:
+        """
+
+        """
 
         animation = self.animations[self.status]
         self.frame_index += self.animation_speed
@@ -169,6 +193,9 @@ class Enemy(Entity):
             self.image.set_alpha(255)    
 
     def cooldowns(self) -> None:
+        """
+
+        """
 
         current_time = pygame.time.get_ticks()
         
@@ -181,6 +208,12 @@ class Enemy(Entity):
                 self.vulnerable = True
 
     def get_damage(self, player, attack_type) -> None:
+        """
+
+        :param player:
+        :param attack_type:
+        :return:
+        """
 
         if not self.vulnerable:
             return
@@ -198,14 +231,26 @@ class Enemy(Entity):
         self.vulnerable = False
 
     def check_death(self) -> None:
+        """
+
+        """
+
         if self.stats[HEALTH] <= 0:
             self.status = 'death'
 
     def hit_reaction(self) -> None:
+        """
+
+        """
+
         if not self.vulnerable:
             self.direction *= -self.stats[RESISTANCE]
 
     def update(self) -> None:
+        """
+
+        """
+
         self.hit_reaction()
         self.move()
 
@@ -214,5 +259,10 @@ class Enemy(Entity):
         self.check_death()
 
     def enemy_update(self, player) -> None:
+        """
+
+        :param player:
+        """
+
         self.get_status(player)
         self.actions(player)

@@ -110,15 +110,18 @@ class Security:
                     self.security_start(service_socket)
                     i += 1
                     if self.__secret_security_key is not None and self.__secret_message is not None:
+                        print("yes")
                         return True
 
             except ConnectionAbortedError:
+                self.__the_server_socket.close()
                 return False
 
             except ConnectionRefusedError:
                 return False
 
             except ConnectionResetError:
+                self.__the_server_socket.close()
                 return False
 
             except KeyboardInterrupt:
