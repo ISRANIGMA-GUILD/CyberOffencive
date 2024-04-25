@@ -118,10 +118,10 @@ def get_certs():
     :return:
     """
 
-    with open(f'Certificates\\certificate0.pem', 'rb') as certificate_first:
+    with open(f'Certificates/certificate0.pem', 'rb') as certificate_first:
         my_cert_pem = load_pem_x509_certificate(certificate_first.read())
 
-    with open(f'Keys\\the_key0.pem', 'rb') as certificate_first:
+    with open(f'Keys/the_key0.pem', 'rb') as certificate_first:
         my_key_pem = load_pem_private_key(certificate_first.read(), password=b'gfdgdfgdhffdgfdgfdgdf')
 
     return my_cert_pem, my_key_pem

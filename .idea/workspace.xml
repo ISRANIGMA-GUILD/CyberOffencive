@@ -5,10 +5,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Dockerfile_secure_server_linux.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Dockerfile_secure_server_windows.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Game/src/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Game/src/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Game/src/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Game/src/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Game/src/.idea/modules.xml" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/Game/src/.idea/src.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Game/src/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Game/src/graphics/conventions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/New Text Document.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build_secure_server.bat" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build_secure_server_linux.bat" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/CyberOffensive.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/CyberOffensive.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/Database/database.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/Database/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/Database/database.db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/DatabaseCreator.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/DatabaseCreator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/camera.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/client_handshake.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/client_handshake.py" afterDir="false" />
@@ -30,49 +42,25 @@
       <change beforePath="$PROJECT_DIR$/Game/src/code/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/weapon.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/weapon.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/down/down.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/down/down_0.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/down/down_1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/down/down_2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/down/down_3.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/down_attack/attack_down.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/down_attack/down_attack.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/down_attack/down_attack_0.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/down_idle/down_idle.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/down_idle/down_idle_0.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/down_idle/idle_down.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/left/left.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/left/left_0.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/left/left_1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/left/left_2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/left/left_3.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/left_attack/attack_left.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/left_attack/left_attack.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/left_attack/left_attack_0.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/left_idle/idle_left.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/left_idle/left_idle.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/left_idle/left_idle_0.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/right/right.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/right/right_0.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/right/right_1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/right/right_2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/right/right_3.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/right_attack/attack_right.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/right_attack/right_attack.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/right_attack/right_attack_0.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/right_idle/idle_right.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/right_idle/right_idle.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/right_idle/right_idle_0.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/up/up.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/up/up_0.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/up/up_1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/up/up_2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/up/up_3.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/up_attack/attack_up.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/up_attack/up_attack.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/up_attack/up_attack_0.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/up_idle/idle_up.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/up_idle/up_idle.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/up_idle/up_idle_0.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/TheGame" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TheGame/src/code/camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/camera.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TheGame/src/code/entity.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/entity.py" afterDir="false" />

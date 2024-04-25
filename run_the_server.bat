@@ -3,13 +3,13 @@
 REM Run script for Docker container
 
 REM Set the name for the Docker image
-SET IMAGE_NAME=servere
+SET IMAGE_NAME=the_servere
 
 REM Set the tag for the Docker image
 SET IMAGE_TAG=latest
 
 REM Set the name for the Docker container
-SET CONTAINER_NAME=servere-container
+SET CONTAINER_NAME=the-servere-container
 
 REM Run the Docker container
 docker run --rm -it --name %CONTAINER_NAME% %IMAGE_NAME%:%IMAGE_TAG%
