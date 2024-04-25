@@ -5,183 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Dockerfile_secure_server_linux.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Dockerfile_secure_server_windows.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Game/src/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Game/src/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Game/src/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Game/src/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Game/src/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Game/src/.idea/src.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Game/src/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Game/src/graphics/conventions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/New Text Document.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build_secure_server.bat" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build_secure_server_linux.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/basic_com.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/CyberOffensive.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/CyberOffensive.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/Database/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/Database/database.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/DatabaseCreator.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/DatabaseCreator.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/camera.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/client_handshake.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/client_handshake.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/enemy.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/enemy.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/energy_fruit.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/energy_fruit.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/entity.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/entity.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/fruit.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/fruit.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/hotbar.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/hotbar.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/inventory.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/inventory.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/level.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/level.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/load_balancer.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/load_balancer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/login.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/login.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/player.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/server_handshake.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/server_handshake.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/the_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_client.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/security_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/security_server.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/the_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_server.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/ui.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/ui.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/weapon.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/weapon.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/down/down.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/down_attack/attack_down.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/down_attack/down_attack.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/down_idle/down_idle.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/down_idle/idle_down.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/left/left.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/left_attack/attack_left.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/left_attack/left_attack.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/left_idle/idle_left.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/left_idle/left_idle.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/right/right.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/right_attack/attack_right.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/right_attack/right_attack.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/right_idle/idle_right.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/right_idle/right_idle.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/up/up.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/up_attack/attack_up.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/up_attack/up_attack.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/up_idle/idle_up.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/graphics/player/up_idle/up_idle.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/code/camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/camera.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/code/entity.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/entity.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/code/level.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/level.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/code/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/code/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/player.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/code/tile.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/tile.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/code/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/TheGame/src/code/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Characters/Basic Charakter Actions.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Characters/Basic Charakter Spritesheet.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Characters/Egg_And_Nest.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Characters/Free Chicken Sprites.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Characters/Free Cow Sprites.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Characters/Tools.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Objects/Basic_Furniture.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Objects/Basic_Grass_Biom_things.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Objects/Basic_Plants.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Objects/Basic_tools_and_meterials.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Objects/Chest.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Objects/Egg_item.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Objects/Free_Chicken_House.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Objects/Paths.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Objects/Simple_Milk_and_grass_item.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Objects/Wood_Bridge.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Sprout Lands color pallet/Sprout Lands defautlt palette snip.PNG" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Sprout Lands color pallet/Sprout Lands defautlt palette.aseprite" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Sprout Lands color pallet/Sprout Lands defautlt palette.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Tilesets/Bitmask references 1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Tilesets/Bitmask references 2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Tilesets/Bitmask references gif.gif" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Tilesets/Fences.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Tilesets/Grass.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Tilesets/Hills.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Tilesets/Tilled_Dirt.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Tilesets/Water.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/Tilesets/Wooden House.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Sprout Lands - Sprites - Basic pack/read_me.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Png/water70000.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Png/water70001.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Png/water70002.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Png/water70003.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Png/water70004.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Png/water70005.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Png/water70006.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Png/water70007.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Png/water70008.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Png/water70009.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Png/water70010.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Png/water70011.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Png/water70012.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Png/water70013.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Water7.kra" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Water7.psd" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/Water7.spine" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/demo.gif" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/image/Water7.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/image/template.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/image/water70000.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/image/water70001.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/image/water70002.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/image/water70003.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/image/water70004.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/image/water70005.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/image/water70006.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/image/water70007.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/image/water70008.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/image/water70009.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/image/water70010.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/image/water70011.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/image/water70012.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/spine/Water7.atlas.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/spine/Water7.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/Water7/spine/Water7.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/autumn/objects/01.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/brawn_idle.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/grass/grass_1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/grass/grass_2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/grass/grass_3.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/0.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/01.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/02.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/03.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/04.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/05.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/06.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/07.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/08.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/09.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/10.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/11.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/12.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/13.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/14.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/15.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/16.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/17.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/18.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/19.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/objects/20.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/obtimus_prime.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/summer/flowers.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/summer/objects/01.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/summer/tiles/summer_tile.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/tilemap/Floor.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/tilemap/details.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/tilemap/ground.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/tiles/rock.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/tiles/summer_tile.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/tiles/winter_tile.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/winter/objects/01.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/graphics/winter/tiles/winter_tile.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/map/Details.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/map/Entities.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/map/Floor.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/map/FloorBlocks.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/map/Grass.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TheGame/src/map/Objects.csv" beforeDir="false" />
     </list>
-    <list id="02ff3d5b-67f7-4487-8767-562c1ddaffec" name="Changes by or12r" comment="">
-      <change beforePath="$PROJECT_DIR$/Game/src/code/load_balancer.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/load_balancer.py" afterDir="false" />
-    </list>
+    <list id="02ff3d5b-67f7-4487-8767-562c1ddaffec" name="Changes by or12r" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -195,43 +26,13 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="ROOT_SYNC" value="DONT_SYNC" />
-  </component>
-  <component name="LineStatusTrackerManager">
-    <file path="$PROJECT_DIR$/Game/src/code/load_balancer.py">
-      <ranges>
-        <range start1="0" end1="4" start2="0" end2="0" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="17" end1="17" start2="13" end2="15" changelist="02ff3d5b-67f7-4487-8767-562c1ddaffec" />
-        <range start1="22" end1="22" start2="20" end2="21" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="24" end1="24" start2="23" end2="24" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="29" end1="30" start2="29" end2="30" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="37" end1="37" start2="37" end2="42" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="41" end1="41" start2="46" end2="52" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="69" end1="70" start2="80" end2="84" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="81" end1="82" start2="95" end2="96" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="88" end1="90" start2="102" end2="103" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="92" end1="96" start2="105" end2="108" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="97" end1="98" start2="109" end2="137" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="110" end1="114" start2="149" end2="184" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="115" end1="117" start2="185" end2="187" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="118" end1="120" start2="188" end2="190" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="121" end1="123" start2="191" end2="214" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="129" end1="129" start2="220" end2="221" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="133" end1="133" start2="225" end2="229" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="137" end1="137" start2="233" end2="238" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="141" end1="141" start2="242" end2="246" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="145" end1="145" start2="250" end2="255" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="150" end1="150" start2="260" end2="267" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="162" end1="164" start2="279" end2="281" changelist="02ff3d5b-67f7-4487-8767-562c1ddaffec" />
-        <range start1="168" end1="169" start2="285" end2="286" changelist="02ff3d5b-67f7-4487-8767-562c1ddaffec" />
-        <range start1="175" end1="175" start2="292" end2="298" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="183" end1="183" start2="306" end2="307" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="190" end1="190" start2="314" end2="315" changelist="a19e9758-a35a-47c2-a4cc-fc00c394a745" />
-        <range start1="204" end1="205" start2="329" end2="330" changelist="02ff3d5b-67f7-4487-8767-562c1ddaffec" />
-        <range start1="211" end1="212" start2="336" end2="337" changelist="02ff3d5b-67f7-4487-8767-562c1ddaffec" />
-      </ranges>
-    </file>
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -247,48 +48,51 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
-    &quot;Python.CyberOffensive (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.CyberOffensive.executor&quot;: &quot;Run&quot;,
-    &quot;Python.DatabaseCreator.executor&quot;: &quot;Run&quot;,
-    &quot;Python.certificate_creator (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.certificate_creator.executor&quot;: &quot;Run&quot;,
-    &quot;Python.client (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.creepy.executor&quot;: &quot;Run&quot;,
-    &quot;Python.dnssec_client.executor&quot;: &quot;Run&quot;,
-    &quot;Python.dnssec_server (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.dnssec_server.executor&quot;: &quot;Run&quot;,
-    &quot;Python.find_server.executor&quot;: &quot;Run&quot;,
-    &quot;Python.isitshort.executor&quot;: &quot;Run&quot;,
-    &quot;Python.isshortclient.executor&quot;: &quot;Run&quot;,
-    &quot;Python.load_balancer.executor&quot;: &quot;Run&quot;,
-    &quot;Python.main (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.security_server (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.security_server (2).executor&quot;: &quot;Run&quot;,
-    &quot;Python.security_server.executor&quot;: &quot;Run&quot;,
-    &quot;Python.server (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.server_handshake.executor&quot;: &quot;Run&quot;,
-    &quot;Python.test_array.executor&quot;: &quot;Run&quot;,
-    &quot;Python.the_client (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.the_client.executor&quot;: &quot;Run&quot;,
-    &quot;Python.the_server (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.the_server.executor&quot;: &quot;Run&quot;,
-    &quot;Python.tls_client_oop (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.tls_client_oop.executor&quot;: &quot;Run&quot;,
-    &quot;Python.tls_server_oops (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.tls_server_oops.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;tls&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/FoldersConventions&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "Batch.build_secure_server_linux.executor": "Run",
+    "Batch.build_the_server_linux.executor": "Run",
+    "Batch.run_secure_server.executor": "Run",
+    "Python.CyberOffensive (1).executor": "Run",
+    "Python.CyberOffensive.executor": "Run",
+    "Python.DatabaseCreator.executor": "Run",
+    "Python.certificate_creator (1).executor": "Run",
+    "Python.certificate_creator.executor": "Run",
+    "Python.client (1).executor": "Run",
+    "Python.creepy.executor": "Run",
+    "Python.dnssec_client.executor": "Run",
+    "Python.dnssec_server (1).executor": "Run",
+    "Python.dnssec_server.executor": "Run",
+    "Python.find_server.executor": "Run",
+    "Python.isitshort.executor": "Run",
+    "Python.isshortclient.executor": "Run",
+    "Python.load_balancer.executor": "Run",
+    "Python.main (1).executor": "Run",
+    "Python.main.executor": "Run",
+    "Python.security_server (1).executor": "Run",
+    "Python.security_server (2).executor": "Run",
+    "Python.security_server.executor": "Run",
+    "Python.server (1).executor": "Run",
+    "Python.server_handshake.executor": "Run",
+    "Python.test_array.executor": "Run",
+    "Python.the_client (1).executor": "Run",
+    "Python.the_client.executor": "Run",
+    "Python.the_server (1).executor": "Run",
+    "Python.the_server.executor": "Run",
+    "Python.tls_client_oop (1).executor": "Run",
+    "Python.tls_client_oop.executor": "Run",
+    "Python.tls_server_oops (1).executor": "Run",
+    "Python.tls_server_oops.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "full__server",
+    "last_opened_file_path": "C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/FoldersConventions",
+    "run.code.analysis.last.selected.profile": "aDefault",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Game\src\code" />
@@ -298,52 +102,26 @@
       <recent name="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Secure Game\Certificates\Certificate_crts" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.the_server (1)">
-    <configuration name="DatabaseCreator" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python.security_server">
+    <configuration name="build_the_server_linux" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="basic_com" />
-      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="WORKING_DIRECTORY" value="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Game/src/code" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Game/src/code/DatabaseCreator.py" />
+      <option name="SCRIPT_NAME" value="build_the_server_linux.bat" />
       <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="load_balancer" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="run_secure_server" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="basic_com" />
-      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="WORKING_DIRECTORY" value="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Game/src/code" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Game/src/code/load_balancer.py" />
+      <option name="SCRIPT_NAME" value="run_secure_server.bat" />
       <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="CyberOffensive" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="basic_com" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -356,7 +134,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Game/src/code/main.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Game/src/code/CyberOffensive.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -387,7 +165,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="the_server (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="the_server" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="basic_com" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -411,11 +189,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.the_server (1)" />
+        <item itemvalue="Python.the_server" />
         <item itemvalue="Python.security_server" />
-        <item itemvalue="Python.load_balancer" />
-        <item itemvalue="Python.main" />
-        <item itemvalue="Python.DatabaseCreator" />
+        <item itemvalue="Python.CyberOffensive" />
+        <item itemvalue="Batch.run_secure_server" />
+        <item itemvalue="Batch.build_the_server_linux" />
       </list>
     </recent_temporary>
   </component>
@@ -453,5 +231,15 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Game/src/code/certificate_creator.py</url>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
