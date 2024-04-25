@@ -27,8 +27,8 @@ class Security:
         self.__database = database
         self.__the_server_socket = the_server_socket
 
-        self.__secret_security_key = b''
-        self.__secret_message = b''
+        self.__secret_security_key = None
+        self.__secret_message = None
 
         self.__cert, self.__key = get_certs()
         self.__domain_provider = DomainProvider(self.__cert, self.__key)
@@ -58,12 +58,14 @@ class Security:
 
         """
 
-        if self.allow_server_connection():
+        while True:
+            try:
 
-            dns_pack = self.__domain_provider.run()
+                if (self.allow_server_connection() and self.__secret_security_key is not None and
+                   self.__secret_message is not None):
 
-            while True:
-                try:
+                    dns_pack = self.__domain_provider.run()
+
                     self.__domain_provider.handle_client(dns_pack)
                     self.receive_requests(list_of_banned_addresses)
 
@@ -73,31 +75,33 @@ class Security:
                                                                          self.__upcoming_bans[i][1], 'Banned'],
                                                                  no_duplicate_params=PARAMETERS['IPs'])
 
-                except ConnectionAbortedError:
-                    break
+            except ConnectionAbortedError:
+                break
 
-                except ConnectionRefusedError:
-                    break
+            except ConnectionRefusedError:
+                break
 
-                except ConnectionResetError:
-                    self.__the_server_socket.close()
-                    break
+            except ConnectionResetError:
+                self.__the_server_socket.close()
+                break
 
-                except KeyboardInterrupt:
-                    self.__the_server_socket.close()
-                    break
+            except KeyboardInterrupt:
+                self.__the_server_socket.close()
+                break
 
-                else:
-                    pass
+            else:
+                pass
 
-            print("connect to the main server")
-            self.__database.close_conn()
+        print("connect to the main server")
+        self.__database.close_conn()
 
     def allow_server_connection(self):
+        """
 
-        i = 0
+        :return:
+        """
 
-        while True:
+        if self.__service_socket is None:
             try:
                 print("Server is up and running")
                 connection, service_address = self.__the_server_socket.accept()  # Accept clients request
@@ -106,12 +110,7 @@ class Security:
                 service_socket = connection
                 self.__service_socket = service_socket
 
-                if i == 0:
-                    self.security_start(service_socket)
-                    i += 1
-                    if self.__secret_security_key is not None and self.__secret_message is not None:
-                        print("yes")
-                        return True
+                return True
 
             except ConnectionAbortedError:
                 self.__the_server_socket.close()
@@ -128,8 +127,30 @@ class Security:
                 self.__the_server_socket.close()
                 return False
 
-            else:
-                i = 0
+        if self.__service_socket is not None and self.__secret_security_key is None and self.__secret_message is None:
+            try:
+                self.security_start(self.__service_socket)
+                if self.__secret_security_key is not None and self.__secret_message is not None:
+                    print("yes")
+                    return True
+
+            except ConnectionAbortedError:
+                self.__the_server_socket.close()
+                return False
+
+            except ConnectionRefusedError:
+                return False
+
+            except ConnectionResetError:
+                self.__the_server_socket.close()
+                return False
+
+            except KeyboardInterrupt:
+                self.__the_server_socket.close()
+                return False
+
+        else:
+            return True
 
     def security_start(self, service_socket):
         """
@@ -148,9 +169,13 @@ class Security:
                         pass
 
                     else:
-                        self.__secret_security_key, self.__secret_message = security_for_server
-                        handshake_initializer.stop()
-                        break
+                        if None not in security_for_server:
+                            self.__secret_security_key, self.__secret_message = security_for_server
+                            handshake_initializer.stop()
+                            break
+
+                        else:
+                            pass
 
                 except ConnectionResetError:
                     pass
@@ -164,38 +189,39 @@ class Security:
         :return:
         """
 
-        self.__service_socket.settimeout(4)
-        while True:
-            try:
-                banned_addresses = self.find_ddos_attempt(list_of_banned_addresses)
+        try:
+            self.__service_socket.settimeout(4)
+            banned_addresses = self.find_ddos_attempt(list_of_banned_addresses)
+
+            if not banned_addresses:
+                pass
+
+            else:
+                banned_addresses = self.remove_known_users(banned_addresses)
 
                 if not banned_addresses:
                     pass
 
                 else:
-                    banned_addresses = self.remove_known_users(banned_addresses)
+                    banned_addresses = pickle.dumps(banned_addresses)
+                    encrypted_message = self.encrypt_data(banned_addresses)
 
-                    if not banned_addresses:
-                        pass
+                    banned_message = self.create_message(encrypted_message)
+                    self.__service_socket.send(bytes(banned_message[TLS]))
 
-                    else:
-                        banned_addresses = pickle.dumps(banned_addresses)
+                    print("sent")
+                    self.__upcoming_bans = pickle.loads(banned_addresses)
 
-                        encrypted_message = self.encrypt_data(banned_addresses)
-                        banned_message = self.create_message(encrypted_message)
+            data = self.deconstruct_data()
 
-                        self.__service_socket.send(bytes(banned_message[TLS]))
+            if data is None:
+                return
 
-                        print("sent")
-                        self.__upcoming_bans = pickle.loads(banned_addresses)
+            else:
+                self.decide(data)
 
-                data = self.deconstruct_data()
-
-                if not data:
-                    return
-
-            except socket.timeout:
-                pass
+        except socket.timeout:
+            pass
 
     def find_ddos_attempt(self, list_of_banned_addresses):
         """
@@ -323,6 +349,21 @@ class Security:
             return
 
         return data_iv, data_c_t, data_tag
+
+    def decide(self, data):
+        """
+
+        :param data:
+        """
+
+        message = self.decrypt_data(data[0], data[1], data[2])
+
+        if message == "EXIT".encode():
+            self.__service_socket.close()
+            self.__secret_message = None
+
+            self.__service_socket = None
+            self.__secret_security_key = None
 
     def invalid_data(self, data_iv, data_c_t, data_tag):
         """

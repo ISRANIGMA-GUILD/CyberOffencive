@@ -23,7 +23,7 @@ class Server:
         self.__secure_socket = secure_socket
         self.__load_balance_socket = load_balance_socket
 
-        self.__load_balance_ip = MY_IP # Will soon be changed according to a mechanism
+        self.__load_balance_ip = MY_IP  # Will soon be changed according to a mechanism
         self.__load_balance_port = 1800
 
         self.__main_data_base = main_data_base
@@ -68,12 +68,10 @@ class Server:
         """
 
         """
-        # """:TODO(If they are possible): Check for session injection vulnerabilities """#
+        # """:TODO(Are they possible?): Check for session injection vulnerabilities """#
         # """:TODO(almost finished): Check if users are banned """#
         # """:TODO: Transport databases between servers at the end and updating them accordingly """#
         # """:TODO: Check if users cheat(in speed, damage, etc.) """#
-        # """:TODO(finished?): Connect to docker """#
-        # """:TODO(finished?): Return details after login """#
         # """:TODO(Almost finished): Block connections from banned users """#
         # """:TODO: Loading screen between menu and login screens """#
         # """:TODO(Probably finished): Limit conditions for kick due to manipulated handshakes """#
@@ -84,10 +82,10 @@ class Server:
         # """:TODO(almost finished): Display chat in the game not in the terminal """#
         # """:TODO: Make the whole game abstract from terminal """#
         # """:TODO(almost finished): Try-except on everything """#
-        # """:TODO(Work in progress): Receive info about weapons, enemy locations, item locations """#
+        # """:TODO(Work in progress): Receive info about enemy locations, item locations """#
         # """:TODO: Clear ports that are not used"""#
-        # """:TODO: Make sure all clients spawn on time"""#
         # """:TODO: Remove clients that quit during the handshake"""#
+        # """:TODO: Split data messages in two: 1.) public 2.) private"""#
 
         info, resource_info, ip_info = self.receive_info()
         list_of_existing_credentials, list_of_existing_resources = self.organize_info(info, resource_info, ip_info)
@@ -95,8 +93,8 @@ class Server:
         print(self.__banned_ips, self.__banned_macs, list_of_existing_resources)
 
         self.connect_to_security()
-        self.connect_to_load_socket()
-        self.first_client_handshake_to_load_balancer()
+       # self.connect_to_load_socket()
+     #   self.first_client_handshake_to_load_balancer()
 
         self.security_first()
         print("The server will now wait for clients")
@@ -193,8 +191,12 @@ class Server:
                     pass
 
                 else:
-                    self.__private_security_key, self.__private_message = security_items
-                    break
+                    if None not in security_items:
+                        self.__private_security_key, self.__private_message = security_items
+                        break
+
+                    else:
+                        pass
 
             except ConnectionResetError:
                 pass
@@ -562,7 +564,7 @@ class Server:
             return
 
         except socket.timeout:
-            print("srsly")
+           # print("srsly")
             return
 
         except OSError:
@@ -616,7 +618,7 @@ class Server:
                     self.__login_data_base.close_conn()
 
                     self.__main_data_base.close_conn()
-                    self.__secure_socket.close()
+                    self.disconnect_from_security()
 
                     self.__ips_data_base.close_conn()
                     break
@@ -632,7 +634,7 @@ class Server:
                 self.__login_data_base.close_conn()
                 self.__main_data_base.close_conn()
 
-                self.__secure_socket.close()
+                self.disconnect_from_security()
                 self.__ips_data_base.close_conn()
 
                 break
@@ -644,7 +646,7 @@ class Server:
                 self.__login_data_base.close_conn()
                 self.__main_data_base.close_conn()
 
-                self.__secure_socket.close()
+                self.disconnect_from_security()
                 self.__ips_data_base.close_conn()
 
                 break
@@ -827,10 +829,10 @@ class Server:
         """
 
         [thread.start() for thread in
-         (connection_threads + tls_handshakes + login_threads + response_threads + detail_threads +
+         (security_thread + connection_threads + tls_handshakes + login_threads + response_threads + detail_threads +
           disconnect_threads)]
 
-        for thread in (connection_threads + tls_handshakes + login_threads + response_threads +
+        for thread in (security_thread + connection_threads + tls_handshakes + login_threads + response_threads +
                        detail_threads + disconnect_threads):
             thread.join()
 
@@ -1044,7 +1046,6 @@ class Server:
                         return
 
                     except socket.timeout:
-                        print("srsly")
                         return
 
             except Exception:
@@ -1158,6 +1159,16 @@ class Server:
 
             print(self.__main_data_base.set_values(['Weapons'], [items], ['Username'],
                                                    [self.__session_users[index]]))
+
+    def disconnect_from_security(self):
+        """
+
+        """
+        message = "EXIT".encode()
+        en = self.encrypt_data(self.__private_security_key, message, self.__private_message)
+
+        self.__secure_socket.send(bytes(self.create_message(en)[TLS]))
+        self.__secure_socket.close()
 
     def get_local_client_details(self):
 
