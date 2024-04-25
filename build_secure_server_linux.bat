@@ -3,7 +3,7 @@
 REM Build script for Docker container
 
 REM Set the path to the Dockerfile
-SET DOCKERFILE=Dockerfile_secure_server_windows
+SET DOCKERFILE=Dockerfile_secure_server_linux
 
 REM Set the name for the Docker image
 SET IMAGE_NAME=servere
