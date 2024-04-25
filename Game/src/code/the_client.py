@@ -92,11 +92,12 @@ class Client:
 
                                 while True:
 
-                                    if "Success" in self.check_success(encryption_key, details, auth)[0:9]:
+                                    checker = self.check_success(encryption_key, details, auth)
+                                    if "Success" in checker[0]:
                                         print("Nice")
-                                        break
+                                        return checker
 
-                                    elif self.check_success(encryption_key, details, auth) == "Failure":
+                                    elif checker[0] == "Failure":
                                         details = self.details_entry(encryption_key, auth)
 
                                     else:
@@ -530,16 +531,16 @@ class Client:
                     pass
 
                 else:
-                    decrypt = self.decrypt_data(key, auth, success[0], success[1], success[2])
+                    decrypt = pickle.loads(self.decrypt_data(key, auth, success[0], success[1], success[2]))
                     print(decrypt)
 
-                    if "Success" in decrypt.decode()[0:9]:
+                    if "Success" in decrypt[0]:
                         print("success")
-                        return decrypt.decode()
+                        return decrypt
 
-                    elif decrypt.decode() == "Failure":
+                    elif decrypt[0] == "Failure":
                         print("wrong password or username")
-                        return decrypt.decode()
+                        return decrypt
 
             except socket.timeout:
                 return
@@ -573,11 +574,13 @@ class Client:
       #  self.good_music()
         for index in range(0, len(THE_BIG_LIST)):
          #   self.good_music()
-            if THE_BIG_LIST.get(str(index)) in message:
-                return True
+            if message is not None:
+                if THE_BIG_LIST.get(str(index)) in message:
+                    return True
 
-        if message.isnumeric() and sys.maxsize <= int(message):
-            return True
+        if message is not None:
+            if message.isnumeric() and sys.maxsize <= int(message):
+                return True
 
         return False
 
@@ -619,7 +622,8 @@ class Client:
                         self.__the_client_socket.send(bytes(full_msg[TLS]))
 
                 elif not self.malicious_message(data[1]) and len(data) != 2:
-                    after = [data[0], data[1], data[2], data[3], [data[4]], data[5]]
+                    after = [data[0], data[1], data[2], data[3], data[4], data[5]]
+                  #  print(after)
                     after = pickle.dumps(after)
 
                     data = [self.encrypt_data(key, after, auth)]

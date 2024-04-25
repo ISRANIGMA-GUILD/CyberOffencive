@@ -17,6 +17,11 @@ class Weapon(Item):
         }
 
     def attack(self, player) -> None:
+        """
+
+        :param player:
+        """
+
         self.direction = player.status.split(UNDERSCORE, 1)[0]
         self.full_path = f'../graphics/weapons/{self.weapon_name}/{self.direction}.png'
 

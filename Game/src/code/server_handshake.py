@@ -46,7 +46,7 @@ class ServerHandshake:
 
         :return:
         """
-
+        print("handshaking")
         while True:
             try:
                 if not self.__auth:

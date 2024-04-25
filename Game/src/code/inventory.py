@@ -8,13 +8,23 @@ class Inventory:
         self.is_open = False
 
     def update(self) -> None:
+        """
+
+        :return:
+        """
+
         self.hotbar.update()
         
         if not self.is_open:
             return
 
     def display(self) -> None:
-        self.hotbar.display()    
+        """
+
+        :return:
+        """
+
+        self.hotbar.display()
         
         if not self.is_open:
             return

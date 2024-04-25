@@ -32,7 +32,7 @@ class Game:
             self.screen.fill((0, 0, 0))
 
             self.level.run()
-            print(self.level.player.inventory.hotbar.content)
+            print(self.level.player.inventory.hotbar.content, self.level.player.inventory.hotbar.insert(Sword((0, 0), [self.level.visible_sprites])))
             self.find()
             fps = 1.0 / (self.new_frame_time - self.prev_frame_time)
 

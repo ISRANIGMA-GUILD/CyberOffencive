@@ -12,9 +12,6 @@ THE_USUAL_IP = '0.0.0.0'
 MY_IP = conf.route.route('0.0.0.0')[1]
 SECURITY_PORT = 443
 MAX_MSG_LENGTH = 1024
-THE_LIST = {}
-MESSAGES = []
-MAX_CLIENT = 5
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
               "NODUP": ['Username', 'Password'], "DUP": ['Status', 'Items', 'Weapons'],
               "IPs": ["IP", "MAC", "Status"]}
@@ -26,13 +23,13 @@ class Server:
         self.__secure_socket = secure_socket
         self.__load_balance_socket = load_balance_socket
 
-        self.__load_balance_ip = MY_IP
+        self.__load_balance_ip = MY_IP # Will soon be changed according to a mechanism
         self.__load_balance_port = 1800
+
         self.__main_data_base = main_data_base
-
         self.__login_data_base = login_data_base
-        self.__ips_data_base = ips_data_base
 
+        self.__ips_data_base = ips_data_base
         self.__security_private_handshake = ClientHandshake(self.__secure_socket, MY_IP, SECURITY_PORT)
 
         self.__private_security_key = 0
@@ -59,10 +56,13 @@ class Server:
         self.__weapon_status = []
 
         self.__status_frame_index = []
-        self.__items = []
+        self.__weapons = []
 
         self.__hp = []
         self.__enemy_location = []
+
+        self.__items = []
+        self.__session_users = []
 
     def run(self):
         """
@@ -92,7 +92,7 @@ class Server:
         info, resource_info, ip_info = self.receive_info()
         list_of_existing_credentials, list_of_existing_resources = self.organize_info(info, resource_info, ip_info)
 
-        print(self.__banned_ips, self.__banned_macs)
+        print(self.__banned_ips, self.__banned_macs, list_of_existing_resources)
 
         self.connect_to_security()
         self.connect_to_load_socket()
@@ -298,7 +298,7 @@ class Server:
         :return:
         """
 
-        if identifier in THE_LIST.values():
+        if identifier in self.__banned_macs:
             return b'Denied'
 
         else:
@@ -445,6 +445,7 @@ class Server:
         """
 
         with lock:
+            start = time.time()
             try:
                 if (self.__all_details[number].get("Credentials") is None and self.__all_details[number].get("Client")
                         is not None and self.__all_details[number].get("Keys") is None):
@@ -452,17 +453,29 @@ class Server:
                     enc_key = handshake.run()
                     self.__all_details[number]["Keys"] = enc_key
                     handshake.stop()
+                    end = time.time()
+
+                    print(time.strftime("%Hh %Mm %Ss", time.gmtime(end - start)).split(' '))
 
                 else:
                     pass
 
             except AttributeError:
+                end = time.time()
+
+                print(time.strftime("%Hh %Mm %Ss", time.gmtime(end - start)).split(' '))
                 pass
 
             except TypeError:
+                end = time.time()
+
+                print(time.strftime("%Hh %Mm %Ss", time.gmtime(end - start)).split(' '))
                 return
 
             except IndexError:
+                end = time.time()
+
+                print(time.strftime("%Hh %Mm %Ss", time.gmtime(end - start)).split(' '))
                 return
 
     def encrypt_data(self, key, plaintext, associated_data):
@@ -518,6 +531,7 @@ class Server:
         :return: The data iv, data and tag
         """
         try:
+      #      for i in range(0, 1):
             the_client_socket.settimeout(0.1)
             data_pack = the_client_socket.recv(MAX_MSG_LENGTH)
 
@@ -529,21 +543,26 @@ class Server:
                 return 0, 1, 2
 
             else:
-                data_pack = TLS(data_pack)
-                data = data_pack[TLS][TLSApplicationData].data
+                try:
+                    data_pack = TLS(data_pack)
+                    data = data_pack[TLS][TLSApplicationData].data
 
-                data_iv = data[:12]
-                data_tag = data[len(data) - 16:len(data)]
+                    data_iv = data[:12]
+                    data_tag = data[len(data) - 16:len(data)]
 
-                data_c_t = data[12:len(data) - 16]
+                    data_c_t = data[12:len(data) - 16]
 
-                return data_iv, data_c_t, data_tag
+                    return data_iv, data_c_t, data_tag
+                except IndexError:
+                    pass
+            return
 
         except struct.error:
             print("dont")
             return
 
         except socket.timeout:
+            print("srsly")
             return
 
         except OSError:
@@ -551,9 +570,6 @@ class Server:
 
         except ConnectionResetError:
             print("reconnect to security")
-            return
-
-        except IndexError:
             return
 
     def send_alert(self, client_socket):
@@ -672,8 +688,20 @@ class Server:
         else:
             pass
 
+        if self.__number_of_clients - 1 >= len(self.__weapons) or len(self.__weapons) == 0:
+            self.__weapons.append(None)
+
+        else:
+            pass
+
         if self.__number_of_clients - 1 >= len(self.__status_frame_index) or len(self.__status_frame_index) == 0:
             self.__status_frame_index.append(None)
+
+        else:
+            pass
+
+        if self.__number_of_clients - 1 >= len(self.__session_users) or len(self.__session_users) == 0:
+            self.__session_users.append(None)
 
         else:
             pass
@@ -917,6 +945,10 @@ class Server:
 
                     (self.__all_details[number], self.__credentials, list_of_existing, list_of_existing_resources,
                      self.__new_credentials, self.__number_of_clients) = loging.run()
+                    print("l")
+
+                    if self.__all_details[number].get("Credentials") is not None:
+                        self.__session_users[number] = self.__all_details[number].get("Credentials")[0]
 
             except Exception:
                 return
@@ -928,6 +960,7 @@ class Server:
         :param index_of_client:
         :return:
         """
+
         with lock:
             try:
                 if (self.__all_details[index_of_client].get("Keys") is not None and
@@ -947,6 +980,7 @@ class Server:
                             data_iv, data_c_t, data_tag = data
 
                             if data_iv == 0 and data_c_t == 1 and data_tag == 2:
+                                print("hold up bro")
                                 self.__all_details[index_of_client]["Connected"] = 1
                                 return
 
@@ -965,6 +999,7 @@ class Server:
                                     return
 
                                 else:
+                                    print("data", the_data)
                                     self.__locations[index_of_client] = the_data[0]
 
                                     self.__chat[index_of_client] = the_data[1]
@@ -972,7 +1007,7 @@ class Server:
 
                                     self.__status[index_of_client] = the_data[2]
 
-                                    self.__items[index_of_client] = the_data[4]
+                                    self.__weapons[index_of_client] = the_data[4]
 
                                     self.__status_frame_index[index_of_client] = the_data[5]
 
@@ -1012,8 +1047,6 @@ class Server:
                         print("srsly")
                         return
 
-                    return
-
             except Exception:
                 print("just stop")
                 return
@@ -1040,13 +1073,13 @@ class Server:
                         local_statuses = self.__status.copy()
                         local_statuses.pop(number)
 
-                        local_items = self.__items.copy()
-                        local_items.pop(number)
+                        local_weapons = self.__weapons.copy()
+                        local_weapons.pop(number)
 
                         local_f_indexes = self.__status_frame_index.copy()
                         local_f_indexes.pop(number)
 
-                        list_data = local_locations, local_messages, local_statuses, local_items, local_f_indexes
+                        list_data = local_locations, local_messages, local_statuses, local_weapons, local_f_indexes
                         byte_data = pickle.dumps(list_data)
 
                         en = self.encrypt_data(self.__all_details[number].get("Keys")[0], byte_data,
@@ -1057,6 +1090,9 @@ class Server:
                         pass
 
                     self.__chat[number] = None
+
+                else:
+                    return
 
             except Exception:
                 return
@@ -1114,11 +1150,14 @@ class Server:
             self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
                                                                 self.__new_credentials[index][1]],
                                                         no_duplicate_params=PARAMETERS["NODUP"])
+        print(self.__main_data_base, self.__credentials, self.__weapons,
+              len(self.__session_users) == len(self.__weapons))
+        for index in range(0, len(self.__session_users) - 1):
+            items = str(self.__weapons[index]["G"]) + ", " + str(self.__weapons[index]["S"])
+            print("Ne items", items)
 
-        #for index in range(0, len(self.__new_credentials)): insert weapons and items
-        #    self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
-               #                                                 self.__new_credentials[index][1]],
-            #                                            no_duplicate_params=PARAMETERS["DUP"])
+            print(self.__main_data_base.set_values(['Weapons'], [items], ['Username'],
+                                                   [self.__session_users[index]]))
 
     def get_local_client_details(self):
 
