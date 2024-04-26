@@ -79,7 +79,6 @@ class Server:
         # """:TODO(Work in progress): Merge with load balancer """#
         # """:TODO: Counter attack mechanism (security server) """#
         # """:TODO(almost finished): MAke sure all certificate vital data is randomized and randomize them at start"""#
-        # """:TODO(Finished?): Check the ip at the start via getmacbyip any wrongs will cause a ban (CLIENT SIDE)"""#
         # """:TODO(almost finished): Display chat in the game not in the terminal """#
         # """:TODO: Make the whole game abstract from terminal """#
         # """:TODO(almost finished): Try-except on everything """#
@@ -621,14 +620,14 @@ class Server:
 
                 self.start_handling(security_thread, connection_threads, login_threads, tls_handshakes,
                                     response_threads, disconnect_threads, details_threads)
+                self.update_database()
 
                 if self.empty_server():
                     self.update_database()
                     self.__login_data_base.close_conn()
-
                     self.__main_data_base.close_conn()
-                    self.disconnect_from_security()
 
+                    self.disconnect_from_security()
                     self.__ips_data_base.close_conn()
                     break
 
