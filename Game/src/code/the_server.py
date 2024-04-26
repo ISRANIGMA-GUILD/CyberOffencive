@@ -10,8 +10,8 @@ SYN = 2
 ACK = 16
 THE_USUAL_IP = '0.0.0.0'
 MY_IP = conf.route.route('0.0.0.0')[1]
-SECURITY_PORT = 443
 MAX_MSG_LENGTH = 1024
+LOCAL_HOST = '127.0.0.1'
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
               "NODUP": ['Username', 'Password'], "DUP": ['Status', 'Items', 'Weapons'],
               "IPs": ["IP", "MAC", "Status"]}
@@ -30,14 +30,15 @@ class Server:
         self.__login_data_base = login_data_base
 
         self.__ips_data_base = ips_data_base
-        self.__security_private_handshake = ClientHandshake(self.__secure_socket, MY_IP, SECURITY_PORT)
+        self.__default_port = 443
 
+        self.__security_private_handshake = ClientHandshake(self.__secure_socket, MY_IP, self.__default_port)
         self.__private_security_key = 0
+
         self.__private_message = 0
-
         self.__private_l_security_key = 0
-        self.__private_l_message = 0
 
+        self.__private_l_message = 0
         self.__number_of_clients = 1
 
         self.__banned_ips = []
@@ -74,7 +75,7 @@ class Server:
         # """:TODO: Check if users cheat(in speed, damage, etc.) """#
         # """:TODO(Almost finished): Block connections from banned users """#
         # """:TODO: Loading screen between menu and login screens """#
-        # """:TODO(Probably finished): Limit conditions for kick due to manipulated handshakes """#
+        # """:TODO(Finished?): Limit conditions for kick due to manipulated handshakes """#
         # """:TODO(Work in progress): Merge with load balancer """#
         # """:TODO: Counter attack mechanism (security server) """#
         # """:TODO(almost finished): MAke sure all certificate vital data is randomized and randomize them at start"""#
@@ -85,14 +86,16 @@ class Server:
         # """:TODO(Work in progress): Receive info about enemy locations, item locations """#
         # """:TODO: Clear ports that are not used"""#
         # """:TODO: Remove clients that quit during the handshake"""#
-        # """:TODO: Split data messages in two: 1.) public 2.) private"""#
+        # """:TODO: Split data messages in two: public and private """#
+        # """:TODO: Make sure server isn't bogged down due to heavy packs"""#
 
         info, resource_info, ip_info = self.receive_info()
         list_of_existing_credentials, list_of_existing_resources = self.organize_info(info, resource_info, ip_info)
 
         print(self.__banned_ips, self.__banned_macs, list_of_existing_resources)
 
-        self.connect_to_security()
+        security_ports = [port for port in range(443, 501)]
+        self.connect_to_security(security_ports)
        # self.connect_to_load_socket()
      #   self.first_client_handshake_to_load_balancer()
 
@@ -147,11 +150,15 @@ class Server:
 
         return list_of_existing_credentials, list_of_existing_resources
 
-    def connect_to_security(self):
+    def connect_to_security(self, security_ports):
+
+        i = 0
 
         while True:
             try:
-                self.__secure_socket.connect((MY_IP, SECURITY_PORT))
+                self.__secure_socket.connect((LOCAL_HOST, security_ports[i]))
+                self.__default_port = security_ports[i]
+                self.__security_private_handshake = ClientHandshake(self.__secure_socket, MY_IP, self.__default_port)
                 break
 
             except ConnectionRefusedError:
@@ -159,6 +166,9 @@ class Server:
 
             except ConnectionResetError:
                 pass
+
+            except OSError:
+                i += 1
 
     def connect_to_load_socket(self):
         """
@@ -1151,8 +1161,10 @@ class Server:
             self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
                                                                 self.__new_credentials[index][1]],
                                                         no_duplicate_params=PARAMETERS["NODUP"])
+
         print(self.__main_data_base, self.__credentials, self.__weapons,
               len(self.__session_users) == len(self.__weapons))
+
         for index in range(0, len(self.__session_users) - 1):
             items = str(self.__weapons[index]["G"]) + ", " + str(self.__weapons[index]["S"])
             print("Ne items", items)
@@ -1164,11 +1176,15 @@ class Server:
         """
 
         """
-        message = "EXIT".encode()
-        en = self.encrypt_data(self.__private_security_key, message, self.__private_message)
+        try:
+            message = "EXIT".encode()
+            en = self.encrypt_data(self.__private_security_key, message, self.__private_message)
 
-        self.__secure_socket.send(bytes(self.create_message(en)[TLS]))
-        self.__secure_socket.close()
+            self.__secure_socket.send(bytes(self.create_message(en)[TLS]))
+            self.__secure_socket.close()
+
+        except ConnectionResetError:
+            return
 
     def get_local_client_details(self):
 

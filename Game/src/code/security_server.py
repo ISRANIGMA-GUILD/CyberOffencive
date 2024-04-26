@@ -6,6 +6,7 @@ SYN = 2
 FIN = 1
 ACK = 16
 MY_IP = conf.route.route('0.0.0.0')[1]
+DEFAULT_IP = '0.0.0.0'
 TLS_M_VERSION = 0x0303
 TLS_N_VERSION = 0x0304
 RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256.val
@@ -396,15 +397,16 @@ class Security:
 def main():
     servers_database = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
     database = DatabaseManager("IPs", PARAMETERS["IPs"])
+
     the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-
     the_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    the_server_socket.bind((MY_IP, SECURITY_PORT))  # Bind the server IP and Port into a tuple
 
+    the_server_socket.bind((DEFAULT_IP, SECURITY_PORT))  # Bind the server IP and Port into a tuple
     the_server_socket.listen(1)  # Listen to client
-    security = Security(database, the_server_socket)
 
+    security = Security(database, the_server_socket)
     security.run()
+
     servers_database.close_conn()
 
 

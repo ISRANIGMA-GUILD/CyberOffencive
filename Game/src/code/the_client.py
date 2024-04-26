@@ -163,10 +163,8 @@ class Client:
         server_port = int(RandShort())
         while True:
           #  self.good_music()
-            if server_port == 443:
-                server_port += 1
 
-            elif server_port < 80 or 1800 <= server_port <= 1900:
+            if server_port < 80 or 1800 <= server_port <= 1900 or 442 < server_port < 501:
                 server_port = int(RandShort())
 
             else:
