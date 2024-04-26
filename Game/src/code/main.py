@@ -22,6 +22,7 @@ class Game:
         self.new_frame_time = 0
         
     def run(self) -> None:
+        i = 0
         while True:
             for event in pygame.event.get():
                 if pygame.QUIT == event.type:
@@ -32,8 +33,12 @@ class Game:
             self.screen.fill((0, 0, 0))
 
             self.level.run()
-            print(self.level.player.inventory.hotbar.content, self.level.player.inventory.hotbar.insert(Sword((0, 0), [self.level.visible_sprites])))
-            self.find()
+            print("Is attacking", self.level.player.attacking, "Active weapon",
+                  self.level.player.inventory.hotbar.content[self.level.player.inventory.hotbar.active_item_index])
+            if i == 0:
+                self.level.player.inventory.hotbar.insert(Sword((0, 0), [self.level.visible_sprites]))
+                self.find()
+                i += 1
             fps = 1.0 / (self.new_frame_time - self.prev_frame_time)
 
             self.prev_frame_time = self.new_frame_time 

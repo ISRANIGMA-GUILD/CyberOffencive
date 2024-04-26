@@ -109,8 +109,8 @@ class Security:
 
                 print("Client connected")
                 service_socket = connection
-                self.__service_socket = service_socket
 
+                self.__service_socket = service_socket
                 return True
 
             except ConnectionAbortedError:
@@ -324,6 +324,7 @@ class Security:
         try:
             self.__service_socket.settimeout(0.5)
             data_pack = self.__service_socket.recv(MAX_MSG_LENGTH)
+
             if not data_pack:
                 return
 

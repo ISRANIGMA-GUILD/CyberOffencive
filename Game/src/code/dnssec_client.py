@@ -70,6 +70,7 @@ class ServerSearcher:
             try:
                 sendp(full_pack)
                 pack = sniff(count=1, lfilter=self.filter_dns_sec, timeout=1)
+
                 if not pack:
                     pass
 

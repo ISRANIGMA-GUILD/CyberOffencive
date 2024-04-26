@@ -69,25 +69,24 @@ class Server:
         """
 
         """
+
         # """:TODO(Are they possible?): Check for session injection vulnerabilities """#
         # """:TODO(almost finished): Check if users are banned """#
         # """:TODO: Transport databases between servers at the end and updating them accordingly """#
         # """:TODO: Check if users cheat(in speed, damage, etc.) """#
         # """:TODO(Almost finished): Block connections from banned users """#
         # """:TODO: Loading screen between menu and login screens """#
-        # """:TODO(Finished?): Limit conditions for kick due to manipulated handshakes """#
         # """:TODO(Work in progress): Merge with load balancer """#
         # """:TODO: Counter attack mechanism (security server) """#
         # """:TODO(almost finished): MAke sure all certificate vital data is randomized and randomize them at start"""#
-        # """:TODO(almost finished): Check the ip at the start via getmacbyip any wrongs will cause a ban (CLIENT SIDE)"""#
+        # """:TODO(Finished?): Check the ip at the start via getmacbyip any wrongs will cause a ban (CLIENT SIDE)"""#
         # """:TODO(almost finished): Display chat in the game not in the terminal """#
         # """:TODO: Make the whole game abstract from terminal """#
         # """:TODO(almost finished): Try-except on everything """#
         # """:TODO(Work in progress): Receive info about enemy locations, item locations """#
         # """:TODO: Clear ports that are not used"""#
         # """:TODO: Remove clients that quit during the handshake"""#
-        # """:TODO: Split data messages in two: public and private """#
-        # """:TODO: Make sure server isn't bogged down due to heavy packs"""#
+        # """:TODO(almost finished): Make sure server isn't bogged down due to heavy packs"""#
 
         info, resource_info, ip_info = self.receive_info()
         list_of_existing_credentials, list_of_existing_resources = self.organize_info(info, resource_info, ip_info)
@@ -158,6 +157,7 @@ class Server:
             try:
                 self.__secure_socket.connect((LOCAL_HOST, security_ports[i]))
                 self.__default_port = security_ports[i]
+
                 self.__security_private_handshake = ClientHandshake(self.__secure_socket, MY_IP, self.__default_port)
                 break
 
@@ -543,7 +543,6 @@ class Server:
         :return: The data iv, data and tag
         """
         try:
-      #      for i in range(0, 1):
             the_client_socket.settimeout(0.1)
             data_pack = the_client_socket.recv(MAX_MSG_LENGTH)
 
@@ -565,6 +564,7 @@ class Server:
                     data_c_t = data[12:len(data) - 16]
 
                     return data_iv, data_c_t, data_tag
+
                 except IndexError:
                     pass
             return
@@ -574,7 +574,6 @@ class Server:
             return
 
         except socket.timeout:
-           # print("srsly")
             return
 
         except OSError:
@@ -884,8 +883,8 @@ class Server:
             else:
                 key, auth = self.__private_security_key, self.__private_message
                 decrypted_data = self.decrypt_data(key, auth, data[0], data[1], data[2])
-                unpacked_data = pickle.loads(decrypted_data)
 
+                unpacked_data = pickle.loads(decrypted_data)
                 return unpacked_data
 
         except socket.timeout:
@@ -895,11 +894,13 @@ class Server:
         """
 
         """
+
         while True:
             try:
                 client_handshake = ClientHandshake(self.__load_balance_socket, self.__load_balance_ip,
                                                    self.__load_balance_port)
                 security_items = client_handshake.run()
+
                 if not security_items:
                     pass
 
@@ -957,7 +958,6 @@ class Server:
 
                     (self.__all_details[number], self.__credentials, list_of_existing, list_of_existing_resources,
                      self.__new_credentials, self.__number_of_clients) = loging.run()
-                    print("l")
 
                     if self.__all_details[number].get("Credentials") is not None:
                         self.__session_users[number] = self.__all_details[number].get("Credentials")[0]
@@ -1008,6 +1008,8 @@ class Server:
                                     print("Client", index_of_client + 1, client_socket.getpeername(),
                                           "has left the server")
                                     self.__all_details[index_of_client]["Connected"] = 1
+
+                                    self.__weapons[index_of_client] = the_data[2]
                                     return
 
                                 else:
@@ -1018,10 +1020,7 @@ class Server:
                                     print(self.__chat, the_data[1])
 
                                     self.__status[index_of_client] = the_data[2]
-
-                                    self.__weapons[index_of_client] = the_data[4]
-
-                                    self.__status_frame_index[index_of_client] = the_data[5]
+                                    self.__status_frame_index[index_of_client] = the_data[4]
 
                     except TypeError:
                         print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")
@@ -1140,6 +1139,7 @@ class Server:
 
         :return:
         """
+
         return self.__number_of_clients == 0
 
     def view_status(self, client_number):
@@ -1166,16 +1166,18 @@ class Server:
               len(self.__session_users) == len(self.__weapons))
 
         for index in range(0, len(self.__session_users) - 1):
-            items = str(self.__weapons[index]["G"]) + ", " + str(self.__weapons[index]["S"])
-            print("Ne items", items)
+            if self.__weapons[index] is not None:
+                items = str(self.__weapons[index]["G"]) + ", " + str(self.__weapons[index]["S"])
+                print("Ne items", items)
 
-            print(self.__main_data_base.set_values(['Weapons'], [items], ['Username'],
-                                                   [self.__session_users[index]]))
+                print(self.__main_data_base.set_values(['Weapons'], [items], ['Username'],
+                                                       [self.__session_users[index]]))
 
     def disconnect_from_security(self):
         """
 
         """
+
         try:
             message = "EXIT".encode()
             en = self.encrypt_data(self.__private_security_key, message, self.__private_message)
@@ -1187,6 +1189,10 @@ class Server:
             return
 
     def get_local_client_details(self):
+        """
+
+        :return:
+        """
 
         return self.__main_data_base, self.__login_data_base, self.__ips_data_base
 
@@ -1198,18 +1204,19 @@ def main():
 
     secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
+
     load_balance_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-
     login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
-    ips_data_base = DatabaseManager("IPs", PARAMETERS["NODUP"])
 
+    ips_data_base = DatabaseManager("IPs", PARAMETERS["NODUP"])
     server = Server(main_data_base, login_data_base, secure_socket, ips_data_base, load_balance_socket)
+
     server.run()
 
 
 if __name__ == '__main__':
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
+
     os.chdir(dname)
-    
     main()

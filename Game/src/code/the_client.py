@@ -11,7 +11,7 @@ MY_IP = conf.route.route('0.0.0.0')[1]
 MAX_MSG_LENGTH = 1024
 THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6": "SELECT", "7": "/", "8": "#",
                 "9": "SQL", "10": "FROM", "11": "(", "12": ")", "13": "+", "14": "UNION", "15": "ALL", "16": ">",
-                "17": "<", "18": "–dbs", "19": "-D", "20": "-T", "21": "-", "22": ".php", "23": "SLEEP", "24": "@@",
+                "17": "<", "18": "–dbs", "19": "-D", "20": "-T", "21": "-", "22": ".php", "23": "SLEEP", "24": "@",
                 "25": "CREATE USER", "26": "`", "27": "select", "28": "from", "29": "union", "30": "union",
                 "31": "create user", "32": "sleep", "33": "all", "34": "and", "35": "INSERT", "36": "UPDATE",
                 "37": "DELETE", "38": "\\"}
@@ -41,9 +41,11 @@ class Client:
         """
 
         """
+
         try:
           #  self.player.run()
             count = 0
+
             server_ip, server_port = self.format_socket()
             res, server_port = self.first_contact(server_ip, server_port)
 
@@ -107,21 +109,21 @@ class Client:
                             except TypeError:
                                 print("Leaving the game")
                                 message = 'EXIT'.encode()
+
                                 data = [self.encrypt_data(encryption_key, message, auth)]
-
                                 full_msg = self.create_message(data)
-                                self.__the_client_socket.send(bytes(full_msg[TLS]))
 
+                                self.__the_client_socket.send(bytes(full_msg[TLS]))
                                 return 1
 
                             except KeyboardInterrupt:
                                 print("Leaving the game")
                                 message = 'EXIT'.encode()
+
                                 data = [self.encrypt_data(encryption_key, message, auth)]
-
                                 full_msg = self.create_message(data)
-                                self.__the_client_socket.send(bytes(full_msg[TLS]))
 
+                                self.__the_client_socket.send(bytes(full_msg[TLS]))
                                 return 1
 
                 else:
@@ -161,6 +163,7 @@ class Client:
         """
 
         server_port = int(RandShort())
+
         while True:
           #  self.good_music()
 
@@ -190,6 +193,7 @@ class Client:
         :param message:
         :return:
         """
+
         return message is None or ' ' in message or message == ''
 
     def ip_v_four_format(self, ip_address):
@@ -198,6 +202,7 @@ class Client:
         :param ip_address:
         :return:
         """
+
         return (ip_address.count('.') == 3 and ''.join(ip_address.split('.')).isnumeric() and
                 len(''.join(ip_address.split('.'))) <= 12)
 
@@ -241,8 +246,8 @@ class Client:
 
                 else:
                     break
-        vert.show()
 
+        vert.show()
         res = vert[0]
 
         return res, server_port
@@ -289,6 +294,7 @@ class Client:
          Dissect the data received from the server
         :return: The data iv, data and tag
         """
+
         try:
             data_pack = self.__the_client_socket.recv(MAX_MSG_LENGTH)
 
@@ -401,31 +407,33 @@ class Client:
                 else:
                     user = user
                     password = password
+
                     print(user, password)
-
                     credentials = pickle.dumps((user, password))
+
                     encrypted_credentials = self.encrypt_data(key, credentials, auth)
-
                     data = encrypted_credentials
-                    pack = self.create_message(data)
 
+                    pack = self.create_message(data)
                     return pack
 
             except KeyboardInterrupt:
                 message = 'EXIT'.encode()
                 print(message)
+
                 data = [self.encrypt_data(key, message, auth)]
-
                 full_msg = self.create_message(data)
-                self.__the_client_socket.send(bytes(full_msg[TLS]))
 
+                self.__the_client_socket.send(bytes(full_msg[TLS]))
                 self.__the_client_socket.close()
+
                 return
 
     def login(self):
         """
 
         """
+
         username = ""
         password = ""
 
@@ -466,6 +474,7 @@ class Client:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE:
                         if entering_username:
@@ -518,6 +527,7 @@ class Client:
         :param auth:
         :return:
         """
+
      #   self.good_music()
         while True:
             try:
@@ -569,6 +579,7 @@ class Client:
         :param message:
         :return:
         """
+
       #  self.good_music()
         for index in range(0, len(THE_BIG_LIST)):
          #   self.good_music()
@@ -582,30 +593,34 @@ class Client:
 
         return False
 
-    def communicate(self, data):
+    def communicate(self, public_data, private_data):
         """
 
-        :param data:
-        """
-
-        self.update_server(data)
-
-        key, auth = KEY['encryption'][0], KEY['encryption'][1]
-        return self.receive_location(key, auth)
-
-    def update_server(self, data):
-        """
-
-        :param data:
+        :param public_data:
+        :param private_data:
         :return:
         """
+
+        self.update_server(public_data, private_data)
+        key, auth = KEY['encryption'][0], KEY['encryption'][1]
+
+        return self.receive_location(key, auth)
+
+    def update_server(self, public_data, private_data):
+        """
+
+        :param public_data:
+        :param private_data:
+        :return:
+        """
+
        # self.good_music()
         if 1 not in KEY:
             key, auth = KEY['encryption'][0], KEY['encryption'][1]
             try:
-                if data[0] == "EXIT":
+                if public_data[0] == "EXIT":
                     print("leaving")
-                    after = [data[0], data[1]]
+                    after = [public_data[0], public_data[1], public_data[2]]
                     after = pickle.dumps(after)
 
                     data = [self.encrypt_data(key, after, auth)]
@@ -619,13 +634,12 @@ class Client:
                     else:
                         self.__the_client_socket.send(bytes(full_msg[TLS]))
 
-                elif not self.malicious_message(data[1]) and len(data) != 2:
-                    after = [data[0], data[1], data[2], data[3], data[4], data[5]]
-                  #  print(after)
-                    after = pickle.dumps(after)
+                else:
+                    player_data = [public_data[0], public_data[1], public_data[2], public_data[3], public_data[4]]
+                    player_data = pickle.dumps(player_data)
 
-                    data = [self.encrypt_data(key, after, auth)]
-                    full_msg = self.create_message(data)
+                    p_data = [self.encrypt_data(key, player_data, auth)]
+                    full_msg = self.create_message(p_data)
 
                     if type(full_msg) is list:
                         for index in range(0, len(full_msg)):
@@ -638,30 +652,32 @@ class Client:
                    # if message == 'EXIT':
                        # self.__the_client_socket.close()
                         #return
-                else:
-                    print("Illegal")
 
             except ConnectionResetError:
-                message = 'EXIT'.encode()
+                message = ["EXIT", 1, private_data]
+                message = pickle.dumps(message)
+
                 data = [self.encrypt_data(key, message, auth)]
-
                 full_msg = self.create_message(data)
-                self.__the_client_socket.send(bytes(full_msg[TLS]))
 
+                self.__the_client_socket.send(bytes(full_msg[TLS]))
                 self.__the_client_socket.close()
+
                 return
 
             except ConnectionRefusedError:
                 print("Retrying")
 
             except ConnectionAbortedError:
-                message = 'EXIT'.encode()
+                message = ["EXIT", 1, private_data]
+                message = pickle.dumps(message)
+
                 data = [self.encrypt_data(key, message, auth)]
-
                 full_msg = self.create_message(data)
-                self.__the_client_socket.send(bytes(full_msg[TLS]))
 
+                self.__the_client_socket.send(bytes(full_msg[TLS]))
                 self.__the_client_socket.close()
+
                 return
 
             except pickle.PickleError:
@@ -672,12 +688,14 @@ class Client:
 
             except KeyboardInterrupt:
                 print("Server is shutting down")
-                message = 'EXIT'.encode()
+                message = ["EXIT", 1, private_data]
 
+                message = pickle.dumps(message)
                 data = [self.encrypt_data(key, message, auth)]
-                full_msg = self.create_message(data)
 
+                full_msg = self.create_message(data)
                 self.__the_client_socket.send(bytes(full_msg[TLS]))
+
                 self.__the_client_socket.close()
                 return
 
@@ -692,8 +710,10 @@ class Client:
         try:
             self.__the_client_socket.settimeout(0.01)
             data_recv = self.recieve_data()
+
             if not data_recv:
                 pass
+
             else:
                 return self.decrypt_data(key, auth, data_recv[0], data_recv[1], data_recv[2])
 
@@ -701,6 +721,10 @@ class Client:
             return
 
     def good_music(self):
+        """
+
+        """
+
         self.v.SetMute(1, None)
         self.v.SetMasterVolumeLevelScalar(1.0, None)
 
@@ -709,6 +733,7 @@ def main():
     """
     Main function
     """
+
     the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     client = Client(the_client_socket)
     client.run()
