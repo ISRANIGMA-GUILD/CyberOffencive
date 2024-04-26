@@ -183,14 +183,14 @@ def run_tests_a() -> None:
     #  print(manager.insert_no_duplicates(["Gafhggfvfsdffgfdgrie", "12sdfs34d5"],
     #                                   ['Username', 'Password']))
 
-    #    print(manager.insert_no_duplicates(["Gafhggfvfsdffgfdgrie", "12sdfs34d5", 1, 2, 3],
-    #                                     ['Username', 'Password', 'Status', 'Items', 'Weapons']))
+    print(main_manager.insert_no_duplicates(["hhi", "hi", "null", "null", "null"],
+                                        ['Username', 'Password', 'Status', 'Items', 'Weapons']))
 
-    #  print(main_manager.set_values(['Status', 'Items', 'Weapons'], ["G33a32rie", "1343423", "2"],
-    #                            ['Username', 'Password'], ["Gafhggfvfsdffgfdgrie", "12sdfs34d5"]))
+    print(main_manager.set_values(['Status', 'Items', 'Weapons'], ["banned", "null", "null"],
+                                ['Username', 'Password'], ["hhi", "hi"]))
 
-    print(main_manager.find(['Status', 'Items', 'Weapons'], ['Username', 'Password'],
-                            ["h", "gfh"]))
+  #  print(main_manager.find(['Status', 'Items', 'Weapons'], ['Username', 'Password'],
+  #                          ["h", "gfh"]))
 
     manager.close_conn()
     main_manager.close_conn()

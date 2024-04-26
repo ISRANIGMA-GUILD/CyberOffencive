@@ -10,7 +10,7 @@ MAX_MSG_LENGTH = 1024
 class Login:
 
     def __init__(self, details, list_of_existing, list_of_existing_resources,
-                 credentials, number, new_credentials, number_of_clients):
+                 credentials, number, new_credentials, number_of_clients, banned_users):
         self.__details = details
         self.__list_of_existing = list_of_existing
 
@@ -21,6 +21,7 @@ class Login:
         self.__new_credentials = new_credentials
 
         self.__number_of_clients = number_of_clients
+        self.__list_of_banned_users = banned_users
 
     def run(self):
         print("b")
@@ -167,10 +168,13 @@ class Login:
             if count <= 1:
 
                 list_of_existing_users = [tup[0] for tup in self.__list_of_existing]
+                the_big_ugly_list = [self.__list_of_banned_users[i][0]
+                                     for i in range(0, len(self.__list_of_banned_users))]
 
                 if tuple_of_credentials in self.__list_of_existing:
 
-                    if self.__list_of_existing_resources[self.__number][1] != "Banned":
+                    if (self.__list_of_existing_resources[self.__number][0] != "banned"
+                       and tuple_of_credentials[0] not in the_big_ugly_list):
                         print("Successful")
                         detail = self.__list_of_existing_resources[self.__list_of_existing.index(tuple_of_credentials)]
 

@@ -44,6 +44,8 @@ class Server:
         self.__banned_ips = []
         self.__banned_macs = []
 
+        self.__list_of_banned_users = []
+
         self.__new_credentials = []
         self.__all_details = []
 
@@ -71,10 +73,8 @@ class Server:
         """
 
         # """:TODO(Are they possible?): Check for session injection vulnerabilities """#
-        # """:TODO(almost finished): Check if users are banned """#
         # """:TODO: Transport databases between servers at the end and updating them accordingly """#
         # """:TODO: Check if users cheat(in speed, damage, etc.) """#
-        # """:TODO(Almost finished): Block connections from banned users """#
         # """:TODO: Loading screen between menu and login screens """#
         # """:TODO(Work in progress): Merge with load balancer """#
         # """:TODO: Counter attack mechanism (security server) """#
@@ -86,11 +86,17 @@ class Server:
         # """:TODO: Clear ports that are not used"""#
         # """:TODO: Remove clients that quit during the handshake"""#
         # """:TODO(almost finished): Make sure server isn't bogged down due to heavy packs"""#
+        # """:TODO: Show weapons when attacking"""#
 
         info, resource_info, ip_info = self.receive_info()
         list_of_existing_credentials, list_of_existing_resources = self.organize_info(info, resource_info, ip_info)
 
-        print(self.__banned_ips, self.__banned_macs, list_of_existing_resources)
+        self.__list_of_banned_users = [[list_of_existing_credentials[i][0], list_of_existing_credentials[i][1],
+                                        list_of_existing_resources[i][0]]
+                                       for i in range(0, len(list_of_existing_resources))
+                                       if list_of_existing_resources[i][0] == "banned"]
+
+        print(self.__banned_ips, self.__banned_macs, list_of_existing_resources, self.__list_of_banned_users)
 
         security_ports = [port for port in range(443, 501)]
         self.connect_to_security(security_ports)
@@ -953,7 +959,8 @@ class Server:
                         is not None and self.__all_details[number].get("Client") is not None):
 
                     loging = Login(self.__all_details[number], list_of_existing, list_of_existing_resources,
-                                   self.__credentials, number, self.__new_credentials, self.__number_of_clients)
+                                   self.__credentials, number, self.__new_credentials, self.__number_of_clients,
+                                   self.__list_of_banned_users)
 
                     (self.__all_details[number], self.__credentials, list_of_existing, list_of_existing_resources,
                      self.__new_credentials, self.__number_of_clients) = loging.run()
