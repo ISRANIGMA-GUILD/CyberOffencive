@@ -6,8 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/security_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/security_server.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/the_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_client.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/dnssec_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/dnssec_client.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/the_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_server.py" afterDir="false" />
     </list>
     <list id="02ff3d5b-67f7-4487-8767-562c1ddaffec" name="Changes by or12r" comment="" />
@@ -26,7 +25,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="full_server" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -46,51 +45,51 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
-    &quot;Batch.build_secure_server_linux.executor&quot;: &quot;Run&quot;,
-    &quot;Batch.build_the_server_linux.executor&quot;: &quot;Run&quot;,
-    &quot;Batch.run_secure_server.executor&quot;: &quot;Run&quot;,
-    &quot;Python.CyberOffensive (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.CyberOffensive.executor&quot;: &quot;Run&quot;,
-    &quot;Python.DatabaseCreator.executor&quot;: &quot;Run&quot;,
-    &quot;Python.certificate_creator (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.certificate_creator.executor&quot;: &quot;Run&quot;,
-    &quot;Python.client (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.creepy.executor&quot;: &quot;Run&quot;,
-    &quot;Python.dnssec_client.executor&quot;: &quot;Run&quot;,
-    &quot;Python.dnssec_server (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.dnssec_server.executor&quot;: &quot;Run&quot;,
-    &quot;Python.find_server.executor&quot;: &quot;Run&quot;,
-    &quot;Python.isitshort.executor&quot;: &quot;Run&quot;,
-    &quot;Python.isshortclient.executor&quot;: &quot;Run&quot;,
-    &quot;Python.load_balancer.executor&quot;: &quot;Run&quot;,
-    &quot;Python.main (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.security_server (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.security_server (2).executor&quot;: &quot;Run&quot;,
-    &quot;Python.security_server.executor&quot;: &quot;Run&quot;,
-    &quot;Python.server (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.server_handshake.executor&quot;: &quot;Run&quot;,
-    &quot;Python.test_array.executor&quot;: &quot;Run&quot;,
-    &quot;Python.the_client (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.the_client.executor&quot;: &quot;Run&quot;,
-    &quot;Python.the_server (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.the_server.executor&quot;: &quot;Run&quot;,
-    &quot;Python.tls_client_oop (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.tls_client_oop.executor&quot;: &quot;Run&quot;,
-    &quot;Python.tls_server_oops (1).executor&quot;: &quot;Run&quot;,
-    &quot;Python.tls_server_oops.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;full__server&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/FoldersConventions&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "Batch.build_secure_server_linux.executor": "Run",
+    "Batch.build_the_server_linux.executor": "Run",
+    "Batch.run_secure_server.executor": "Run",
+    "Python.CyberOffensive (1).executor": "Run",
+    "Python.CyberOffensive.executor": "Run",
+    "Python.DatabaseCreator.executor": "Run",
+    "Python.certificate_creator (1).executor": "Run",
+    "Python.certificate_creator.executor": "Run",
+    "Python.client (1).executor": "Run",
+    "Python.creepy.executor": "Run",
+    "Python.dnssec_client.executor": "Run",
+    "Python.dnssec_server (1).executor": "Run",
+    "Python.dnssec_server.executor": "Run",
+    "Python.find_server.executor": "Run",
+    "Python.isitshort.executor": "Run",
+    "Python.isshortclient.executor": "Run",
+    "Python.load_balancer.executor": "Run",
+    "Python.main (1).executor": "Run",
+    "Python.main.executor": "Run",
+    "Python.security_server (1).executor": "Run",
+    "Python.security_server (2).executor": "Run",
+    "Python.security_server.executor": "Run",
+    "Python.server (1).executor": "Run",
+    "Python.server_handshake.executor": "Run",
+    "Python.test_array.executor": "Run",
+    "Python.the_client (1).executor": "Run",
+    "Python.the_client.executor": "Run",
+    "Python.the_server (1).executor": "Run",
+    "Python.the_server.executor": "Run",
+    "Python.tls_client_oop (1).executor": "Run",
+    "Python.tls_client_oop.executor": "Run",
+    "Python.tls_server_oops (1).executor": "Run",
+    "Python.tls_server_oops.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "docker__test",
+    "last_opened_file_path": "C:/Users/imper/OneDrive/Desktop/Cyber/gitprojects/Git/FoldersConventions",
+    "run.code.analysis.last.selected.profile": "aDefault",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Game\src\code" />
@@ -100,16 +99,7 @@
       <recent name="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Secure Game\Certificates\Certificate_crts" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.the_server">
-    <configuration name="build_the_server_linux" type="BatchConfigurationType" factoryName="Batch" temporary="true">
-      <module name="basic_com" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SCRIPT_NAME" value="build_the_server_linux.bat" />
-      <option name="PARAMETERS" value="" />
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="Python.dnssec_client">
     <configuration name="run_secure_server" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="basic_com" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -133,6 +123,28 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Game/src/code/CyberOffensive.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="dnssec_client" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="basic_com" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Game/src/code" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Game/src/code/dnssec_client.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -187,11 +199,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.dnssec_client" />
         <item itemvalue="Python.the_server" />
         <item itemvalue="Python.security_server" />
         <item itemvalue="Python.CyberOffensive" />
         <item itemvalue="Batch.run_secure_server" />
-        <item itemvalue="Batch.build_the_server_linux" />
       </list>
     </recent_temporary>
   </component>
