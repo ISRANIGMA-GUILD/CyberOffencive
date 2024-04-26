@@ -6,7 +6,7 @@ REM Set the path to the Dockerfile
 SET DOCKERFILE=Dockerfile_the_server_linux
 
 REM Set the name for the Docker image
-SET IMAGE_NAME=the_servere
+SET IMAGE_NAME=the_server
 
 REM Set the tag for the Docker image
 SET IMAGE_TAG=latest

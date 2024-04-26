@@ -11,7 +11,7 @@ ACK = 16
 THE_USUAL_IP = '0.0.0.0'
 MY_IP = conf.route.route('0.0.0.0')[1]
 MAX_MSG_LENGTH = 1024
-LOCAL_HOST = '127.0.0.1'
+LOCAL_HOST = 'secure-server-container'
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
               "NODUP": ['Username', 'Password'], "DUP": ['Status', 'Items', 'Weapons'],
               "IPs": ["IP", "MAC", "Status"]}

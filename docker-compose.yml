@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  secure-server:
+    build:
+      context: .
+      dockerfile: Dockerfile_secure_server_linux
+    image: basic_com-secure-server
+    container_name: secure-server
+    network_mode: "host"  # Set network mode to host
+    privileged: true
+
+  the-server:
+    build:
+      context: .
+      dockerfile: Dockerfile_the_server_linux
+    image: basic_com-the-server
+    container_name: the-server
+    depends_on:
+      - secure-server
+    network_mode: "host"  # Set network mode to host
+    privileged: true
+
+networks:
+  my_network:
+    driver: bridge

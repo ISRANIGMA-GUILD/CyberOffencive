@@ -57,7 +57,7 @@ class ServerSearcher:
         :return:
         """
 
-        return (DNS in packets and DNSQR in packets and DNSRRRSIG in packets and
+        return (DNS in packets and DNSQR in packets and DNSRR in packets and DNSRRRSIG in packets and
                 packets[DNSQR].qname == b'mad.cyberoffensive.org.')
 
     def contact_domain(self, full_pack):
