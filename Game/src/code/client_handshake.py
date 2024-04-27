@@ -100,7 +100,7 @@ class ClientHandshake:
 
         while True:
             try:
-                self.__the_client_socket.send(bytes(syn_packet[TCP]))
+                self.__the_client_socket.sendall(bytes(syn_packet[TCP]))
 
                 server_response = self.__the_client_socket.recv(MSG_TCP_PACK)
 
@@ -117,7 +117,7 @@ class ClientHandshake:
         res = TCP(server_response)
 
         finish_first_handshake = self.create_acknowledge(res)
-        self.__the_client_socket.send(bytes(finish_first_handshake[TCP]))
+        self.__the_client_socket.sendall(bytes(finish_first_handshake[TCP]))
 
         letter = syn_packet[Raw].load[0:2]
         dot = finish_first_handshake[Raw].load[0:4]
@@ -169,7 +169,7 @@ class ClientHandshake:
         """
 
         client_hello_packet = self.start_security()
-        self.__the_client_socket.send(bytes(client_hello_packet[TLS]))
+        self.__the_client_socket.sendall(bytes(client_hello_packet[TLS]))
 
         server_hello = self.handle_responses()
 
@@ -181,7 +181,7 @@ class ClientHandshake:
             client_key, private_key = self.create_client_key()
 
             encryption_key = self.full_encryption(server_point, private_key)
-            self.__the_client_socket.send(bytes(client_key[TLS]))
+            self.__the_client_socket.sendall(bytes(client_key[TLS]))
 
             server_final = self.handle_responses()
             msg_s_f = TLS(server_final)
@@ -212,17 +212,17 @@ class ClientHandshake:
                         if type(data_msg) is list:
                             for i in range(0, len(data_msg)):
                                 message = data_msg[i]
-                                self.__the_client_socket.send(bytes(message[TLS]))
+                                self.__the_client_socket.sendall(bytes(message[TLS]))
 
                         else:
-                            self.__the_client_socket.send(bytes(data_msg[TLS]))
+                            self.__the_client_socket.sendall(bytes(data_msg[TLS]))
 
                         print("Secrecy has been successfully achieved, good luck decrypting with third parties! :D")
 
                         return encryption_key
         else:
             alert_message = self.send_alert()
-            self.__the_client_socket.send(bytes(alert_message[TLS]))
+            self.__the_client_socket.sendall(bytes(alert_message[TLS]))
             return
 
     def start_security(self):

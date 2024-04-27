@@ -19,6 +19,8 @@ class Game:
         pygame.font.init()
         self.font = pygame.font.Font(FONT_PATH, 60)
 
+        self.font_chat = pygame.font.Font(FONT_PATH, 20)
+
         pygame.event.set_allowed([QUIT, KEYDOWN, KEYUP])
         self.screen = pygame.display.set_mode((WIDTH, HEIGTH), FLAGS, BITS_PER_PIXEL)
 
@@ -44,6 +46,10 @@ class Game:
         self.__temp_message = ""
 
         self.__other_messages = []
+        self.__previous_messages = []
+
+        self.__locs = [[0, (30, 150)], [1, (30, 100)]]
+        self.__archive = []
 
     def run(self) -> None:
         """
@@ -146,16 +152,17 @@ class Game:
 
                         if type(other_client) is list or type(other_client) is tuple:
                             statuses = other_client[2]
-                            status_frame_indexes = other_client[4]
+                            status_frame_indexes = other_client[3]
 
                             self.__other_messages = other_client[1]
+                            self.__previous_messages = self.__other_messages
                             locations = other_client[0]
 
                             for i in range(0, len(self.__other_messages)):
                                 if self.__other_messages[i] is not None or '':
-                                    print(f"Client {i + 1}:", self.__other_messages[i])
-                                    self.draw_text(self.__temp_message, (255, 0, 0), self.screen, 30, 200)
-                                    pygame.display.flip()
+                                    #print(f"Client {i + 1}:", self.__other_messages[i])
+                                    self.__archive.append(self.__other_messages[i])
+                                #    self.__previous_messages.append(self.__other_messages[i])
 
                             prev_loc_other, other_client = self.get_new_locations(locations, prev_loc_other)
                             self.erase_previous(temp_p)
@@ -189,9 +196,6 @@ class Game:
                         input_box = pygame.Rect(20, 200, 200, 50)
 
                         # Blit the text.
-                        messages = [self.font.render(self.__other_messages[i], True, (255, 0, 0))
-                                    for i in range(0, len(self.__other_messages))]
-                        text_messages = [self.__other_messages[i] for i in range(0, len(self.__other_messages))]
 
                         o_width = max(500, 50 + 10)
                         i_width = max(500, 50 + 10)
@@ -199,22 +203,35 @@ class Game:
                         output_box.w = o_width
                         input_box.w = i_width
 
-                        if len(self.__temp_message) <= 19:
+                        if 0 < len(self.__temp_message) <= 19:
                             self.draw_text(self.__temp_message, (255, 0, 0), self.screen, 30, 200)
 
                         else:
                             self.draw_text(self.__temp_message[19:], (255, 0, 0), self.screen, 30, 200)
 
-                        for i in range(0, len(messages)):
-                            self.screen.blit(messages[i], (30, 200))
-                            self.draw_text(text_messages[i], (255, 0, 0), self.screen, 30, 200)
-                            pygame.display.flip()
+                        for i in range(0, len(self.__locs)):
+                            if len(self.__previous_messages) > 0:
+                                if len(self.__previous_messages) == 1:
+                                    self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
+                                                   (255, 0, 0), self.screen,
+                                                   self.__locs[i][1][0], self.__locs[i][1][1])
+                                    break
+
+                                else:
+                                    self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
+                                                   (255, 0, 0), self.screen,
+                                                   self.__locs[i][1][0], self.__locs[i][1][1])
+
+                            if (self.__locs[i][0] != len(self.__other_messages) - 2 or
+                                self.__locs[i][0] != len(self.__other_messages) - 1):
+                                self.__locs[i][0] += 1
+                            #pygame.display.flip()
                         # Blit the input_box rect.
                         pygame.draw.rect(self.screen, (0, 0, 0), output_box, 2)
                         pygame.draw.rect(self.screen, (0, 255, 0), input_box, 2)
                         pygame.display.flip()
 
-                    self.__message = None
+                   # self.__message = None
                     keys = pygame.key.get_pressed()
 
                     if keys[pygame.K_m] or self.__using_chat:
@@ -225,7 +242,7 @@ class Game:
                             pass
 
                         else:
-                            print(f"You:", self.__message)
+                           # print(f"You:", self.__message)
                             self.__temp_message = ""
                             self.__using_chat = False
 
@@ -276,7 +293,7 @@ class Game:
         :param y:
         """
 
-        text_tobj = self.font.render(text, 1, color)
+        text_tobj = self.font_chat.render(text, 1, color)
         text_rect = text_tobj.get_rect()
 
         text_rect.topleft = (x, y)
@@ -298,10 +315,10 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     done = True
-                    pygame.display.flip()
+                #    pygame.display.flip()
 
-                    pygame.display.update()
-                    self.clock.tick(FPS)
+            #        pygame.display.update()
+             #       self.clock.tick(FPS)
 
                 if event.type == pygame.KEYDOWN or active:
                     if event.key == pygame.K_RETURN:
@@ -309,10 +326,10 @@ class Game:
                         self.__temp_message = message
 
                         self.__using_chat = False
-                        pygame.display.flip()
+                     #   pygame.display.flip()
 
-                        pygame.display.update()
-                        self.clock.tick(FPS)
+                   ##     pygame.display.update()
+                     #   self.clock.tick(FPS)
 
                         return message
 
@@ -321,10 +338,9 @@ class Game:
                         self.__temp_message = message
 
                         done = True
-                        pygame.display.flip()
+                       # pygame.display.flip()
 
-                        pygame.display.update()
-                        self.clock.tick(FPS)
+                       ## self.clock.tick(FPS)
 
                     else:
                         message += event.unicode

@@ -24,22 +24,8 @@ class Login:
         self.__list_of_banned_users = banned_users
 
     def run(self):
-        print("b")
-        start = time.time()
         self.handle_credentials()
 
-        if self.__details["Credentials"] is None:
-            elapsed = time.time() - self.__details["Timer"][0]
-
-            hour, minutes, seconds = time.strftime("%Hh %Mm %Ss",
-                                                   time.gmtime(elapsed)).split(' ')
-            self.__details["Timer"] = (self.__details["Timer"][0], minutes)
-
-            if '01' in minutes:
-                self.__details["Connected"] = 1
-        end = time.time()
-
-        print(time.strftime("%Hh %Mm %Ss", time.gmtime(end - start)).split(' '))
         return (self.__details, self.__credentials, self.__list_of_existing, self.__list_of_existing_resources,
                 self.__new_credentials, self.__number_of_clients)
 

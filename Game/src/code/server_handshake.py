@@ -120,7 +120,7 @@ class ServerHandshake:
                     clients_letter = syn_packet[Raw].load[0:2]
 
                     response = self.create_response(syn_packet)
-                    self.__client_socket.send(bytes(response[TCP]))
+                    self.__client_socket.sendall(bytes(response[TCP]))
 
                     self.__client_socket.settimeout(0.1)
                     last_pack = self.__client_socket.recv(MSG_TCP_PACK)
@@ -324,7 +324,7 @@ class ServerHandshake:
             tls_server_hello = sec_res / certificate / server_key_ex
             tls_server_hello = self.prepare_packet_structure(tls_server_hello)
 
-            self.__client_socket.send(bytes(tls_server_hello[TLS]))
+            self.__client_socket.sendall(bytes(tls_server_hello[TLS]))
             keys = self.handle_responses()
 
             if not self.__private_key:
@@ -450,13 +450,13 @@ class ServerHandshake:
             enc_key = self.create_encryption_key(private_key, client_point)
 
             server_final = self.create_server_final()  # Change Cipher spec
-            self.__client_socket.send(bytes(server_final[TLS]))
+            self.__client_socket.sendall(bytes(server_final[TLS]))
 
             message = b'hello'
             some_data = self.encrypt_data(enc_key, message, auth)
 
             data_msg = self.create_message(some_data)  # Application data
-            self.__client_socket.send(bytes(data_msg[TLS]))
+            self.__client_socket.sendall(bytes(data_msg[TLS]))
 
             if self.__messages["TLS_FIRST_DATA"][0] == 0:
                 data = self.deconstruct_data()
@@ -610,4 +610,4 @@ class ServerHandshake:
 
         alert = TLS(msg=TLSAlert(level=2, descr=40))
         alert = self.prepare_packet_structure(alert)
-        self.__client_socket.send(bytes(alert[TLS]))
+        self.__client_socket.sendall(bytes(alert[TLS]))

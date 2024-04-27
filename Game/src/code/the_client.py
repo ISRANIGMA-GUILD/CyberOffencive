@@ -93,7 +93,7 @@ class Client:
 
                                     else:
                                         full_msg = self.create_message(data)
-                                        self.__the_client_socket.send(bytes(full_msg[TLS]))
+                                        self.__the_client_socket.sendall(bytes(full_msg[TLS]))
 
                                         return 1
 
@@ -122,7 +122,7 @@ class Client:
 
                                 else:
                                     full_msg = self.create_message(data)
-                                    self.__the_client_socket.send(bytes(full_msg[TLS]))
+                                    self.__the_client_socket.sendall(bytes(full_msg[TLS]))
 
                                     return 1
 
@@ -137,7 +137,7 @@ class Client:
 
                                 else:
                                     full_msg = self.create_message(data)
-                                    self.__the_client_socket.send(bytes(full_msg[TLS]))
+                                    self.__the_client_socket.sendall(bytes(full_msg[TLS]))
 
                                     return 1
 
@@ -246,7 +246,7 @@ class Client:
 
         while True:
            # self.good_music()
-            vert = sniff(count=1, lfilter=self.filter_tcp, timeout=0.01)
+            vert = sniff(count=1, lfilter=self.filter_tcp, timeout=0.1)
             if not vert:
                 sendp(tcp_packet)
 
@@ -442,7 +442,7 @@ class Client:
                     password = password
 
                     print(user, password)
-                    credentials = pickle.dumps((user, password))
+                    credentials = pickle.dumps((user, password), protocol=5)
 
                     encrypted_credentials = self.encrypt_data(key, credentials, auth)
                     data = encrypted_credentials
@@ -457,7 +457,7 @@ class Client:
                 data = [self.encrypt_data(key, message, auth)]
                 full_msg = self.create_message(data)
 
-                self.__the_client_socket.send(bytes(full_msg[TLS]))
+                self.__the_client_socket.sendall(bytes(full_msg[TLS]))
                 self.__the_client_socket.close()
 
                 return
@@ -564,7 +564,7 @@ class Client:
      #   self.good_music()
         while True:
             try:
-                self.__the_client_socket.send(bytes(details[TLS]))
+                self.__the_client_socket.sendall(bytes(details[TLS]))
                 success = self.recieve_data()
 
                 if not success:
@@ -656,7 +656,7 @@ class Client:
             if public_data[0] == "EXIT":
                 print("leaving")
                 after = [public_data[0], public_data[1], public_data[2]]
-                after = pickle.dumps(after)
+                after = pickle.dumps(after, protocol=5)
 
                 data = [self.encrypt_data(key, after, auth)]
                 full_msg = self.create_message(data)
@@ -664,14 +664,14 @@ class Client:
                 if type(full_msg) is list:
                     for index in range(0, len(full_msg)):
                         message = full_msg[index]
-                        self.__the_client_socket.send(bytes(message[TLS]))
+                        self.__the_client_socket.sendall(bytes(message[TLS]))
 
                 else:
-                    self.__the_client_socket.send(bytes(full_msg[TLS]))
+                    self.__the_client_socket.sendall(bytes(full_msg[TLS]))
 
             else:
                 player_data = [public_data[0], public_data[1], public_data[2], public_data[3], public_data[4]]
-                player_data = pickle.dumps(player_data)
+                player_data = pickle.dumps(player_data, protocol=5)
 
                 p_data = [self.encrypt_data(key, player_data, auth)]
                 full_msg = self.create_message(p_data)
@@ -679,10 +679,10 @@ class Client:
                 if type(full_msg) is list:
                     for index in range(0, len(full_msg)):
                         message = full_msg[index]
-                        self.__the_client_socket.send(bytes(message[TLS]))
+                        self.__the_client_socket.sendall(bytes(message[TLS]))
 
                 else:
-                    self.__the_client_socket.send(bytes(full_msg[TLS]))
+                    self.__the_client_socket.sendall(bytes(full_msg[TLS]))
 
                # if message == 'EXIT':
                    # self.__the_client_socket.close()
@@ -693,12 +693,12 @@ class Client:
 
         except ConnectionResetError:
             message = ["EXIT", 1, private_data]
-            message = pickle.dumps(message)
+            message = pickle.dumps(message, protocol=5)
 
             data = [self.encrypt_data(key, message, auth)]
             full_msg = self.create_message(data)
 
-            self.__the_client_socket.send(bytes(full_msg[TLS]))
+            self.__the_client_socket.sendall(bytes(full_msg[TLS]))
             self.__the_client_socket.close()
 
             return
@@ -708,12 +708,12 @@ class Client:
 
         except ConnectionAbortedError:
             message = ["EXIT", 1, private_data]
-            message = pickle.dumps(message)
+            message = pickle.dumps(message, protocol=5)
 
             data = [self.encrypt_data(key, message, auth)]
             full_msg = self.create_message(data)
 
-            self.__the_client_socket.send(bytes(full_msg[TLS]))
+            self.__the_client_socket.sendall(bytes(full_msg[TLS]))
             self.__the_client_socket.close()
 
             return
@@ -728,11 +728,11 @@ class Client:
             print("Server is shutting down")
             message = ["EXIT", 1, private_data]
 
-            message = pickle.dumps(message)
+            message = pickle.dumps(message, protocol=5)
             data = [self.encrypt_data(key, message, auth)]
 
             full_msg = self.create_message(data)
-            self.__the_client_socket.send(bytes(full_msg[TLS]))
+            self.__the_client_socket.sendall(bytes(full_msg[TLS]))
 
             self.__the_client_socket.close()
             return
@@ -743,6 +743,7 @@ class Client:
         :param imp_data:
         :return:
         """
+
         try:
             self.__the_client_socket.settimeout(0.01)
             data_recv = self.recieve_data()

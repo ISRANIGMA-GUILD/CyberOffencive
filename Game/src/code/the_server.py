@@ -1,3 +1,4 @@
+import time
 from cryptography.exceptions import *
 from client_handshake import *
 from server_handshake import *
@@ -624,7 +625,7 @@ class Server:
 
         alert = TLS(msg=TLSAlert(level=2, descr=40))
         alert = self.prepare_packet_structure(alert)
-        client_socket.send(bytes(alert[TLS]))
+        client_socket.sendall(bytes(alert[TLS]))
 
     def handle_clients(self, the_lock, login_lock, security_lock, modification_lock, list_of_existing,
                        list_of_existing_resources):
@@ -641,6 +642,7 @@ class Server:
         while True:
             try:
                 self.update_credential_list()
+                self.update_database()
                 security_thread = self.create_security_threads(security_lock)
 
                 connection_threads = self.create_connection_threads(the_lock)
@@ -654,7 +656,6 @@ class Server:
 
                 self.start_handling(security_thread, connection_threads, login_threads, tls_handshakes,
                                     response_threads, disconnect_threads, details_threads)
-                self.update_database()
 
                 if self.empty_server():
                     self.update_database()
@@ -1063,11 +1064,12 @@ class Server:
                                         return
 
                                     else:
-                                        print("data", the_data)
+                                       # print("data", the_data)
                                         self.__locations[index_of_client] = the_data[0]
 
-                                        self.__chat[index_of_client] = the_data[1]
-                                        print(self.__chat, the_data[1])
+                                        if the_data[1] is not None and len(the_data[1]) > 0:
+                                            self.__chat[index_of_client] = the_data[1]
+                                  #      print(self.__chat, the_data[1])
 
                                         self.__status[index_of_client] = the_data[2]
                                         self.__status_frame_index[index_of_client] = the_data[4]
@@ -1126,30 +1128,37 @@ class Server:
                     try:
                         local_locations = self.__locations.copy()
                         local_locations.pop(number)
+                        local_locations = [message for message in local_locations if message is not None]
 
                         local_messages = self.__chat.copy()
-                        local_messages.pop(number)
+                    #    local_messages.pop(number)
+                        local_messages = [f'{self.__session_users[i]}: {local_messages[i]}'
+                                          for i in range(0, len(local_messages)) if local_messages[i] is not None
+                                          and len(local_messages[i]) != 0]
 
                         local_statuses = self.__status.copy()
                         local_statuses.pop(number)
+                        local_statuses = [message for message in local_statuses if message is not None]
 
                         local_weapons = self.__weapons.copy()
+                     #   print("the weapons", local_weapons)
                         local_weapons.pop(number)
 
                         local_f_indexes = self.__status_frame_index.copy()
                         local_f_indexes.pop(number)
+                        local_f_indexes = [message for message in local_f_indexes if message is not None]
 
-                        list_data = local_locations, local_messages, local_statuses, local_weapons, local_f_indexes
-                        byte_data = pickle.dumps(list_data)
+                        list_data = local_locations, local_messages, local_statuses, local_f_indexes
+                        byte_data = pickle.dumps(list_data, protocol=5)
 
                         en = self.encrypt_data(self.__all_details[number].get("Servers_Keys")[0], byte_data,
                                                self.__all_details[number].get("Servers_Keys")[1])
-                        self.__all_details[number].get("Client").send(bytes(self.create_message(en)[TLS]))
+                        self.__all_details[number].get("Client").sendall(bytes(self.create_message(en)[TLS]))
 
                     except ConnectionResetError:
                         pass
 
-                    self.__chat[number] = None
+                    #self.__chat[number] = None
 
                 else:
                     return
@@ -1213,15 +1222,15 @@ class Server:
                                                                 self.__new_credentials[index][1]],
                                                         no_duplicate_params=PARAMETERS["NODUP"])
 
-        print(self.__main_data_base, self.__credentials, self.__weapons,
-              len(self.__session_users) == len(self.__weapons))
+      #  print(self.__main_data_base, self.__credentials, self.__weapons,
+       #       len(self.__session_users) == len(self.__weapons))
 
         for index in range(0, len(self.__session_users) - 1):
             if self.__weapons[index] is not None:
                 weapons = str(self.__weapons[index]["G"]) + ", " + str(self.__weapons[index]["S"])
                 items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) + ", " +
                          str(self.__weapons[index]["RHPF"]) + ", " + str(self.__weapons[index]["BEF"]))
-                print("Ne weapons", weapons, "Ne items", items)
+               # print("Ne weapons", weapons, "Ne items", items)
 
                 print(self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
                                                        [self.__session_users[index]]))
@@ -1235,7 +1244,7 @@ class Server:
             message = "EXIT".encode()
             en = self.encrypt_data(self.__private_security_key, message, self.__private_message)
 
-            self.__secure_socket.send(bytes(self.create_message(en)[TLS]))
+            self.__secure_socket.sendall(bytes(self.create_message(en)[TLS]))
             self.__secure_socket.close()
 
         except ConnectionResetError:
