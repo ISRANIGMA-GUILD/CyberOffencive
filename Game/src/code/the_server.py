@@ -84,11 +84,9 @@ class Server:
         # """:TODO: Loading screen between menu and login screens """#
         # """:TODO(Work in progress): Merge with load balancer """#
         # """:TODO: Counter attack mechanism (security server) """#
-        # """:TODO(almost finished): Display chat in the game not in the terminal """#
         # """:TODO: Make the whole game abstract from terminal """#
         # """:TODO(almost finished): Try-except on everything """#
         # """:TODO(Work in progress): Receive info about enemy locations, item locations """#
-        # """:TODO: Clear ports that are not used"""#
         # """:TODO: Remove clients that quit during the handshake"""#
         # """:TODO(almost finished): Make sure server isn't bogged down due to heavy packs"""#
         # """:TODO: Show weapons when attacking"""#
@@ -282,7 +280,7 @@ class Server:
 
         else:
             requests.show()
-            self.__ports.append(requests[0])
+            self.__ports.append(requests[0][TCP].dport)
 
             return requests[0]
 
@@ -1139,6 +1137,8 @@ class Server:
 
                     self.__locations.pop(number)
                     self.__number_of_clients -= 1
+
+                    self.__ports.pop(number)
                     print(self.__number_of_clients, len(self.__all_details))
 
             except Exception:

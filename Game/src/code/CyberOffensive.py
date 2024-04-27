@@ -161,7 +161,7 @@ class Game:
                                 statuses_updated.append(f'{statuses[i]}_{status_frame_indexes[i]}')
 
                             p_image = [pygame.image.load(
-                                f'{BASE_PATH}graphics\\player\\{statuses[i]}\\{statuses_updated[i]}.png').convert_alpha()
+                             f'{BASE_PATH}graphics\\player\\{statuses[i]}\\{statuses_updated[i]}.png').convert_alpha()
                                        for i in range(0, len(statuses)) if statuses[i] is not None]
 
                             if not p_image:
@@ -179,15 +179,18 @@ class Game:
                     if self.__other_messages is not None:
                         output_box = pygame.Rect(20, 100, 500, 100)
                         input_box = pygame.Rect(20, 200, 200, 50)
+
                         # Blit the text.
                         messages = [self.font.render(self.__other_messages[i], True, (255, 0, 0))
                                     for i in range(0, len(self.__other_messages))]
                         text_messages = [self.__other_messages[i] for i in range(0, len(self.__other_messages))]
+
                         o_width = max(500, 50 + 10)
                         i_width = max(500, 50 + 10)
 
                         output_box.w = o_width
                         input_box.w = i_width
+
                         if len(self.__temp_message) <= 19:
                             self.draw_text(self.__temp_message,(255, 0, 0), self.screen, 30, 200)
 
@@ -199,17 +202,20 @@ class Game:
                             self.draw_text(text_messages[i], (255, 0, 0), self.screen, 30, 200)
                             pygame.display.flip()
                         # Blit the input_box rect.
-                        pygame.draw.rect(self.screen, (255, 0, 0), output_box, 2)
+                        pygame.draw.rect(self.screen, (0, 0, 0), output_box, 2)
                         pygame.draw.rect(self.screen, (0, 255, 0), input_box, 2)
                         pygame.display.flip()
 
                     self.__message = None
                     keys = pygame.key.get_pressed()
+
                     if keys[pygame.K_m] or self.__using_chat:
                         self.__using_chat = True
                         self.__message = self.start_chat()
+
                         if self.__message is None:
                             pass
+
                         else:
                             print(f"You:", self.__message)
                             self.__temp_message = ""
@@ -262,6 +268,10 @@ class Game:
         surface.blit(text_tobj, text_rect)
 
     def start_chat(self):
+        """
+
+        :return:
+        """
 
         message = self.__temp_message
         active = False
@@ -274,6 +284,7 @@ class Game:
                 if event.type == pygame.QUIT:
                     done = True
                     pygame.display.flip()
+
                     pygame.display.update()
                     self.clock.tick(FPS)
 
@@ -281,33 +292,42 @@ class Game:
                     if event.key == pygame.K_RETURN:
                         print(message)
                         self.__temp_message = message
+
                         self.__using_chat = False
                         pygame.display.flip()
+
                         pygame.display.update()
                         self.clock.tick(FPS)
+
                         return message
 
                     elif event.key == pygame.K_BACKSPACE:
                         message = message[:-1]
                         self.__temp_message = message
+
                         done = True
                         pygame.display.flip()
+
                         pygame.display.update()
                         self.clock.tick(FPS)
 
                     else:
                         message += event.unicode
                         self.__temp_message = message
+
                         done = True
                         pygame.display.flip()
+
                     pygame.display.update()
                     self.clock.tick(FPS)
 
                 end = time.time()
                 timer = start - end
+
                 if timer > 0.001:
                     pygame.display.update()
                     self.clock.tick(FPS)
+
                     return
 
     def get_new_locations(self, other_client, prev_loc_other):
@@ -320,7 +340,6 @@ class Game:
 
         other_coordinates = [(other_client[i][0], other_client[i][1])
                              for i in range(0, len(other_client)) if other_client[i] is not None]
-
         prev_loc_other = [other_coordinates[i] for i in range(0, len(other_coordinates))
                           if prev_loc_other != other_coordinates[i]]
 
@@ -336,15 +355,19 @@ class Game:
         if temp_p:
             for i in range(0, len(temp_p)):
                 self.level.visible_sprites.remove(temp_p[i])
-
                 self.level.obstacles_sprites.remove(temp_p[i])
+
                 temp_p[i].kill()
 
     def find(self):
+        """
+
+        """
 
         for item_stack in self.level.player.inventory.hotbar.content:
             if len(item_stack) and issubclass(item_stack[0].__class__, Sword):
                 self.items["S"] = 1
+
             else:
                 pass
 
