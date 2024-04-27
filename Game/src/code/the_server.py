@@ -83,13 +83,13 @@ class Server:
         # """:TODO(Should the server intervene?): Check if users cheat(in speed, damage, etc.) """#
         # """:TODO: Loading screen between menu and login screens """#
         # """:TODO(Work in progress): Merge with load balancer """#
-        # """:TODO(almost finished): Make the whole game abstract from terminal """#
         # """:TODO(almost finished): Try-except on everything """#
         # """:TODO(Work in progress): Receive info about enemy locations, item locations """#
         # """:TODO: Remove clients that quit during the handshake"""#
         # """:TODO(almost finished): Make sure server isn't bogged down due to heavy packs"""#
         # """:TODO: Show weapons when attacking"""#
-        # """:TODO(almost finished): Make sure chat is printed on screen not just terminal"""#
+        # """:TODO(almost finished): Make sure nothing appears in terminal (including chat)"""#
+        # """:TODO(almost finished): Make sure when player exits the server wont miss any info"""#
 
         info, resource_info, ip_info = self.receive_info()
         list_of_existing_credentials, list_of_existing_resources = self.organize_info(info, resource_info, ip_info)
@@ -1217,10 +1217,10 @@ def main():
     secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
 
+    ips_data_base = DatabaseManager("IPs", PARAMETERS["IPs"])
     load_balance_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-    login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
 
-    ips_data_base = DatabaseManager("IPs", PARAMETERS["NODUP"])
+    login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
     server = Server(main_data_base, login_data_base, secure_socket, ips_data_base, load_balance_socket)
 
     server.run()

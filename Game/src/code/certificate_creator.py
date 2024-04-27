@@ -41,14 +41,20 @@ class CertificateCreator:
         pass
 
     def run(self):
+        """
+
+        :return:
+        """
 
         for index in range(0, 20):
             key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
 
             random_number = random.randint(0, 23)
             random_number_s = random.randint(0, 26)
+
             random_number_l = random.randint(0, 33)
             c_name = COUNTRY_NAMES[random_number]
+
             s_name = PROVINCES[random_number_s]
             l_name = LOCALITIES[random_number_l]
 
@@ -57,7 +63,6 @@ class CertificateCreator:
                                x509.NameAttribute(NameOID.LOCALITY_NAME, l_name),
                                x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"ISRA-NIGMA-GUILD"),
                                x509.NameAttribute(NameOID.COMMON_NAME, H_NAME)])
-
             basic_constraints = x509.BasicConstraints(ca=True, path_length=0)
 
             now = datetime.utcnow()
@@ -66,9 +71,7 @@ class CertificateCreator:
                                       encipher_only=False, decipher_only=False)
 
             alt_names = [x509.DNSName(D_NAME), x509.DNSName(MY_IP)]
-
             password = self.random_password()
-            print(password)
 
             self.__passes.append(password)
             ext_usage = x509.ExtendedKeyUsage((x509.OID_SERVER_AUTH, x509.OID_CLIENT_AUTH))
