@@ -53,9 +53,9 @@ class Game:
         temp_p = []
 
         while True:
-         #   v = self.player.get_volume()
-          #  v.SetMute(1, None)
-          #  v.SetMasterVolumeLevelScalar(1.0, None)
+            #   v = self.player.get_volume()
+            #  v.SetMute(1, None)
+            #  v.SetMasterVolumeLevelScalar(1.0, None)
             try:
                 for event in pygame.event.get():
                     if pygame.QUIT == event.type:
@@ -67,7 +67,7 @@ class Game:
                         sys.exit()
 
                 if game_state == "start_menu":
-                   # self.player.run()
+                    # self.player.run()
 
                     self.draw_start_menu()
                     game_state = "game"
@@ -82,15 +82,15 @@ class Game:
                             game_state = "start_menu"
 
                         elif ran == 1:
-                            break
+                            game_state = "start_menu"
 
                         else:
                             game_state = "continue"
-                        #    print(ran)
+                            #    print(ran)
                             if len(ran) > 1:
                                 items = ran[1][2].split(', ')
 
-                              #  print(items)
+                                #  print(items)
                                 if items[0] == '1':
                                     self.items["G"] = 1
 
@@ -129,11 +129,11 @@ class Game:
                         pass
 
                     elif other_client == 1:
-                        break
+                        game_state = "start_menu"
 
                     elif type(other_client) is bytes:
                         other_client = pickle.loads(other_client)
-                       # print("other_client", other_client)
+                        # print("other_client", other_client)
 
                         if type(other_client) is list or type(other_client) is tuple:
                             statuses = other_client[2]
@@ -144,15 +144,14 @@ class Game:
 
                             for i in range(0, len(self.__other_messages)):
                                 if self.__other_messages[i] is not None or '':
-                                    print(f"Client {i+1}:", self.__other_messages[i])
+                                    print(f"Client {i + 1}:", self.__other_messages[i])
                                     self.draw_text(self.__temp_message, (255, 0, 0), self.screen, 30, 200)
                                     pygame.display.flip()
 
                             prev_loc_other, other_client = self.get_new_locations(locations, prev_loc_other)
-
                             self.erase_previous(temp_p)
-                            temp_p = []
 
+                            temp_p = []
                             statuses_updated = []
 
                             statuses = [status for status in statuses if status is not None]
@@ -161,8 +160,8 @@ class Game:
                                 statuses_updated.append(f'{statuses[i]}_{status_frame_indexes[i]}')
 
                             p_image = [pygame.image.load(
-                             f'{BASE_PATH}graphics\\player\\{statuses[i]}\\{statuses_updated[i]}.png').convert_alpha()
-                                       for i in range(0, len(statuses)) if statuses[i] is not None]
+                                       f'{BASE_PATH}graphics\\player\\{statuses[i]}\\{statuses_updated[i]}.png')
+                                       .convert_alpha() for i in range(0, len(statuses)) if statuses[i] is not None]
 
                             if not p_image:
                                 pass
@@ -192,7 +191,7 @@ class Game:
                         input_box.w = i_width
 
                         if len(self.__temp_message) <= 19:
-                            self.draw_text(self.__temp_message,(255, 0, 0), self.screen, 30, 200)
+                            self.draw_text(self.__temp_message, (255, 0, 0), self.screen, 30, 200)
 
                         else:
                             self.draw_text(self.__temp_message[19:], (255, 0, 0), self.screen, 30, 200)
@@ -224,6 +223,13 @@ class Game:
                 pygame.display.update()
                 self.clock.tick(FPS)
 
+            except TypeError:
+                if game_state == "continue":
+                    list_of_details = ["EXIT", 1, self.items]
+                    other_client = self.network.communicate(list_of_details, self.items)
+
+                game_state = "start_menu"
+
             except KeyboardInterrupt:
                 if game_state == "continue":
                     list_of_details = ["EXIT", 1, self.items]
@@ -251,7 +257,7 @@ class Game:
 
         pygame.display.update()
 
-    def draw_text(self, text,  color, surface, x, y):
+    def draw_text(self, text, color, surface, x, y):
         """
 
         :param text:

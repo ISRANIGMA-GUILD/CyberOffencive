@@ -1,3 +1,4 @@
+from cryptography.exceptions import *
 from creepy import *
 from client_handshake import *
 from dnssec_client import *
@@ -87,10 +88,14 @@ class Client:
                                     message = 'EXIT'.encode()
                                     data = [self.encrypt_data(encryption_key, message, auth)]
 
-                                    full_msg = self.create_message(data)
-                                    self.__the_client_socket.send(bytes(full_msg[TLS]))
+                                    if data == 1:
+                                        return 1
 
-                                    return 1
+                                    else:
+                                        full_msg = self.create_message(data)
+                                        self.__the_client_socket.send(bytes(full_msg[TLS]))
+
+                                        return 1
 
                                 while True:
 
@@ -111,20 +116,30 @@ class Client:
                                 message = 'EXIT'.encode()
 
                                 data = [self.encrypt_data(encryption_key, message, auth)]
-                                full_msg = self.create_message(data)
 
-                                self.__the_client_socket.send(bytes(full_msg[TLS]))
-                                return 1
+                                if data == 1:
+                                    return 1
+
+                                else:
+                                    full_msg = self.create_message(data)
+                                    self.__the_client_socket.send(bytes(full_msg[TLS]))
+
+                                    return 1
 
                             except KeyboardInterrupt:
                                 print("Leaving the game")
                                 message = 'EXIT'.encode()
 
                                 data = [self.encrypt_data(encryption_key, message, auth)]
-                                full_msg = self.create_message(data)
 
-                                self.__the_client_socket.send(bytes(full_msg[TLS]))
-                                return 1
+                                if data == 1:
+                                    return 1
+
+                                else:
+                                    full_msg = self.create_message(data)
+                                    self.__the_client_socket.send(bytes(full_msg[TLS]))
+
+                                    return 1
 
                 else:
                     print("TO BAD YOU ARE BANNED!")
@@ -329,13 +344,20 @@ class Client:
         :return: The iv, the encrypted data and the encryption tag
         """
 
-        iv = os.urandom(12)
-        encryptor = Cipher(algorithms.AES(key), modes.GCM(iv)).encryptor()
+        try:
+            iv = os.urandom(12)
+            encryptor = Cipher(algorithms.AES(key), modes.GCM(iv)).encryptor()
 
-        encryptor.authenticate_additional_data(associated_data)
-        ciphertext = encryptor.update(plaintext) + encryptor.finalize()
+            encryptor.authenticate_additional_data(associated_data)
+            ciphertext = encryptor.update(plaintext) + encryptor.finalize()
 
-        return iv, ciphertext, encryptor.tag
+            return iv, ciphertext, encryptor.tag
+
+        except InvalidKey:
+            return 1
+
+        except ValueError:
+            return 1
 
     def decrypt_data(self, key, associated_data, iv, ciphertext, tag):
         """
@@ -348,10 +370,18 @@ class Client:
         :return: The decrypted data
         """
 
-        decryptor = Cipher(algorithms.AES(key), modes.GCM(iv, tag)).decryptor()
-        decryptor.authenticate_additional_data(associated_data)
+        try:
+            decryptor = Cipher(algorithms.AES(key), modes.GCM(iv, tag)).decryptor()
+            decryptor.authenticate_additional_data(associated_data)
 
-        return decryptor.update(ciphertext) + decryptor.finalize()
+            return decryptor.update(ciphertext) + decryptor.finalize()
+
+        except InvalidKey:
+            return 1
+
+        except ValueError:
+            return 1
+
 
     def create_message(self, some_data):
         """
@@ -603,13 +633,16 @@ class Client:
         :param private_data:
         :return:
         """
+        imp_data = KEY['encryption']
+        if imp_data is None or imp_data == 1:
+            return 1
 
-        self.update_server(public_data, private_data)
-        key, auth = KEY['encryption'][0], KEY['encryption'][1]
+        else:
+            self.update_server(public_data, private_data, imp_data)
 
-        return self.receive_location(key, auth)
+            return self.receive_location(imp_data)
 
-    def update_server(self, public_data, private_data):
+    def update_server(self, public_data, private_data, imp_data):
         """
 
         :param public_data:
@@ -618,98 +651,98 @@ class Client:
         """
 
        # self.good_music()
-        if 1 not in KEY:
-            key, auth = KEY['encryption'][0], KEY['encryption'][1]
-            try:
-                if public_data[0] == "EXIT":
-                    print("leaving")
-                    after = [public_data[0], public_data[1], public_data[2]]
-                    after = pickle.dumps(after)
+        key, auth = imp_data[0], imp_data[1]
+        try:
+            if public_data[0] == "EXIT":
+                print("leaving")
+                after = [public_data[0], public_data[1], public_data[2]]
+                after = pickle.dumps(after)
 
-                    data = [self.encrypt_data(key, after, auth)]
-                    full_msg = self.create_message(data)
+                data = [self.encrypt_data(key, after, auth)]
+                full_msg = self.create_message(data)
 
-                    if type(full_msg) is list:
-                        for index in range(0, len(full_msg)):
-                            message = full_msg[index]
-                            self.__the_client_socket.send(bytes(message[TLS]))
-
-                    else:
-                        self.__the_client_socket.send(bytes(full_msg[TLS]))
+                if type(full_msg) is list:
+                    for index in range(0, len(full_msg)):
+                        message = full_msg[index]
+                        self.__the_client_socket.send(bytes(message[TLS]))
 
                 else:
-                    player_data = [public_data[0], public_data[1], public_data[2], public_data[3], public_data[4]]
-                    player_data = pickle.dumps(player_data)
+                    self.__the_client_socket.send(bytes(full_msg[TLS]))
 
-                    p_data = [self.encrypt_data(key, player_data, auth)]
-                    full_msg = self.create_message(p_data)
+            else:
+                player_data = [public_data[0], public_data[1], public_data[2], public_data[3], public_data[4]]
+                player_data = pickle.dumps(player_data)
 
-                    if type(full_msg) is list:
-                        for index in range(0, len(full_msg)):
-                            message = full_msg[index]
-                            self.__the_client_socket.send(bytes(message[TLS]))
+                p_data = [self.encrypt_data(key, player_data, auth)]
+                full_msg = self.create_message(p_data)
 
-                    else:
-                        self.__the_client_socket.send(bytes(full_msg[TLS]))
+                if type(full_msg) is list:
+                    for index in range(0, len(full_msg)):
+                        message = full_msg[index]
+                        self.__the_client_socket.send(bytes(message[TLS]))
 
-                   # if message == 'EXIT':
-                       # self.__the_client_socket.close()
-                        #return
+                else:
+                    self.__the_client_socket.send(bytes(full_msg[TLS]))
 
-            except ConnectionResetError:
-                message = ["EXIT", 1, private_data]
-                message = pickle.dumps(message)
+               # if message == 'EXIT':
+                   # self.__the_client_socket.close()
+                    #return
 
-                data = [self.encrypt_data(key, message, auth)]
-                full_msg = self.create_message(data)
+        except TypeError:
+            return
 
-                self.__the_client_socket.send(bytes(full_msg[TLS]))
-                self.__the_client_socket.close()
+        except ConnectionResetError:
+            message = ["EXIT", 1, private_data]
+            message = pickle.dumps(message)
 
-                return
+            data = [self.encrypt_data(key, message, auth)]
+            full_msg = self.create_message(data)
 
-            except ConnectionRefusedError:
-                print("Retrying")
+            self.__the_client_socket.send(bytes(full_msg[TLS]))
+            self.__the_client_socket.close()
 
-            except ConnectionAbortedError:
-                message = ["EXIT", 1, private_data]
-                message = pickle.dumps(message)
+            return
 
-                data = [self.encrypt_data(key, message, auth)]
-                full_msg = self.create_message(data)
+        except ConnectionRefusedError:
+            print("Retrying")
 
-                self.__the_client_socket.send(bytes(full_msg[TLS]))
-                self.__the_client_socket.close()
+        except ConnectionAbortedError:
+            message = ["EXIT", 1, private_data]
+            message = pickle.dumps(message)
 
-                return
+            data = [self.encrypt_data(key, message, auth)]
+            full_msg = self.create_message(data)
 
-            except pickle.PickleError:
-                return
+            self.__the_client_socket.send(bytes(full_msg[TLS]))
+            self.__the_client_socket.close()
 
-            except socket.timeout:
-                return
+            return
 
-            except KeyboardInterrupt:
-                print("Server is shutting down")
-                message = ["EXIT", 1, private_data]
+        except pickle.PickleError:
+            return
 
-                message = pickle.dumps(message)
-                data = [self.encrypt_data(key, message, auth)]
+        except socket.timeout:
+            return
 
-                full_msg = self.create_message(data)
-                self.__the_client_socket.send(bytes(full_msg[TLS]))
+        except KeyboardInterrupt:
+            print("Server is shutting down")
+            message = ["EXIT", 1, private_data]
 
-                self.__the_client_socket.close()
-                return
+            message = pickle.dumps(message)
+            data = [self.encrypt_data(key, message, auth)]
 
-    def receive_location(self, key, auth):
+            full_msg = self.create_message(data)
+            self.__the_client_socket.send(bytes(full_msg[TLS]))
+
+            self.__the_client_socket.close()
+            return
+
+    def receive_location(self, imp_data):
         """
 
-        :param key:
-        :param auth:
+        :param imp_data:
         :return:
         """
-
         try:
             self.__the_client_socket.settimeout(0.01)
             data_recv = self.recieve_data()
@@ -718,7 +751,7 @@ class Client:
                 pass
 
             else:
-                return self.decrypt_data(key, auth, data_recv[0], data_recv[1], data_recv[2])
+                return self.decrypt_data(imp_data[0], imp_data[1], data_recv[0], data_recv[1], data_recv[2])
 
         except socket.timeout:
             return

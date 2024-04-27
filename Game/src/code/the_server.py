@@ -1,3 +1,4 @@
+from cryptography.exceptions import *
 from client_handshake import *
 from server_handshake import *
 from DatabaseCreator import *
@@ -85,7 +86,6 @@ class Server:
         # """:TODO(Work in progress): Merge with load balancer """#
         # """:TODO(almost finished): Try-except on everything """#
         # """:TODO(Work in progress): Receive info about enemy locations, item locations """#
-        # """:TODO: Remove clients that quit during the handshake"""#
         # """:TODO(almost finished): Make sure server isn't bogged down due to heavy packs"""#
         # """:TODO: Show weapons when attacking"""#
         # """:TODO(almost finished): Make sure nothing appears in terminal (including chat)"""#
@@ -472,11 +472,16 @@ class Server:
                         is not None and self.__all_details[number].get("Servers_Keys") is None):
 
                     enc_key = handshake.run()
-                    self.__all_details[number]["Servers_Keys"] = enc_key
-                    handshake.stop()
-                    end = time.time()
+                    if enc_key == 1:
+                        self.__all_details[number]["Connected"] = 1
+                        return
 
-                    print(time.strftime("%Hh %Mm %Ss", time.gmtime(end - start)).split(' '))
+                    else:
+                        self.__all_details[number]["Servers_Keys"] = enc_key
+                        handshake.stop()
+
+                        end = time.time()
+                        print(time.strftime("%Hh %Mm %Ss", time.gmtime(end - start)).split(' '))
 
                 else:
                     pass
@@ -508,13 +513,20 @@ class Server:
         :return: The iv, the encrypted data and the encryption tag
         """
 
-        iv = os.urandom(12)
-        encryptor = Cipher(algorithms.AES(key), modes.GCM(iv)).encryptor()
+        try:
+            iv = os.urandom(12)
+            encryptor = Cipher(algorithms.AES(key), modes.GCM(iv)).encryptor()
 
-        encryptor.authenticate_additional_data(associated_data)
-        ciphertext = encryptor.update(plaintext) + encryptor.finalize()
+            encryptor.authenticate_additional_data(associated_data)
+            ciphertext = encryptor.update(plaintext) + encryptor.finalize()
 
-        return iv, ciphertext, encryptor.tag
+            return iv, ciphertext, encryptor.tag
+
+        except InvalidKey:
+            return 1
+
+        except ValueError:
+            return 1
 
     def decrypt_data(self, key, associated_data, iv, ciphertext, tag):
         """
@@ -527,10 +539,17 @@ class Server:
         :return: The decrypted data
         """
 
-        decryptor = Cipher(algorithms.AES(key), modes.GCM(iv, tag)).decryptor()
-        decryptor.authenticate_additional_data(associated_data)
+        try:
+            decryptor = Cipher(algorithms.AES(key), modes.GCM(iv, tag)).decryptor()
+            decryptor.authenticate_additional_data(associated_data)
 
-        return decryptor.update(ciphertext) + decryptor.finalize()
+            return decryptor.update(ciphertext) + decryptor.finalize()
+
+        except InvalidKey:
+            return 1
+
+        except ValueError:
+            return 1
 
     def create_message(self, some_data):
         """
@@ -893,6 +912,15 @@ class Server:
                 key, auth = self.__private_security_key, self.__private_message
                 decrypted_data = self.decrypt_data(key, auth, data[0], data[1], data[2])
 
+                if decrypted_data == 1:
+                    self.__secure_socket.close()
+                    self.__secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+                    security_ports = [port for port in range(443, 501)]
+
+                    self.connect_to_security(security_ports)
+                    self.security_first()
+                    return
+
                 unpacked_data = pickle.loads(decrypted_data)
                 return unpacked_data
 
@@ -1010,28 +1038,33 @@ class Server:
                             decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
 
                             if decrypted_data is not None:
-                                the_data = pickle.loads(decrypted_data)
-                                if type(the_data) is tuple:
-                                    print('dup')
-                                    return
-
-                                if the_data[0] == 'EXIT':
-                                    print("Client", index_of_client + 1, client_socket.getpeername(),
-                                          "has left the server")
+                                if decrypted_data == 1:
                                     self.__all_details[index_of_client]["Connected"] = 1
-
-                                    self.__weapons[index_of_client] = the_data[2]
                                     return
 
                                 else:
-                                    print("data", the_data)
-                                    self.__locations[index_of_client] = the_data[0]
+                                    the_data = pickle.loads(decrypted_data)
+                                    if type(the_data) is tuple:
+                                        print('dup')
+                                        return
 
-                                    self.__chat[index_of_client] = the_data[1]
-                                    print(self.__chat, the_data[1])
+                                    if the_data[0] == 'EXIT':
+                                        print("Client", index_of_client + 1, client_socket.getpeername(),
+                                              "has left the server")
+                                        self.__all_details[index_of_client]["Connected"] = 1
 
-                                    self.__status[index_of_client] = the_data[2]
-                                    self.__status_frame_index[index_of_client] = the_data[4]
+                                        self.__weapons[index_of_client] = the_data[2]
+                                        return
+
+                                    else:
+                                        print("data", the_data)
+                                        self.__locations[index_of_client] = the_data[0]
+
+                                        self.__chat[index_of_client] = the_data[1]
+                                        print(self.__chat, the_data[1])
+
+                                        self.__status[index_of_client] = the_data[2]
+                                        self.__status_frame_index[index_of_client] = the_data[4]
 
                     except TypeError:
                         print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")

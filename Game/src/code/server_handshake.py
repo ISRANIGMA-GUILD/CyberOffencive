@@ -1,3 +1,5 @@
+import time
+
 from scapy.all import *
 from scapy.layers.l2 import *
 from scapy.layers.dns import *
@@ -44,6 +46,8 @@ class ServerHandshake:
         self.__passes = passes
         self.__path = pathname
 
+        self.__start_time = time.time()
+
     def run(self):
         """
 
@@ -54,6 +58,7 @@ class ServerHandshake:
             try:
                 if not self.__auth:
                     auth = self.first_handshake()
+
                     if not auth:
                         return
 
@@ -79,6 +84,11 @@ class ServerHandshake:
                 self.__messages = {"TLS_VALID_HELLO": (0, TLS()), "KEYS": (0, TLS()), "TLS_FIRST_DATA": (0, b"")}
                 self.__auth = []
                 self.__private_key = []
+            timer = time.strftime("%Hh %Mm %Ss",
+                                  time.gmtime(time.time() - self.__start_time)).split(' ')[2]
+            print(timer)
+            if "5" in timer:
+                return 1
 
     def stop(self):
 
