@@ -80,7 +80,7 @@ class Server:
 
         # """:TODO(Are they possible?): Check for session injection vulnerabilities """#
         # """:TODO: Transport databases between servers at the end and updating them accordingly """#
-        # """:TODO: Check if users cheat(in speed, damage, etc.) """#
+        # """:TODO(Should the server intervene?): Check if users cheat(in speed, damage, etc.) """#
         # """:TODO: Loading screen between menu and login screens """#
         # """:TODO(Work in progress): Merge with load balancer """#
         # """:TODO: Counter attack mechanism (security server) """#
@@ -101,14 +101,14 @@ class Server:
                                         list_of_existing_resources[i][0]]
                                        for i in range(0, len(list_of_existing_resources))
                                        if list_of_existing_resources[i][0] == "banned"]
-
         print(self.__banned_ips, self.__banned_macs, list_of_existing_resources, self.__list_of_banned_users)
 
         self.__passes = self.__cert_creator.run()
         security_ports = [port for port in range(443, 501)]
+
         self.connect_to_security(security_ports)
-       # self.connect_to_load_socket()
-     #   self.first_client_handshake_to_load_balancer()
+        # self.connect_to_load_socket()
+        #   self.first_client_handshake_to_load_balancer()
 
         self.security_first()
         print("The server will now wait for clients")
@@ -962,8 +962,9 @@ class Server:
 
         with lock:
             try:
-                if (self.__all_details[number].get("Credentials") is None and self.__all_details[number].get("Servers_Keys")
-                        is not None and self.__all_details[number].get("Client") is not None):
+                if (self.__all_details[number].get("Credentials") is None and
+                        self.__all_details[number].get("Servers_Keys") is not None and
+                        self.__all_details[number].get("Client") is not None):
 
                     loging = Login(self.__all_details[number], list_of_existing, list_of_existing_resources,
                                    self.__credentials, number, self.__new_credentials, self.__number_of_clients,
@@ -1130,7 +1131,6 @@ class Server:
         with lock:
             try:
                 if self.__all_details[number].get("Connected") == 1:
-
                     self.__all_details[number].get("Client").close()
                     self.__all_details[number].get("Socket").close()
 

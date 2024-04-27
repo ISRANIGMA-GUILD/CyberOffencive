@@ -5,7 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/basic_com.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/CyberOffensive.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/CyberOffensive.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/DNS_SERVER_Certificates/Certificate_crts/certificate0.crt" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/DNS_SERVER_Certificates/Certificate_crts/certificate0.crt" afterDir="false" />
@@ -129,7 +128,7 @@
       <change beforePath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key7.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key7.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key8.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key8.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key9.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key9.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/certificate_creator.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/certificate_creator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/the_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_server.py" afterDir="false" />
     </list>
     <list id="02ff3d5b-67f7-4487-8767-562c1ddaffec" name="Changes by or12r" comment="" />
     <option name="SHOW_DIALOG" value="false" />

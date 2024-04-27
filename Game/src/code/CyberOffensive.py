@@ -42,6 +42,7 @@ class Game:
 
         self.__using_chat = False
         self.__temp_message = ""
+
         self.__other_messages = []
 
     def run(self) -> None:
@@ -144,7 +145,7 @@ class Game:
                             for i in range(0, len(self.__other_messages)):
                                 if self.__other_messages[i] is not None or '':
                                     print(f"Client {i+1}:", self.__other_messages[i])
-                                    self.draw_text(self.__temp_message, self.font, (255, 0, 0), self.screen, 30, 200)
+                                    self.draw_text(self.__temp_message, (255, 0, 0), self.screen, 30, 200)
                                     pygame.display.flip()
 
                             prev_loc_other, other_client = self.get_new_locations(locations, prev_loc_other)
@@ -175,12 +176,11 @@ class Game:
                                     temp_p.append(player_remote)
 
                         pygame.display.flip()
-                    font = pygame.font.SysFont('arial', 32)
                     if self.__other_messages is not None:
                         output_box = pygame.Rect(20, 100, 500, 100)
                         input_box = pygame.Rect(20, 200, 200, 50)
                         # Blit the text.
-                        messages = [font.render(self.__other_messages[i], True, (255, 0, 0))
+                        messages = [self.font.render(self.__other_messages[i], True, (255, 0, 0))
                                     for i in range(0, len(self.__other_messages))]
                         text_messages = [self.__other_messages[i] for i in range(0, len(self.__other_messages))]
                         o_width = max(500, 50 + 10)
@@ -188,15 +188,15 @@ class Game:
 
                         output_box.w = o_width
                         input_box.w = i_width
-                        if len(self.__temp_message) <= 42:
-                            self.draw_text(self.__temp_message, font, (255, 0, 0), self.screen, 30, 200)
+                        if len(self.__temp_message) <= 19:
+                            self.draw_text(self.__temp_message,(255, 0, 0), self.screen, 30, 200)
 
                         else:
-                            self.draw_text(self.__temp_message[42:], font, (255, 0, 0), self.screen, 30, 200)
+                            self.draw_text(self.__temp_message[19:], (255, 0, 0), self.screen, 30, 200)
 
                         for i in range(0, len(messages)):
                             self.screen.blit(messages[i], (30, 200))
-                            self.draw_text(text_messages[i], font, (255, 0, 0), self.screen, 30, 200)
+                            self.draw_text(text_messages[i], (255, 0, 0), self.screen, 30, 200)
                             pygame.display.flip()
                         # Blit the input_box rect.
                         pygame.draw.rect(self.screen, (255, 0, 0), output_box, 2)
@@ -232,9 +232,8 @@ class Game:
         """
 
         self.screen.fill((0, 0, 0))
-        font = pygame.font.SysFont('arial', 40)
 
-        start_button = font.render('', True, (255, 255, 255))
+        start_button = self.font.render('', True, (255, 255, 255))
         screen = pygame.display.set_mode((1200, 730))
 
         img = pygame.image.load(IMAGE)
@@ -246,18 +245,17 @@ class Game:
 
         pygame.display.update()
 
-    def draw_text(self, text, font, color, surface, x, y):
+    def draw_text(self, text,  color, surface, x, y):
         """
 
         :param text:
-        :param font:
         :param color:
         :param surface:
         :param x:
         :param y:
         """
 
-        text_tobj = font.render(text, 20, color)
+        text_tobj = self.font.render(text, 1, color)
         text_rect = text_tobj.get_rect()
 
         text_rect.topleft = (x, y)
@@ -311,23 +309,6 @@ class Game:
                     pygame.display.update()
                     self.clock.tick(FPS)
                     return
-
-    def draw_text(self, text, font, color, surface, x, y):
-        """
-
-        :param text:
-        :param font:
-        :param color:
-        :param surface:
-        :param x:
-        :param y:
-        """
-
-        text_tobj = font.render(text, 1, color)
-        text_rect = text_tobj.get_rect()
-
-        text_rect.topleft = (x, y)
-        surface.blit(text_tobj, text_rect)
 
     def get_new_locations(self, other_client, prev_loc_other):
         """
