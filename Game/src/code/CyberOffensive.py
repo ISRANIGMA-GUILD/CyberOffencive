@@ -86,17 +86,26 @@ class Game:
 
                         else:
                             game_state = "continue"
-                            #    print(ran)
+                            print("Thingy", ran)
                             if len(ran) > 1:
-                                items = ran[1][2].split(', ')
+                                items = ran[1][1].split(', ')
 
+                                weapons = ran[1][2].split(', ')
                                 #  print(items)
-                                if items[0] == '1':
+                                if weapons[0] == '1':
                                     self.items["G"] = 1
 
-                                if items[1] == '1':
+                                if weapons[1] == '1':
                                     self.items["S"] = 1
                                     self.level.player.inventory.hotbar.insert(Sword((0, 0),
+                                                                                    [self.level.visible_sprites]))
+                                if items[0] == '1':
+                                    self.items["HPF"] = 1
+                                    self.level.player.inventory.hotbar.insert(HPFruit((0, 0),
+                                                                                    [self.level.visible_sprites]))
+                                if items[1] == '1':
+                                    self.items["EF"] = 1
+                                    self.level.player.inventory.hotbar.insert(EnergyFruit((0, 0),
                                                                                     [self.level.visible_sprites]))
 
                 if game_state == "continue":
@@ -373,6 +382,12 @@ class Game:
         for item_stack in self.level.player.inventory.hotbar.content:
             if len(item_stack) and issubclass(item_stack[0].__class__, Sword):
                 self.items["S"] = 1
+
+            if len(item_stack) and issubclass(item_stack[0].__class__, HPFruit):
+                self.items["HPF"] = 1
+
+            if len(item_stack) and issubclass(item_stack[0].__class__, EnergyFruit):
+                self.items["EF"] = 1
 
             else:
                 pass

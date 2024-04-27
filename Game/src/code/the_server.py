@@ -1212,10 +1212,12 @@ class Server:
 
         for index in range(0, len(self.__session_users) - 1):
             if self.__weapons[index] is not None:
-                items = str(self.__weapons[index]["G"]) + ", " + str(self.__weapons[index]["S"])
-                print("Ne items", items)
+                weapons = str(self.__weapons[index]["G"]) + ", " + str(self.__weapons[index]["S"])
+                items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) + ", " +
+                         str(self.__weapons[index]["RHPF"]) + ", " + str(self.__weapons[index]["BEF"]))
+                print("Ne weapons", weapons, "Ne items", items)
 
-                print(self.__main_data_base.set_values(['Weapons'], [items], ['Username'],
+                print(self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
                                                        [self.__session_users[index]]))
 
     def disconnect_from_security(self):
