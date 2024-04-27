@@ -1,6 +1,7 @@
 from client_handshake import *
 from server_handshake import *
 from DatabaseCreator import *
+from certificate_creator import *
 from login import *
 import os
 import threading
@@ -67,6 +68,11 @@ class Server:
         self.__items = []
         self.__session_users = []
 
+        self.__path = "Servers"
+        self.__passes = []
+
+        self.__cert_creator = CertificateCreator(self.__path)
+
     def run(self):
         """
 
@@ -78,7 +84,6 @@ class Server:
         # """:TODO: Loading screen between menu and login screens """#
         # """:TODO(Work in progress): Merge with load balancer """#
         # """:TODO: Counter attack mechanism (security server) """#
-        # """:TODO(almost finished): MAke sure all certificate vital data is randomized and randomize them at start"""#
         # """:TODO(almost finished): Display chat in the game not in the terminal """#
         # """:TODO: Make the whole game abstract from terminal """#
         # """:TODO(almost finished): Try-except on everything """#
@@ -87,7 +92,7 @@ class Server:
         # """:TODO: Remove clients that quit during the handshake"""#
         # """:TODO(almost finished): Make sure server isn't bogged down due to heavy packs"""#
         # """:TODO: Show weapons when attacking"""#
-        # """:TODO: Make sure chat is printed on screen not just terminal"""#
+        # """:TODO(almost finished): Make sure chat is printed on screen not just terminal"""#
 
         info, resource_info, ip_info = self.receive_info()
         list_of_existing_credentials, list_of_existing_resources = self.organize_info(info, resource_info, ip_info)
@@ -99,6 +104,7 @@ class Server:
 
         print(self.__banned_ips, self.__banned_macs, list_of_existing_resources, self.__list_of_banned_users)
 
+        self.__passes = self.__cert_creator.run()
         security_ports = [port for port in range(443, 501)]
         self.connect_to_security(security_ports)
        # self.connect_to_load_socket()
@@ -466,10 +472,10 @@ class Server:
             start = time.time()
             try:
                 if (self.__all_details[number].get("Credentials") is None and self.__all_details[number].get("Client")
-                        is not None and self.__all_details[number].get("Keys") is None):
+                        is not None and self.__all_details[number].get("Servers_Keys") is None):
 
                     enc_key = handshake.run()
-                    self.__all_details[number]["Keys"] = enc_key
+                    self.__all_details[number]["Servers_Keys"] = enc_key
                     handshake.stop()
                     end = time.time()
 
@@ -673,7 +679,7 @@ class Server:
 
         """
         if self.__number_of_clients - 1 >= len(self.__all_details) or len(self.__all_details) == 0:
-            self.__all_details.append({"Credentials": None, "Keys": None, "Socket": None,
+            self.__all_details.append({"Credentials": None, "Servers_Keys": None, "Socket": None,
                                        "Client": None, "Timer": None, "Connected": 0, "Port": 0})
 
         else:
@@ -761,7 +767,7 @@ class Server:
         threads = []
 
         for number in range(0, len(self.__all_details)):
-            handshake = ServerHandshake(self.__all_details[number].get("Client"))
+            handshake = ServerHandshake(self.__all_details[number].get("Client"), self.__passes, self.__path)
             the_thread = threading.Thread(target=self.tls_handshake, args=(lock, handshake, number))
             threads.append(the_thread)
 
@@ -956,7 +962,7 @@ class Server:
 
         with lock:
             try:
-                if (self.__all_details[number].get("Credentials") is None and self.__all_details[number].get("Keys")
+                if (self.__all_details[number].get("Credentials") is None and self.__all_details[number].get("Servers_Keys")
                         is not None and self.__all_details[number].get("Client") is not None):
 
                     loging = Login(self.__all_details[number], list_of_existing, list_of_existing_resources,
@@ -982,12 +988,12 @@ class Server:
 
         with lock:
             try:
-                if (self.__all_details[index_of_client].get("Keys") is not None and
+                if (self.__all_details[index_of_client].get("Servers_Keys") is not None and
                         self.__all_details[index_of_client].get("Credentials") is not None and
                         self.__all_details[index_of_client].get("Client") is not None):
 
                     client_socket = self.__all_details[index_of_client].get("Client")
-                    enc_key, auth = self.__all_details[index_of_client].get("Keys")
+                    enc_key, auth = self.__all_details[index_of_client].get("Servers_Keys")
 
                     try:
                         data = self.deconstruct_data(client_socket)
@@ -1079,7 +1085,7 @@ class Server:
             try:
                 if (self.__locations is not None and self.__all_details[number].get("Client") is not None and
                         self.__all_details[number].get("Credentials") is not None and
-                        self.__all_details[number].get("Keys") is not None):
+                        self.__all_details[number].get("Servers_Keys") is not None):
                     try:
                         local_locations = self.__locations.copy()
                         local_locations.pop(number)
@@ -1099,8 +1105,8 @@ class Server:
                         list_data = local_locations, local_messages, local_statuses, local_weapons, local_f_indexes
                         byte_data = pickle.dumps(list_data)
 
-                        en = self.encrypt_data(self.__all_details[number].get("Keys")[0], byte_data,
-                                               self.__all_details[number].get("Keys")[1])
+                        en = self.encrypt_data(self.__all_details[number].get("Servers_Keys")[0], byte_data,
+                                               self.__all_details[number].get("Servers_Keys")[1])
                         self.__all_details[number].get("Client").send(bytes(self.create_message(en)[TLS]))
 
                     except ConnectionResetError:

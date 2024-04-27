@@ -34,12 +34,15 @@ MSG_TCP_PACK = 56
 
 class ServerHandshake:
 
-    def __init__(self, client_socket: socket):
+    def __init__(self, client_socket: socket, passes, pathname):
         self.__client_socket = client_socket
         self.__messages = {"TLS_VALID_HELLO": (0, TLS()), "KEYS": (0, TLS()), "TLS_FIRST_DATA": (0, b"")}
 
         self.__auth = []
         self.__private_key = []
+
+        self.__passes = passes
+        self.__path = pathname
 
     def run(self):
         """
@@ -376,7 +379,7 @@ class ServerHandshake:
     def get_authenticators(self):
         """
          Get the certificates and server key
-        :return: Certificates, private key, point and private key
+        :return: Servers_Certificates, private key, point and private key
         """
 
         certs, my_key_pem, key = self.retrieve_cert()
@@ -394,13 +397,13 @@ class ServerHandshake:
         list_numbers = [i for i in range(0, 5)]
         index = random.choice(list_numbers)
         for index in range(index, (index + 1) * 4):
-            with open(f'Certificates\\certificate{index}.pem', 'rb') as certificate_first:
+            with open(f'{self.__path}_Certificates\\certificate{index}.pem', 'rb') as certificate_first:
                 my_cert_pem = certificate_first.read()
                 certs.append(my_cert_pem)
 
-        with open(f'Keys\\the_key{index}.pem', 'rb') as key_first:
+        with open(f'{self.__path}_Keys\\the_key{index}.pem', 'rb') as key_first:
             my_key_pem = key_first.read()
-            key = load_pem_private_key(my_key_pem, b'gfdgdfgdhffdgfdgfdgdf', backend=default_backend())
+            key = load_pem_private_key(my_key_pem, self.__passes[index].encode(), backend=default_backend())
 
         return certs, my_key_pem, key
 

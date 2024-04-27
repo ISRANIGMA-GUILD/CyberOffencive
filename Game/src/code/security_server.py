@@ -1,6 +1,7 @@
 from server_handshake import *
 from DatabaseCreator import *
 from dnssec_server import *
+from certificate_creator import *
 
 SYN = 2
 FIN = 1
@@ -31,13 +32,17 @@ class Security:
         self.__secret_security_key = None
         self.__secret_message = None
 
-        self.__cert, self.__key = get_certs()
-        self.__domain_provider = DomainProvider(self.__cert, self.__key)
+        self.__cert, self.__key = None, None
+        self.__domain_provider = None
 
         self.__upcoming_bans = []
         self.__currently_banned = []
 
         self.__service_socket = None
+        self.__passes = []
+
+        self.__path = "DNS_SERVER"
+        self.__cert_creator = CertificateCreator(self.__path)
 
     def run(self):
         """
@@ -52,6 +57,9 @@ class Security:
         list_of_banned_addresses = [vital_info for vital_info in info]
         print(list_of_banned_addresses)
 
+        self.__passes = self.__cert_creator.run()
+        self.__cert, self.__key = get_certs(self.__passes, self.__path)
+        self.__domain_provider = DomainProvider(self.__cert, self.__key)
         self.create_server(list_of_banned_addresses)
 
     def create_server(self, list_of_banned_addresses):
@@ -160,7 +168,7 @@ class Security:
         """
 
         if service_socket is not None:
-            handshake_initializer = ServerHandshake(service_socket)
+            handshake_initializer = ServerHandshake(service_socket, self.__passes, self.__path)
 
             while True:
                 try:

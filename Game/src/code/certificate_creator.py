@@ -5,6 +5,8 @@ from cryptography.hazmat.primitives.asymmetric.padding import *
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 from scapy.all import *
+import os
+import string
 
 H_NAME = "Cyber-Offensive"
 D_NAME = "mad.cyberoffensive.org"
@@ -30,57 +32,85 @@ LOCALITIES = [u"Nambia", u"Socretesus", u"Jerusalem", u"Chicago", u"Atlantis", u
               u"Toulon", u"London", u"Dublin", u"Alexandria", u"Warsaw", u"Pyongyang", u"Beijing", u"Yamoussoukro",
               u"Kampala", u"Vatican-City", u"Nuuk"]
 
-for index in range(0, 20):
-    key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
 
-    random_number = random.randint(0, 23)
-    random_number_s = random.randint(0, 26)
-    random_number_l = random.randint(0, 33)
-    c_name = COUNTRY_NAMES[random_number]
-    s_name = PROVINCES[random_number_s]
-    l_name = LOCALITIES[random_number_l]
+class CertificateCreator:
 
-    names = x509.Name([x509.NameAttribute(NameOID.COUNTRY_NAME, c_name),
-                       x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, s_name),
-                       x509.NameAttribute(NameOID.LOCALITY_NAME, l_name),
-                       x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"ISRA-NIGMA-GUILD"),
-                       x509.NameAttribute(NameOID.COMMON_NAME, H_NAME)])
+    def __init__(self, pathname):
+        self.__passes = []
+        self.__path = pathname
+        pass
 
-    basic_constraints = x509.BasicConstraints(ca=True, path_length=0)
+    def run(self):
 
-    now = datetime.utcnow()
-    key_usage = x509.KeyUsage(digital_signature=True, content_commitment=False, key_encipherment=True,
-                              data_encipherment=False, key_agreement=False, key_cert_sign=False, crl_sign=False,
-                              encipher_only=False, decipher_only=False)
+        for index in range(0, 20):
+            key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
 
-    alt_names = [x509.DNSName(D_NAME), x509.DNSName(MY_IP)]
+            random_number = random.randint(0, 23)
+            random_number_s = random.randint(0, 26)
+            random_number_l = random.randint(0, 33)
+            c_name = COUNTRY_NAMES[random_number]
+            s_name = PROVINCES[random_number_s]
+            l_name = LOCALITIES[random_number_l]
 
-    ext_usage = x509.ExtendedKeyUsage((x509.OID_SERVER_AUTH, x509.OID_CLIENT_AUTH))
-    number = x509.random_serial_number()
-    cert = (x509.CertificateBuilder()
-            .subject_name(names)
-            .issuer_name(names)
-            .public_key(key.public_key())
-            .serial_number(number)
-            .not_valid_before(now)
-            .not_valid_after(now + timedelta(days=365))
-            .add_extension(basic_constraints, True)
-            .add_extension(key_usage, True)
-            .add_extension(ext_usage, True)
-            .add_extension(x509.SubjectAlternativeName(alt_names), False)
-            .sign(key, THE_SHA_256, default_backend(), rsa_padding=PKCS1v15())
-            )
+            names = x509.Name([x509.NameAttribute(NameOID.COUNTRY_NAME, c_name),
+                               x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, s_name),
+                               x509.NameAttribute(NameOID.LOCALITY_NAME, l_name),
+                               x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"ISRA-NIGMA-GUILD"),
+                               x509.NameAttribute(NameOID.COMMON_NAME, H_NAME)])
 
-    my_cert_pem = cert.public_bytes(encoding=THE_PEM)
-    my_key_pem = key.private_bytes(encoding=THE_PEM, format=serialization.PrivateFormat.PKCS8,
-                                   encryption_algorithm=serialization
-                                   .BestAvailableEncryption(b'gfdgdfgdhffdgfdgfdgdf'))
+            basic_constraints = x509.BasicConstraints(ca=True, path_length=0)
 
-    with open(f'Certificates\\Certificate_crts\\certificate{index}.crt', 'wb') as certificate_first:
-        certificate_first.write(my_cert_pem)
+            now = datetime.utcnow()
+            key_usage = x509.KeyUsage(digital_signature=True, content_commitment=False, key_encipherment=True,
+                                      data_encipherment=False, key_agreement=False, key_cert_sign=False, crl_sign=False,
+                                      encipher_only=False, decipher_only=False)
 
-    with open(f'Certificates\\certificate{index}.pem', 'wb') as certificate_first:
-        certificate_first.write(my_cert_pem)
+            alt_names = [x509.DNSName(D_NAME), x509.DNSName(MY_IP)]
 
-    with open(f'Keys\\the_key{index}.pem', 'wb') as key_first:
-        key_first.write(my_key_pem)
+            password = self.random_password()
+            print(password)
+
+            self.__passes.append(password)
+            ext_usage = x509.ExtendedKeyUsage((x509.OID_SERVER_AUTH, x509.OID_CLIENT_AUTH))
+
+            number = x509.random_serial_number()
+            cert = (x509.CertificateBuilder()
+                    .subject_name(names)
+                    .issuer_name(names)
+                    .public_key(key.public_key())
+                    .serial_number(number)
+                    .not_valid_before(now)
+                    .not_valid_after(now + timedelta(days=365))
+                    .add_extension(basic_constraints, True)
+                    .add_extension(key_usage, True)
+                    .add_extension(ext_usage, True)
+                    .add_extension(x509.SubjectAlternativeName(alt_names), False)
+                    .sign(key, THE_SHA_256, default_backend(), rsa_padding=PKCS1v15())
+                    )
+
+            my_cert_pem = cert.public_bytes(encoding=THE_PEM)
+            my_key_pem = key.private_bytes(encoding=THE_PEM, format=serialization.PrivateFormat.PKCS8,
+                                           encryption_algorithm=serialization
+                                           .BestAvailableEncryption(password.encode()))
+
+            with (open(f'{self.__path}_Certificates\\Certificate_crts\\certificate{index}.crt', 'wb') as
+                  certificate_first):
+                certificate_first.write(my_cert_pem)
+
+            with open(f'{self.__path}_Certificates\\certificate{index}.pem', 'wb') as certificate_first:
+                certificate_first.write(my_cert_pem)
+
+            with open(f'{self.__path}_Keys\\the_key{index}.pem', 'wb') as key_first:
+                key_first.write(my_key_pem)
+
+        return self.__passes
+
+    def random_password(self):
+
+        chars = string.ascii_letters + string.digits + '+/'
+        assert 256 % len(chars) == 0  # non-biased later modulo
+
+        PWD_LEN = 32
+        password = ''.join(chars[c % len(chars)] for c in os.urandom(PWD_LEN))
+
+        return password

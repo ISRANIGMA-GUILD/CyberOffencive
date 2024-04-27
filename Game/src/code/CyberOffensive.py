@@ -188,7 +188,12 @@ class Game:
 
                         output_box.w = o_width
                         input_box.w = i_width
-                        self.draw_text(self.__temp_message, font, (255, 0, 0), self.screen, 30, 200)
+                        if len(self.__temp_message) <= 42:
+                            self.draw_text(self.__temp_message, font, (255, 0, 0), self.screen, 30, 200)
+
+                        else:
+                            self.draw_text(self.__temp_message[42:], font, (255, 0, 0), self.screen, 30, 200)
+
                         for i in range(0, len(messages)):
                             self.screen.blit(messages[i], (30, 200))
                             self.draw_text(text_messages[i], font, (255, 0, 0), self.screen, 30, 200)
@@ -261,24 +266,18 @@ class Game:
     def start_chat(self):
 
         message = self.__temp_message
-        timer = 0
-
-        font = pygame.font.SysFont('arial', 32)
-
-        keys = pygame.key.get_pressed()
-
         active = False
-        text = ''
 
         done = False
         start = time.time()
-        clock = pygame.time.Clock()
 
         while not done:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     done = True
                     pygame.display.flip()
+                    pygame.display.update()
+                    self.clock.tick(FPS)
 
                 if event.type == pygame.KEYDOWN or active:
                     if event.key == pygame.K_RETURN:
@@ -286,6 +285,8 @@ class Game:
                         self.__temp_message = message
                         self.__using_chat = False
                         pygame.display.flip()
+                        pygame.display.update()
+                        self.clock.tick(FPS)
                         return message
 
                     elif event.key == pygame.K_BACKSPACE:
@@ -293,19 +294,22 @@ class Game:
                         self.__temp_message = message
                         done = True
                         pygame.display.flip()
+                        pygame.display.update()
+                        self.clock.tick(FPS)
 
                     else:
                         message += event.unicode
                         self.__temp_message = message
                         done = True
                         pygame.display.flip()
-
-               # self.screen.fill((30, 30, 30))
-                # Render the current text.
+                    pygame.display.update()
+                    self.clock.tick(FPS)
 
                 end = time.time()
                 timer = start - end
                 if timer > 0.001:
+                    pygame.display.update()
+                    self.clock.tick(FPS)
                     return
 
     def draw_text(self, text, font, color, surface, x, y):

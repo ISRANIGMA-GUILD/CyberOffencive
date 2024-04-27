@@ -179,8 +179,8 @@ class Login:
                         detail = self.__list_of_existing_resources[self.__list_of_existing.index(tuple_of_credentials)]
 
                         success = pickle.dumps(["Success", detail])
-                        success_msg = self.encrypt_data(self.__details["Keys"][0], success,
-                                                        self.__details["Keys"][1])
+                        success_msg = self.encrypt_data(self.__details["Servers_Keys"][0], success,
+                                                        self.__details["Servers_Keys"][1])
 
                         success_pack = self.create_message(success_msg)
                         self.__details["Client"].send(bytes(success_pack[TLS]))
@@ -190,7 +190,7 @@ class Login:
                         print("ENTRY DENIED")
                         success = pickle.dumps(["Failure"])
 
-                        success_msg = self.encrypt_data(self.__details["Keys"][0], success, self.__details["Keys"][1])
+                        success_msg = self.encrypt_data(self.__details["Servers_Keys"][0], success, self.__details["Servers_Keys"][1])
                         success_pack = self.create_message(success_msg)
 
                         self.__details["Client"].send(bytes(success_pack[TLS]))
@@ -205,7 +205,7 @@ class Login:
                         print("Wrong username or password")
                         success = pickle.dumps(["Failure"])
 
-                        success_msg = self.encrypt_data(self.__details["Keys"][0], success, self.__details["Keys"][1])
+                        success_msg = self.encrypt_data(self.__details["Servers_Keys"][0], success, self.__details["Servers_Keys"][1])
                         success_pack = self.create_message(success_msg)
 
                         self.__details["Client"].send(bytes(success_pack[TLS]))
@@ -218,7 +218,7 @@ class Login:
                         print("NEW ACCOUNT YAY :)")
 
                         success = pickle.dumps(["Success"])
-                        success_msg = self.encrypt_data(self.__details["Keys"][0], success, self.__details["Keys"][1])
+                        success_msg = self.encrypt_data(self.__details["Servers_Keys"][0], success, self.__details["Servers_Keys"][1])
 
                         success_pack = self.create_message(success_msg)
                         self.__details["Client"].send(bytes(success_pack[TLS]))
@@ -228,7 +228,7 @@ class Login:
                 print("Wrong username or password")
                 success = pickle.dumps(["Failure"])
 
-                success_msg = self.encrypt_data(self.__details["Keys"][0], success, self.__details["Keys"][1])
+                success_msg = self.encrypt_data(self.__details["Servers_Keys"][0], success, self.__details["Servers_Keys"][1])
                 success_pack = self.create_message(success_msg)
 
                 self.__details["Client"].send(bytes(success_pack[TLS]))
@@ -303,8 +303,8 @@ class Login:
         :return: The decrypted data
         """
 
-        decryptor = Cipher(algorithms.AES(self.__details["Keys"][0]), modes.GCM(iv, tag)).decryptor()
-        decryptor.authenticate_additional_data(self.__details["Keys"][1])
+        decryptor = Cipher(algorithms.AES(self.__details["Servers_Keys"][0]), modes.GCM(iv, tag)).decryptor()
+        decryptor.authenticate_additional_data(self.__details["Servers_Keys"][1])
 
         return decryptor.update(ciphertext) + decryptor.finalize()
 

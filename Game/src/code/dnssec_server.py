@@ -112,27 +112,16 @@ class DomainProvider:
                 return
 
 
-def get_certs():
+def get_certs(passes, path):
     """
 
     :return:
     """
-
-    with open(f'Certificates/certificate0.pem', 'rb') as certificate_first:
+    n = random.randint(0, 19)
+    with open(f'{path}_Certificates/certificate{n}.pem', 'rb') as certificate_first:
         my_cert_pem = load_pem_x509_certificate(certificate_first.read())
 
-    with open(f'Keys/the_key0.pem', 'rb') as certificate_first:
-        my_key_pem = load_pem_private_key(certificate_first.read(), password=b'gfdgdfgdhffdgfdgfdgdf')
+    with open(f'{path}_Keys/the_key{n}.pem', 'rb') as certificate_first:
+        my_key_pem = load_pem_private_key(certificate_first.read(), password=passes[n].encode())
 
     return my_cert_pem, my_key_pem
-
-
-def main():
-
-    my_cert_pem, my_key_pem = get_certs()
-    searcher = DomainProvider(my_cert_pem, my_key_pem)
-    searcher.run()
-
-
-if __name__ == '__main__':
-    main()
