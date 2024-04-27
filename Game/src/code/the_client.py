@@ -317,6 +317,9 @@ class Client:
         except socket.timeout:
             return
 
+        except struct.error:
+            return
+
     def encrypt_data(self, key, plaintext, associated_data):
         """
          Encrypt data before sending it to the client

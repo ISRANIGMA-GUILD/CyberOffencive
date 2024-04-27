@@ -130,7 +130,7 @@ class Player(Entity):
                 self.inventory.hotbar.content[self.inventory.hotbar.active_item_index][0].attack(self)
                 # self.create_attack()
 
-        elif (keys[pygame.K_m]) and not self.attacking:
+        elif (keys[pygame.K_f]) and not self.attacking:
             self.using_item = False
             self.attacking = True
 

@@ -6,9 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="a19e9758-a35a-47c2-a4cc-fc00c394a745" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/CyberOffensive.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/CyberOffensive.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/Database/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/Database/database.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/DatabaseCreator.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/DatabaseCreator.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/login.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/login.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/player.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/the_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_client.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/the_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_server.py" afterDir="false" />
     </list>
     <list id="02ff3d5b-67f7-4487-8767-562c1ddaffec" name="Changes by or12r" comment="" />
@@ -101,7 +102,7 @@
       <recent name="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Secure Game\Certificates\Certificate_crts" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.the_server">
+  <component name="RunManager" selected="Python.CyberOffensive">
     <configuration name="CyberOffensive" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="basic_com" />
       <option name="ENV_FILES" value="" />
@@ -214,8 +215,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.CyberOffensive" />
         <item itemvalue="Python.the_server" />
+        <item itemvalue="Python.CyberOffensive" />
         <item itemvalue="Python.security_server" />
         <item itemvalue="Python.DatabaseCreator" />
         <item itemvalue="Python.main" />

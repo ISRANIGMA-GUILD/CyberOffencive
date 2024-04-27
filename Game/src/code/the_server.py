@@ -87,6 +87,7 @@ class Server:
         # """:TODO: Remove clients that quit during the handshake"""#
         # """:TODO(almost finished): Make sure server isn't bogged down due to heavy packs"""#
         # """:TODO: Show weapons when attacking"""#
+        # """:TODO: Make sure chat is printed on screen not just terminal"""#
 
         info, resource_info, ip_info = self.receive_info()
         list_of_existing_credentials, list_of_existing_resources = self.organize_info(info, resource_info, ip_info)

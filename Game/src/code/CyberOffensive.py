@@ -40,6 +40,10 @@ class Game:
         self.__message = ""
         self.items = {"G": 0, "S": 0, "HPF": 0, "EF": 0, "RHPF": 0, "BEF": 0}
 
+        self.__using_chat = False
+        self.__temp_message = ""
+        self.__other_messages = []
+
     def run(self) -> None:
         """
 
@@ -95,16 +99,6 @@ class Game:
                                                                                     [self.level.visible_sprites]))
 
                 if game_state == "continue":
-                    self.__message = None
-                    keys = pygame.key.get_pressed()
-                    if keys[pygame.K_m]:
-                        self.__message = self.start_chat()
-                        if self.__message is None:
-                            print("Hello")
-                            pass
-                        else:
-                            print(f"You:", self.__message)
-
                     pygame.display.set_caption("Cyber Offensive")
                     self.new_frame_time = time.time()
 
@@ -138,18 +132,20 @@ class Game:
 
                     elif type(other_client) is bytes:
                         other_client = pickle.loads(other_client)
-                        print("other_client", other_client)
+                       # print("other_client", other_client)
 
                         if type(other_client) is list or type(other_client) is tuple:
                             statuses = other_client[2]
                             status_frame_indexes = other_client[4]
 
-                            self.__message = other_client[1]
+                            self.__other_messages = other_client[1]
                             locations = other_client[0]
 
-                            for i in range(0, len(self.__message)):
-                                if self.__message[i] is not None or '':
-                                    print(f"Client {i+1}:", self.__message[i])
+                            for i in range(0, len(self.__other_messages)):
+                                if self.__other_messages[i] is not None or '':
+                                    print(f"Client {i+1}:", self.__other_messages[i])
+                                    self.draw_text(self.__temp_message, self.font, (255, 0, 0), self.screen, 30, 200)
+                                    pygame.display.flip()
 
                             prev_loc_other, other_client = self.get_new_locations(locations, prev_loc_other)
 
@@ -179,6 +175,40 @@ class Game:
                                     temp_p.append(player_remote)
 
                         pygame.display.flip()
+                    font = pygame.font.SysFont('arial', 32)
+                    if self.__other_messages is not None:
+                        output_box = pygame.Rect(20, 100, 500, 100)
+                        input_box = pygame.Rect(20, 200, 200, 50)
+                        # Blit the text.
+                        messages = [font.render(self.__other_messages[i], True, (255, 0, 0))
+                                    for i in range(0, len(self.__other_messages))]
+                        text_messages = [self.__other_messages[i] for i in range(0, len(self.__other_messages))]
+                        o_width = max(500, 50 + 10)
+                        i_width = max(500, 50 + 10)
+
+                        output_box.w = o_width
+                        input_box.w = i_width
+                        self.draw_text(self.__temp_message, font, (255, 0, 0), self.screen, 30, 200)
+                        for i in range(0, len(messages)):
+                            self.screen.blit(messages[i], (30, 200))
+                            self.draw_text(text_messages[i], font, (255, 0, 0), self.screen, 30, 200)
+                            pygame.display.flip()
+                        # Blit the input_box rect.
+                        pygame.draw.rect(self.screen, (255, 0, 0), output_box, 2)
+                        pygame.draw.rect(self.screen, (0, 255, 0), input_box, 2)
+                        pygame.display.flip()
+
+                    self.__message = None
+                    keys = pygame.key.get_pressed()
+                    if keys[pygame.K_m] or self.__using_chat:
+                        self.__using_chat = True
+                        self.__message = self.start_chat()
+                        if self.__message is None:
+                            pass
+                        else:
+                            print(f"You:", self.__message)
+                            self.__temp_message = ""
+                            self.__using_chat = False
 
                 pygame.display.update()
                 self.clock.tick(FPS)
@@ -211,50 +241,72 @@ class Game:
 
         pygame.display.update()
 
+    def draw_text(self, text, font, color, surface, x, y):
+        """
+
+        :param text:
+        :param font:
+        :param color:
+        :param surface:
+        :param x:
+        :param y:
+        """
+
+        text_tobj = font.render(text, 20, color)
+        text_rect = text_tobj.get_rect()
+
+        text_rect.topleft = (x, y)
+        surface.blit(text_tobj, text_rect)
+
     def start_chat(self):
 
-        username = ""
+        message = self.__temp_message
+        timer = 0
 
         font = pygame.font.SysFont('arial', 32)
-        entering_username = True
 
-        while True:
+        keys = pygame.key.get_pressed()
 
-            if entering_username:
-                if len(username) < 20:
-                    self.draw_text(username, font, BLACK, self.screen, 166, 100)
-                elif 20 < len(username) < 40:
-                    self.draw_text(username[21:], font, BLACK, self.screen, 166, 100)
+        active = False
+        text = ''
 
+        done = False
+        start = time.time()
+        clock = pygame.time.Clock()
+
+        while not done:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+                    done = True
+                    pygame.display.flip()
 
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_BACKSPACE:
-                        if entering_username:
-                            if username:
-                                username = username[:-1]
-                                pygame.display.flip()
+                if event.type == pygame.KEYDOWN or active:
+                    if event.key == pygame.K_RETURN:
+                        print(message)
+                        self.__temp_message = message
+                        self.__using_chat = False
+                        pygame.display.flip()
+                        return message
 
-                    elif event.key == pygame.K_RETURN:
-                        if entering_username:
-                            entering_username = False
-
-                            if not entering_username:
-                                return username
-                            else:
-                                return
-
-                    elif event.key == pygame.K_m:
-                        return username
+                    elif event.key == pygame.K_BACKSPACE:
+                        message = message[:-1]
+                        self.__temp_message = message
+                        done = True
+                        pygame.display.flip()
 
                     else:
-                        if entering_username:
-                            username += event.unicode
+                        message += event.unicode
+                        self.__temp_message = message
+                        done = True
+                        pygame.display.flip()
 
-            pygame.display.update()
+               # self.screen.fill((30, 30, 30))
+                # Render the current text.
+
+                end = time.time()
+                timer = start - end
+                if timer > 0.001:
+                    return
 
     def draw_text(self, text, font, color, surface, x, y):
         """
