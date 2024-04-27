@@ -1,5 +1,4 @@
 import time
-
 from scapy.all import *
 from scapy.layers.l2 import *
 from scapy.layers.dns import *
@@ -36,7 +35,7 @@ MSG_TCP_PACK = 56
 
 class ServerHandshake:
 
-    def __init__(self, client_socket: socket, passes, pathname):
+    def __init__(self, client_socket: socket, passes, pathname, max_index):
         self.__client_socket = client_socket
         self.__messages = {"TLS_VALID_HELLO": (0, TLS()), "KEYS": (0, TLS()), "TLS_FIRST_DATA": (0, b"")}
 
@@ -47,6 +46,7 @@ class ServerHandshake:
         self.__path = pathname
 
         self.__start_time = time.time()
+        self.__max_index = max_index
 
     def run(self):
         """
@@ -404,16 +404,17 @@ class ServerHandshake:
         """
 
         certs = []
-        list_numbers = [i for i in range(0, 5)]
+        list_numbers = [i for i in range(self.__max_index - 19, self.__max_index - 19 + 5)]
         index = random.choice(list_numbers)
-        for index in range(index, (index + 1) * 4):
+        for index in range(self.__max_index - 19, self.__max_index + 1):
             with open(f'{self.__path}_Certificates\\certificate{index}.pem', 'rb') as certificate_first:
                 my_cert_pem = certificate_first.read()
                 certs.append(my_cert_pem)
 
         with open(f'{self.__path}_Keys\\the_key{index}.pem', 'rb') as key_first:
             my_key_pem = key_first.read()
-            key = load_pem_private_key(my_key_pem, self.__passes[index].encode(), backend=default_backend())
+            key = load_pem_private_key(my_key_pem, self.__passes[index-(self.__max_index - 19)].encode(),
+                                       backend=default_backend())
 
         return certs, my_key_pem, key
 

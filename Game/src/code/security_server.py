@@ -13,7 +13,6 @@ TLS_M_VERSION = 0x0303
 TLS_N_VERSION = 0x0304
 RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256.val
 MAX_MSG_LENGTH = 1024
-SECURITY_PORT = 443
 THE_SHA_256 = hashes.SHA256()
 THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6": "SELECT", "7": "/", "8": "#",
                 "9": "SQL", "10": "FROM", "11": "(", "12": ")", "13": "+", "14": "UNION", "15": "ALL", "16": ">",
@@ -48,6 +47,8 @@ class Security:
         self.__prev_list = []
         self.__counter_attack = None
 
+        self.__max_index = 19
+
     def run(self):
         """
 
@@ -61,8 +62,8 @@ class Security:
         list_of_banned_addresses = [vital_info for vital_info in info]
         print(list_of_banned_addresses)
 
-        self.__passes = self.__cert_creator.run()
-        self.__cert, self.__key = get_certs(self.__passes, self.__path)
+        self.__passes, self.__max_index = self.__cert_creator.run()
+        self.__cert, self.__key = get_certs(self.__passes, self.__path, self.__max_index)
 
         self.__domain_provider = DomainProvider(self.__cert, self.__key)
         self.create_server(list_of_banned_addresses)
@@ -173,7 +174,7 @@ class Security:
         """
 
         if service_socket is not None:
-            handshake_initializer = ServerHandshake(service_socket, self.__passes, self.__path)
+            handshake_initializer = ServerHandshake(service_socket, self.__passes, self.__path, self.__max_index)
 
             while True:
                 try:
@@ -427,13 +428,23 @@ def main():
     the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     the_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-    the_server_socket.bind((DEFAULT_IP, SECURITY_PORT))  # Bind the server IP and Port into a tuple
-    the_server_socket.listen(1)  # Listen to client
+    ports = [i for i in range(443, 501)]
+    index = 0
 
-    security = Security(database, the_server_socket)
-    security.run()
+    while True:
+        try:
+            the_server_socket.bind((DEFAULT_IP, ports[index]))  # Bind the server IP and Port into a tuple
+            the_server_socket.listen(1)  # Listen to client
 
-    servers_database.close_conn()
+            security = Security(database, the_server_socket)
+            security.run()
+
+            servers_database.close_conn()
+
+        except socket.error as e:
+            if e.errno == errno.EADDRINUSE:
+                print("Port is already in use")
+                index += 1
 
 
 if __name__ == '__main__':

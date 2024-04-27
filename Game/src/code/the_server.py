@@ -73,6 +73,7 @@ class Server:
         self.__passes = []
 
         self.__cert_creator = CertificateCreator(self.__path)
+        self.__max_index = 19
 
     def run(self):
         """
@@ -90,6 +91,7 @@ class Server:
         # """:TODO: Show weapons when attacking"""#
         # """:TODO(almost finished): Make sure nothing appears in terminal (including chat)"""#
         # """:TODO(almost finished): Make sure when player exits the server wont miss any info"""#
+        # """:TODO: Guns"""#
 
         info, resource_info, ip_info = self.receive_info()
         list_of_existing_credentials, list_of_existing_resources = self.organize_info(info, resource_info, ip_info)
@@ -100,7 +102,7 @@ class Server:
                                        if list_of_existing_resources[i][0] == "banned"]
         print(self.__banned_ips, self.__banned_macs, list_of_existing_resources, self.__list_of_banned_users)
 
-        self.__passes = self.__cert_creator.run()
+        self.__passes, self.__max_index = self.__cert_creator.run()
         security_ports = [port for port in range(443, 501)]
 
         self.connect_to_security(security_ports)
@@ -176,8 +178,11 @@ class Server:
             except ConnectionResetError:
                 pass
 
-            except OSError:
-                i += 1
+            except socket.error as e:
+                if e.errno == errno.EADDRINUSE:
+                    print("Port is already in use")
+
+                    i += 1
 
     def connect_to_load_socket(self):
         """
@@ -783,7 +788,8 @@ class Server:
         threads = []
 
         for number in range(0, len(self.__all_details)):
-            handshake = ServerHandshake(self.__all_details[number].get("Client"), self.__passes, self.__path)
+            handshake = ServerHandshake(self.__all_details[number].get("Client"), self.__passes, self.__path,
+                                        self.__max_index)
             the_thread = threading.Thread(target=self.tls_handshake, args=(lock, handshake, number))
             threads.append(the_thread)
 

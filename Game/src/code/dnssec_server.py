@@ -112,16 +112,17 @@ class DomainProvider:
                 return
 
 
-def get_certs(passes, path):
+def get_certs(passes, path, max_index):
     """
 
     :return:
     """
-    n = random.randint(0, 19)
+
+    n = random.randint(max_index - 19, max_index)
     with open(f'{path}_Certificates/certificate{n}.pem', 'rb') as certificate_first:
         my_cert_pem = load_pem_x509_certificate(certificate_first.read())
 
     with open(f'{path}_Keys/the_key{n}.pem', 'rb') as certificate_first:
-        my_key_pem = load_pem_private_key(certificate_first.read(), password=passes[n].encode())
+        my_key_pem = load_pem_private_key(certificate_first.read(), password=passes[n-(max_index-19)].encode())
 
     return my_cert_pem, my_key_pem
