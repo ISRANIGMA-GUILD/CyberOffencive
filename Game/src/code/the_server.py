@@ -83,8 +83,8 @@ class Server:
         # """:TODO(Should the server intervene?): Check if users cheat(in speed, damage, etc.) """#
         # """:TODO: Loading screen between menu and login screens """#
         # """:TODO(Work in progress): Merge with load balancer """#
-        # """:TODO: Counter attack mechanism (security server) """#
-        # """:TODO: Make the whole game abstract from terminal """#
+        # """:TODO(almost finished): Counter attack mechanism (security server) """#
+        # """:TODO(almost finished): Make the whole game abstract from terminal """#
         # """:TODO(almost finished): Try-except on everything """#
         # """:TODO(Work in progress): Receive info about enemy locations, item locations """#
         # """:TODO: Remove clients that quit during the handshake"""#

@@ -2,6 +2,7 @@ from server_handshake import *
 from DatabaseCreator import *
 from dnssec_server import *
 from certificate_creator import *
+from counter_attack import *
 
 SYN = 2
 FIN = 1
@@ -44,6 +45,9 @@ class Security:
         self.__path = "DNS_SERVER"
         self.__cert_creator = CertificateCreator(self.__path)
 
+        self.__prev_list = []
+        self.__counter_attack = None
+
     def run(self):
         """
 
@@ -59,6 +63,7 @@ class Security:
 
         self.__passes = self.__cert_creator.run()
         self.__cert, self.__key = get_certs(self.__passes, self.__path)
+
         self.__domain_provider = DomainProvider(self.__cert, self.__key)
         self.create_server(list_of_banned_addresses)
 
