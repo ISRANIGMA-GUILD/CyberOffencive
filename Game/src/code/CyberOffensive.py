@@ -1,11 +1,11 @@
 import pygame.display
 from level import *
 from the_client import *
+from creepy import *
+from settings import *
 import socket
 import os
 import pickle
-from creepy import *
-from settings import *
 
 IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\LoginScreen\\menuscreen.png'
 BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\'

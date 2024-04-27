@@ -106,11 +106,15 @@ class CertificateCreator:
         return self.__passes
 
     def random_password(self):
+        """
+         "Hhehehe password go brrrrrrrrrrr" -Someone at 5AM
+        :return:
+        """
 
         chars = string.ascii_letters + string.digits + '+/'
         assert 256 % len(chars) == 0  # non-biased later modulo
 
-        PWD_LEN = 32
-        password = ''.join(chars[c % len(chars)] for c in os.urandom(PWD_LEN))
+        password_length = 256
+        password = ''.join(chars[c % len(chars)] for c in os.urandom(password_length))
 
         return password
