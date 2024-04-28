@@ -22,7 +22,8 @@ PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weap
 
 class Server:
 
-    def __init__(self, main_data_base, login_data_base, secure_socket, ips_data_base, load_balance_socket):
+    def __init__(self, main_data_base, login_data_base, secure_socket, ips_data_base, load_balance_socket,
+                 chosen_port, passes, max_index):
         self.__secure_socket1 = secure_socket
         self.__load_balance_socket = load_balance_socket
 
@@ -33,10 +34,7 @@ class Server:
         self.__login_data_base = login_data_base
 
         self.__ips_data_base = ips_data_base
-        self.__default_port = 443
-
-        self.__security_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        self.__load_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        self.__default_port = chosen_port
 
         self.__secure_socket = None
         self.__number_of_clients = 1
@@ -67,11 +65,8 @@ class Server:
         self.__items = []
         self.__session_users = []
 
-        self.__path = "Servers"
-        self.__passes = []
-
-        self.__cert_creator = CertificateCreator(self.__path)
-        self.__max_index = 19
+        self.__passes = passes
+        self.__max_index = max_index
 
     def run(self):
         """
@@ -89,6 +84,7 @@ class Server:
         # """:TODO: Show weapons when attacking"""#
         # """:TODO(almost finished): Make sure nothing appears in terminal (including chat)"""#
         # """:TODO(almost finished): Make sure when player exits the server wont miss any info"""#
+        # """:TODO: Add an identification message for communication between server and security and load balancer"""#
         # """:TODO: Guns"""#
 
         info, resource_info, ip_info = self.receive_info()
@@ -100,12 +96,7 @@ class Server:
                                        if list_of_existing_resources[i][0] == "banned"]
         print(self.__banned_ips, self.__banned_macs, list_of_existing_resources, self.__list_of_banned_users)
 
-        self.__passes, self.__max_index = self.__cert_creator.run()
-        security_ports = [port for port in range(443, 501)]
-
-        self.create_security_context()
-  #      self.create_load_context()
-        self.connect_to_security(security_ports)
+        self.connect_to_security()
         # self.connect_to_load_socket()
 
         print("The server will now wait for clients")
@@ -158,78 +149,47 @@ class Server:
 
         return list_of_existing_credentials, list_of_existing_resources
 
-    def create_security_context(self):
+    def connect_to_security(self):
         """
 
-        """
-        self.__security_context.check_hostname = False
-        self.__security_context.verify_mode = ssl.CERT_NONE
-
-        self.__security_context.minimum_version = ssl.TLSVersion.TLSv1_2
-        self.__security_context.maximum_version = ssl.TLSVersion.TLSv1_3
-
-        self.__security_context.set_ecdh_curve('prime256v1')
-        self.__secure_socket = self.__security_context.wrap_socket(self.__secure_socket1,
-                                                                   server_hostname="mad.cyberoffensive.org")
-        self.__secure_socket1.close()
-
-    def create_load_context(self):
+        :param security_ports:
         """
 
-        """
-        self.__load_context.check_hostname = False
-        self.__load_context.verify_mode = ssl.CERT_NONE
-        self.__load_context.minimum_version = ssl.TLSVersion.TLSv1_3
+        try:
+            self.__secure_socket.connect((LOCAL_HOST, self.__default_port))
+            print("succ")
 
-        self.__load_context.maximum_version = ssl.TLSVersion.TLSv1_3
-        self.__load_context.set_ecdh_curve('prime256v1')
+            pass
 
-        self.__load_balance_socket = self.__load_context.wrap_socket(self.__load_balance_socket)
+        except ConnectionRefusedError:
+            print("what")
+            pass
 
-    def connect_to_security(self, security_ports):
+        except ConnectionResetError:
+            print("huh")
+            pass
 
-        i = 0
-
-        while True:
-            try:
-                self.__secure_socket.connect((LOCAL_HOST, 8443))
-                print("succ")
-                self.__default_port = security_ports[i]
-
-                break
-
-            except ConnectionRefusedError:
-                print("what")
-                pass
-
-            except ConnectionResetError:
-                print("huh")
-                pass
-
-            except socket.error as e:
-                if e.errno == errno.EADDRINUSE:
-                    print("Port is already in use")
-
-                    i += 1
+        except socket.error as e:
+            if e.errno == errno.EADDRINUSE:
+                print("Port is already in use")
 
     def connect_to_load_socket(self):
         """
 
         """
 
-        while True:
-            try:
-                self.__load_balance_socket.connect((MY_IP, 1800))
-                break
+        try:
+            self.__load_balance_socket.connect((MY_IP, 1800))
+            pass
 
-            except ConnectionRefusedError:
-                pass
+        except ConnectionRefusedError:
+            pass
 
-            except ConnectionResetError:
-                pass
+        except ConnectionResetError:
+            pass
 
-            except OSError:
-                pass
+        except OSError:
+            pass
 
     def receive_client_connection_request(self):
         """
@@ -426,9 +386,10 @@ class Server:
 
             n = random.randint(self.__max_index - 19, self.__max_index)
             context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-            context.load_cert_chain(certfile=f"{self.__path}_Certificates\\certificate{n}.pem",
-                                                  keyfile=f"{self.__path}_Keys\\the_key{n}.key",
-                                                  password=self.__passes[n - (self.__max_index - 19)])
+
+            context.load_cert_chain(certfile=f"Servers_Certificates\\certificate{n}.pem",
+                                    keyfile=f"Servers_Keys\\the_key{n}.key",
+                                    password=self.__passes[n - (self.__max_index - 19)])
 
             context.set_ciphers('ECDHE-RSA-AES128-GCM-SHA256')
             context.post_handshake_auth = True
@@ -439,6 +400,7 @@ class Server:
 
             the_server_socket.bind((THE_USUAL_IP, server_port))  # Bind the server IP and Port into a tuple
             the_server_socket = context.wrap_socket(the_server_socket, server_side=True)
+
             self.__all_details[number]["Socket"] = the_server_socket
 
         except OSError:
@@ -803,9 +765,10 @@ class Server:
                 if decrypted_data == 1:
                     self.__secure_socket.close()
                     self.__secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-                    security_ports = [port for port in range(443, 501)]
+                    if self.__default_port != 500:
+                        self.__default_port += 1
 
-                    self.connect_to_security(security_ports)
+                    self.connect_to_security()
                     return
 
                 unpacked_data = pickle.loads(decrypted_data)
@@ -916,7 +879,7 @@ class Server:
 
                                 if the_data[1] is not None and len(the_data[1]) > 0:
                                     self.__chat[index_of_client] = the_data[1]
-                          #      print(self.__chat, the_data[1])
+                                #      print(self.__chat, the_data[1])
 
                                 self.__status[index_of_client] = the_data[2]
                                 self.__status_frame_index[index_of_client] = the_data[4]
@@ -970,7 +933,7 @@ class Server:
                         local_locations = [message for message in local_locations if message is not None]
 
                         local_messages = self.__chat.copy()
-                    #    local_messages.pop(number)
+                        #    local_messages.pop(number)
                         local_messages = [f'{self.__session_users[i]}: {local_messages[i]}'
                                           for i in range(0, len(local_messages)) if local_messages[i] is not None
                                           and len(local_messages[i]) != 0]
@@ -980,7 +943,7 @@ class Server:
                         local_statuses = [message for message in local_statuses if message is not None]
 
                         local_weapons = self.__weapons.copy()
-                     #   print("the weapons", local_weapons)
+                        #   print("the weapons", local_weapons)
                         local_weapons.pop(number)
 
                         local_f_indexes = self.__status_frame_index.copy()
@@ -995,7 +958,7 @@ class Server:
                     except ConnectionResetError:
                         pass
 
-                    #self.__chat[number] = None
+                    # self.__chat[number] = None
 
                 else:
                     return
@@ -1058,15 +1021,15 @@ class Server:
                                                                 self.__new_credentials[index][1]],
                                                         no_duplicate_params=PARAMETERS["NODUP"])
 
-      #  print(self.__main_data_base, self.__credentials, self.__weapons,
-       #       len(self.__session_users) == len(self.__weapons))
+        #  print(self.__main_data_base, self.__credentials, self.__weapons,
+        #       len(self.__session_users) == len(self.__weapons))
 
         for index in range(0, len(self.__session_users) - 1):
             if self.__weapons[index] is not None:
                 weapons = str(self.__weapons[index]["G"]) + ", " + str(self.__weapons[index]["S"])
                 items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) + ", " +
                          str(self.__weapons[index]["RHPF"]) + ", " + str(self.__weapons[index]["BEF"]))
-               # print("Ne weapons", weapons, "Ne items", items)
+                # print("Ne weapons", weapons, "Ne items", items)
 
                 print(self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
                                                        [self.__session_users[index]]))

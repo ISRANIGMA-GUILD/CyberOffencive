@@ -25,26 +25,17 @@ class Security:
     def __init__(self, database: DatabaseManager, the_server_socket: socket):
         self.__database = database
         self.__the_server_socket = the_server_socket
-        self.__security_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 
         self.__secret_security_key = None
         self.__secret_message = None
-
-        self.__cert, self.__key = None, None
-        self.__domain_provider = None
 
         self.__upcoming_bans = []
         self.__currently_banned = []
 
         self.__service_socket = None
-        self.__passes = []
-
-        self.__path = "DNS_SERVER"
-        self.__cert_creator = CertificateCreator(self.__path)
-
         self.__prev_list = []
-        self.__counter_attack = None
 
+        self.__counter_attack = None
         self.__max_index = 19
 
     def run(self):
@@ -60,10 +51,6 @@ class Security:
         list_of_banned_addresses = [vital_info for vital_info in info]
         print(list_of_banned_addresses)
 
-        self.__passes, self.__max_index = self.__cert_creator.run()
-        self.__cert, self.__key = get_certs(self.__passes, self.__path, self.__max_index)
-
-        self.__domain_provider = DomainProvider(self.__cert, self.__key)
         self.create_server(list_of_banned_addresses)
 
     def create_server(self, list_of_banned_addresses):
@@ -71,38 +58,33 @@ class Security:
 
         """
 
-        while True:
-            try:
+        try:
 
-                if self.allow_server_connection():
+            if self.allow_server_connection():
 
-                    dns_pack = self.__domain_provider.run()
+                self.receive_requests(list_of_banned_addresses)
+                if self.__upcoming_bans:
+                    for i in range(0, len(self.__upcoming_bans)):
+                        self.__database.insert_no_duplicates(values=[self.__upcoming_bans[i][0],
+                                                                     self.__upcoming_bans[i][1], 'Banned'],
+                                                             no_duplicate_params=PARAMETERS['IPs'])
 
-                    self.__domain_provider.handle_client(dns_pack)
-                    self.receive_requests(list_of_banned_addresses)
+        except ConnectionAbortedError:
+            pass
 
-                    if self.__upcoming_bans:
-                        for i in range(0, len(self.__upcoming_bans)):
-                            self.__database.insert_no_duplicates(values=[self.__upcoming_bans[i][0],
-                                                                         self.__upcoming_bans[i][1], 'Banned'],
-                                                                 no_duplicate_params=PARAMETERS['IPs'])
+        except ConnectionRefusedError:
+            pass
 
-            except ConnectionAbortedError:
-                break
+        except ConnectionResetError:
+            self.__the_server_socket.close()
+            pass
 
-            except ConnectionRefusedError:
-                break
+        except KeyboardInterrupt:
+            self.__the_server_socket.close()
+            pass
 
-            except ConnectionResetError:
-                self.__the_server_socket.close()
-                break
-
-            except KeyboardInterrupt:
-                self.__the_server_socket.close()
-                break
-
-            else:
-                pass
+        else:
+            pass
 
         print("connect to the main server")
         self.__database.close_conn()
@@ -310,49 +292,16 @@ class Security:
 
 
 def main():
-    servers_database = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
-    database = DatabaseManager("IPs", PARAMETERS["IPs"])
-
-    the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-    the_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    security_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    cert_creator = CertificateCreator("DNS_SERVER")
-
-    passes, max_index = cert_creator.run()
-    cert, key = get_certs(passes, "DNS_SERVER", max_index)
-
-    n = random.randint(max_index - 19, max_index)
-    security_context.load_cert_chain(certfile=f"DNS_SERVER_Certificates\\certificate{n}.pem",
-                                     keyfile=f"DNS_SERVER_Keys\\the_key{n}.key",
-                                     password=passes[n - (max_index - 19)])
-
-    security_context.minimum_version = ssl.TLSVersion.TLSv1_3
-    security_context.maximum_version = ssl.TLSVersion.TLSv1_3
-
-    security_context.set_ecdh_curve('prime256v1')
-    the_b_server_socket = security_context.wrap_socket(the_server_socket, server_hostname="mad.cyberoffensive.org")
-
-    the_b_server_socket .bind((DEFAULT_IP, 8443))  # Bind the server IP and Port into a tuple
-    #     print("f")
-    the_b_server_socket .listen(1)  # Listen to client
-
-    ports = [i for i in range(443, 501)]
-    index = 0
 
     while True:
         try:
             print("e")
 
             print("g")
-            security = Security(database, the_b_server_socket)
-            security.run()
-
-            servers_database.close_conn()
 
         except socket.error as e:
             if e.errno == errno.EADDRINUSE:
                 print("Port is already in use")
-                index += 1
 
 
 if __name__ == '__main__':

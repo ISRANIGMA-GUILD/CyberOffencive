@@ -32,7 +32,7 @@ class DomainProvider:
         full_pack_c = (full_base_k / a_pack)
         full_pack_c = self.prepare_packet(full_pack_c)
 
-        return full_pack_c
+        self.handle_client(full_pack_c)
 
     def create_full_pack(self):
         """
