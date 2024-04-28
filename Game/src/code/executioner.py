@@ -38,7 +38,7 @@ class MainRunner:
 
     def run(self):
         """
-
+        #Run in multi process and make sure the connect -> servers is seperate from the general communication
         """
 
         for index in range(0, len(self.__paths)):

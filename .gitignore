@@ -30,7 +30,7 @@ thegame.back-SetupFiles/
 thegame-cache/
 thegame-SetupFiles/
 dnspython/
-
+.idea/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -39,6 +39,7 @@ dnspython/
 *.spec
 *.yaml
 *.xml
+
 
 # Installer logs
 pip-log.txt

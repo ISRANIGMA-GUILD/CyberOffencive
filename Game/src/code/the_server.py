@@ -80,10 +80,10 @@ class Server:
         # """:TODO(Work in progress): Merge with load balancer """#
         # """:TODO(almost finished): Try-except on everything """#
         # """:TODO(Work in progress): Receive info about enemy locations, item locations """#
-        # """:TODO(almost finished): Make sure server isn't bogged down due to heavy packs"""#
+        # """:TODO(finished?): Make sure server isn't bogged down due to heavy packs"""#
         # """:TODO: Show weapons when attacking"""#
         # """:TODO(almost finished): Make sure nothing appears in terminal (including chat)"""#
-        # """:TODO(almost finished): Make sure when player exits the server wont miss any info"""#
+        # """:TODO(finished?): Make sure when player exits the server wont miss any info"""#
         # """:TODO: Add an identification message for communication between server and security and load balancer"""#
         # """:TODO: Guns"""#
 
