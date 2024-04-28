@@ -113,6 +113,9 @@ class CertificateCreator:
                 with open(f'{self.__path}_Keys\\the_key{index}.pem', 'wb') as key_first:
                     key_first.write(my_key_pem)
 
+                with open(f'{self.__path}_Keys\\the_key{index}.key', 'wb') as key_first:
+                    key_first.write(my_key_pem)
+
             else:
                 print("exi")
                 while os.path.isfile(f'{self.__path}_Certificates\\Certificate_crts\\certificate{self.__tracker}.crt'):
@@ -129,6 +132,9 @@ class CertificateCreator:
                     certificate_first.write(my_cert_pem)
 
                 with open(f'{self.__path}_Keys\\the_key{self.__tracker}.pem', 'wb') as key_first:
+                    key_first.write(my_key_pem)
+
+                with open(f'{self.__path}_Keys\\the_key{self.__tracker}.key', 'wb') as key_first:
                     key_first.write(my_key_pem)
 
         return self.__passes, self.__tracker

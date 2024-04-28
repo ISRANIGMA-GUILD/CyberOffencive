@@ -1,13 +1,13 @@
-import time
-from cryptography.exceptions import *
-from client_handshake import *
-from server_handshake import *
 from DatabaseCreator import *
 from certificate_creator import *
+from scapy.layers.l2 import *
+from scapy.layers.inet import *
+from scapy.layers.dns import *
 from login import *
 import os
 import threading
 import pickle
+import ssl
 
 SYN = 2
 ACK = 16
@@ -23,7 +23,7 @@ PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weap
 class Server:
 
     def __init__(self, main_data_base, login_data_base, secure_socket, ips_data_base, load_balance_socket):
-        self.__secure_socket = secure_socket
+        self.__secure_socket1 = secure_socket
         self.__load_balance_socket = load_balance_socket
 
         self.__load_balance_ip = MY_IP  # Will soon be changed according to a mechanism
@@ -35,13 +35,10 @@ class Server:
         self.__ips_data_base = ips_data_base
         self.__default_port = 443
 
-        self.__security_private_handshake = ClientHandshake(self.__secure_socket, MY_IP, self.__default_port)
-        self.__private_security_key = 0
+        self.__security_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        self.__load_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 
-        self.__private_message = 0
-        self.__private_l_security_key = 0
-
-        self.__private_l_message = 0
+        self.__secure_socket = None
         self.__number_of_clients = 1
 
         self.__banned_ips = []
@@ -106,11 +103,11 @@ class Server:
         self.__passes, self.__max_index = self.__cert_creator.run()
         security_ports = [port for port in range(443, 501)]
 
+        self.create_security_context()
+  #      self.create_load_context()
         self.connect_to_security(security_ports)
         # self.connect_to_load_socket()
-        #   self.first_client_handshake_to_load_balancer()
 
-        self.security_first()
         print("The server will now wait for clients")
 
         the_lock = threading.Lock()
@@ -161,22 +158,52 @@ class Server:
 
         return list_of_existing_credentials, list_of_existing_resources
 
+    def create_security_context(self):
+        """
+
+        """
+        self.__security_context.check_hostname = False
+        self.__security_context.verify_mode = ssl.CERT_NONE
+
+        self.__security_context.minimum_version = ssl.TLSVersion.TLSv1_2
+        self.__security_context.maximum_version = ssl.TLSVersion.TLSv1_3
+
+        self.__security_context.set_ecdh_curve('prime256v1')
+        self.__secure_socket = self.__security_context.wrap_socket(self.__secure_socket1,
+                                                                   server_hostname="mad.cyberoffensive.org")
+        self.__secure_socket1.close()
+
+    def create_load_context(self):
+        """
+
+        """
+        self.__load_context.check_hostname = False
+        self.__load_context.verify_mode = ssl.CERT_NONE
+        self.__load_context.minimum_version = ssl.TLSVersion.TLSv1_3
+
+        self.__load_context.maximum_version = ssl.TLSVersion.TLSv1_3
+        self.__load_context.set_ecdh_curve('prime256v1')
+
+        self.__load_balance_socket = self.__load_context.wrap_socket(self.__load_balance_socket)
+
     def connect_to_security(self, security_ports):
 
         i = 0
 
         while True:
             try:
-                self.__secure_socket.connect((LOCAL_HOST, security_ports[i]))
+                self.__secure_socket.connect((LOCAL_HOST, 8443))
+                print("succ")
                 self.__default_port = security_ports[i]
 
-                self.__security_private_handshake = ClientHandshake(self.__secure_socket, MY_IP, self.__default_port)
                 break
 
             except ConnectionRefusedError:
+                print("what")
                 pass
 
             except ConnectionResetError:
+                print("huh")
                 pass
 
             except socket.error as e:
@@ -202,28 +229,6 @@ class Server:
                 pass
 
             except OSError:
-                pass
-
-    def security_first(self):
-        """
-
-        """
-
-        while True:
-            try:
-                security_items = self.__security_private_handshake.run()
-                if not security_items:
-                    pass
-
-                else:
-                    if None not in security_items:
-                        self.__private_security_key, self.__private_message = security_items
-                        break
-
-                    else:
-                        pass
-
-            except ConnectionResetError:
                 pass
 
     def receive_client_connection_request(self):
@@ -276,7 +281,7 @@ class Server:
         :return:
         """
 
-        requests = sniff(count=1, lfilter=self.filter_tcp, timeout=0.1)
+        requests = sniff(count=1, lfilter=self.filter_tcp, timeout=0.01)
         if not requests:
             return
 
@@ -380,7 +385,7 @@ class Server:
         """
 
         skip = []
-        requests = sniff(count=1, lfilter=self.filter_tcp, timeout=0.1)
+        requests = sniff(count=1, lfilter=self.filter_tcp, timeout=0.01)
 
         if not requests:
             return
@@ -419,7 +424,21 @@ class Server:
             the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
             print(server_port)
 
+            n = random.randint(self.__max_index - 19, self.__max_index)
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            context.load_cert_chain(certfile=f"{self.__path}_Certificates\\certificate{n}.pem",
+                                                  keyfile=f"{self.__path}_Keys\\the_key{n}.key",
+                                                  password=self.__passes[n - (self.__max_index - 19)])
+
+            context.set_ciphers('ECDHE-RSA-AES128-GCM-SHA256')
+            context.post_handshake_auth = True
+
+            context.set_ecdh_curve('prime256v1')
+            context.minimum_version = ssl.TLSVersion.TLSv1_2
+            context.maximum_version = ssl.TLSVersion.TLSv1_3
+
             the_server_socket.bind((THE_USUAL_IP, server_port))  # Bind the server IP and Port into a tuple
+            the_server_socket = context.wrap_socket(the_server_socket, server_side=True)
             self.__all_details[number]["Socket"] = the_server_socket
 
         except OSError:
@@ -462,101 +481,6 @@ class Server:
         self.__number_of_clients += 1
         self.__all_details[number]["Timer"] = (time.time(), 0)
 
-    def tls_handshake(self, lock, handshake, number):
-        """
-
-        :param handshake:
-        :param number:
-        :param lock:
-        :return:
-        """
-
-        with lock:
-            start = time.time()
-            try:
-                if (self.__all_details[number].get("Credentials") is None and self.__all_details[number].get("Client")
-                        is not None and self.__all_details[number].get("Servers_Keys") is None):
-
-                    enc_key = handshake.run()
-                    if enc_key == 1:
-                        self.__all_details[number]["Connected"] = 1
-                        return
-
-                    else:
-                        self.__all_details[number]["Servers_Keys"] = enc_key
-                        handshake.stop()
-
-                        end = time.time()
-                        print(time.strftime("%Hh %Mm %Ss", time.gmtime(end - start)).split(' '))
-
-                else:
-                    pass
-
-            except AttributeError:
-                end = time.time()
-
-                print(time.strftime("%Hh %Mm %Ss", time.gmtime(end - start)).split(' '))
-                pass
-
-            except TypeError:
-                end = time.time()
-
-                print(time.strftime("%Hh %Mm %Ss", time.gmtime(end - start)).split(' '))
-                return
-
-            except IndexError:
-                end = time.time()
-
-                print(time.strftime("%Hh %Mm %Ss", time.gmtime(end - start)).split(' '))
-                return
-
-    def encrypt_data(self, key, plaintext, associated_data):
-        """
-         Encrypt data before sending it to the client
-        :param key: The server encryption key
-        :param plaintext: The data which will be encrypted
-        :param associated_data: Data which is associated with yet not encrypted
-        :return: The iv, the encrypted data and the encryption tag
-        """
-
-        try:
-            iv = os.urandom(12)
-            encryptor = Cipher(algorithms.AES(key), modes.GCM(iv)).encryptor()
-
-            encryptor.authenticate_additional_data(associated_data)
-            ciphertext = encryptor.update(plaintext) + encryptor.finalize()
-
-            return iv, ciphertext, encryptor.tag
-
-        except InvalidKey:
-            return 1
-
-        except ValueError:
-            return 1
-
-    def decrypt_data(self, key, associated_data, iv, ciphertext, tag):
-        """
-         Decrypt the data received by the client
-        :param key: The server encryption key
-        :param associated_data: The data associated with the message
-        :param iv: The iv
-        :param ciphertext: The encrypted data
-        :param tag: The encryption tag
-        :return: The decrypted data
-        """
-
-        try:
-            decryptor = Cipher(algorithms.AES(key), modes.GCM(iv, tag)).decryptor()
-            decryptor.authenticate_additional_data(associated_data)
-
-            return decryptor.update(ciphertext) + decryptor.finalize()
-
-        except InvalidKey:
-            return 1
-
-        except ValueError:
-            return 1
-
     def create_message(self, some_data):
         """
          Turn the data into a proper message
@@ -564,11 +488,9 @@ class Server:
         :return: The full data message
         """
 
-        full_data = some_data[0] + some_data[1] + some_data[2]
-        data_packet = TLS(msg=TLSApplicationData(data=full_data))
-        data_message = self.prepare_packet_structure(data_packet)
+        full_data = pickle.dumps(some_data)
 
-        return data_message
+        return full_data
 
     def deconstruct_data(self, the_client_socket):
         """
@@ -577,27 +499,16 @@ class Server:
         :return: The data iv, data and tag
         """
         try:
-            the_client_socket.settimeout(0.1)
-            data_pack = the_client_socket.recv(MAX_MSG_LENGTH)
+            the_client_socket.settimeout(0.001)
+            data_pack = the_client_socket.recv(200)
 
             if not data_pack:
                 return
 
-            elif TLSAlert in TLS(data_pack):
-                print("THAT IS A SNEAKY CLIENT")
-                return 0, 1, 2
-
             else:
                 try:
-                    data_pack = TLS(data_pack)
-                    data = data_pack[TLS][TLSApplicationData].data
-
-                    data_iv = data[:12]
-                    data_tag = data[len(data) - 16:len(data)]
-
-                    data_c_t = data[12:len(data) - 16]
-
-                    return data_iv, data_c_t, data_tag
+                    data = pickle.loads(data_pack)
+                    return data
 
                 except IndexError:
                     pass
@@ -617,16 +528,6 @@ class Server:
             print("reconnect to security")
             return
 
-    def send_alert(self, client_socket):
-        """
-
-        :return:
-        """
-
-        alert = TLS(msg=TLSAlert(level=2, descr=40))
-        alert = self.prepare_packet_structure(alert)
-        client_socket.sendall(bytes(alert[TLS]))
-
     def handle_clients(self, the_lock, login_lock, security_lock, modification_lock, list_of_existing,
                        list_of_existing_resources):
         """
@@ -643,10 +544,9 @@ class Server:
             try:
                 self.update_credential_list()
                 self.update_database()
-                security_thread = self.create_security_threads(security_lock)
 
+                security_thread = self.create_security_threads(security_lock)
                 connection_threads = self.create_connection_threads(the_lock)
-                tls_handshakes = self.create_tls_handshake_threads(the_lock)
 
                 login_threads = self.create_credential_threads(login_lock, list_of_existing, list_of_existing_resources)
                 response_threads = self.create_responders(the_lock)
@@ -654,8 +554,8 @@ class Server:
                 details_threads = self.create_detail_threads(the_lock)
                 disconnect_threads = self.create_disconnect_threads(modification_lock)
 
-                self.start_handling(security_thread, connection_threads, login_threads, tls_handshakes,
-                                    response_threads, disconnect_threads, details_threads)
+                self.start_handling(security_thread, connection_threads, login_threads, response_threads,
+                                    disconnect_threads, details_threads)
 
                 if self.empty_server():
                     self.update_database()
@@ -701,7 +601,7 @@ class Server:
 
         """
         if self.__number_of_clients - 1 >= len(self.__all_details) or len(self.__all_details) == 0:
-            self.__all_details.append({"Credentials": None, "Servers_Keys": None, "Socket": None,
+            self.__all_details.append({"Credentials": None, "Socket": None,
                                        "Client": None, "Timer": None, "Connected": 0, "Port": 0})
 
         else:
@@ -779,23 +679,6 @@ class Server:
 
         return threads
 
-    def create_tls_handshake_threads(self, lock):
-        """
-
-        :param lock:
-        :return:
-        """
-
-        threads = []
-
-        for number in range(0, len(self.__all_details)):
-            handshake = ServerHandshake(self.__all_details[number].get("Client"), self.__passes, self.__path,
-                                        self.__max_index)
-            the_thread = threading.Thread(target=self.tls_handshake, args=(lock, handshake, number))
-            threads.append(the_thread)
-
-        return threads
-
     def create_credential_threads(self, lock, list_of_existing, list_of_existing_resources):
         """
 
@@ -859,24 +742,23 @@ class Server:
 
         return threads
 
-    def start_handling(self, security_thread, connection_threads, login_threads, tls_handshakes, response_threads,
-                       disconnect_threads, detail_threads):
+    def start_handling(self, security_thread, connection_threads, login_threads, response_threads, disconnect_threads,
+                       detail_threads):
         """
 
         :param security_thread:
         :param connection_threads:
         :param response_threads:
         :param login_threads:
-        :param tls_handshakes:
         :param disconnect_threads:
         :param detail_threads:
         """
 
         [thread.start() for thread in
-         (security_thread + connection_threads + tls_handshakes + login_threads + response_threads + detail_threads +
+         (security_thread + connection_threads + login_threads + response_threads + detail_threads +
           disconnect_threads)]
 
-        for thread in (security_thread + connection_threads + tls_handshakes + login_threads + response_threads +
+        for thread in (security_thread + connection_threads + login_threads + response_threads +
                        detail_threads + disconnect_threads):
             thread.join()
 
@@ -916,8 +798,7 @@ class Server:
                 return
 
             else:
-                key, auth = self.__private_security_key, self.__private_message
-                decrypted_data = self.decrypt_data(key, auth, data[0], data[1], data[2])
+                decrypted_data = data
 
                 if decrypted_data == 1:
                     self.__secure_socket.close()
@@ -925,7 +806,6 @@ class Server:
                     security_ports = [port for port in range(443, 501)]
 
                     self.connect_to_security(security_ports)
-                    self.security_first()
                     return
 
                 unpacked_data = pickle.loads(decrypted_data)
@@ -933,27 +813,6 @@ class Server:
 
         except socket.timeout:
             return
-
-    def first_client_handshake_to_load_balancer(self):
-        """
-
-        """
-
-        while True:
-            try:
-                client_handshake = ClientHandshake(self.__load_balance_socket, self.__load_balance_ip,
-                                                   self.__load_balance_port)
-                security_items = client_handshake.run()
-
-                if not security_items:
-                    pass
-
-                else:
-                    self.__private_l_security_key, self.__private_l_message = security_items
-                    break
-
-            except ConnectionResetError:
-                pass
 
     def receive_connections(self, lock, number):
         """
@@ -995,7 +854,6 @@ class Server:
         with lock:
             try:
                 if (self.__all_details[number].get("Credentials") is None and
-                        self.__all_details[number].get("Servers_Keys") is not None and
                         self.__all_details[number].get("Client") is not None):
 
                     loging = Login(self.__all_details[number], list_of_existing, list_of_existing_resources,
@@ -1021,95 +879,77 @@ class Server:
 
         with lock:
             try:
-                if (self.__all_details[index_of_client].get("Servers_Keys") is not None and
-                        self.__all_details[index_of_client].get("Credentials") is not None and
+                if (self.__all_details[index_of_client].get("Credentials") is not None and
                         self.__all_details[index_of_client].get("Client") is not None):
 
                     client_socket = self.__all_details[index_of_client].get("Client")
-                    enc_key, auth = self.__all_details[index_of_client].get("Servers_Keys")
 
-                    try:
-                        data = self.deconstruct_data(client_socket)
+                    data = self.deconstruct_data(client_socket)
 
-                        if not data:
+                    if not data:
+                        return
+
+                    else:
+
+                        if data == 1 or data[3] == 1:
+                            self.__all_details[index_of_client]["Connected"] = 1
                             return
 
                         else:
-                            data_iv, data_c_t, data_tag = data
-
-                            if data_iv == 0 and data_c_t == 1 and data_tag == 2:
-                                print("hold up bro")
-                                self.__all_details[index_of_client]["Connected"] = 1
+                            the_data = data
+                            if type(the_data) is tuple:
+                                print('dup')
                                 return
 
-                            decrypted_data = self.decrypt_data(enc_key, auth, data_iv, data_c_t, data_tag)
+                            if the_data[0] == 'EXIT':
+                                print("Client", index_of_client + 1, client_socket.getpeername(),
+                                      "has left the server")
+                                self.__all_details[index_of_client]["Connected"] = 1
 
-                            if decrypted_data is not None:
-                                if decrypted_data == 1:
-                                    self.__all_details[index_of_client]["Connected"] = 1
-                                    return
+                                self.__weapons[index_of_client] = the_data[2]
+                                return
 
-                                else:
-                                    the_data = pickle.loads(decrypted_data)
-                                    if type(the_data) is tuple:
-                                        print('dup')
-                                        return
+                            else:
+                                print("data", the_data)
 
-                                    if the_data[0] == 'EXIT':
-                                        print("Client", index_of_client + 1, client_socket.getpeername(),
-                                              "has left the server")
-                                        self.__all_details[index_of_client]["Connected"] = 1
+                                self.__locations[index_of_client] = the_data[0]
 
-                                        self.__weapons[index_of_client] = the_data[2]
-                                        return
+                                if the_data[1] is not None and len(the_data[1]) > 0:
+                                    self.__chat[index_of_client] = the_data[1]
+                          #      print(self.__chat, the_data[1])
 
-                                    else:
-                                       # print("data", the_data)
-                                        self.__locations[index_of_client] = the_data[0]
+                                self.__status[index_of_client] = the_data[2]
+                                self.__status_frame_index[index_of_client] = the_data[4]
 
-                                        if the_data[1] is not None and len(the_data[1]) > 0:
-                                            self.__chat[index_of_client] = the_data[1]
-                                  #      print(self.__chat, the_data[1])
+            except TypeError:
+                print("Client", index_of_client + 1, "unexpectedly left")
 
-                                        self.__status[index_of_client] = the_data[2]
-                                        self.__status_frame_index[index_of_client] = the_data[4]
+                print("Waited", self.__all_details)
+                return
 
-                    except TypeError:
-                        print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")
-                        self.__all_details[index_of_client]["Connected"] = 1
+            except ConnectionAbortedError:
+                print("Client", index_of_client + 1, "unexpectedly left")
+                print("Waited", self.__all_details)
+                return
 
-                        print("Waited")
-                        return
+            except ConnectionResetError:
+                print("Client", index_of_client + 1, "unexpectedly left")
+                print("Waited", self.__all_details)
+                return
 
-                    except ConnectionAbortedError:
-                        print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")
-                        self.__all_details[index_of_client]["Connected"] = 1
+            except IndexError:
+                print("Client", index_of_client + 1, "unexpectedly left")
+                print("Waited", self.__all_details)
+                return
 
-                        print("Waited")
-                        return
+            except pickle.PickleError:
+                print("what?")
+                return
 
-                    except ConnectionResetError:
-                        print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")
-                        self.__all_details[index_of_client]["Connected"] = 1
+            except socket.timeout:
+                return
 
-                        print("Waited")
-                        return
-
-                    except IndexError:
-                        print("Client", index_of_client + 1, client_socket.getpeername(), "unexpectedly left")
-                        self.__all_details[index_of_client]["Connected"] = 1
-
-                        print("Waited")
-                        return
-
-                    except pickle.PickleError:
-                        print("what?")
-                        return
-
-                    except socket.timeout:
-                        return
-
-            except Exception:
+            except KeyboardInterrupt:
                 print("just stop")
                 return
 
@@ -1123,8 +963,7 @@ class Server:
         with lock:
             try:
                 if (self.__locations is not None and self.__all_details[number].get("Client") is not None and
-                        self.__all_details[number].get("Credentials") is not None and
-                        self.__all_details[number].get("Servers_Keys") is not None):
+                        self.__all_details[number].get("Credentials") is not None):
                     try:
                         local_locations = self.__locations.copy()
                         local_locations.pop(number)
@@ -1149,11 +988,9 @@ class Server:
                         local_f_indexes = [message for message in local_f_indexes if message is not None]
 
                         list_data = local_locations, local_messages, local_statuses, local_f_indexes
-                        byte_data = pickle.dumps(list_data, protocol=5)
+                        byte_data = self.create_message(list_data)
 
-                        en = self.encrypt_data(self.__all_details[number].get("Servers_Keys")[0], byte_data,
-                                               self.__all_details[number].get("Servers_Keys")[1])
-                        self.__all_details[number].get("Client").sendall(bytes(self.create_message(en)[TLS]))
+                        self.__all_details[number].get("Client").sendall(byte_data)
 
                     except ConnectionResetError:
                         pass
@@ -1216,7 +1053,6 @@ class Server:
         """
 
         """
-
         for index in range(0, len(self.__new_credentials)):
             self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
                                                                 self.__new_credentials[index][1]],
@@ -1242,9 +1078,8 @@ class Server:
 
         try:
             message = "EXIT".encode()
-            en = self.encrypt_data(self.__private_security_key, message, self.__private_message)
 
-            self.__secure_socket.sendall(bytes(self.create_message(en)[TLS]))
+            self.__secure_socket.sendall(message)
             self.__secure_socket.close()
 
         except ConnectionResetError:

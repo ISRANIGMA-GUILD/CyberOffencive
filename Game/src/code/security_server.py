@@ -1,4 +1,4 @@
-from server_handshake import *
+import ssl
 from DatabaseCreator import *
 from dnssec_server import *
 from certificate_creator import *
@@ -9,9 +9,6 @@ FIN = 1
 ACK = 16
 MY_IP = conf.route.route('0.0.0.0')[1]
 DEFAULT_IP = '0.0.0.0'
-TLS_M_VERSION = 0x0303
-TLS_N_VERSION = 0x0304
-RECOMMENDED_CIPHER = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256.val
 MAX_MSG_LENGTH = 1024
 THE_SHA_256 = hashes.SHA256()
 THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6": "SELECT", "7": "/", "8": "#",
@@ -28,6 +25,7 @@ class Security:
     def __init__(self, database: DatabaseManager, the_server_socket: socket):
         self.__database = database
         self.__the_server_socket = the_server_socket
+        self.__security_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 
         self.__secret_security_key = None
         self.__secret_message = None
@@ -76,8 +74,7 @@ class Security:
         while True:
             try:
 
-                if (self.allow_server_connection() and self.__secret_security_key is not None and
-                   self.__secret_message is not None):
+                if self.allow_server_connection():
 
                     dns_pack = self.__domain_provider.run()
 
@@ -142,61 +139,8 @@ class Security:
                 self.__the_server_socket.close()
                 return False
 
-        if self.__service_socket is not None and self.__secret_security_key is None and self.__secret_message is None:
-            try:
-                self.security_start(self.__service_socket)
-                if self.__secret_security_key is not None and self.__secret_message is not None:
-                    print("yes")
-                    return True
-
-            except ConnectionAbortedError:
-                self.__the_server_socket.close()
-                return False
-
-            except ConnectionRefusedError:
-                return False
-
-            except ConnectionResetError:
-                self.__the_server_socket.close()
-                return False
-
-            except KeyboardInterrupt:
-                self.__the_server_socket.close()
-                return False
-
         else:
             return True
-
-    def security_start(self, service_socket):
-        """
-
-        :param service_socket:
-        """
-
-        if service_socket is not None:
-            handshake_initializer = ServerHandshake(service_socket, self.__passes, self.__path, self.__max_index)
-
-            while True:
-                try:
-                    security_for_server = handshake_initializer.run()
-
-                    if not security_for_server:
-                        pass
-
-                    else:
-                        if None not in security_for_server:
-                            self.__secret_security_key, self.__secret_message = security_for_server
-                            handshake_initializer.stop()
-                            break
-
-                        else:
-                            pass
-
-                except ConnectionResetError:
-                    pass
-
-        else:
-            return
 
     def receive_requests(self, list_of_banned_addresses):
         """
@@ -218,11 +162,9 @@ class Security:
                     pass
 
                 else:
-                    banned_addresses = pickle.dumps(banned_addresses)
-                    encrypted_message = self.encrypt_data(banned_addresses)
 
-                    banned_message = self.create_message(encrypted_message)
-                    self.__service_socket.send(bytes(banned_message[TLS]))
+                    banned_message = self.create_message(banned_addresses)
+                    self.__service_socket.send(banned_message)
 
                     print("sent")
                     self.__upcoming_bans = pickle.loads(banned_addresses)
@@ -290,35 +232,6 @@ class Security:
 
         return TCP in packets and Raw in packets and (packets[Raw].load == b'Logged' or packets[Raw].load == b'Urgent')
 
-    def encrypt_data(self, plaintext):
-        """
-         Encrypt data before sending it to the client
-        :param plaintext: The data which will be encrypted
-        :return: The iv, the encrypted data and the encryption tag
-        """
-
-        iv = os.urandom(12)
-        encryptor = Cipher(algorithms.AES(self.__secret_security_key), modes.GCM(iv)).encryptor()
-
-        encryptor.authenticate_additional_data(self.__secret_message)
-        ciphertext = encryptor.update(plaintext) + encryptor.finalize()
-
-        return iv, ciphertext, encryptor.tag
-
-    def decrypt_data(self, iv, ciphertext, tag):
-        """
-         Decrypt the data received by the client
-        :param iv: The iv
-        :param ciphertext: The encrypted data
-        :param tag: The encryption tag
-        :return: The decrypted data
-        """
-
-        decryptor = Cipher(algorithms.AES(self.__secret_security_key), modes.GCM(iv, tag)).decryptor()
-        decryptor.authenticate_additional_data(self.__secret_message)
-
-        return decryptor.update(ciphertext) + decryptor.finalize()
-
     def create_message(self, some_data):
         """
          Turn the data into a proper message
@@ -326,11 +239,7 @@ class Security:
         :return: The full data message
         """
 
-        full_data = some_data[0] + some_data[1] + some_data[2]
-        data_packet = TLS(msg=TLSApplicationData(data=full_data))
-        data_message = self.prepare_packet_structure(data_packet)
-
-        return data_message
+        return pickle.dumps(some_data)
 
     def prepare_packet_structure(self, the_packet):
         """
@@ -354,18 +263,8 @@ class Security:
             if not data_pack:
                 return
 
-            elif TLSAlert in TLS(data_pack):
-                print("THAT IS A SNEAKY CLIENT")
-                return 0, 1, 2
-
             else:
-                data_pack = TLS(data_pack)
-
-                data = data_pack[TLS][TLSApplicationData].data
-                data_iv = data[:12]
-
-                data_tag = data[len(data) - 16:len(data)]
-                data_c_t = data[12:len(data) - 16]
+                data = pickle.loads(data_pack)
 
         except IndexError:
             return
@@ -376,7 +275,7 @@ class Security:
         except socket.timeout:
             return
 
-        return data_iv, data_c_t, data_tag
+        return data
 
     def decide(self, data):
         """
@@ -384,7 +283,7 @@ class Security:
         :param data:
         """
 
-        message = self.decrypt_data(data[0], data[1], data[2])
+        message = data
 
         if message == "EXIT".encode():
             self.__service_socket.close()
@@ -392,17 +291,6 @@ class Security:
 
             self.__service_socket = None
             self.__secret_security_key = None
-
-    def invalid_data(self, data_iv, data_c_t, data_tag):
-        """
-
-        :param data_iv:
-        :param data_c_t:
-        :param data_tag:
-        :return:
-        """
-
-        return data_iv == 0 and data_c_t == 1 and data_tag == 2
 
     def remove_known_users(self, banned_addresses):
         """
@@ -427,16 +315,36 @@ def main():
 
     the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     the_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    security_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    cert_creator = CertificateCreator("DNS_SERVER")
+
+    passes, max_index = cert_creator.run()
+    cert, key = get_certs(passes, "DNS_SERVER", max_index)
+
+    n = random.randint(max_index - 19, max_index)
+    security_context.load_cert_chain(certfile=f"DNS_SERVER_Certificates\\certificate{n}.pem",
+                                     keyfile=f"DNS_SERVER_Keys\\the_key{n}.key",
+                                     password=passes[n - (max_index - 19)])
+
+    security_context.minimum_version = ssl.TLSVersion.TLSv1_3
+    security_context.maximum_version = ssl.TLSVersion.TLSv1_3
+
+    security_context.set_ecdh_curve('prime256v1')
+    the_b_server_socket = security_context.wrap_socket(the_server_socket, server_hostname="mad.cyberoffensive.org")
+
+    the_b_server_socket .bind((DEFAULT_IP, 8443))  # Bind the server IP and Port into a tuple
+    #     print("f")
+    the_b_server_socket .listen(1)  # Listen to client
 
     ports = [i for i in range(443, 501)]
     index = 0
 
     while True:
         try:
-            the_server_socket.bind((DEFAULT_IP, ports[index]))  # Bind the server IP and Port into a tuple
-            the_server_socket.listen(1)  # Listen to client
+            print("e")
 
-            security = Security(database, the_server_socket)
+            print("g")
+            security = Security(database, the_b_server_socket)
             security.run()
 
             servers_database.close_conn()

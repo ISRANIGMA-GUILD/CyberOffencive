@@ -49,7 +49,7 @@ class Game:
         self.__previous_messages = []
 
         self.__locs = [[0, (30, 150)], [1, (30, 100)]]
-        self.__archive = []
+        self.__previous_details = []
 
     def run(self) -> None:
         """
@@ -67,7 +67,7 @@ class Game:
                     if pygame.QUIT == event.type:
                         if game_state == "continue":
                             list_of_details = ["EXIT", 1, self.items]
-                            other_client = self.network.communicate(list_of_details, self.items)
+                            self.network.update_server(list_of_details, self.items)
 
                         pygame.quit()
                         sys.exit()
@@ -85,9 +85,11 @@ class Game:
                     if keys[pygame.K_SPACE]:
                         ran = self.network.run()
                         if ran == 2:
+                            print("what is that new")
                             game_state = "start_menu"
 
                         elif ran == 1:
+                            print("really oh reaaaaally")
                             game_state = "start_menu"
 
                         else:
@@ -128,6 +130,7 @@ class Game:
                     self.text_surface = self.font.render("FPS: " + str(int(fps)), True, (128, 0, 128))
 
                     self.screen.blit(self.text_surface, (350, 10))
+                    other_client = self.network.receive_location()
                     current_loc = self.level.player.get_location()
 
                     current_status_index = int(self.level.player.frame_index)
@@ -135,7 +138,10 @@ class Game:
 
                     list_of_public_details = [current_loc, self.__message, self.level.player.status, 0,
                                               current_status_index]
-                    other_client = self.network.communicate(list_of_public_details, self.items)
+                    
+                    if self.__previous_details != list_of_public_details:
+                        self.network.update_server(list_of_public_details, self.items)
+                        self.__previous_details = list_of_public_details
 
                     self.__previous_status = self.level.player.status
                     self.prev_loc = current_loc
@@ -144,13 +150,15 @@ class Game:
                         pass
 
                     elif other_client == 1:
+                        print("what the actual fuck is happening")
                         game_state = "start_menu"
 
-                    elif type(other_client) is bytes:
-                        other_client = pickle.loads(other_client)
-                        # print("other_client", other_client)
+                    else:
+                    #    other_client = pickle.loads(other_client)
+                        print("other_client", other_client, type(other_client))
 
                         if type(other_client) is list or type(other_client) is tuple:
+                            print("updating")
                             statuses = other_client[2]
                             status_frame_indexes = other_client[3]
 
@@ -158,19 +166,11 @@ class Game:
                             self.__previous_messages = self.__other_messages
                             locations = other_client[0]
 
-                            for i in range(0, len(self.__other_messages)):
-                                if self.__other_messages[i] is not None or '':
-                                    #print(f"Client {i + 1}:", self.__other_messages[i])
-                                    self.__archive.append(self.__other_messages[i])
-                                #    self.__previous_messages.append(self.__other_messages[i])
-
                             prev_loc_other, other_client = self.get_new_locations(locations, prev_loc_other)
                             self.erase_previous(temp_p)
 
                             temp_p = []
                             statuses_updated = []
-
-                            statuses = [status for status in statuses if status is not None]
 
                             for i in range(0, len(statuses)):
                                 statuses_updated.append(f'{statuses[i]}_{status_frame_indexes[i]}')
@@ -191,6 +191,8 @@ class Game:
                                     temp_p.append(player_remote)
 
                         pygame.display.flip()
+                        pygame.display.update()
+                        self.clock.tick(FPS)
                     if self.__other_messages is not None:
                         output_box = pygame.Rect(20, 100, 500, 100)
                         input_box = pygame.Rect(20, 200, 200, 50)
@@ -246,20 +248,21 @@ class Game:
                             self.__temp_message = ""
                             self.__using_chat = False
 
-                pygame.display.update()
-                self.clock.tick(FPS)
+                    pygame.display.update()
+                    self.clock.tick(FPS)
 
-            except TypeError:
-                if game_state == "continue":
-                    list_of_details = ["EXIT", 1, self.items]
-                    other_client = self.network.communicate(list_of_details, self.items)
+          #  except TypeError:
+           #     print("Hold up wait a minute")
+            #    if game_state == "continue":
+            #        list_of_details = ["EXIT", 1, self.items]
+            #        other_client = self.network.communicate(list_of_details, self.items)
 
-                game_state = "start_menu"
+            #    game_state = "start_menu"
 
             except KeyboardInterrupt:
                 if game_state == "continue":
                     list_of_details = ["EXIT", 1, self.items]
-                    other_client = self.network.communicate(list_of_details, self.items)
+                    self.network.update_server(list_of_details, self.items)
 
                 pygame.quit()
                 sys.exit()
