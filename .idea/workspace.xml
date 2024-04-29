@@ -86,8 +86,6 @@
       <change beforePath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key8.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key8.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key9.key" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key9.key" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key9.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key9.pem" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/the_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game/src/code/the_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_server.py" afterDir="false" />
     </list>
     <list id="02ff3d5b-67f7-4487-8767-562c1ddaffec" name="Changes by or12r" comment="" />
     <option name="SHOW_DIALOG" value="false" />
@@ -183,7 +181,7 @@
       <recent name="C:\Users\imper\OneDrive\Desktop\Cyber\gitprojects\Git\basic_com\Secure Game\Certificates\Certificate_crts" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.the_server">
+  <component name="RunManager" selected="Python.CyberOffensive">
     <configuration name="CyberOffensive" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="basic_com" />
       <option name="ENV_FILES" value="" />
