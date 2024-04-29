@@ -32,14 +32,17 @@ class ServerD:
     def get_server_ip(self):
         return self.server_ip
 
-# Example usage
 if __name__ == "__main__":
     server = ServerD()
     advertise_thread = threading.Thread(target=server.advertise_service)
     advertise_thread.start()
 
+    # Wait for the advertise_thread to com plete and set the server IP
+    advertise_thread.join()
+
+    # Now the server IP should be set correctly
     print("Server IP:", server.get_server_ip())
     input("Press any key to stop advertising...")
 
     server.stop_advertising()
-    advertise_thread.join()
+

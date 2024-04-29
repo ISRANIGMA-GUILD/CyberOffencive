@@ -31,6 +31,9 @@ thegame-cache/
 thegame-SetupFiles/
 dnspython/
 .idea/
+.idea/*
+.vscode/
+.vscode/*
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

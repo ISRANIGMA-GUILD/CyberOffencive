@@ -163,6 +163,7 @@ class Client:
             #   self.good_music()
             servers = Discoverer()
             server_ip = servers.discover_server()
+            print(server_ip)
 
             if self.ip_v_four_format(server_ip) and not self.empty_string(server_ip):
                 return server_ip
