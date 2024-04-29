@@ -44,52 +44,63 @@ class Client:
         #  self.player.run()
 
         server_ip, server_port = self.format_socket()
-        connection = self.connect_to_socket(server_ip, server_port)
+        self.connect_to_socket(server_ip, server_port)
 
-        if connection == 1:
-            return connection
+        self.__start_time = time.time()
 
-        else:
-            self.__start_time = time.time()
+        while True:
+            try:
+                details = self.details_entry()
 
-            while True:
-                try:
-                    details = self.details_entry()
-
-                    if details == 1:
-                        print("leaving1")
-                        message = 'EXIT'.encode()
-
-                        self.__the_client_socket.sendall(message)
-                        print("leaving3")
-                        return 1
-
-                    else:
-                        checker = self.check_success(details)
-
-                        if "Success" in checker[0]:
-                            print("Nice")
-                            return checker
-
-                        elif checker[0] == "Failure":
-                            print("retry")
-                            continue
-
-                        else:
-                            print("retry")
-                            continue
-
-                except TypeError:
-                    print("Leaving the game1")
+                if details == 1:
+                    print("leaving1")
                     message = 'EXIT'.encode()
 
-                    self.__the_client_socket.send(message)
+                    self.__the_client_socket.sendall(message)
+                    print("leaving3")
                     return 1
 
-                except KeyboardInterrupt:
-                    print("Leaving the game")
+                else:
+                    print(details)
+                    checker = self.check_success(details)
+                    print("the checker", checker)
+                    if "Success" in checker[0]:
+                        print("Nice")
+                        return checker
 
-                    return 1
+                    elif checker[0] == "Failure":
+                        print("retry")
+                        details = self.details_entry()
+
+                    else:
+                        print("retry")
+                        continue
+
+            except ConnectionAbortedError:
+                print("Leaving the game1")
+
+                return 1
+
+            except ssl.SSLEOFError:
+                print("stop")
+                time.sleep(0.02)
+
+            except ConnectionResetError:
+                print("Leaving the game1")
+
+                return 1
+
+            except TypeError:
+                print("Leaving the game1")
+                message = 'EXIT'.encode()
+
+                self.__the_client_socket.send(message)
+                return 1
+
+            except KeyboardInterrupt:
+                print("Leaving the game")
+
+                return 1
 
     def connect_to_socket(self, server_ip, server_port):
         """
@@ -111,6 +122,7 @@ class Client:
                 server_port = self.choose_port()
 
             except TimeoutError:
+                server_port = self.choose_port()
                 pass
 
             except ValueError:
@@ -119,27 +131,6 @@ class Client:
 
         print("Success")
         count = 0
-
-        while True:
-            try:
-                self.__the_client_socket.settimeout(3)
-                message = self.__the_client_socket.recv(1024)
-
-                if message is None:
-                    print("No")
-                    pass
-
-                elif message == b"Denied":
-                    print(message)
-                    return 1
-
-                elif message == b"Accepted":
-                    print(message)
-                    break
-
-            except socket.timeout:
-                count = 0
-                pass
 
     def format_socket(self):
         """
@@ -157,7 +148,7 @@ class Client:
 
         :return:
         """
-        list_port = [69, 420, 500]
+        list_port = [6921, 8843, 8820]
         server_port = random.choice(list_port)
         print(server_port)
 
@@ -202,8 +193,9 @@ class Client:
         """
 
         try:
-            self.__the_client_socket.settimeout(0.001)
+            self.__the_client_socket.settimeout(0.01)
             data_pack = self.__the_client_socket.recv(MAX_MSG_LENGTH)
+            print(data_pack)
 
             if not data_pack:
                 return
@@ -378,10 +370,12 @@ class Client:
         print(details)
         while True:
             try:
-                self.__the_client_socket.send(details)
+                print(details)
+                self.__the_client_socket.sendall(details)
                 success = self.receive_data()
+                print("successs", success)
 
-                if not success:
+                if success is None:
                     print("Fail")
                     pass
 
@@ -398,7 +392,7 @@ class Client:
                         return decrypt
 
             except socket.timeout:
-                return
+                pass
 
     def malicious_message(self, message):
         """

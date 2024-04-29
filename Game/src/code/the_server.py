@@ -1,9 +1,7 @@
 import random
 import socket
-
 from DatabaseCreator import *
 from scapy.layers.inet import *
-from scapy.layers.dns import *
 from login import *
 from wrapper_of_the_server_socks import *
 from wrapper_of_the_client_socks import *
@@ -38,7 +36,7 @@ class Server:
         self.__ips_data_base = ips_data_base
         self.__default_port = 443
 
-        self.__sockets = [EncryptServer("Servers", port).run() for port in [420, 69, 500]]
+        self.__sockets = [EncryptServer("Servers", port).run() for port in [6921, 8843, 8820]]
         self.__number_of_clients = 1
 
         self.__banned_ips = []
@@ -194,13 +192,12 @@ class Server:
         :param client_address:
         :param number:
         """
-
-        if client_address in self.__banned_ips or getmacbyip(client_address) in self.__banned_macs:
+        print(client_address)
+        if client_address[0] in self.__banned_ips or getmacbyip(client_address[0]) in self.__banned_macs:
             self.__all_details[number]["Connected"] = 1
-            connection.send(pickle.dumps("Denied".encode()))
 
         else:
-            connection.send(pickle.dumps("Accepted".encode()))
+            print("success")
 
     def create_server_sockets(self):
         """
@@ -209,7 +206,7 @@ class Server:
 
         try:
             if len(self.__sockets) < 3:
-                port = random.choice([500, 69, 420])
+                port = random.choice([6921, 8843, 8820])
                 sockets = EncryptServer("Servers", port).run()
 
                 print(f"creating for clients")
@@ -244,11 +241,12 @@ class Server:
                             print("wait")
                             for socket_c in self.__sockets:
                                 try:
-                                  #  socket_c.settimeout(1)
+                                    socket_c.listen()
+                                    socket_c.settimeout(1)
 
                                     connection, client_address = socket_c.accept()  # Accept clients request
                                     self.check_for_banned(connection, client_address, number)
-                                    print(f"Client connected {connection.getpeername()}")
+                                    print(f"Client connected {connection.getpeername()}, {client_address[1]}")
 
                                     client_socket = connection
                                     self.__all_details[number]["Client"] = client_socket
@@ -257,7 +255,8 @@ class Server:
                                     self.__number_of_clients += 1
 
                                     self.__all_details[number]["Timer"] = (time.time(), 0)
-                                    break
+                                    self.__all_details[number]["Timer"] = client_address[1]
+                                    return
 
                                 except socket.timeout:
                                     pass
@@ -289,8 +288,8 @@ class Server:
         :return: The data iv, data and tag
         """
         try:
-            the_client_socket.settimeout(0.001)
-            data_pack = the_client_socket.recv(200)
+            the_client_socket.settimeout(0.1)
+            data_pack = the_client_socket.recv(MAX_MSG_LENGTH)
 
             if not data_pack:
                 return
@@ -617,9 +616,10 @@ class Server:
 
         with lock:
             try:
+                print("e")
                 if (self.__all_details[number].get("Credentials") is None and
                         self.__all_details[number].get("Client") is not None):
-
+                    print("d")
                     loging = Login(self.__all_details[number], list_of_existing, list_of_existing_resources,
                                    self.__credentials, number, self.__new_credentials, self.__number_of_clients,
                                    self.__list_of_banned_users)
@@ -628,8 +628,10 @@ class Server:
                      self.__new_credentials, self.__number_of_clients) = loging.run()
 
                     if self.__all_details[number].get("Credentials") is not None:
+                        print("yayyyy")
                         self.__session_users[number] = self.__all_details[number].get("Credentials")[0]
-
+                else:
+                    print("l", self.__all_details)
             except Exception:
                 return
 
