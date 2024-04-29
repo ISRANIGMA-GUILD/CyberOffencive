@@ -7,10 +7,8 @@ from counter_attack import *
 SYN = 2
 FIN = 1
 ACK = 16
-MY_IP = conf.route.route('0.0.0.0')[1]
 DEFAULT_IP = '0.0.0.0'
 MAX_MSG_LENGTH = 1024
-THE_SHA_256 = hashes.SHA256()
 THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6": "SELECT", "7": "/", "8": "#",
                 "9": "SQL", "10": "FROM", "11": "(", "12": ")", "13": "+", "14": "UNION", "15": "ALL", "16": ">",
                 "17": "<", "18": "–dbs", "19": "-D", "20": "-T", "21": "-", "22": ".php", "23": "SLEEP", "24": "@@",
@@ -22,12 +20,12 @@ PARAMETERS = {"IPs": ["IP", "MAC", "Status"], "PlayerDetails": ['Username', 'Pas
 
 class Security:
 
-    def __init__(self, database: DatabaseManager, the_server_socket: socket):
-        self.__database = database
-        self.__the_server_socket = the_server_socket
+    def __init__(self):
+        self.__servers_database = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
+        self.__database = DatabaseManager("IPs", PARAMETERS["IPs"])
 
-        self.__secret_security_key = None
-        self.__secret_message = None
+        self.__security_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        self.__security_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 
         self.__upcoming_bans = []
         self.__currently_banned = []
@@ -37,6 +35,8 @@ class Security:
 
         self.__counter_attack = None
         self.__max_index = 19
+
+        self.__cert_creator = CertificateCreator("DNS_SERVER")
 
     def run(self):
         """
@@ -51,7 +51,9 @@ class Security:
         list_of_banned_addresses = [vital_info for vital_info in info]
         print(list_of_banned_addresses)
 
-        self.create_server(list_of_banned_addresses)
+        if self.allow_server_connection():
+            self.create_server(list_of_banned_addresses)
+            self.__database.close_conn()
 
     def create_server(self, list_of_banned_addresses):
         """
@@ -60,14 +62,13 @@ class Security:
 
         try:
 
-            if self.allow_server_connection():
+            self.receive_requests(list_of_banned_addresses)
 
-                self.receive_requests(list_of_banned_addresses)
-                if self.__upcoming_bans:
-                    for i in range(0, len(self.__upcoming_bans)):
-                        self.__database.insert_no_duplicates(values=[self.__upcoming_bans[i][0],
-                                                                     self.__upcoming_bans[i][1], 'Banned'],
-                                                             no_duplicate_params=PARAMETERS['IPs'])
+            if self.__upcoming_bans:
+                for i in range(0, len(self.__upcoming_bans)):
+                    self.__database.insert_no_duplicates(values=[self.__upcoming_bans[i][0],
+                                                                 self.__upcoming_bans[i][1], 'Banned'],
+                                                         no_duplicate_params=PARAMETERS['IPs'])
 
         except ConnectionAbortedError:
             pass
@@ -76,11 +77,11 @@ class Security:
             pass
 
         except ConnectionResetError:
-            self.__the_server_socket.close()
+            self.__security_socket.close()
             pass
 
         except KeyboardInterrupt:
-            self.__the_server_socket.close()
+            self.__security_socket.close()
             pass
 
         else:
@@ -97,8 +98,9 @@ class Security:
 
         if self.__service_socket is None:
             try:
+                self.create_security_context()
                 print("Server is up and running")
-                connection, service_address = self.__the_server_socket.accept()  # Accept clients request
+                connection, service_address = self.__security_socket.accept()  # Accept clients request
 
                 print("Client connected")
                 service_socket = connection
@@ -107,22 +109,49 @@ class Security:
                 return True
 
             except ConnectionAbortedError:
-                self.__the_server_socket.close()
+                self.__security_socket.close()
                 return False
 
             except ConnectionRefusedError:
                 return False
 
             except ConnectionResetError:
-                self.__the_server_socket.close()
+                self.__security_socket.close()
                 return False
 
             except KeyboardInterrupt:
-                self.__the_server_socket.close()
+                self.__security_socket.close()
                 return False
 
         else:
             return True
+
+    def create_security_context(self):
+        """
+
+        """
+        passes = self.activate()
+        self.__security_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        n = random.randint(0, 19)
+        self.__security_context.load_cert_chain(certfile=f"DNS_SERVER_Certificates\\certificate{n}.pem",
+                                                keyfile=f"DNS_SERVER_Keys\\the_key{n}.key",
+                                                password=passes[n])
+        self.__security_context.minimum_version = ssl.TLSVersion.TLSv1_3
+
+        self.__security_context.maximum_version = ssl.TLSVersion.TLSv1_3
+        self.__security_context.set_ecdh_curve('prime256v1')
+
+        self.__security_socket = self.__security_context.wrap_socket(self.__security_socket,
+                                                                     server_hostname="mad.cyberoffensive.org")
+
+        self.__security_socket.bind((DEFAULT_IP, 443))  # Bind the server IP and Port into a tuple
+        #     print("f")
+        self.__security_socket.listen(1)  # Listen to client
+
+    def activate(self):
+
+        return self.__cert_creator.run()
 
     def receive_requests(self, list_of_banned_addresses):
         """
@@ -223,15 +252,6 @@ class Security:
 
         return pickle.dumps(some_data)
 
-    def prepare_packet_structure(self, the_packet):
-        """
-
-        :param the_packet:
-        :return:
-        """
-
-        return the_packet.__class__(bytes(the_packet))
-
     def deconstruct_data(self):
         """
          Dissect the data received from the server
@@ -265,14 +285,11 @@ class Security:
         :param data:
         """
 
-        message = data
+        message = pickle.loads(data)
 
-        if message == "EXIT".encode():
+        if message == ["EXIT".encode()]:
             self.__service_socket.close()
-            self.__secret_message = None
-
             self.__service_socket = None
-            self.__secret_security_key = None
 
     def remove_known_users(self, banned_addresses):
         """
@@ -289,24 +306,3 @@ class Security:
                 self.__currently_banned.append(banned_addresses[i])
 
         return banned_addresses
-
-
-def main():
-
-    while True:
-        try:
-            print("e")
-
-            print("g")
-
-        except socket.error as e:
-            if e.errno == errno.EADDRINUSE:
-                print("Port is already in use")
-
-
-if __name__ == '__main__':
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    os.chdir(dname)
-    
-    main()

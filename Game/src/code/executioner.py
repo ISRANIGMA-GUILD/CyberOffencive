@@ -1,20 +1,20 @@
-import ssl
+import pickle
 from security_server import *
 from the_server import *
-from DatabaseCreator import *
-from multiprocessing import Process
-import os
+import multiprocessing.process
+from cryptography.x509 import *
+from cryptography.hazmat.primitives.serialization import *
 
 
 class MainRunner:
 
-    def __init__(self, servers_database,  ips_database, login_data_base):
+    def __init__(self):
 
         self.__paths = ["DNS_SERVER", "Servers"]
         self.__passes = {"DNS_SERVER": [], "Servers": []}
 
         self.__cert_creator = [CertificateCreator("DNS_SERVER"), CertificateCreator("Servers")]
-        self.__indexes = {"DNS_SERVER": 19, "Servers": 19}
+        self.__cert, self.__key = 0, 0
 
         self.__security_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         self.__load_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
@@ -28,56 +28,29 @@ class MainRunner:
         self.__port = 443
         self.__default_ip = '0.0.0.0'
 
-        self.__servers_database = servers_database
-        self.__ips_database = ips_database
-
-        self.__login_data_base = login_data_base
         self.__servers_index = 0
 
-        pass
-
-    def run(self):
+    def run(self, n):
         """
         #Run in multi process and make sure the connect -> servers is seperate from the general communication
         """
 
-        for index in range(0, len(self.__paths)):
-            self.__passes[self.__paths[index]], self.__indexes[self.__paths[index]] = self.__cert_creator[index].run()
+        self.__passes[self.__paths[n]] = self.__cert_creator[n].run()
 
-        cert, key = get_certs(self.__passes[self.__paths[0]], self.__paths[0], self.__indexes[self.__paths[0]])
+        self.__cert, self.__key = get_certs(self.__passes[self.__paths[n]], self.__paths[n])
 
-        self.create_security_context()
         self.create_load_context()
         self.create_secure_context()
 
-        DomainProvider(cert, key)
+        domain = DomainProvider()
 
         self.bind_the_constants()
+#        list_of_d_data = pickle.dumps(data_list)
+        list_of_s_data = self.__security_socket
 
-        Security(self.__ips_database, self.__security_socket)
+        servern = Server(self.__secure_socket, self.__load_balance_socket, self.__port, self.__passes[self.__paths[1]])
 
-        Server(self.__servers_database, self.__login_data_base, self.__secure_socket, self.__ips_database,
-               self.__load_balance_socket, self.__port, self.__passes[self.__paths[1]], self.__indexes[self.__paths[1]])
-
-    def create_security_context(self):
-        """
-
-        """
-
-        self.__security_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.__servers_index = random.randint(self.__indexes[self.__paths[0]] - 19, self.__indexes[self.__paths[0]])
-
-        self.__security_context.load_cert_chain(certfile=f"DNS_SERVER_Certificates\\certificate{self.__servers_index}.pem",
-                                                keyfile=f"DNS_SERVER_Keys\\the_key{self.__servers_index}.key",
-                                                password=self.__passes[self.__paths[0]]
-                                                         [self.__servers_index - (self.__indexes[self.__paths[0]] - 19)])
-        self.__security_context.minimum_version = ssl.TLSVersion.TLSv1_3
-
-        self.__security_context.maximum_version = ssl.TLSVersion.TLSv1_3
-        self.__security_context.set_ecdh_curve('prime256v1')
-
-        self.__security_socket = self.__security_context.wrap_socket(self.__security_socket,
-                                                                     server_hostname="mad.cyberoffensive.org")
+        return domain, list_of_s_data, servern
 
     def create_load_context(self):
         """
@@ -131,15 +104,37 @@ class MainRunner:
                 pass
 
 
-def main():
+def get_certs(passes, path):
+    """
 
-    servers_database = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
-    the_other_database = DatabaseManager("IPs", PARAMETERS["IPs"])
+    :return:
+    """
 
-    login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
-    runner = MainRunner(servers_database, the_other_database, login_data_base)
+    n = random.randint(0, 19)
+    with open(f'{path}_Certificates/certificate{n}.pem', 'rb') as certificate_first:
+        my_cert_pem = load_pem_x509_certificate(certificate_first.read())
 
-    runner.run()
+    with open(f'{path}_Keys/the_key{n}.pem', 'rb') as certificate_first:
+        my_key_pem = load_pem_private_key(certificate_first.read(), password=passes[n].encode())
+
+    return my_cert_pem, my_key_pem
+
+
+def create(domain, security, server):
+    """
+
+    :param domain:
+    :param security:
+    :param server:
+    :return:
+    """
+  #  p_p, security_process = multiprocessing.Pipe()
+  #  p_p.send(domain)
+    domain_process = multiprocessing.Process(target=domain.run())
+    security_process = multiprocessing.Process(target=security_starter, args=(security,))
+    server_process = multiprocessing.Process(target=server.run)
+
+    return domain_process, security_process, server_process
 
 
 if __name__ == '__main__':
@@ -147,4 +142,25 @@ if __name__ == '__main__':
     dname = os.path.dirname(abspath)
 
     os.chdir(dname)
-    main()
+    runner = MainRunner()
+    data_d_list, data_s_list, server = runner.run()
+
+    while True:
+        try:
+
+            d_p, sec_p, s_p = create(data_d_list, data_s_list, server)
+
+            d_p.start()
+          #  sec_p.start()
+            # print("go f")
+          #  s_p.start()
+            #
+            d_p.join()
+            print("yay?")
+          #  sec_p.join()
+            print("yay!")
+          #  s_p.join()
+
+        except KeyboardInterrupt:
+            print("lololol")
+

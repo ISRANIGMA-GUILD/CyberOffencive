@@ -40,7 +40,6 @@ class CertificateCreator:
         self.__path = pathname
 
         self.__more_than_a_server = False
-        self.__tracker = 0
         pass
 
     def run(self):
@@ -50,7 +49,6 @@ class CertificateCreator:
         """
 
         for index in range(0, 20):
-            self.__tracker = index
             key = rsa.generate_private_key(public_exponent=65537, key_size=2048, backend=default_backend())
 
             random_number = random.randint(0, 23)
@@ -99,45 +97,21 @@ class CertificateCreator:
             my_key_pem = key.private_bytes(encoding=THE_PEM, format=serialization.PrivateFormat.PKCS8,
                                            encryption_algorithm=serialization
                                            .BestAvailableEncryption(password.encode()))
-            if (not os.path.isfile(f'{self.__path}_Certificates\\Certificate_crts\\certificate{index}.crt') and
-                not os.path.isfile(f'{self.__path}_Certificates\\certificate{index}.pem') and
-                not os.path.isfile(f'{self.__path}_Keys\\the_key{index}.pem')):
 
-                with (open(f'{self.__path}_Certificates\\Certificate_crts\\certificate{index}.crt', 'wb') as
-                      certificate_first):
-                    certificate_first.write(my_cert_pem)
+            with (open(f'{self.__path}_Certificates\\Certificate_crts\\certificate{index}.crt', 'wb') as
+                  certificate_first):
+                certificate_first.write(my_cert_pem)
 
-                with open(f'{self.__path}_Certificates\\certificate{index}.pem', 'wb') as certificate_first:
-                    certificate_first.write(my_cert_pem)
+            with open(f'{self.__path}_Certificates\\certificate{index}.pem', 'wb') as certificate_first:
+                certificate_first.write(my_cert_pem)
 
-                with open(f'{self.__path}_Keys\\the_key{index}.pem', 'wb') as key_first:
-                    key_first.write(my_key_pem)
+            with open(f'{self.__path}_Keys\\the_key{index}.pem', 'wb') as key_first:
+                key_first.write(my_key_pem)
 
-                with open(f'{self.__path}_Keys\\the_key{index}.key', 'wb') as key_first:
-                    key_first.write(my_key_pem)
+            with open(f'{self.__path}_Keys\\the_key{index}.key', 'wb') as key_first:
+                key_first.write(my_key_pem)
 
-            else:
-                print("exi")
-                while os.path.isfile(f'{self.__path}_Certificates\\Certificate_crts\\certificate{self.__tracker}.crt'):
-                    self.__tracker += 1
-
-                if not self.__more_than_a_server:
-                    self.__more_than_a_server = True
-
-                with (open(f'{self.__path}_Certificates\\Certificate_crts\\certificate{self.__tracker}.crt', 'wb') as
-                      certificate_first):
-                    certificate_first.write(my_cert_pem)
-
-                with open(f'{self.__path}_Certificates\\certificate{self.__tracker}.pem', 'wb') as certificate_first:
-                    certificate_first.write(my_cert_pem)
-
-                with open(f'{self.__path}_Keys\\the_key{self.__tracker}.pem', 'wb') as key_first:
-                    key_first.write(my_key_pem)
-
-                with open(f'{self.__path}_Keys\\the_key{self.__tracker}.key', 'wb') as key_first:
-                    key_first.write(my_key_pem)
-
-        return self.__passes, self.__tracker
+        return self.__passes
 
     def random_password(self):
         """
