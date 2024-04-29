@@ -159,8 +159,6 @@ class Client:
 
         :return:
         """
-        return "172.23.80.1"
-
         while True:
             #   self.good_music()
             servers = Discoverer()

@@ -7,7 +7,6 @@ services:
       dockerfile: Dockerfile
     image: basic_com-server
     container_name: server
-    network_mode: host  # Use host network mode
     ports:
       - "8820:8820/tcp"
       - "6921:6921/tcp"
