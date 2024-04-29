@@ -20,7 +20,7 @@ class EncryptClient:
 
         """
         socket_serv1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-        self.__secure_context.load_verify_locations(cafile=f"{self.__path}_Certificates\\certificate{self.__index}.pem")
+        self.__secure_context.load_verify_locations(cafile=f"{self.__path}_Certificates/certificate{self.__index}.pem")
 
         self.__secure_context.check_hostname = True
         self.__secure_context.verify_mode = ssl.CERT_REQUIRED

@@ -13,7 +13,7 @@ class Discoverer:
 
     def discover_server(self):
         try:
-            self.__resolved.wait()  # Wait until the service is resolved
+            self.__resolved.wait(5)  # Wait until the service is resolved
         except Exception as e:
             print("Error occurred while discovering server:", e)
         finally:
