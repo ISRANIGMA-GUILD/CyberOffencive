@@ -6,6 +6,9 @@ for /f "tokens=2 delims=:" %%i in ('ipconfig ^| findstr /C:"IPv4 Address"') do (
     set "IPAddress=%%i"
 )
 
+%IPAddress% = "10.0.0.7"
+echo "IP Address: %IPAddress%"
+
 rem Get the default gateway
 for /f "tokens=3" %%i in ('route print ^| findstr /C:"0.0.0.0"') do (
     echo Found Default Gateway: %%i

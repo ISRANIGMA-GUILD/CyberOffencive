@@ -6,6 +6,7 @@ from dnssec_client import *
 from scapy.all import *
 import socket
 import pygame
+from socks import *
 
 pygame.init()
 SYN = 2
@@ -28,7 +29,7 @@ IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\LoginS
 class Client:
 
     def __init__(self):
-        self.__the_client_socket = EncryptClient("Servers", 0).run()
+        self.__the_client_socket = TLSSocketWrapper("10.0.0.7").connect()
         self.__timer = 0
 
         self.__start_time = 0
@@ -112,22 +113,33 @@ class Client:
 
         count = 0
         while True:
+            print(f'ip:port = {server_ip}:{server_port}')
+            time.sleep(1)
             try:
-               # self.__the_client_socket.settimeout(2)
+                print("Trying to connect...")
                 self.__the_client_socket.connect((server_ip, server_port))
-                print("leave")
+                print("Connection established.")
                 break
-
+            
             except ConnectionRefusedError:
+                print("Connection refused. Retrying...")
                 server_port = self.choose_port()
-
+        
             except TimeoutError:
+                print("Connection timeout. Retrying...")
                 server_port = self.choose_port()
-                pass
-
-            except ValueError:
+        
+            except ValueError as ve:
+                # Print the specific ValueError message for debugging
+                print(f"ValueError: {ve}")
+                print("Retrying...")
                 server_port = self.choose_port()
-                count = 0
+        
+            except Exception as e:
+                # Catch any other exceptions for debugging
+                print(f"Unexpected error: {e}")
+                print("Retrying...")
+                server_port = self.choose_port()
 
         print("Success")
         count = 0
@@ -159,6 +171,9 @@ class Client:
 
         :return:
         """
+
+        return "127.0.0.1"
+
         while True:
             #   self.good_music()
             servers = Discoverer()
