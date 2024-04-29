@@ -387,7 +387,7 @@ class Client:
                         print("success")
                         return decrypt
 
-                    elif decrypt[0] == "Failure":
+                    elif "Failure" in decrypt[0]:
                         print("wrong password or username")
                         return decrypt
 

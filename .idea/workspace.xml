@@ -86,6 +86,7 @@
       <change beforePath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key8.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key8.pem" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key9.key" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key9.key" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key9.pem" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/Servers_Keys/the_key9.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game/src/code/the_client.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game/src/code/the_client.py" afterDir="false" />
     </list>
     <list id="02ff3d5b-67f7-4487-8767-562c1ddaffec" name="Changes by or12r" comment="" />
     <option name="SHOW_DIALOG" value="false" />
@@ -295,8 +296,8 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.CyberOffensive" />
-        <item itemvalue="Python.the_server" />
         <item itemvalue="Python.dnssec_server" />
+        <item itemvalue="Python.the_server" />
         <item itemvalue="Python.dnssec_client" />
         <item itemvalue="Python.security_server" />
       </list>
