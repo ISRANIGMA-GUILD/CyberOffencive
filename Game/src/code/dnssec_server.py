@@ -1,115 +1,45 @@
-from scapy.all import *
-from scapy.layers.dns import *
-from scapy.layers.l2 import *
-from scapy.layers.inet import *
-from cryptography.x509 import *
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric.padding import *
-from cryptography.hazmat.primitives.serialization import *
-
-SERVER_NAME = "mad.cyberoffensive.org."
-SERVER_NAME_PART2 = "cyberoffensive.org"
-SERVER_IP = conf.route.route("0.0.0.0")[1]
-ISP_IP = conf.route.route("0.0.0.0")[2]
-THE_PEM = serialization.Encoding.DER
-PREFER_PADDING = PSS(MGF1(hashes.SHA256()), PSS.MAX_LENGTH)
+import socket
+import threading
+import uuid
+from zeroconf import Zeroconf, ServiceBrowser, ServiceInfo
 
 
-class DomainProvider:
+class ServerD:
+    def __init__(self, port=8000):
+        self.port = port
+        self.server_ip = None
+        self.zeroconf = Zeroconf()
+        self.service_name = f"Server-{socket.gethostname()}-{uuid.uuid4().hex}"
 
-    def __init__(self, my_cert_pem, my_key_pem):
-        self.__certificate = my_cert_pem
-        self.__key = my_key_pem
+    def advertise_service(self):
+        desc = {"version": "1.0"}
+        info = ServiceInfo(
+            type_="_http._tcp.local.",
+            name=self.service_name + "._http._tcp.local.",
+            addresses=[socket.inet_aton(socket.gethostbyname(socket.gethostname()))],
+            port=self.port,
+            weight=0,
+            priority=0,
+            properties=desc
+        )
+        self.zeroconf.register_service(info)
+        self.server_ip = socket.gethostbyname(socket.gethostname())
 
-    def run(self):
-        """
+    def stop_advertising(self):
+        self.zeroconf.unregister_all_services()
+        self.zeroconf.close()
 
-        """
+    def get_server_ip(self):
+        return self.server_ip
 
-        full_base_k = self.create_full_pack()
-        a_pack = self.create_record_and_signature()
+# Example usage
+if __name__ == "__main__":
+    server = ServerD()
+    advertise_thread = threading.Thread(target=server.advertise_service)
+    advertise_thread.start()
 
-        full_pack_c = (full_base_k / a_pack)
-        full_pack_c = self.prepare_packet(full_pack_c)
+    print("Server IP:", server.get_server_ip())
+    input("Press any key to stop advertising...")
 
-        self.handle_client(full_pack_c)
-
-    def create_full_pack(self):
-        """
-
-        :return:
-        """
-
-        return (Ether(src=Ether().src, dst=getmacbyip(ISP_IP)) / IP(src=SERVER_IP, dst=ISP_IP) /
-                UDP(sport=53, dport=53))
-
-    def create_record_and_signature(self):
-        """
-
-        """
-
-        rr_record = DNSRR(rrname=SERVER_NAME, rdata=SERVER_IP, ttl=64, rdlen=4)
-        signed_rr_record = self.__key.sign(bytes(rr_record), PREFER_PADDING, hashes.SHA1())
-
-        # Server packet
-        a_pack = DNS(qr=1, ra=1, rd=1, ad=1, ancount=2, arcount=1, qd=DNSQR(qname=SERVER_NAME), an=rr_record /
-                     DNSRRRSIG(rrname=SERVER_NAME, signersname=SERVER_NAME_PART2, signature=signed_rr_record),
-                     ar=DNSRROPT())
-        a_pack = self.prepare_packet(a_pack)
-
-        return a_pack
-
-    def prepare_packet(self, the_packet):
-        """
-
-        :param the_packet:
-        :return:
-        """
-
-        return the_packet.__class__(bytes(the_packet))
-
-    def show_packet(self, the_packet):
-        """
-
-        :param the_packet:
-        """
-
-        the_packet.show()
-
-    def filter_dns_sec(self, packets):
-        """
-
-        :param packets:
-        :return:
-        """
-
-        return (DNS in packets and DNSQR in packets and DNSRR not in packets and DNSRRRSIG not in packets
-                and packets[DNSQR].qname == b'mad.cyberoffensive.org.' and packets[DNS].ancount == 0
-                and packets[DNS].nscount == 0 and packets[DNS].arcount == 0)
-
-    def handle_client(self, full_pack_c):
-        """
-
-        :param full_pack_c:
-        """
-
-        pack = sniff(count=1, lfilter=self.filter_dns_sec, timeout=2)
-
-        if not pack:
-            return
-
-        else:
-            self.show_packet(pack)
-
-            full_pack_c = self.prepare_packet(full_pack_c)
-            full_pack_c[IP].dst = pack[0][IP].src
-
-            try:
-                sendp(full_pack_c, count=5)
-                return
-
-            except KeyboardInterrupt:
-                return
-
-
-
+    server.stop_advertising()
+    advertise_thread.join()

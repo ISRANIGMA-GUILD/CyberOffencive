@@ -1,7 +1,9 @@
 import pickle
 import ssl
+from wrapper_of_the_client_socks import *
 from creepy import *
 from dnssec_client import *
+from scapy.all import *
 import socket
 import pygame
 
@@ -25,15 +27,12 @@ IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\LoginS
 
 class Client:
 
-    def __init__(self, the_client_socket: socket):
-        self.__client_socket = the_client_socket
+    def __init__(self):
+        self.__the_client_socket = EncryptClient("Servers", 0).run()
         self.__timer = 0
 
-        self.__the_client_socket = None
         self.__start_time = 0
-
         self.player = CreePy()
-        self.__context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 
     # self.v = self.player.get_volume()
 
@@ -43,103 +42,110 @@ class Client:
         """
 
         #  self.player.run()
-        count = 0
 
         server_ip, server_port = self.format_socket()
-        res, server_port = self.first_contact(server_ip, server_port)
+        connection = self.connect_to_socket(server_ip, server_port)
 
-        while True:
-            try:
+        if connection == 1:
+            return connection
 
-                self.__the_client_socket.connect((server_ip, server_port))
-                break
+        else:
+            self.__start_time = time.time()
 
-            except ConnectionRefusedError:
-                count += 1
-                if count == 3:
-                    self.__client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-                    self.__the_client_socket.close()
-                    server_ip, server_port = self.format_socket()
-                    res, server_port = self.first_contact(server_ip, server_port)
-                    count = 0
-                pass
+            while True:
+                try:
+                    details = self.details_entry()
 
-            except TimeoutError:
-                count = 0
-                pass
+                    if details == 1:
+                        print("leaving1")
+                        message = 'EXIT'.encode()
 
-            except OSError:
-                self.__client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-                self.__the_client_socket.close()
-                server_ip, server_port = self.format_socket()
-                res, server_port = self.first_contact(server_ip, server_port)
-                count = 0
-
-        try:
-            if res[Raw].load == b'Accept':
-
-                self.__start_time = time.time()
-                details = self.details_entry()
-
-                if details == 1:
-                    print("leaving1")
-                    message = 'EXIT'.encode()
-                    data = [message]
-
-                    if data == 1:
-                        print("leaving2")
-                        return 1
-
-                    else:
-                        self.__the_client_socket.sendall(details)
+                        self.__the_client_socket.sendall(message)
                         print("leaving3")
                         return 1
 
-                while True:
-                    checker = self.check_success(details)
-
-                    if "Success" in checker[0]:
-                        print("Nice")
-                        return checker
-
-                    elif checker[0] == "Failure":
-                        details = self.details_entry()
-
                     else:
-                        print("retry")
-                        continue
+                        checker = self.check_success(details)
 
-            else:
-                print("TO BAD YOU ARE BANNED!")
+                        if "Success" in checker[0]:
+                            print("Nice")
+                            return checker
 
-        except TypeError:
-            print("Leaving the game1")
-            message = 'EXIT'.encode()
+                        elif checker[0] == "Failure":
+                            print("retry")
+                            continue
 
-            self.__the_client_socket.send(message)
-            return 1
+                        else:
+                            print("retry")
+                            continue
 
-        except KeyboardInterrupt:
-            print("Leaving the game")
+                except TypeError:
+                    print("Leaving the game1")
+                    message = 'EXIT'.encode()
 
-            return 1
+                    self.__the_client_socket.send(message)
+                    return 1
+
+                except KeyboardInterrupt:
+                    print("Leaving the game")
+
+                    return 1
+
+    def connect_to_socket(self, server_ip, server_port):
+        """
+
+        :param server_ip:
+        :param server_port:
+        :return:
+        """
+
+        count = 0
+        while True:
+            try:
+               # self.__the_client_socket.settimeout(2)
+                self.__the_client_socket.connect((server_ip, server_port))
+                print("leave")
+                break
+
+            except ConnectionRefusedError:
+                server_port = self.choose_port()
+
+            except TimeoutError:
+                pass
+
+            except ValueError:
+                server_port = self.choose_port()
+                count = 0
+
+        print("Success")
+        count = 0
+
+        while True:
+            try:
+                self.__the_client_socket.settimeout(3)
+                message = self.__the_client_socket.recv(1024)
+
+                if message is None:
+                    print("No")
+                    pass
+
+                elif message == b"Denied":
+                    print(message)
+                    return 1
+
+                elif message == b"Accepted":
+                    print(message)
+                    break
+
+            except socket.timeout:
+                count = 0
+                pass
 
     def format_socket(self):
         """
 
         :return:
         """
-
-        self.__context.check_hostname = False
-        self.__context.verify_mode = ssl.CERT_NONE
-
-        self.__context.minimum_version = ssl.TLSVersion.TLSv1_2
-        self.__context.maximum_version = ssl.TLSVersion.TLSv1_3
-
-        self.__context.set_ecdh_curve('prime256v1')
-
-        self.__the_client_socket = self.__context.wrap_socket(self.__client_socket,
-                                                              server_hostname="mad.cyberoffensive.org")
 
         server_port = self.choose_port()
         server_ip = self.find_ip()
@@ -151,17 +157,9 @@ class Client:
 
         :return:
         """
-
-        server_port = int(RandShort())
-
-        while True:
-            #  self.good_music()
-
-            if server_port < 80 or 1800 <= server_port <= 1900 or 442 < server_port < 501:
-                server_port = int(RandShort())
-
-            else:
-                break
+        list_port = [69, 420, 500]
+        server_port = random.choice(list_port)
+        print(server_port)
 
         return server_port
 
@@ -172,7 +170,8 @@ class Client:
         """
         while True:
             #   self.good_music()
-            server_ip = ServerSearcher().run()
+            servers = Discoverer()
+            server_ip = servers.discover_server()
 
             if self.ip_v_four_format(server_ip) and not self.empty_string(server_ip):
                 return server_ip
@@ -195,62 +194,6 @@ class Client:
 
         return (ip_address.count('.') == 3 and ''.join(ip_address.split('.')).isnumeric() and
                 len(''.join(ip_address.split('.'))) <= 12)
-
-    def first_contact(self, server_ip, server_port):
-        """
-         Get in contact with the server by sending a TCP packet to it
-        :param server_ip: The server's ip
-        :param server_port: The port the client will connect to
-        """
-
-        if server_ip == MY_IP:
-            server_mac = get_if_hwaddr(conf.iface)
-            layer2 = Ether(src=server_mac, dst=server_mac)
-
-        else:
-            server_mac = getmacbyip(server_ip)
-            client_mac = get_if_hwaddr(conf.iface)
-            layer2 = Ether(src=client_mac, dst=server_mac)
-
-        tcp_packet = (layer2 / IP(src=MY_IP, dst=server_ip) /
-                      TCP(sport=RandShort(), dport=server_port) /
-                      Raw(load=b'Logged'))
-        tcp_packet = tcp_packet.__class__(bytes(tcp_packet))
-
-        sendp(tcp_packet)
-
-        while True:
-            # self.good_music()
-            vert = sniff(count=1, lfilter=self.filter_tcp, timeout=0.1)
-            if not vert:
-                sendp(tcp_packet)
-
-            else:
-
-                if vert[0][IP].src != server_ip:
-                    print("Send an emergency request")
-                    tcp_packet[Raw].load = b'URGENT'
-
-                    tcp_packet[TCP].seq = RandShort()
-                    sendp(tcp_packet)
-
-                else:
-                    break
-
-        vert.show()
-        res = vert[0]
-
-        return res, server_port
-
-    def filter_tcp(self, packets):
-        """
-         Check if the packet received is a TCP packet
-        :param packets: The packet
-        :return: If the packet has TCP in it
-        """
-
-        return TCP in packets and Raw in packets and \
-            (packets[Raw].load == b'Accept' or packets[Raw].load == b'Denied')
 
     def receive_data(self):
         """
@@ -599,9 +542,7 @@ def main():
     """
     Main function
     """
-
-    the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-    client = Client(the_client_socket)
+    client = Client()
     client.run()
 
 

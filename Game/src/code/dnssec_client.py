@@ -1,111 +1,46 @@
-from cryptography.hazmat.primitives import serialization
-from scapy.all import *
-from scapy.layers.dns import *
-from scapy.layers.l2 import *
-from scapy.layers.inet import *
-from cryptography.hazmat.primitives.asymmetric.padding import *
-
-SERVER_NAME = "mad.cyberoffensive.org."
-SERVER_NAME_PART2 = "cyberoffensive.org"
-SERVER_IP = conf.route.route("0.0.0.0")[1]
-ISP_IP = conf.route.route("0.0.0.0")[2]
-THE_PEM = serialization.Encoding.DER
-PREFER_PADDING = PSS(MGF1(hashes.SHA256()), PSS.MAX_LENGTH)
+from zeroconf import Zeroconf, ServiceBrowser
+import socket
+import threading
 
 
-class ServerSearcher:
+class Discoverer:
+    def __init__(self, service_name=None):
+        self.__service_name = service_name or f"Server-{socket.gethostname()}-"  # Default to original name if not provided
+        self.__resolved = threading.Event()
+        self.__server_address = None
+        self.__zeroconf = Zeroconf()
+        self.__browser = ServiceBrowser(self.__zeroconf, "_http._tcp.local.", self, self.add_service)
 
-    def __init__(self):
-        pass
+    def discover_server(self):
+        try:
+            self.__resolved.wait()  # Wait until the service is resolved
+        except Exception as e:
+            print("Error occurred while discovering server:", e)
+        finally:
+            self.__zeroconf.close()
+        return self.__server_address
 
-    def run(self):
-        """
-
-        """
-
-        full_base = Ether(src=Ether().src, dst=getmacbyip(ISP_IP)) / IP(src=SERVER_IP, dst=ISP_IP) / UDP(dport=53)
-        p_pack = DNS(rd=1, qd=DNSQR(qname=SERVER_NAME, qtype=1))  # Client packet
-
-        full_pack = (full_base / p_pack)
-        full_pack = self.prepare_packet(full_pack)
-
-        pack = self.contact_domain(full_pack)
-
-        return pack[IP].src
-
-    def prepare_packet(self, the_packet):
-        """
-
-        :param the_packet:
-        :return:
-        """
-
-        return the_packet.__class__(bytes(the_packet))
-
-    def show_packet(self, the_packet):
-        """
-
-        :param the_packet:
-        """
-
-        the_packet.show()
-
-    def filter_dns_sec(self, packets):
-        """
-
-        :param packets:
-        :return:
-        """
-
-        return (DNS in packets and DNSQR in packets and DNSRRRSIG in packets and
-                packets[DNSQR].qname == b'mad.cyberoffensive.org.')
-
-    def contact_domain(self, full_pack):
-        """
-
-        :param full_pack:
-        """
-
-        while True:
+    def add_service(self, zeroconf, type, name):
+        if self.__service_name in name:
             try:
-                sendp(full_pack)
-                pack = sniff(count=1, lfilter=self.filter_dns_sec, timeout=1)
+                info = zeroconf.get_service_info(type, name, timeout=5)  # Adjust the timeout value as needed
+                if info:
+                    self.__server_address = socket.inet_ntoa(info.addresses[0]) if info.addresses else None
+                    if self.__server_address:
+                        self.__resolved.set()  # Set the event to indicate that service is resolved
+            except Exception as e:
+                print("Error occurred while resolving service:", e)
 
-                if not pack:
-                    pass
+    def update_service(self, zeroconf, type, name):
+        pass  # Empty method to satisfy the requirements
 
-                else:
-                    self.show_packet(pack)
-                    if self.check_source(pack):
-                        self.show_packet(pack[0])
-
-                        return pack[0]
-
-                    else:
-                        pass
-
-            except KeyboardInterrupt:
-                break
-
-    def check_source(self, pack):
-        """
-
-        :param pack:
-        :return:
-        """
-
-        if pack[0][IP].src == SERVER_IP:
-            return Ether().src == pack[0][Ether].src
-
-        elif pack[0][IP].src != SERVER_IP:
-            return getmacbyip(pack[0][IP].src) == pack[0][Ether].src
-
+    def remove_service(self, zeroconf, type, name):
+        pass  # Empty method to satisfy the requirements
 
 def main():
+    discoverer = Discoverer()
+    server_ip = discoverer.discover_server()
+    print("Discovered server IP:", server_ip)
 
-    searcher = ServerSearcher()
-    searcher.run()
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

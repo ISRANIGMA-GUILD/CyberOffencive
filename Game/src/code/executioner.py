@@ -30,7 +30,7 @@ class MainRunner:
 
         self.__servers_index = 0
 
-    def run(self, n):
+    def run(self):
         """
         #Run in multi process and make sure the connect -> servers is seperate from the general communication
         """

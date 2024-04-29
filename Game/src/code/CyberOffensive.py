@@ -28,7 +28,7 @@ class Game:
         self.clock = pygame.time.Clock()
 
         self.level = Level()
-        self.network = Client(socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0))
+        self.network = Client()
 
         self.prev_frame_time = 0
         self.new_frame_time = 0

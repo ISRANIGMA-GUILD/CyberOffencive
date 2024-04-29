@@ -1,9 +1,12 @@
+import random
+import socket
+
 from DatabaseCreator import *
-from certificate_creator import *
-from scapy.layers.l2 import *
 from scapy.layers.inet import *
 from scapy.layers.dns import *
 from login import *
+from wrapper_of_the_server_socks import *
+from wrapper_of_the_client_socks import *
 import os
 import threading
 import pickle
@@ -22,9 +25,9 @@ PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weap
 
 class Server:
 
-    def __init__(self, main_data_base, login_data_base, secure_socket, ips_data_base, load_balance_socket):
-        self.__secure_socket1 = secure_socket
-        self.__load_balance_socket = load_balance_socket
+    def __init__(self, main_data_base, login_data_base, ips_data_base, number):
+        self.__secure_socket = EncryptClient("Servers", number).run()
+        self.__load_balance_socket = EncryptClient("Servers", number).run()
 
         self.__load_balance_ip = MY_IP  # Will soon be changed according to a mechanism
         self.__load_balance_port = 1800
@@ -35,43 +38,34 @@ class Server:
         self.__ips_data_base = ips_data_base
         self.__default_port = 443
 
-        self.__security_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        self.__load_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-
-        self.__secure_socket = None
+        self.__sockets = [EncryptServer("Servers", port).run() for port in [420, 69, 500]]
         self.__number_of_clients = 1
 
         self.__banned_ips = []
         self.__banned_macs = []
 
         self.__list_of_banned_users = []
-
         self.__new_credentials = []
+
         self.__all_details = []
-
         self.__credentials = {}
+
         self.__locations = []
-
         self.__chat = []
+
         self.__status = []
-
         self.__ports = []
+
         self.__weapon_status = []
-
         self.__status_frame_index = []
+
         self.__weapons = []
-
         self.__hp = []
+
         self.__enemy_location = []
-
         self.__items = []
+
         self.__session_users = []
-
-        self.__path = "Servers"
-        self.__passes = []
-
-        self.__cert_creator = CertificateCreator(self.__path)
-        self.__max_index = 19
 
     def run(self):
         """
@@ -99,8 +93,6 @@ class Server:
                                        for i in range(0, len(list_of_existing_resources))
                                        if list_of_existing_resources[i][0] == "banned"]
         print(self.__banned_ips, self.__banned_macs, list_of_existing_resources, self.__list_of_banned_users)
-
-        self.__passes = self.__cert_creator.run()
 
      #   self.create_security_context()
         # self.connect_to_load_socket()
@@ -155,43 +147,12 @@ class Server:
 
         return list_of_existing_credentials, list_of_existing_resources
 
-    def create_security_context(self):
-        """
-
-        """
-        self.__security_context.check_hostname = False
-        self.__security_context.verify_mode = ssl.CERT_NONE
-
-        self.__security_context.minimum_version = ssl.TLSVersion.TLSv1_2
-        self.__security_context.maximum_version = ssl.TLSVersion.TLSv1_3
-
-        self.__security_context.set_ecdh_curve('prime256v1')
-        self.__secure_socket = self.__security_context.wrap_socket(self.__secure_socket1,
-                                                                   server_hostname="mad.cyberoffensive.org")
-        self.__secure_socket1.close()
-
-    def create_load_context(self):
-        """
-
-        """
-        self.__load_context.check_hostname = False
-        self.__load_context.verify_mode = ssl.CERT_NONE
-        self.__load_context.minimum_version = ssl.TLSVersion.TLSv1_3
-
-        self.__load_context.maximum_version = ssl.TLSVersion.TLSv1_3
-        self.__load_context.set_ecdh_curve('prime256v1')
-
-        self.__load_balance_socket = self.__load_context.wrap_socket(self.__load_balance_socket)
-
-    def connect_to_security(self, security_ports):
-
-        i = 0
+    def connect_to_security(self):
 
         while True:
             try:
-                self.__secure_socket.connect((LOCAL_HOST, 8443))
+                self.__secure_socket.connect((LOCAL_HOST, 443))
                 print("succ")
-                self.__default_port = security_ports[i]
 
                 break
 
@@ -206,8 +167,6 @@ class Server:
             except socket.error as e:
                 if e.errno == errno.EADDRINUSE:
                     print("Port is already in use")
-
-                    i += 1
 
     def connect_to_load_socket(self):
         """
@@ -228,215 +187,33 @@ class Server:
             except OSError:
                 pass
 
-    def receive_client_connection_request(self):
+    def check_for_banned(self, connection, client_address, number):
         """
 
-        :return:
-        """
-
-        important_connections = self.first_contact()
-        if not important_connections:
-            return
-
-        else:
-            second, server_port = important_connections[0], important_connections[1]
-            messages = second[Raw].load
-
-            port_client = self.check_for_banned(messages, server_port)
-
-            if not port_client:
-                return
-
-            else:
-                return port_client
-
-    def first_contact(self):
-        """
-         Answer a client that is trying to connect to the server
-        :return:
-        """
-
-        requests = self.receive_first_connections()
-        if not requests:
-            return
-
-        else:
-            server_port = requests[TCP].dport
-            response = self.analyse_connections(requests)
-
-            if not response:
-                return
-
-            else:
-                self.verify_connection_success(response)
-
-                return requests, server_port
-
-    def receive_first_connections(self):
-        """
-
-        :return:
-        """
-
-        requests = sniff(count=1, lfilter=self.filter_tcp, timeout=0.01)
-        if not requests:
-            return
-
-        elif requests[0][TCP].dport in self.__ports:
-            return
-
-        else:
-            requests.show()
-            self.__ports.append(requests[0][TCP].dport)
-
-            return requests[0]
-
-    def filter_tcp(self, packets):
-        """
-         Check if the packet received is a TCP packet
-        :param packets: The packet
-        :return: If the packet has TCP in it
-        """
-
-        return (TCP in packets and Raw in packets and (packets[Raw].load == b'Logged' or packets[Raw].load == b'Urgent')
-                and packets[Ether].src not in self.__banned_macs and packets[IP].src not in self.__banned_ips)
-
-    def analyse_connections(self, requests):
-        """
-
-        :param requests:
-        :return:
-        """
-
-        if not requests:
-            return
-
-        else:
-            a_pack = requests[0]
-            a_pack[Raw].load = self.check_if_eligible(a_pack[Ether].src)
-
-            response = self.create_f_response(a_pack)
-            sendp(response)
-
-            return response
-
-    def check_if_eligible(self, identifier):
-        """
-
-        :param identifier:
-        :return:
-        """
-
-        if identifier in self.__banned_macs:
-            return b'Denied'
-
-        else:
-            return b'Accept'
-
-    def create_f_response(self, alt_res):
-        """
-         Create the servers first response
-        :param alt_res: The TCP packet
-        :return: The TCP response
-        """
-
-        res = alt_res
-        new_mac_src = res[Ether].dst
-        new_mac_dst = res[Ether].src
-
-        new_src = res[IP].dst
-        new_dst = res[IP].src
-
-        new_src_port = res[TCP].dport
-        new_dst_port = res[TCP].sport
-
-        res[Ether].src = new_mac_src
-        res[Ether].dst = new_mac_dst
-
-        res[IP].src = new_src
-        res[IP].dst = new_dst
-
-        res[TCP].sport = new_src_port
-        res[TCP].dport = new_dst_port
-
-        res[TCP].flags = SYN + ACK
-        res[TCP].ack = res[TCP].seq + 1
-
-        res[TCP].seq = RandShort()
-        res = self.prepare_packet_structure(res)
-
-        return res
-
-    def prepare_packet_structure(self, the_packet):
-        """
-
-        :param the_packet:
-        :return:
-        """
-
-        return the_packet.__class__(bytes(the_packet))
-
-    def verify_connection_success(self, response):
-        """
-
-        """
-
-        skip = []
-        requests = sniff(count=1, lfilter=self.filter_tcp, timeout=0.01)
-
-        if not requests:
-            return
-
-        else:
-            if 0 not in skip:
-                if requests[0] is None:
-                    print("Connection success")
-
-                else:
-                    sendp(response)
-                    skip.append(0)
-
-    def check_for_banned(self, messages, server_port):
-        """
-
-        :param messages:
-        :param server_port:
-        """
-
-        if b'Denied' == messages:
-            if self.__number_of_clients >= 1:
-                self.__number_of_clients -= 1
-            server_port = None
-
-        return server_port
-
-    def create_server_sockets(self, server_port, number):
-        """
-
-        :param server_port:
+        :param connection:
+        :param client_address:
         :param number:
         """
+
+        if client_address in self.__banned_ips or getmacbyip(client_address) in self.__banned_macs:
+            self.__all_details[number]["Connected"] = 1
+            connection.send(pickle.dumps("Denied".encode()))
+
+        else:
+            connection.send(pickle.dumps("Accepted".encode()))
+
+    def create_server_sockets(self):
+        """
+
+        """
+
         try:
-            print(f"creating for another clients", server_port)
-            the_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-            print(server_port)
+            if len(self.__sockets) < 3:
+                port = random.choice([500, 69, 420])
+                sockets = EncryptServer("Servers", port).run()
 
-            n = random.randint(0, 19)
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-            context.load_cert_chain(certfile=f"{self.__path}_Certificates\\certificate{n}.pem",
-                                    keyfile=f"{self.__path}_Keys\\the_key{n}.key",
-                                    password=self.__passes[n])
-
-            context.set_ciphers('ECDHE-RSA-AES128-GCM-SHA256')
-            context.post_handshake_auth = True
-
-            context.set_ecdh_curve('prime256v1')
-            context.minimum_version = ssl.TLSVersion.TLSv1_2
-            context.maximum_version = ssl.TLSVersion.TLSv1_3
-
-            the_server_socket.bind((THE_USUAL_IP, server_port))  # Bind the server IP and Port into a tuple
-            the_server_socket = context.wrap_socket(the_server_socket, server_side=True)
-            self.__all_details[number]["Socket"] = the_server_socket
+                print(f"creating for clients")
+                self.__sockets.append(sockets)
 
         except OSError:
             return
@@ -447,36 +224,52 @@ class Server:
         except IndexError:
             return
 
-        return the_server_socket
-
-    def accept_clients(self, the_server_socket, number):
+    def accept_clients(self, lock, number):
         """
 
-        :param the_server_socket:
+        :param lock:
         :param number:
         :return:
         """
-        try:
-            the_server_socket.listen()  # Listen to client
-            the_server_socket.settimeout(1)
 
-            connection, client_address = the_server_socket.accept()  # Accept clients request
-            print(f"Client connected {connection.getpeername()}")
+        with lock:
+            try:
+                if number < len(self.__all_details):
+                    if self.__all_details[number].get("Client") is None:
+                        if len(self.__sockets) < 3:
+                            self.create_server_sockets()
+                            return
 
-            client_socket = connection
-            self.__all_details[number]["Client"] = client_socket
+                        else:
+                            print("wait")
+                            for socket_c in self.__sockets:
+                                try:
+                                  #  socket_c.settimeout(1)
 
-        except socket.timeout:
-            return
+                                    connection, client_address = socket_c.accept()  # Accept clients request
+                                    self.check_for_banned(connection, client_address, number)
+                                    print(f"Client connected {connection.getpeername()}")
 
-        except TypeError:
-            return
+                                    client_socket = connection
+                                    self.__all_details[number]["Client"] = client_socket
 
-        except IndexError:
-            return
+                                    self.__all_details[number]["SockNumber"] = socket_c
+                                    self.__number_of_clients += 1
 
-        self.__number_of_clients += 1
-        self.__all_details[number]["Timer"] = (time.time(), 0)
+                                    self.__all_details[number]["Timer"] = (time.time(), 0)
+                                    break
+
+                                except socket.timeout:
+                                    pass
+
+            except TypeError:
+                return
+
+            except IndexError:
+                return
+
+            except Exception:
+                return
 
     def create_message(self, some_data):
         """
@@ -597,9 +390,11 @@ class Server:
         """
 
         """
+
         if self.__number_of_clients - 1 >= len(self.__all_details) or len(self.__all_details) == 0:
-            self.__all_details.append({"Credentials": None, "Socket": None,
-                                       "Client": None, "Timer": None, "Connected": 0, "Port": 0})
+            n = random.randint(0, 2)
+            self.__all_details.append({"Credentials": None, "Socket": self.__sockets[n], "Client": None, "Timer": None,
+                                       "Connected": 0, "Port": 0})
 
         else:
             pass
@@ -671,7 +466,7 @@ class Server:
         threads = []
 
         for number in range(0, len(self.__all_details)):
-            the_thread = threading.Thread(target=self.receive_connections, args=(lock, number))
+            the_thread = threading.Thread(target=self.accept_clients, args=(lock, number))
             threads.append(the_thread)
 
         return threads
@@ -752,10 +547,10 @@ class Server:
         """
 
         [thread.start() for thread in
-         (security_thread + connection_threads + login_threads + response_threads + detail_threads +
+         (connection_threads + login_threads + response_threads + detail_threads +
           disconnect_threads)]
 
-        for thread in (security_thread + connection_threads + login_threads + response_threads +
+        for thread in (connection_threads + login_threads + response_threads +
                        detail_threads + disconnect_threads):
             thread.join()
 
@@ -799,10 +594,9 @@ class Server:
 
                 if decrypted_data == 1:
                     self.__secure_socket.close()
-                    self.__secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-                    security_ports = [port for port in range(443, 501)]
+                    self.__secure_socket = EncryptClient("Server", 2)
 
-                    self.connect_to_security(security_ports)
+                    self.connect_to_security()
                     return
 
                 unpacked_data = pickle.loads(decrypted_data)
@@ -810,33 +604,6 @@ class Server:
 
         except socket.timeout:
             return
-
-    def receive_connections(self, lock, number):
-        """
-
-        :param lock:
-        :param number:
-        """
-
-        with lock:
-            try:
-                if number < len(self.__all_details):
-                    if self.__all_details[number].get("Client") is None:
-                        port_client = self.receive_client_connection_request()
-                        if port_client is None:
-                            return
-
-                        else:
-                            the_server_socket = self.create_server_sockets(port_client, number)
-                            if the_server_socket is None:
-                                return
-
-                            else:
-                                self.accept_clients(the_server_socket, number)
-                                return
-
-            except Exception:
-                return
 
     def receive_credentials(self, lock, number, list_of_existing, list_of_existing_resources):
         """
@@ -1011,15 +778,14 @@ class Server:
             try:
                 if self.__all_details[number].get("Connected") == 1:
                     self.__all_details[number].get("Client").close()
-                    self.__all_details[number].get("Socket").close()
-
                     self.__all_details.pop(number)
+
                     self.__credentials[str(number)] = None
-
                     self.__locations.pop(number)
-                    self.__number_of_clients -= 1
 
+                    self.__number_of_clients -= 1
                     self.__ports.pop(number)
+
                     print(self.__number_of_clients, len(self.__all_details))
 
             except Exception:
@@ -1096,14 +862,11 @@ def main():
     Main function
     """
 
-    secure_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
-
     ips_data_base = DatabaseManager("IPs", PARAMETERS["IPs"])
-    load_balance_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
 
     login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
-    server = Server(main_data_base, login_data_base, secure_socket, ips_data_base, load_balance_socket)
+    server = Server(main_data_base, login_data_base, ips_data_base, 0)
 
     server.run()
 

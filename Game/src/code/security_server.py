@@ -1,4 +1,5 @@
 import ssl
+from wrapper_of_the_server_socks import *
 from DatabaseCreator import *
 from dnssec_server import *
 from certificate_creator import *
@@ -24,8 +25,7 @@ class Security:
         self.__servers_database = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
         self.__database = DatabaseManager("IPs", PARAMETERS["IPs"])
 
-        self.__security_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-        self.__security_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        self.__security_socket, self.n = EncryptServer("DNS_SERVER", 443).run()
 
         self.__upcoming_bans = []
         self.__currently_banned = []
@@ -35,8 +35,6 @@ class Security:
 
         self.__counter_attack = None
         self.__max_index = 19
-
-        self.__cert_creator = CertificateCreator("DNS_SERVER")
 
     def run(self):
         """
@@ -98,7 +96,6 @@ class Security:
 
         if self.__service_socket is None:
             try:
-                self.create_security_context()
                 print("Server is up and running")
                 connection, service_address = self.__security_socket.accept()  # Accept clients request
 
@@ -126,32 +123,13 @@ class Security:
         else:
             return True
 
-    def create_security_context(self):
+    def create_bind_security(self):
         """
 
         """
-        passes = self.activate()
-        self.__security_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-        n = random.randint(0, 19)
-        self.__security_context.load_cert_chain(certfile=f"DNS_SERVER_Certificates\\certificate{n}.pem",
-                                                keyfile=f"DNS_SERVER_Keys\\the_key{n}.key",
-                                                password=passes[n])
-        self.__security_context.minimum_version = ssl.TLSVersion.TLSv1_3
-
-        self.__security_context.maximum_version = ssl.TLSVersion.TLSv1_3
-        self.__security_context.set_ecdh_curve('prime256v1')
-
-        self.__security_socket = self.__security_context.wrap_socket(self.__security_socket,
-                                                                     server_hostname="mad.cyberoffensive.org")
-
         self.__security_socket.bind((DEFAULT_IP, 443))  # Bind the server IP and Port into a tuple
         #     print("f")
         self.__security_socket.listen(1)  # Listen to client
-
-    def activate(self):
-
-        return self.__cert_creator.run()
 
     def receive_requests(self, list_of_banned_addresses):
         """
@@ -306,3 +284,17 @@ class Security:
                 self.__currently_banned.append(banned_addresses[i])
 
         return banned_addresses
+
+
+def main():
+
+    s = Security()
+    s.run()
+
+
+if __name__ == '__main__':
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+
+    os.chdir(dname)
+    main()
