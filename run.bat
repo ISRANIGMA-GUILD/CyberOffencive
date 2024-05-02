@@ -1,12 +1,11 @@
 @echo off
 
 rem Get the IP address of the default network interface
-for /f "tokens=2 delims=:" %%i in ('ipconfig ^| findstr /C:"IPv4 Address"') do (
+for /f "tokens=2 delims=: " %%i in ('powershell Get-NetIPAddress -PrefixOrigin Dhcp ^| findstr /C:"IPAddress"') do (
     echo Found IP Address: %%i
     set "IPAddress=%%i"
 )
 
-%IPAddress% = "10.0.0.7"
 echo "IP Address: %IPAddress%"
 
 rem Get the default gateway

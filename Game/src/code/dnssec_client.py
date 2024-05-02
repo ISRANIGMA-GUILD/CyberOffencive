@@ -5,7 +5,7 @@ import threading
 
 class Discoverer:
     def __init__(self, service_name=None):
-        self.__service_name = service_name or f"Server-{socket.gethostname()}-"  # Default to original name if not provided
+        self.__service_name = f"Cyber-Offensive"  # Default to original name if not provided
         self.__resolved = threading.Event()
         self.__server_address = None
         self.__zeroconf = Zeroconf()

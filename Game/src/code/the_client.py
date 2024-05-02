@@ -29,7 +29,7 @@ IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\LoginS
 class Client:
 
     def __init__(self):
-        self.__the_client_socket = TLSSocketWrapper("10.0.0.7").connect()
+        self.__the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.__timer = 0
 
         self.__start_time = 0
@@ -65,7 +65,7 @@ class Client:
                     print(details)
                     checker = self.check_success(details)
                     print("the checker", checker)
-                    if "Success" in checker[0]:
+                    if 'Success' == checker[0]:
                         print("Nice")
                         return checker
 
@@ -117,6 +117,7 @@ class Client:
             time.sleep(1)
             try:
                 print("Trying to connect...")
+                self.__the_client_socket = TLSSocketWrapper(server_ip).create_sock()
                 self.__the_client_socket.connect((server_ip, server_port))
                 print("Connection established.")
                 break
@@ -171,8 +172,6 @@ class Client:
 
         :return:
         """
-
-        return "127.0.0.1"
 
         while True:
             #   self.good_music()
@@ -399,7 +398,7 @@ class Client:
                     decrypt = success
                     print(decrypt)
 
-                    if "Success" in decrypt[0]:
+                    if "Success" == decrypt[0]:
                         print("success")
                         return decrypt
 
@@ -459,13 +458,14 @@ class Client:
 
                 full_msg = self.create_message(data)
 
-                if type(full_msg) is list:
-                    for index in range(0, len(full_msg)):
-                        message = full_msg[index]
-                        self.__the_client_socket.sendall(message)
+           #     if type(full_msg) is list:
+                 #   for index in range(0, len(full_msg)):
+                  #      message = full_msg[index]
+                    #    message = self.create_message(message)
+                       # self.__the_client_socket.sendall(full_msg)
 
-                else:
-                    self.__the_client_socket.sendall(full_msg)
+               # else:
+                self.__the_client_socket.sendall(full_msg)
 
             else:
 

@@ -656,7 +656,7 @@ class Server:
                         return
 
                     else:
-
+                        print("tha dta", data)
                         if data == 1 or data[3] == 1:
                             self.__all_details[index_of_client]["Connected"] = 1
                             return
@@ -687,26 +687,26 @@ class Server:
                                 self.__status[index_of_client] = the_data[2]
                                 self.__status_frame_index[index_of_client] = the_data[4]
 
-            except TypeError:
-                print("Client", index_of_client + 1, "unexpectedly left")
+        #    except TypeError:
+           #     print("Client", index_of_client + 1, "unexpectedly left")
 
-                print("Waited", self.__all_details)
-                return
+           #     print("Waited", self.__all_details)
+           #     return
 
-            except ConnectionAbortedError:
-                print("Client", index_of_client + 1, "unexpectedly left")
-                print("Waited", self.__all_details)
-                return
+          #  except ConnectionAbortedError:
+          #      print("Client", index_of_client + 1, "unexpectedly left")
+          #      print("Waited", self.__all_details)
+          #      return
 
-            except ConnectionResetError:
-                print("Client", index_of_client + 1, "unexpectedly left")
-                print("Waited", self.__all_details)
-                return
+        #    except ConnectionResetError:
+        #        print("Client", index_of_client + 1, "unexpectedly left")
+        #        print("Waited", self.__all_details)
+        #        return
 
-            except IndexError:
-                print("Client", index_of_client + 1, "unexpectedly left")
-                print("Waited", self.__all_details)
-                return
+        #    except IndexError:
+        #        print("Client", index_of_client + 1, "unexpectedly left")
+        #        print("Waited", self.__all_details)
+        #        return
 
             except pickle.PickleError:
                 print("what?")

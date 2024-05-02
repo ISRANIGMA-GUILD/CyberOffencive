@@ -1,15 +1,15 @@
 import socket
 import threading
-import uuid
+import netifaces
 from zeroconf import Zeroconf, ServiceBrowser, ServiceInfo
 
 
 class ServerD:
-    def __init__(self, port=8000):
+    def __init__(self, port=5353):
         self.port = port
         self.server_ip = None
         self.zeroconf = Zeroconf()
-        self.service_name = f"Server-{socket.gethostname()}-{uuid.uuid4().hex}"
+        self.service_name = f"Cyber-Offensive"
 
     def advertise_service(self):
         desc = {"version": "1.0"}
@@ -23,7 +23,8 @@ class ServerD:
             properties=desc
         )
         self.zeroconf.register_service(info)
-        self.server_ip = socket.gethostbyname(socket.gethostname())
+        self.server_ip = '0.0.0.0'
+        print(socket.gethostname(), netifaces.gateways()['default'][netifaces.AF_INET][0])
 
     def stop_advertising(self):
         self.zeroconf.unregister_all_services()
@@ -31,6 +32,7 @@ class ServerD:
 
     def get_server_ip(self):
         return self.server_ip
+
 
 if __name__ == "__main__":
     server = ServerD()
