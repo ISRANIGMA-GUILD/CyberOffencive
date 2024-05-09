@@ -22,6 +22,7 @@ class Login:
         self.__list_of_banned_users = banned_users
 
     def run(self):
+
         self.handle_credentials()
 
         return (self.__details, self.__credentials, self.__list_of_existing, self.__list_of_existing_resources,
@@ -29,8 +30,9 @@ class Login:
 
     def handle_credentials(self):
 
+        print("reached")
         try:
-            self.__details["Client"].settimeout(0.1)
+
             data = self.deconstruct_data()
             print("the data", data)
             if not data:
@@ -62,14 +64,16 @@ class Login:
             return
 
         except AttributeError:
+            print("start plssss")
             return
 
         except socket.timeout:
-            elapsed = time.time() - self.__details["Timer"][0]
+            print(self.__details["Timer"])
+            elapsed = time.time() - self.__details["Timer"]
 
             hour, minutes, seconds = time.strftime("%Hh %Mm %Ss",
                                                    time.gmtime(elapsed)).split(' ')
-            self.__details["Timer"] = (self.__details["Timer"][0], minutes)
+            self.__details["Timer"] = (self.__details["Timer"], minutes)
 
             if '01' in minutes:
                 self.__details["Connected"] = 1
@@ -83,23 +87,24 @@ class Login:
 
     def deconstruct_data(self):
 
-        data_pack = self.__details["Client"].recv(MAX_MSG_LENGTH)
-
-        try:
-            if not data_pack:
-                return
-
-            else:
-                data = pickle.loads(data_pack)
-                print("received", data)
-                return data
-
-        except socket.timeout:
-            print("out of time")
+      #  try:
+        self.__details["Client"].settimeout(5)
+        data_pack = self.__details["Client"].recv(16000)
+        print("dat", data_pack)
+        if not data_pack:
             return
 
-        except IndexError:
-            return
+        else:
+            data = pickle.loads(data_pack)
+            print("received", data)
+            return data
+
+      #  except socket.timeout:
+       #     print("out of time")
+       #     return
+
+      #  except IndexError:
+       #     return
 
     def invalid_data(self, data_iv, data_c_t, data_tag):
         """
@@ -148,15 +153,16 @@ class Login:
                         success = ["Success", detail]
 
                         success_pack = self.create_message(success)
-                        self.__details["Client"].send(success_pack)
+                        m = self.__details["Client"].send(success_pack)
+                        print("the", m)
                         return True
 
                     else:
                         print("ENTRY DENIED")
 
                         success_pack = self.create_message(["Failure"])
-                        self.__details["Client"].send(success_pack)
-
+                        m = self.__details["Client"].send(success_pack)
+                        print("the", m)
                         self.__details["Credentials"] = None
                         return False
 

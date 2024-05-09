@@ -35,6 +35,8 @@ class Client:
         self.__start_time = 0
         self.player = CreePy()
 
+        self.__logged = ""
+
     # self.v = self.player.get_volume()
 
     def run(self):
@@ -52,24 +54,24 @@ class Client:
         while True:
             try:
                 details = self.details_entry()
-
                 if details == 1:
                     print("leaving1")
                     message = 'EXIT'.encode()
 
-                    self.__the_client_socket.sendall(message)
+                    self.__the_client_socket.send(message)
                     print("leaving3")
                     return 1
 
                 else:
-                    print(details)
+                    print("this", details)
                     checker = self.check_success(details)
-                    print("the checker", checker)
-                    if 'Success' == checker[0]:
+                    print("the checker", checker[0])
+                    self.__logged = checker
+                    if self.__logged[0] == 'Success':
                         print("Nice")
                         return checker
 
-                    elif checker[0] == "Failure":
+                    elif self.__logged[0] == "Failure":
                         print("retry")
                         details = self.details_entry()
 
@@ -201,16 +203,15 @@ class Client:
         return (ip_address.count('.') == 3 and ''.join(ip_address.split('.')).isnumeric() and
                 len(''.join(ip_address.split('.'))) <= 12)
 
-    def receive_data(self):
+    def receive_data(self, timer):
         """
          Dissect the data received from the server
         :return: The data iv, data and tag
         """
 
         try:
-            self.__the_client_socket.settimeout(0.01)
-            data_pack = self.__the_client_socket.recv(MAX_MSG_LENGTH)
-            print(data_pack)
+            self.__the_client_socket.settimeout(timer)
+            data_pack = self.__the_client_socket.recv(73)
 
             if not data_pack:
                 return
@@ -244,12 +245,12 @@ class Client:
          Turn the data into a proper message
         :return: The full data message
         """
-
+        print("one time only ok......")
         while True:
             #  self.good_music()
             try:
                 user, password = self.login()
-
+                print("Credes", user, password)
                 if user == 1 and password == 1:
                     return 1
 
@@ -279,7 +280,7 @@ class Client:
                 data = [message]
                 full_msg = self.create_message(data)
 
-                self.__the_client_socket.sendall(full_msg)
+                self.__the_client_socket.send(full_msg)
                 self.__the_client_socket.close()
 
                 return
@@ -382,13 +383,18 @@ class Client:
         """
 
         #   self.good_music()
-        print(details)
+        print("details", details)
         while True:
             try:
-                print(details)
-                self.__the_client_socket.sendall(details)
-                success = self.receive_data()
-                print("successs", success)
+                print(details, "\n the check", self.__logged)
+          #      if len(self.__logged) == 0:
+                print("please")
+                self.__the_client_socket.send(details)
+                print("details1", details)
+                timer = 0.5
+                success = self.receive_data(timer)
+             #   time.sleep(5)
+                print("Did succeed?", success)
 
                 if success is None:
                     print("Fail")
@@ -402,7 +408,7 @@ class Client:
                         print("success")
                         return decrypt
 
-                    elif "Failure" in decrypt[0]:
+                    elif "Failure" == decrypt[0]:
                         print("wrong password or username")
                         return decrypt
 
@@ -429,18 +435,6 @@ class Client:
 
         return False
 
-    def communicate(self, public_data, private_data):
-        """
-
-        :param public_data:
-        :param private_data:
-        :return:
-        """
-
-        self.update_server(public_data, private_data)
-
-        return self.receive_location()
-
     def update_server(self, public_data, private_data):
         """
 
@@ -458,19 +452,13 @@ class Client:
 
                 full_msg = self.create_message(data)
 
-           #     if type(full_msg) is list:
-                 #   for index in range(0, len(full_msg)):
-                  #      message = full_msg[index]
-                    #    message = self.create_message(message)
-                       # self.__the_client_socket.sendall(full_msg)
-
-               # else:
-                self.__the_client_socket.sendall(full_msg)
+                self.__the_client_socket.send(full_msg)
 
             else:
 
                 full_msg = self.create_message(public_data)
-                self.__the_client_socket.sendall(full_msg)
+                print("the full message", full_msg)
+                self.__the_client_socket.send(full_msg)
 
             # if message == 'EXIT':
             # self.__the_client_socket.close()
@@ -485,7 +473,7 @@ class Client:
 
             full_msg = self.create_message(message)
 
-            self.__the_client_socket.sendall(full_msg)
+            self.__the_client_socket.send(full_msg)
             self.__the_client_socket.close()
 
             return
@@ -498,7 +486,7 @@ class Client:
             message = ["EXIT", 1, private_data]
             full_msg = self.create_message(message)
 
-            self.__the_client_socket.sendall(full_msg)
+            self.__the_client_socket.send(full_msg)
             self.__the_client_socket.close()
 
             return
@@ -514,7 +502,7 @@ class Client:
             message = ["EXIT", 1, private_data]
 
             full_msg = self.create_message(message)
-            self.__the_client_socket.sendall(full_msg)
+            self.__the_client_socket.send(full_msg)
 
             self.__the_client_socket.close()
             return
@@ -526,7 +514,8 @@ class Client:
         """
 
         try:
-            data_recv = self.receive_data()
+            timer = 0.01
+            data_recv = self.receive_data(timer)
 
             if not data_recv:
                 pass

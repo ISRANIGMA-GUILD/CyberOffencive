@@ -84,6 +84,7 @@ class Game:
 
                     if keys[pygame.K_SPACE]:
                         ran = self.network.run()
+                        print("DId it really succeed?", ran)
                         if ran == 2:
                             print("what is that new")
                             game_state = "start_menu"
@@ -145,12 +146,12 @@ class Game:
 
                     self.__previous_status = self.level.player.status
                     self.prev_loc = current_loc
-
+                    print("other client", other_client)
                     if other_client is None:
                         pass
 
                     elif other_client == 1:
-                        print("what the actual fuck is happening")
+                        print("what the is happening")
                         game_state = "start_menu"
 
                     else:
@@ -371,11 +372,13 @@ class Game:
         :param prev_loc_other:
         :return:
         """
-
+        print(other_client)
+       # other_coordinates = other_client
         other_coordinates = [(other_client[i][0], other_client[i][1])
                              for i in range(0, len(other_client)) if other_client[i] is not None]
         prev_loc_other = [other_coordinates[i] for i in range(0, len(other_coordinates))
                           if prev_loc_other != other_coordinates[i]]
+       # prev_loc_other = other_coordinates
 
         return prev_loc_other, other_coordinates
 
