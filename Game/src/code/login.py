@@ -35,10 +35,8 @@ class Login:
         print("reached")
         try:
 
-         #   data = self.deconstruct_data()
-            self.__details["Credentials"] = self.__sus
+
             self.check_account()
-            self.__credentials[str(self.__number)] = self.__details["Credentials"]
             return
 
         except TypeError:
@@ -76,27 +74,6 @@ class Login:
             self.__details["Connected"] = 1
             return
 
-    def deconstruct_data(self):
-
-      #  try:
-        self.__details["Client"].settimeout(5)
-        data_pack = self.__details["Client"].recv(16000)
-        print("dat", data_pack)
-        if not data_pack:
-            return
-
-        else:
-            data = pickle.loads(data_pack)
-            print("received", data)
-            return data
-
-      #  except socket.timeout:
-       #     print("out of time")
-       #     return
-
-      #  except IndexError:
-       #     return
-
     def invalid_data(self, data_iv, data_c_t, data_tag):
         """
 
@@ -112,6 +89,7 @@ class Login:
         """
 
         """
+        self.__details["Credentials"] = self.__sus
         print("checking", self.__details["Credentials"])
         if not self.__details["Credentials"]:
             print("really", self.__details["Credentials"], self.__details.keys())
@@ -120,12 +98,12 @@ class Login:
         else:
 
             tuple_of_credentials = self.__details["Credentials"]
-            print(tuple_of_credentials)
+            print(tuple_of_credentials, self.__credentials)
 
             count = 0
 
             for i in range(0, len(self.__credentials)):
-                if self.__details["Credentials"] == self.__credentials[str(i)]:
+                if self.__details["Credentials"] in self.__credentials[i]:
                     count += 1
 
             if count <= 1:
@@ -146,6 +124,7 @@ class Login:
                         success_pack = self.create_message(success)
                         m = self.__details["Client"].send(success_pack)
                         print("the", m)
+                        self.__credentials.append(self.__details["Credentials"])
                         return True
 
                     else:
@@ -178,6 +157,7 @@ class Login:
                         success_pack = self.create_message(["Success"])
 
                         self.__details["Client"].send(success_pack)
+                        self.__credentials.append(self.__details["Credentials"])
                         return True
 
             else:

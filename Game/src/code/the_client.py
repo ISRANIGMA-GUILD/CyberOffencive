@@ -3,15 +3,16 @@ import ssl
 from wrapper_of_the_client_socks import *
 from creepy import *
 from dnssec_client import *
-from scapy.all import *
 import socket
 import pygame
+import random
+import sys
 from socks import *
 
 pygame.init()
 SYN = 2
 ACK = 16
-MY_IP = conf.route.route('0.0.0.0')[1]
+MY_IP = socket.gethostbyname(socket.gethostname())
 MAX_MSG_LENGTH = 1024
 THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6": "SELECT", "7": "/", "8": "#",
                 "9": "SQL", "10": "FROM", "11": "(", "12": ")", "13": "+", "14": "UNION", "15": "ALL", "16": ">",
@@ -211,7 +212,7 @@ class Client:
 
         try:
             self.__the_client_socket.settimeout(timer)
-            data_pack = self.__the_client_socket.recv(73)
+            data_pack = self.__the_client_socket.recv(1024)
 
             if not data_pack:
                 return
@@ -225,9 +226,6 @@ class Client:
             return
 
         except socket.timeout:
-            return
-
-        except struct.error:
             return
 
     def create_message(self, some_data):
@@ -398,7 +396,7 @@ class Client:
 
                 if success is None:
                     print("Fail")
-                    pass
+                    return "Failure"
 
                 else:
                     decrypt = success

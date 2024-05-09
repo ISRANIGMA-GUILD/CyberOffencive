@@ -33,8 +33,11 @@ class EncryptServer:
         self.__security_context.maximum_version = ssl.TLSVersion.TLSv1_3
 
         self.__security_context.set_ecdh_curve('prime256v1')
-        socket_serv = self.__security_context.wrap_socket(socket_serv1, server_hostname="mad.cyberoffensive.org")
 
+        socket_serv1.setblocking(False)
+        socket_serv1.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        socket_serv = self.__security_context.wrap_socket(socket_serv1, server_hostname="mad.cyberoffensive.org")
         socket_serv1.close()
 
         socket_serv.bind((DEFAULT_IP, self.__port))
