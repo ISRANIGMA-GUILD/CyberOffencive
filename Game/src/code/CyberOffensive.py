@@ -156,7 +156,7 @@ class Game:
 
                     else:
                     #    other_client = pickle.loads(other_client)
-                        print("other_client", other_client, type(other_client))
+                        print("other_client", other_client, type(other_client), other_client[0], other_client[1])
 
                         if type(other_client) is list or type(other_client) is tuple:
                             print("updating")
@@ -170,26 +170,26 @@ class Game:
                             prev_loc_other, other_client = self.get_new_locations(locations, prev_loc_other)
                             self.erase_previous(temp_p)
 
-                            temp_p = []
+                        #    temp_p = []
                             statuses_updated = []
 
-                            for i in range(0, len(statuses)):
-                                statuses_updated.append(f'{statuses[i]}_{status_frame_indexes[i]}')
+                            #for i in range(0, len(statuses)):
+                            statuses_updated = f'{statuses}_{status_frame_indexes}'
 
-                            p_image = [pygame.image.load(
-                                       f'{BASE_PATH}graphics\\player\\{statuses[i]}\\{statuses_updated[i]}.png')
-                                       .convert_alpha() for i in range(0, len(statuses)) if statuses[i] is not None]
+                            p_image = (pygame.image.load(
+                                       f'{BASE_PATH}graphics\\player\\{statuses}\\{statuses_updated}.png')
+                                       .convert_alpha())
 
                             if not p_image:
                                 pass
 
                             else:
-                                for i in range(0, len(prev_loc_other)):
-                                    player_remote = Tile(position=prev_loc_other[i],
+                               # for i in range(0, len(prev_loc_other)):
+                                    player_remote = Tile(position=prev_loc_other,
                                                          groups=[self.level.visible_sprites,
                                                                  self.level.obstacles_sprites],
-                                                         sprite_type=PLAYER_OBJECT, surface=p_image[i])
-                                    temp_p.append(player_remote)
+                                                         sprite_type=PLAYER_OBJECT, surface=p_image)
+                                    temp_p = player_remote
 
                         pygame.display.flip()
                         pygame.display.update()
@@ -373,12 +373,12 @@ class Game:
         :return:
         """
         print(other_client)
-       # other_coordinates = other_client
-        other_coordinates = [(other_client[i][0], other_client[i][1])
-                             for i in range(0, len(other_client)) if other_client[i] is not None]
-        prev_loc_other = [other_coordinates[i] for i in range(0, len(other_coordinates))
-                          if prev_loc_other != other_coordinates[i]]
-       # prev_loc_other = other_coordinates
+        other_coordinates = other_client
+       # other_coordinates = [(other_client[i][0], other_client[i][1])
+       #                      for i in range(0, len(other_client)) if other_client[i] is not None]
+      #  prev_loc_other = [other_coordinates[i] for i in range(0, len(other_coordinates))
+        #                  if prev_loc_other != other_coordinates[i]]
+        prev_loc_other = other_coordinates
 
         return prev_loc_other, other_coordinates
 
@@ -390,11 +390,11 @@ class Game:
         """
 
         if temp_p:
-            for i in range(0, len(temp_p)):
-                self.level.visible_sprites.remove(temp_p[i])
-                self.level.obstacles_sprites.remove(temp_p[i])
+         #   for i in range(0, len(temp_p)):
+            self.level.visible_sprites.remove(temp_p)
+            self.level.obstacles_sprites.remove(temp_p)
 
-                temp_p[i].kill()
+            temp_p.kill()
 
     def find(self):
         """

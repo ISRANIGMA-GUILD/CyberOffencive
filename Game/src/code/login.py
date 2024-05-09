@@ -8,7 +8,7 @@ MAX_MSG_LENGTH = 1024
 class Login:
 
     def __init__(self, details, list_of_existing, list_of_existing_resources,
-                 credentials, number, new_credentials, number_of_clients, banned_users):
+                 credentials, number, new_credentials, number_of_clients, banned_users, data):
         self.__details = details
         self.__list_of_existing = list_of_existing
 
@@ -20,6 +20,8 @@ class Login:
 
         self.__number_of_clients = number_of_clients
         self.__list_of_banned_users = banned_users
+
+        self.__sus = data
 
     def run(self):
 
@@ -33,22 +35,11 @@ class Login:
         print("reached")
         try:
 
-            data = self.deconstruct_data()
-            print("the data", data)
-            if not data:
-                print("You are wrong")
-                return
-
-            else:
-                if data == b'EXIT':
-                    self.__details["Connected"] = 1
-                    return
-
-                else:
-                    self.__details["Credentials"] = data
-                    self.check_account()
-                    self.__credentials[str(self.__number)] = self.__details["Credentials"]
-                    return
+         #   data = self.deconstruct_data()
+            self.__details["Credentials"] = self.__sus
+            self.check_account()
+            self.__credentials[str(self.__number)] = self.__details["Credentials"]
+            return
 
         except TypeError:
             print("Problematic")
@@ -121,7 +112,7 @@ class Login:
         """
 
         """
-
+        print("checking", self.__details["Credentials"])
         if not self.__details["Credentials"]:
             print("really", self.__details["Credentials"], self.__details.keys())
             pass

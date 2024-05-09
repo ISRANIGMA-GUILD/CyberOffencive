@@ -391,7 +391,7 @@ class Client:
                 print("please")
                 self.__the_client_socket.send(details)
                 print("details1", details)
-                timer = 0.5
+                timer = 1
                 success = self.receive_data(timer)
              #   time.sleep(5)
                 print("Did succeed?", success)

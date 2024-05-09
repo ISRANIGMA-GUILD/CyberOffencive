@@ -70,9 +70,6 @@ class Server:
         self.__data_to_send = []
         self.__client_sockets = []
 
-        self.__logs = []
-       # self.__selectors = [Selector(self.__sockets[i], self.__client_sockets, self.__logs).run() for i in range(0, 3)]
-
     def run(self):
         """
 
@@ -242,13 +239,12 @@ class Server:
 
         while True:
             try:
-              #  print("con")
+                #  print("con")
                 self.update_credential_list()
-
+              #  print("updating")
                 self.update_database()
 
-
-                #selector_threads = self.create_selector_threads(lock)
+                # selector_threads = self.create_selector_threads(lock)
                 self.start_handling(list_of_existing, list_of_existing_resources)
 
                 if self.empty_server():
@@ -261,9 +257,9 @@ class Server:
                     self.__ips_data_base.close_conn()
                     break
 
-     #       except AttributeError:
-         #       print("wait huh")
-          #      pass
+            #       except AttributeError:
+            #       print("wait huh")
+            #      pass
 
             except ConnectionResetError:
                 print("Server will end service")
@@ -369,69 +365,102 @@ class Server:
         :param security_thread:
         :param disconnect_threads:
         """
-     #   print("hllo??????????")
+        #   print("hllo??????????")
         servers = self.__sockets
-        rlist, wlist, xlist = select.select(servers + self.__client_sockets, self.__client_sockets, [], 1)
+        rlist, wlist, xlist = select.select(servers + self.__client_sockets, self.__client_sockets, [], 0.7)
         index = 0
-        count = 0
-
+       # print("did credentials update??", self.__credentials)
         for current_socket in rlist:
-            print(rlist, "\nsock?", current_socket, self.__client_sockets)
+        #    print(rlist, "\nsock?", current_socket, self.__client_sockets)
+      #      print("client", index)
             if current_socket in servers:
-                current_socket.settimeout(0.5)
+                current_socket.settimeout(0.1)
                 connection, client_address = current_socket.accept()
                 print("New client joined!", client_address)
 
                 #   data_to_send.append((0, 0))
                 self.__to_send.append((current_socket, "yay"))
+                self.check_for_banned(connection, client_address, index)
 
+                self.eliminate_socket(index)
                 self.__client_sockets.append(connection)
+                self.__all_details[index]["Client"] = connection
+
+                self.__number_of_clients += 1
                 self.print_client_sockets()
 
             else:
-                n = rlist.index(current_socket)
-                print("index", n)
+              #  print("index", n)
                 try:
-                    current_socket.settimeout(0.5)
-                    data = pickle.loads(current_socket.recv(16000))
+                    if (self.__all_details[index].get("Credentials") is None and
+                            self.__all_details[index].get("Client") is not None):
+                        current_socket.settimeout(0.1)
+                        data = pickle.loads(current_socket.recv(16000))
+                        if "EXIT" in data[0]:
+                            print("Connection closed", data)
+                            self.__client_sockets.remove(current_socket)
 
-                    if "EXIT" in data[0]:
-                        print("Connection closed", )
-                        self.__client_sockets.remove(current_socket)
-
-                        self.__logs.remove("logged")
-
-                        current_socket.close()
-                        self.print_client_sockets()
-
-                    elif len(self.__logs) < len(self.__client_sockets):
-                        print(data)
-                        if type(data) is tuple:
-                            print("well", data)
-                            current_socket.send(pickle.dumps(["Success"]))
-                            self.__logs.append("logged")
-                            self.__to_send.append((current_socket, data))
-
-                    else:
-                        self.__to_send.append((current_socket, data))
-                        print("success", len(self.__client_sockets), len(data), data)
-
-                        if len(self.__client_sockets) > len(self.__data_to_send):
-                            self.__data_to_send.append(data)
+                            current_socket.close()
+                            self.__number_of_clients -= 1
+                            self.print_client_sockets()
+                          #  print("stuff", self.__weapons, self.__items)
+                            self.__weapons[index] = data[2]
+                            self.update_database()
                         else:
-                            if len(self.__data_to_send) > 0:
-                                self.__data_to_send[index] = data
+                            print("client", index)
+                            print(data)
+                            if type(data) is tuple:
+                             #   print("well", data)
+                                loging = Login(self.__all_details[index], list_of_existing, list_of_existing_resources,
+                                               self.__credentials, index, self.__new_credentials, self.__number_of_clients,
+                                               self.__list_of_banned_users, data)
 
-                        self.__locations[index] = data[0]
-                        print("int?", data[1])
-                        if data[1] is not None and len(data[1]) > 0:
-                            self.__chat[index] = data[1]
-                        #      print(self.__chat, the_data[1])
+                                (self.__all_details[index], self.__credentials, list_of_existing,
+                                 list_of_existing_resources,
+                                 self.__new_credentials, self.__number_of_clients) = loging.run()
+                                self.__to_send.append((current_socket, data))
 
-                        self.__status[index] = data[2]
-                        self.__status_frame_index[index] = data[4]
+                                if self.__all_details[index].get("Credentials") is not None:
+                                #    print("yayyyy")
+                                    self.__session_users[index] = self.__all_details[index].get("Credentials")[0]
+                            #    current_socket.send(pickle.dumps(["Success"]))
 
-                        self.send_to_clients(wlist, self.__data_to_send, self.__to_send, index)
+                    if (self.__all_details[index].get("Credentials") is not None and
+                            self.__all_details[index].get("Client") is not None):
+                        current_socket.settimeout(0.01)
+                        data = pickle.loads(current_socket.recv(16000))
+                        if "EXIT" in data[0]:
+                            print("Connection closed", data)
+                            self.__client_sockets.remove(current_socket)
+
+                            current_socket.close()
+                            self.__number_of_clients -= 1
+                            self.print_client_sockets()
+                            print("stuff", self.__weapons, self.__items)
+                            self.__weapons[index] = data[2]
+                            #self.__items[n] = [data[2]['HPF'], data[2]['EF'], data[2]['RHPF'], data[2]['BEF']]
+                            self.update_database()
+
+                        elif index <= len(self.__session_users) and type(data) is not tuple:
+                            self.__to_send.append((current_socket, data))
+                            print("success", len(self.__client_sockets), len(data), data)
+
+                            if len(self.__client_sockets) > len(self.__data_to_send):
+                                self.__data_to_send.append(data)
+                            else:
+                                if len(self.__data_to_send) > 0:
+                                    self.__data_to_send[index] = data
+
+                            self.__locations[index] = data[0]
+                         #   print("int?", data[1])
+                            if data[1] is not None and len(data[1]) > 0:
+                                self.__chat[index] = data[1]
+                            #      print(self.__chat, the_data[1])
+
+                            self.__status[index] = data[2]
+                            self.__status_frame_index[index] = data[4]
+
+                            self.send_to_clients(wlist, self.__data_to_send, self.__to_send, index)
 
                 except socket.timeout:
                     pass
@@ -440,8 +469,6 @@ class Server:
                     print("Connection closed", )
                     self.__client_sockets.remove(current_socket)
 
-                    self.__logs.remove("logged")
-
                     current_socket.close()
                     self.print_client_sockets()
 
@@ -449,16 +476,10 @@ class Server:
                     print("Connection closed", )
                     self.__client_sockets.remove(current_socket)
 
-                    self.__logs.remove("logged")
-
                     current_socket.close()
                     self.print_client_sockets()
 
-                #   except TypeError:
-                #       print("not socket")
-
                 index += 1
-            #count += 1
 
     def handle_security(self, lock):
         """
@@ -518,9 +539,15 @@ class Server:
         :param data_to_send:
         :param messages_to_send:
         """
-        print(self.__all_details, len(self.__all_details))
+        print("daaaaat", data_to_send, messages_to_send)
         for socks in self.__client_sockets:
             current_socket = socks
+         #   index = self.__client_sockets.index(current_socket)
+
+        #    data = data_to_send[index]
+         #  messages = messages_to_send[index]
+
+            print(self.__locations, self.__chat, self.__status, self.__weapons, self.__status_frame_index)
 
             if current_socket in wlist:
                 if (self.__locations is not None and self.__all_details[number].get("Client") is not None and
@@ -549,11 +576,19 @@ class Server:
                         local_f_indexes = [message for message in local_f_indexes if message is not None]
 
                         list_data = local_locations, local_messages, local_statuses, local_f_indexes
-                        byte_data = self.create_message(list_data)
+                        print(list_data, len(list_data), list_data[0])
 
-                        current_socket.send(byte_data)
+                        for i in range(0, len(list_data)):
+                            if not list_data[0] and not list_data[1] and not list_data[2] and not list_data[3]:
+                                pass
+
+                            else:
+                                data_of_one = list_data[0][i], list_data[1][i], list_data[2][i], list_data[3][i]
+                                byte_data = self.create_message(data_of_one)
+                                current_socket.send(byte_data)
 
                     except ConnectionResetError:
+                        print("not  good")
                         pass
 
     def print_client_sockets(self):
@@ -565,36 +600,36 @@ class Server:
         for c in self.__client_sockets:
             print("\t", c.getpeername())
 
-      #  except Exception:
-          #  print("didnt work")
-           # return
+    #  except Exception:
+    #  print("didnt work")
+    # return
 
-    def eliminate_socket(self, lock, number):
+    def eliminate_socket(self, number):
         """
 
         :param lock:
         :param number:
         """
 
-        with lock:
-            try:
-                if self.__all_details[number].get("Connected") == 1:
-                    self.__all_details[number].get("Client").close()
-                    self.__all_details.pop(number)
 
-                    self.__credentials[str(number)] = None
-                    self.__locations.pop(number)
+        try:
+            if self.__all_details[number].get("Connected") == 1:
+                self.__all_details[number].get("Client").close()
+                self.__all_details.pop(number)
 
-                    self.__number_of_clients -= 1
-                    self.__ports.pop(number)
+                self.__credentials[str(number)] = None
+                self.__locations.pop(number)
 
-                    print(self.__number_of_clients, len(self.__all_details))
+                self.__number_of_clients -= 1
+                self.__ports.pop(number)
 
-            except Exception:
-                return
+                print(self.__number_of_clients, len(self.__all_details))
 
-            finally:
-                return
+        except Exception:
+            return
+
+        finally:
+            return
 
     def empty_server(self):
         """
@@ -623,15 +658,15 @@ class Server:
                                                                 self.__new_credentials[index][1]],
                                                         no_duplicate_params=PARAMETERS["NODUP"])
 
-      #  print(self.__main_data_base, self.__credentials, self.__weapons,
-       #       len(self.__session_users) == len(self.__weapons))
+        #  print(self.__main_data_base, self.__credentials, self.__weapons,
+        #       len(self.__session_users) == len(self.__weapons))
 
         for index in range(0, len(self.__session_users) - 1):
             if self.__weapons[index] is not None:
                 weapons = str(self.__weapons[index]["G"]) + ", " + str(self.__weapons[index]["S"])
                 items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) + ", " +
                          str(self.__weapons[index]["RHPF"]) + ", " + str(self.__weapons[index]["BEF"]))
-               # print("Ne weapons", weapons, "Ne items", items)
+                # print("Ne weapons", weapons, "Ne items", items)
 
                 print(self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
                                                        [self.__session_users[index]]))
@@ -671,6 +706,7 @@ def main():
     server = Server(main_data_base, login_data_base, ips_data_base, 0)
 
     server.run()
+
 
 if __name__ == '__main__':
     abspath = os.path.abspath(__file__)
