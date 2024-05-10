@@ -6,10 +6,14 @@ from settings import *
 import socket
 import os
 import pickle
+import win32gui, win32con
 
 IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\LoginScreen\\menuscreen.png'
 BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\'
 LOGIN = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\LoginScreen\\login.png'
+
+the_program_to_hide = win32gui.GetForegroundWindow()
+win32gui.ShowWindow(the_program_to_hide , win32con.SW_HIDE)
 
 
 class Game:
@@ -114,38 +118,84 @@ class Game:
                         self.clock.tick(FPS)
 
                         ran = self.network.run()
+                        img = pygame.image.load(LOGIN)
+                        pygame.transform.scale(img, (1920, 1080))
+
+                        self.screen.blit(img, (0, 0))
+                        pygame.display.flip()
+
+                        pygame.display.update()
+                        self.clock.tick(FPS)
+
                         print("DId it really succeed?", ran)
                         if ran == 2:
                             print("what is that new")
                             game_state = "start_menu"
+                            pygame.display.flip()
+
+                            pygame.display.update()
+                            self.clock.tick(FPS)
 
                         elif ran == 1:
                             print("really oh reaaaaally")
                             game_state = "start_menu"
+                            pygame.display.flip()
+
+                            pygame.display.update()
+                            self.clock.tick(FPS)
 
                         else:
                             game_state = "continue"
                             print("Thingy", ran)
+                            pygame.display.flip()
+
+                            pygame.display.update()
+                            self.clock.tick(FPS)
                             if len(ran) > 1:
                                 items = ran[1][1].split(', ')
 
                                 weapons = ran[1][2].split(', ')
+                                pygame.display.flip()
+
+                                pygame.display.update()
+                                self.clock.tick(FPS)
                                 #  print(items)
                                 if weapons[0] == '1':
                                     self.items["G"] = 1
+                                    pygame.display.flip()
+
+                                    pygame.display.update()
+                                    self.clock.tick(FPS)
 
                                 if weapons[1] == '1':
                                     self.items["S"] = 1
                                     self.level.player.inventory.hotbar.insert(Sword((0, 0),
                                                                                     [self.level.visible_sprites]))
+                                    pygame.display.flip()
+
+                                    pygame.display.update()
+                                    self.clock.tick(FPS)
                                 if items[0] == '1':
                                     self.items["HPF"] = 1
                                     self.level.player.inventory.hotbar.insert(HPFruit((0, 0),
                                                                                     [self.level.visible_sprites]))
+                                    pygame.display.flip()
+
+                                    pygame.display.update()
+                                    self.clock.tick(FPS)
                                 if items[1] == '1':
                                     self.items["EF"] = 1
                                     self.level.player.inventory.hotbar.insert(EnergyFruit((0, 0),
                                                                                     [self.level.visible_sprites]))
+                                    pygame.display.flip()
+
+                                    pygame.display.update()
+                                    self.clock.tick(FPS)
+
+                    pygame.display.flip()
+
+                    pygame.display.update()
+                    self.clock.tick(FPS)
 
                 if game_state == "continue":
                     pygame.display.set_caption("Cyber Offensive")
