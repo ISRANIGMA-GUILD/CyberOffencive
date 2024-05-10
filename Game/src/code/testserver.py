@@ -240,8 +240,7 @@ class Server:
 
         while True:
             try:
-                self.update_credential_list()
-                self.update_database()
+
                 self.new_handling()
 
                 if self.empty_server():
@@ -291,14 +290,18 @@ class Server:
         """
       #  print("updating")
         if self.__number_of_clients - 1 >= len(self.__all_details) or len(self.__all_details) == 0:
-            n = random.randint(0, 2)
-            self.__all_details.append({"Credentials": None, "Sockets": self.__sockets[n], "Client": None, "Timer": None,
-                                       "Connected": 0, "Port": 0})
+          #  n = random.randint(0, 2)
+            self.__all_details.append({"Credentials": None, "Sockets": None, "Client": None, "Timer": None,
+                                       "Connected": 0})
 
         else:
             pass
 
-    #    self.__credentials[str(self.__number_of_clients - 1)] = None
+        if self.__number_of_clients - 1 >= len(self.__credentials) or len(self.__credentials) == 0:
+            self.__credentials.append(None)
+
+        else:
+            pass
 
         if self.__number_of_clients - 1 >= len(self.__locations) or len(self.__locations) == 0:
             self.__locations.append(None)
@@ -357,59 +360,51 @@ class Server:
 
     def new_handling(self):
 
-        events = self.__selector.select(1)
+        events = self.__selector.select(0)
 
         for key, mask in events:
-            #   print(mask, type(mask), key, type(key))
+            self.update_credential_list()
+            self.update_database()
+          #  print(key.fileobj)
             callback = key.data
             callback(key.fileobj, mask)
-
-    def get_current_client_index(self):
-        """
-        Returns the index of the currently selected client's socket in self.__client_sockets.
-
-        Returns:
-            int: The index of the current client's socket or -1 if no client is selected.
-        """
-        for i, socket in enumerate(self.__client_sockets):
-            try:
-                if socket == self.__all_details[self.__index].get("Client", None):
-                    return i
-            except IndexError:
-                self.__index = 0
-        self.__index = 0
-        return 0
+      #  print("final", self.__index)
 
     def accept(self, current_socket, mask):
         """
 
         """
-        index = self.get_current_client_index()
+        target = list(filter(lambda person: person["Sockets"] is None and person["Credentials"] is None,
+                             self.__all_details))[0]
+        index = self.__all_details.index(target)
+
         print("pre index", index)
-        if index != -1:
-            current_socket.settimeout(0.1)
-            connection, client_address = current_socket.accept()
-            print("New client joined!", client_address)
+     #   if index != -1:
+     #   current_socket.settimeout(0.1)
+        connection, client_address = current_socket.accept()
+        print("New client joined!", client_address)
 
-            #   data_to_send.append((0, 0))
-            self.__to_send.append((current_socket, "yay"))
-            self.check_for_banned(connection, client_address, index)
+        #   data_to_send.append((0, 0))
+        self.__to_send.append((current_socket, "yay"))
+        self.check_for_banned(connection, client_address, index)
 
-            self.eliminate_socket(index)
-            self.__client_sockets.append(connection)
-            self.__all_details[index]["Client"] = connection
+        self.eliminate_socket(index)
+        self.__client_sockets.append(connection)
 
-            self.__number_of_clients += 1
-            self.print_client_sockets()
+        self.__all_details[index]["Client"] = connection
+        self.__all_details[index]["Sockets"] = current_socket
 
-            connection.setblocking(False)
-            self.__selector.register(connection, selectors.EVENT_READ, self.other2)
+        self.__number_of_clients += 1
+        self.print_client_sockets()
 
-           # self.__selector.modify(connection, selectors.EVENT_READ, self.other)
+        connection.setblocking(False)
+        self.__selector.register(connection, selectors.EVENT_READ, self.other2)
+
+       # self.__selector.modify(connection, selectors.EVENT_READ, self.other)
 
     def other(self, current_socket, mask):
 
-        print("yay", self.get_current_client_index())
+        print("yay", self.__client_sockets.index(None))
         #self.__selector.modify(current_socket, selectors.EVENT_READ, self.other_1)
 
     def other2(self, current_socket, mask):
@@ -419,13 +414,20 @@ class Server:
         :param mask:
         """
        # print(self.get_current_client_index())
-        index = self.get_current_client_index()
-      #  print("index", index, self.__all_details[index].get("Credentials"))
+        target = list(filter(lambda person: person["Client"] == current_socket and person["Credentials"] is None,
+                             self.__all_details))[0]
+        index = self.__all_details.index(target)
+   #     print(current_socket.getpeername())
+        print("indexc", index)
         try:
-            if (self.__all_details[index].get("Credentials") is None and
-                    self.__all_details[index].get("Client") is not None):
-                current_socket.settimeout(0.5)
-                data = pickle.loads(current_socket.recv(16000))
+       #     index = self.__client_sockets.index(current_socket)
+            current_socket.settimeout(0.5)
+            data = pickle.loads(current_socket.recv(16000))
+            print("data", index, data, self.__all_details)
+            if (self.__credentials[index] is None
+                    and self.__client_sockets[index] is not None):
+                print("start", index)
+
                 print("please", data)
                 if "EXIT" in data[0]:
                     print("Connection closed", data)
@@ -458,22 +460,21 @@ class Server:
                             self.__selector.modify(current_socket, selectors.EVENT_READ, self.other_1)
                     #     self.__number_of_clients += 1
                     # current_socket.send(pickle.dumps(["Success"]))
-            else:
+           # else:
                 #print("logged or spmething", self.__credentials, index, self.__new_credentials)
-                self.__index += 1
 
-        except socket.timeout:
+        except socket.timeout as e:
             pass
 
-        except ssl.SSLEOFError:
-            print("Connection closed", )
+        except ssl.SSLEOFError as e:
+            print("Connection closed", e)
             self.__client_sockets.remove(current_socket)
 
             current_socket.close()
             self.print_client_sockets()
 
-        except EOFError:
-            print("Connection closed", )
+        except EOFError as e:
+            print("Connection closed", e)
             self.__client_sockets.remove(current_socket)
 
             current_socket.close()
@@ -485,10 +486,10 @@ class Server:
         :param current_socket:
         :param mask:
         """
-        index = self.get_current_client_index()
+        index = self.__client_sockets.index(current_socket)
         try:
-            if (self.__all_details[index].get("Credentials") is not None and
-                      self.__all_details[index].get("Client") is not None):
+            if (self.__credentials[index] is not None and
+                      self.__client_sockets[index] is not None):
                 current_socket.settimeout(0.01)
                 data = pickle.loads(current_socket.recv(16000))
 
@@ -539,6 +540,10 @@ class Server:
 
             current_socket.close()
             self.print_client_sockets()
+
+        except IndexError:
+            print("index error")
+            self.__index = 0
 
     def handle_security(self, lock):
         """

@@ -66,7 +66,7 @@ class Client:
                 else:
                     print("this", details)
                     checker = self.check_success(details)
-                    print("the checker", checker[0])
+                    print("the checker", checker)
                     self.__logged = checker
                     if self.__logged[0] == 'Success':
                         print("Nice")
@@ -213,6 +213,7 @@ class Client:
         try:
             self.__the_client_socket.settimeout(timer)
             data_pack = self.__the_client_socket.recv(1024)
+            print("data pack", data_pack)
 
             if not data_pack:
                 return
@@ -389,7 +390,7 @@ class Client:
                 print("please")
                 self.__the_client_socket.send(details)
                 print("details1", details)
-                timer = 1
+                timer = 5
                 success = self.receive_data(timer)
              #   time.sleep(5)
                 print("Did succeed?", success)
@@ -410,7 +411,8 @@ class Client:
                         print("wrong password or username")
                         return decrypt
 
-            except socket.timeout:
+            except socket.timeout as e:
+                print("exception is", e)
                 pass
 
     def malicious_message(self, message):

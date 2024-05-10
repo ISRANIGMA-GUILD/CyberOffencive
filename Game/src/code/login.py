@@ -35,14 +35,13 @@ class Login:
         print("reached")
         try:
 
-
             self.check_account()
             return
 
-        except TypeError:
-            print("Problematic")
-            self.__details["Connected"] = 1
-            return
+     #   except TypeError:
+       #     print("Problematic")
+         #   self.__details["Connected"] = 1
+         #   return
 
         except ConnectionResetError:
             print("Client", self.__number + 1, self.__details["Client"].getpeername(),
@@ -90,7 +89,7 @@ class Login:
 
         """
         self.__details["Credentials"] = self.__sus
-        print("checking", self.__details["Credentials"])
+        print("checking", self.__details["Credentials"], self.__details["Client"])
         if not self.__details["Credentials"]:
             print("really", self.__details["Credentials"], self.__details.keys())
             pass
@@ -100,13 +99,7 @@ class Login:
             tuple_of_credentials = self.__details["Credentials"]
             print(tuple_of_credentials, self.__credentials)
 
-            count = 0
-
-            for i in range(0, len(self.__credentials)):
-                if self.__details["Credentials"] in self.__credentials[i]:
-                    count += 1
-
-            if count <= 1:
+            if self.__credentials.count(self.__details["Credentials"]) <= 1:
 
                 list_of_existing_users = [tup[0] for tup in self.__list_of_existing]
                 the_big_ugly_list = [self.__list_of_banned_users[i][0]
