@@ -66,7 +66,7 @@ class HotBar:
         surface = pygame.display.get_surface()
                 
         for i in range(self.capacity):
-            ri = pygame.Rect(30 + i * 50 + i * 20, 470, 50, 50)
+            ri = pygame.Rect(30 + i * 50 + i * 20, 800, 50, 50)
             pygame.draw.rect(surface, HOTBAR_CELL_COLOR, ri, border_radius = HOTBAR_BORDER_RADIUS)
 
             if self.active_item_index == i:
@@ -76,12 +76,12 @@ class HotBar:
             
             if len(self.content[i]):
                 on_hotbar_item_image = pygame.image.load(self.content[i][0].image_paths[ON_HOTBAR]).convert_alpha()
-                surface.blit(on_hotbar_item_image, (40 + i * 50 + i * 20, 478))
+                surface.blit(on_hotbar_item_image, (40 + i * 50 + i * 20, 810))
                 
                 amount_text = str(len(self.content[i]))
                 rendered_amount_text = self.__font.render(amount_text, True, 'white')
 
                 rendered_amount_text_rect = rendered_amount_text.get_rect()
-                rendered_amount_text_rect.topleft = (64 + i * 50 + i * 20, 474)
+                rendered_amount_text_rect.topleft = (64 + i * 50 + i * 20, 800)
                 
                 surface.blit(rendered_amount_text, rendered_amount_text_rect)

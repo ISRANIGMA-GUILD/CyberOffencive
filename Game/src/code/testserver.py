@@ -249,7 +249,7 @@ class Server:
                     self.__login_data_base.close_conn()
                     self.__main_data_base.close_conn()
 
-                    self.disconnect_from_security()
+             #       self.disconnect_from_security()
                     self.__ips_data_base.close_conn()
                     break
 
@@ -264,7 +264,7 @@ class Server:
                 self.__login_data_base.close_conn()
                 self.__main_data_base.close_conn()
 
-                self.disconnect_from_security()
+              #  self.disconnect_from_security()
                 self.__ips_data_base.close_conn()
 
                 break
@@ -276,7 +276,7 @@ class Server:
                 self.__login_data_base.close_conn()
                 self.__main_data_base.close_conn()
 
-                self.disconnect_from_security()
+              #  self.disconnect_from_security()
                 self.__ips_data_base.close_conn()
 
                 break

@@ -9,6 +9,7 @@ import pickle
 
 IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\LoginScreen\\menuscreen.png'
 BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\'
+LOGIN = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\LoginScreen\\login.png'
 
 
 class Game:
@@ -19,7 +20,7 @@ class Game:
         pygame.font.init()
         self.font = pygame.font.Font(FONT_PATH, 60)
 
-        self.font_chat = pygame.font.Font(FONT_PATH, 20)
+        self.font_chat = pygame.font.Font(FONT_PATH, 40)
 
         pygame.event.set_allowed([QUIT, KEYDOWN, KEYUP])
         self.screen = pygame.display.set_mode((WIDTH, HEIGTH), FLAGS, BITS_PER_PIXEL)
@@ -51,6 +52,27 @@ class Game:
         self.__locs = [[0, (30, 150)], [1, (30, 100)]]
         self.__previous_details = []
 
+        self.__output_box = pygame.Rect(0, 500, 500, 100)
+        self.__input_box = pygame.Rect(0, 600, 200, 50)
+
+        self.__output_o_box = pygame.Rect(0, 500, 500, 100)
+        self.__input_o_box = pygame.Rect(0, 600, 200, 50)
+
+        # Blit the text.
+
+        self.__o_width = max(500, 50 + 10)
+        self.__i_width = max(500, 50 + 10)
+
+        self.__o_o_width = max(500, 50 + 10)
+        self.__o_i_width = max(500, 50 + 10)
+
+        self.__output_box.w = self.__o_width
+        self.__input_box.w = self.__i_width
+
+        self.__output_o_box.w = self.__o_o_width
+        self.__input_o_box.w = self.__o_i_width
+        self.__prev_length = 19
+
     def run(self) -> None:
         """
 
@@ -79,10 +101,18 @@ class Game:
                     game_state = "game"
 
                 if game_state == "game":
-                    loading_screen_image = pygame.image.load(IMAGE).convert()
                     keys = pygame.key.get_pressed()
 
                     if keys[pygame.K_SPACE]:
+                        img = pygame.image.load(LOGIN)
+                        pygame.transform.scale(img, (1920, 1080))
+
+                        self.screen.blit(img, (0, 0))
+                        pygame.display.flip()
+
+                        pygame.display.update()
+                        self.clock.tick(FPS)
+
                         ran = self.network.run()
                         print("DId it really succeed?", ran)
                         if ran == 2:
@@ -194,23 +224,20 @@ class Game:
                         pygame.display.flip()
                         pygame.display.update()
                         self.clock.tick(FPS)
+
+                    pygame.draw.rect(self.screen, (0, 0, 0), self.__output_box)
+                    pygame.draw.rect(self.screen, (0, 255, 0), self.__input_box)
+                    pygame.draw.rect(self.screen, (255, 215, 0), self.__output_o_box, 2)
+                    pygame.draw.rect(self.screen, (255, 215, 0), self.__input_o_box, 10)
+                    pygame.display.flip()
+
                     if self.__other_messages is not None:
-                        output_box = pygame.Rect(20, 100, 500, 100)
-                        input_box = pygame.Rect(20, 200, 200, 50)
 
-                        # Blit the text.
-
-                        o_width = max(500, 50 + 10)
-                        i_width = max(500, 50 + 10)
-
-                        output_box.w = o_width
-                        input_box.w = i_width
-
-                        if 0 < len(self.__temp_message) <= 19:
-                            self.draw_text(self.__temp_message, (255, 0, 0), self.screen, 30, 200)
-
+                        if 0 < len(self.__temp_message) <= self.__prev_length:
+                            self.draw_text(self.__temp_message, (255, 0, 0), self.screen, 10, 610)
                         else:
-                            self.draw_text(self.__temp_message[19:], (255, 0, 0), self.screen, 30, 200)
+                            self.__prev_length += 10
+                            self.draw_text(self.__temp_message[self.__prev_length-2:], (255, 0, 0), self.screen, 10, 610)
 
                         for i in range(0, len(self.__locs)):
                             if len(self.__previous_messages) > 0:
@@ -230,8 +257,7 @@ class Game:
                                 self.__locs[i][0] += 1
                             #pygame.display.flip()
                         # Blit the input_box rect.
-                        pygame.draw.rect(self.screen, (0, 0, 0), output_box, 2)
-                        pygame.draw.rect(self.screen, (0, 255, 0), input_box, 2)
+
                         pygame.display.flip()
 
                    # self.__message = None
@@ -248,6 +274,7 @@ class Game:
                            # print(f"You:", self.__message)
                             self.__temp_message = ""
                             self.__using_chat = False
+                            self.__prev_length = 19
 
                     pygame.display.update()
                     self.clock.tick(FPS)
@@ -273,15 +300,18 @@ class Game:
 
         """
 
-        self.screen.fill((0, 0, 0))
-
-        start_button = self.font.render('', True, (255, 255, 255))
-        screen = pygame.display.set_mode((1200, 730))
-
+        self.screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN)
+        start_button = self.font.render('START', True, (255, 255, 255), (30, 30, 255))
         img = pygame.image.load(IMAGE)
-        screen.blit(img, (0, 0))
+
+        pygame.transform.scale(img, (1920, 1080))
+        self.screen.blit(img, (0, 0))
+
+        print("Image size:", img.get_width(), img.get_height())
 
         pygame.display.flip()
+        input_box = pygame.Rect(860, 550, 200, 100)
+        pygame.draw.rect(self.screen, (0, 255, 0), input_box)
         self.screen.blit(start_button, (self.screen.get_width() / 2 - start_button.get_width() / 2,
                                         self.screen.get_height() / 2 + start_button.get_height() / 2))
 
