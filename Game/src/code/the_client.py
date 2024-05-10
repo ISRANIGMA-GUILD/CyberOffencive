@@ -80,8 +80,12 @@ class Client:
                 pygame.draw.rect(screen, (255, 255,255), self.__user_box)
                 pygame.draw.rect(screen, (255, 255,255), self.__pass_box)
 
-                start_button = self.font.render('START', True, (0, 0, 0), (30, 30, 255))
-                screen.blit(start_button, (0, 200))
+                start_button = self.font.render('USERNAME', True, (255, 215, 0))
+                screen.blit(start_button, (10, 210))
+                pygame.display.flip()
+
+                start_button = self.font.render('PASSWORD', True, (255, 215, 0))
+                screen.blit(start_button, (10, 430))
                 pygame.display.flip()
 
                 details = self.details_entry(screen, clock)
@@ -385,9 +389,12 @@ class Client:
             pygame.draw.rect(screen, (255, 255,255), self.__user_box)
             pygame.draw.rect(screen, (255, 255, 255), self.__pass_box)
 
-            start_button = self.font.render('START', True, (0, 0, 0), (30, 30, 255))
-            screen.blit(start_button, (0, 200))
+            start_button = self.font.render('USERNAME', True, (255, 215, 0))
+            screen.blit(start_button, (10, 210))
+            pygame.display.flip()
 
+            start_button = self.font.render('PASSWORD', True, (255, 215, 0))
+            screen.blit(start_button, (10, 430))
             pygame.display.flip()
 
             self.__timer = time.time() - self.__start_time

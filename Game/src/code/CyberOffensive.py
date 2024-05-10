@@ -301,7 +301,7 @@ class Game:
         """
 
         self.screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN)
-        start_button = self.font.render('START', True, (255, 255, 255), (30, 30, 255))
+        start_button = self.font.render('START', True, (255, 255, 255))
         img = pygame.image.load(IMAGE)
 
         pygame.transform.scale(img, (1920, 1080))
