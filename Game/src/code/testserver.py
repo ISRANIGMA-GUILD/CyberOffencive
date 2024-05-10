@@ -88,7 +88,6 @@ class Server:
         # """:TODO(Work in progress): Receive info about enemy locations, item locations """#
         # """:TODO(almost finished): Make sure server isn't bogged down due to heavy packs"""#
         # """:TODO: Show weapons when attacking"""#
-        # """:TODO(almost finished): Make sure nothing appears in terminal (including chat)"""#
         # """:TODO: Lock the database with a long and strong password"""#
         # """:TODO: Make sure clients move smoothly move between servers"""#
         # """:TODO: Create a border for clients in your server, when crossed the client is moved to another server"""#
