@@ -117,7 +117,7 @@ class Login:
                         success_pack = self.create_message(success)
                         m = self.__details["Client"].send(success_pack)
                         print("the", m)
-                        self.__credentials.append(self.__details["Credentials"])
+                        self.__credentials[self.__number] = self.__details["Credentials"]
                         return True
 
                     else:
@@ -150,7 +150,7 @@ class Login:
                         success_pack = self.create_message(["Success"])
 
                         self.__details["Client"].send(success_pack)
-                        self.__credentials.append(self.__details["Credentials"])
+                        self.__credentials[self.__number] = self.__details["Credentials"]
                         return True
 
             else:
