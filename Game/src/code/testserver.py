@@ -79,15 +79,19 @@ class Server:
         """
 
         # """:TODO(Are they possible?): Check for session injection vulnerabilities """#
+        # """:TODO: Add as secret verification between s -> c and c -> s"""#
         # """:TODO: Transport databases between servers at the end and updating them accordingly """#
         # """:TODO(Should the server intervene?): Check if users cheat(in speed, damage, etc.) """#
-        # """:TODO: Loading screen between menu and login screens """#
+        # """:TODO(finished?): Loading screen between menu and login screens """#
         # """:TODO(Work in progress): Merge with load balancer """#
         # """:TODO(almost finished): Try-except on everything """#
         # """:TODO(Work in progress): Receive info about enemy locations, item locations """#
         # """:TODO(almost finished): Make sure server isn't bogged down due to heavy packs"""#
         # """:TODO: Show weapons when attacking"""#
         # """:TODO(almost finished): Make sure nothing appears in terminal (including chat)"""#
+        # """:TODO: Lock the database with a long and strong password"""#
+        # """:TODO: Make sure clients move smoothly move between servers"""#
+        # """:TODO: Create a border for clients in your server, when crossed the client is moved to another server"""#
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info, resource_info, ip_info)
