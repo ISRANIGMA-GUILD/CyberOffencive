@@ -8,11 +8,9 @@ import threading
 import pickle
 import selectors
 
-SYN = 2
-ACK = 16
 THE_USUAL_IP = '0.0.0.0'
 MY_IP = socket.gethostbyname(socket.gethostname())
-MAX_MSG_LENGTH = 1024
+MAX_MSG_LENGTH = 16000
 LOCAL_HOST = '127.0.0.1'
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
               "NODUP": ['Username', 'Password'], "DUP": ['Status', 'Items', 'Weapons'],
@@ -185,10 +183,9 @@ class Server:
             except OSError:
                 pass
 
-    def check_for_banned(self, connection, client_address, number):
+    def check_for_banned(self, client_address, number):
         """
 
-        :param connection:
         :param client_address:
         :param number:
         """
@@ -391,8 +388,7 @@ class Server:
 
         #   data_to_send.append((0, 0))
         self.__to_send.append((current_socket, "yay"))
-        self.check_for_banned(connection, client_address, index)
-
+        self.check_for_banned(client_address, index)
 
         self.__client_sockets.append(connection)
 
@@ -420,7 +416,7 @@ class Server:
         try:
 
             current_socket.settimeout(0.5)
-            data = pickle.loads(current_socket.recv(16000))
+            data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
 
             print("data", index, data, self.__all_details)
             print("start", index)
@@ -459,7 +455,7 @@ class Server:
        # else:
             #print("logged or spmething", self.__credentials, index, self.__new_credentials)
 
-        except socket.timeout as e:
+        except socket.timeout:
             pass
 
         except ssl.SSLEOFError as e:
@@ -468,7 +464,6 @@ class Server:
 
             self.eliminate_socket(index)
             self.print_client_sockets()
-
 
         except EOFError as e:
             print("Connection closed", e)
@@ -489,7 +484,7 @@ class Server:
         print(self.__credentials, self.__session_users)
         try:
             current_socket.settimeout(0.01)
-            data = pickle.loads(current_socket.recv(16000))
+            data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
             print(data)
             if "EXIT" in data[0]:
                 print("Connection closed", data)
@@ -598,7 +593,6 @@ class Server:
         """
 
         :param number:
-        :param wlist:
         :param data_to_send:
         :param messages_to_send:
         """
@@ -752,6 +746,4 @@ if __name__ == '__main__':
     dname = os.path.dirname(abspath)
 
     os.chdir(dname)
-    #fd = os.open("testserver.py", os.O_RDWR)
-   # print(os.get_blocking(fd))
     main()

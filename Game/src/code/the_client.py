@@ -1,9 +1,6 @@
 import pickle
-import ssl
-from wrapper_of_the_client_socks import *
 from creepy import *
 from dnssec_client import *
-import socket
 import pygame
 import random
 import sys
@@ -11,8 +8,6 @@ from socks import *
 from settings import *
 
 
-SYN = 2
-ACK = 16
 MY_IP = socket.gethostbyname(socket.gethostname())
 MAX_MSG_LENGTH = 1024
 THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6": "SELECT", "7": "/", "8": "#",
@@ -77,8 +72,8 @@ class Client:
                 screen.blit(img, (0, 0))
 
                 pygame.draw.rect(screen, (0, 0, 255), self.__login_thingy)
-                pygame.draw.rect(screen, (255, 255,255), self.__user_box)
-                pygame.draw.rect(screen, (255, 255,255), self.__pass_box)
+                pygame.draw.rect(screen, (255, 255, 255), self.__user_box)
+                pygame.draw.rect(screen, (255, 255, 255), self.__pass_box)
 
                 start_button = self.font.render('USERNAME', True, (255, 215, 0))
                 screen.blit(start_button, (10, 210))
@@ -157,20 +152,19 @@ class Client:
     def connect_to_socket(self, server_ip, server_port, screen, clock):
         """
 
+        :param screen:
         :param clock:
         :param server_ip:
         :param server_port:
         :return:
         """
 
-        count = 0
         while True:
             img = pygame.image.load(IMAGE)
             screen.blit(img, (0, 0))
             pygame.display.flip()
 
             print(f'ip:port = {server_ip}:{server_port}')
-           # time.sleep(1)
             try:
                 print("Trying to connect...")
                 self.__the_client_socket = TLSSocketWrapper(server_ip).create_sock()
@@ -212,7 +206,6 @@ class Client:
             clock.tick(FPS)
 
         print("Success")
-        count = 0
 
     def format_socket(self):
         """
@@ -372,12 +365,7 @@ class Client:
         username = ""
         password = ""
 
-       # screen_width = 1200
-     #   screen_height = 730
-
-        #screen = pygame.display.set_mode((screen_width, screen_height))
         pygame.display.set_caption("Login Screen")
-
         entering_username = True
 
         while True:
@@ -386,7 +374,7 @@ class Client:
             screen.blit(img, (0, 0))
 
             pygame.draw.rect(screen, (0, 0, 255), self.__login_thingy)
-            pygame.draw.rect(screen, (255, 255,255), self.__user_box)
+            pygame.draw.rect(screen, (255, 255, 255), self.__user_box)
             pygame.draw.rect(screen, (255, 255, 255), self.__pass_box)
 
             start_button = self.font.render('USERNAME', True, (255, 215, 0))
@@ -476,13 +464,13 @@ class Client:
         while True:
             try:
                 print(details, "\n the check", self.__logged)
-          #      if len(self.__logged) == 0:
                 print("please")
+
                 self.__the_client_socket.send(details)
                 print("details1", details)
+
                 timer = 5
                 success = self.receive_data(timer)
-             #   time.sleep(5)
                 print("Did succeed?", success)
 
                 if success is None:

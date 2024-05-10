@@ -56,12 +56,6 @@ class DeadlyArrows:
         response_to_your_friend = self.redirect_to_client()
         response_to_his_friend = self.redirect_to_router()
 
-      #  print("You friend will be noticed:\n", response_to_your_friend.summary(),
-      #        "\nHis Friend will know:\n", response_to_his_friend.summary())
-
-      #  response_to_your_friend.show()
-      #  response_to_his_friend.show()
-
         self.confuse(response_to_your_friend, response_to_his_friend)
 
     def redirect_to_client(self):

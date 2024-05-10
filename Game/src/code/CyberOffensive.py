@@ -3,27 +3,25 @@ from level import *
 from the_client import *
 from creepy import *
 from settings import *
-import socket
 import os
-import pickle
-import win32gui, win32con
+import win32gui
+import win32con
 
 IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\LoginScreen\\menuscreen.png'
 BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\'
 LOGIN = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\LoginScreen\\login.png'
-
-the_program_to_hide = win32gui.GetForegroundWindow()
-win32gui.ShowWindow(the_program_to_hide , win32con.SW_HIDE)
 
 
 class Game:
     def __init__(self) -> None:
         pygame.init()
         pygame.mixer.init()
-
         pygame.font.init()
-        self.font = pygame.font.Font(FONT_PATH, 60)
 
+        the_program_to_hide = win32gui.GetForegroundWindow()
+        win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
+
+        self.font = pygame.font.Font(FONT_PATH, 60)
         self.font_chat = pygame.font.Font(FONT_PATH, 40)
 
         pygame.event.set_allowed([QUIT, KEYDOWN, KEYUP])
@@ -178,7 +176,7 @@ class Game:
                                 if items[0] == '1':
                                     self.items["HPF"] = 1
                                     self.level.player.inventory.hotbar.insert(HPFruit((0, 0),
-                                                                                    [self.level.visible_sprites]))
+                                                                                [self.level.visible_sprites]))
                                     pygame.display.flip()
 
                                     pygame.display.update()
@@ -186,7 +184,7 @@ class Game:
                                 if items[1] == '1':
                                     self.items["EF"] = 1
                                     self.level.player.inventory.hotbar.insert(EnergyFruit((0, 0),
-                                                                                    [self.level.visible_sprites]))
+                                                                                [self.level.visible_sprites]))
                                     pygame.display.flip()
 
                                     pygame.display.update()
@@ -235,7 +233,6 @@ class Game:
                         game_state = "start_menu"
 
                     else:
-                    #    other_client = pickle.loads(other_client)
                         print("other_client", other_client, type(other_client), other_client[0], other_client[1])
 
                         if type(other_client) is list or type(other_client) is tuple:
@@ -250,12 +247,7 @@ class Game:
                             prev_loc_other, other_client = self.get_new_locations(locations, prev_loc_other)
                             self.erase_previous(temp_p)
 
-                        #    temp_p = []
-                            statuses_updated = []
-
-                            #for i in range(0, len(statuses)):
                             statuses_updated = f'{statuses}_{status_frame_indexes}'
-
                             p_image = (pygame.image.load(
                                        f'{BASE_PATH}graphics\\player\\{statuses}\\{statuses_updated}.png')
                                        .convert_alpha())
@@ -470,7 +462,6 @@ class Game:
         """
 
         if temp_p:
-         #   for i in range(0, len(temp_p)):
             self.level.visible_sprites.remove(temp_p)
             self.level.obstacles_sprites.remove(temp_p)
 
