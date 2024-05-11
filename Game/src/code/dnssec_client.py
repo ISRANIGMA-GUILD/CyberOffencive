@@ -1,48 +1,27 @@
-from zeroconf import Zeroconf, ServiceBrowser
 import socket
-import threading
 
-
-class Discoverer:
-    def __init__(self):
-        self.__service_name = f"Cyber-Offensive"  # Default to original name if not provided
-        self.__resolved = threading.Event()
-        self.__server_address = None
-        self.__zeroconf = Zeroconf()
-        self.__browser = ServiceBrowser(self.__zeroconf, "_http._tcp.local.", self, self.add_service)
+class ServerDiscoveryClient:
+    def __init__(self, port=9999):
+        self.port = port
 
     def discover_server(self):
+        print("Discovering server...")
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        client_socket.bind(('0.0.0.0', 0))
+        client_socket.sendto("DISCOVER".encode(), ('<broadcast>', self.port))
+        client_socket.settimeout(5)
         try:
-            self.__resolved.wait()  # Wait until the service is resolved
-        except Exception as e:
-            print("Error occurred while discovering server:", e)
-        finally:
-            self.__zeroconf.close()
-        return self.__server_address
-
-    def add_service(self, zeroconf, type, name):
-        if self.__service_name in name:
-            try:
-                info = zeroconf.get_service_info(type, name, timeout=5)  # Adjust the timeout value as needed
-                if info:
-                    self.__server_address = socket.inet_ntoa(info.addresses[0]) if info.addresses else None
-                    if self.__server_address:
-                        self.__resolved.set()  # Set the event to indicate that service is resolved
-            except Exception as e:
-                print("Error occurred while resolving service:", e)
-
-    def update_service(self, zeroconf, type, name):
-        pass  # Empty method to satisfy the requirements
-
-    def remove_service(self, zeroconf, type, name):
-        pass  # Empty method to satisfy the requirements
-
-
-def main():
-    discoverer = Discoverer()
-    server_ip = discoverer.discover_server()
-    print("Discovered server IP:", server_ip)
-
+            while True:
+                data, server_address = client_socket.recvfrom(1024)
+                if data.decode() == "SERVER_FOUND":
+                    print("Server found at:", server_address)
+                    return server_address[0]  # Return the IP address of the server
+        except socket.timeout:
+            print("No server found.")
+            return None
 
 if __name__ == "__main__":
-    main()
+    client = ServerDiscoveryClient()
+    server_ip = client.discover_server()
+    print("Server IP:", server_ip)
