@@ -4,7 +4,7 @@ import threading
 
 
 class Discoverer:
-    def __init__(self, service_name=None):
+    def __init__(self):
         self.__service_name = f"Cyber-Offensive"  # Default to original name if not provided
         self.__resolved = threading.Event()
         self.__server_address = None
@@ -37,10 +37,12 @@ class Discoverer:
     def remove_service(self, zeroconf, type, name):
         pass  # Empty method to satisfy the requirements
 
+
 def main():
     discoverer = Discoverer()
     server_ip = discoverer.discover_server()
     print("Discovered server IP:", server_ip)
+
 
 if __name__ == "__main__":
     main()

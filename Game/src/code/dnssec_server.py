@@ -1,7 +1,7 @@
 import socket
 import threading
 import netifaces
-from zeroconf import Zeroconf, ServiceBrowser, ServiceInfo
+from zeroconf import Zeroconf, ServiceInfo
 
 
 class ServerD:
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     advertise_thread = threading.Thread(target=server.advertise_service)
     advertise_thread.start()
 
-    # Wait for the advertise_thread to com plete and set the server IP
+    # Wait for the advertise_thread to complete and set the server IP
     advertise_thread.join()
 
     # Now the server IP should be set correctly
@@ -47,4 +47,3 @@ if __name__ == "__main__":
     input("Press any key to stop advertising...")
 
     server.stop_advertising()
-

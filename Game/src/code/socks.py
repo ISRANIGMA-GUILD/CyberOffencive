@@ -8,8 +8,10 @@ class TLSSocketWrapper:
                  cipher_suite='ECDHE-RSA-AES128-GCM-SHA256'):
         self.server_hostname = server_hostname
         self.check_hostname = check_hostname
+
         self.verify_mode = verify_mode
         self.minimum_version = minimum_version
+
         self.maximum_version = maximum_version
         self.cipher_suite = cipher_suite
 
@@ -32,7 +34,4 @@ class TLSSocketWrapper:
 if __name__ == "__main__":
     tls_wrapper = TLSSocketWrapper("mad.cyberoffensive.org")
     client_socket = tls_wrapper.create_sock()
-
-    # Do your communication using client_socket
-
     client_socket.close()

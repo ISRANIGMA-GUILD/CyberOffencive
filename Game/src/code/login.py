@@ -35,14 +35,13 @@ class Login:
         print("reached")
         try:
 
-
             self.check_account()
             return
 
-        except TypeError:
-            print("Problematic")
-            self.__details["Connected"] = 1
-            return
+     #   except TypeError:
+       #     print("Problematic")
+         #   self.__details["Connected"] = 1
+         #   return
 
         except ConnectionResetError:
             print("Client", self.__number + 1, self.__details["Client"].getpeername(),
@@ -90,23 +89,18 @@ class Login:
 
         """
         self.__details["Credentials"] = self.__sus
-        print("checking", self.__details["Credentials"])
+      #  print("checking", self.__details["Credentials"], self.__details["Client"])
         if not self.__details["Credentials"]:
-            print("really", self.__details["Credentials"], self.__details.keys())
+        #    print("really", self.__details["Credentials"], self.__details.keys())
             pass
 
         else:
 
             tuple_of_credentials = self.__details["Credentials"]
-            print(tuple_of_credentials, self.__credentials)
+            print("print this man", tuple_of_credentials, self.__credentials, "\nyes", self.__list_of_existing,
+                  "\nyes1", self.__list_of_existing_resources)
 
-            count = 0
-
-            for i in range(0, len(self.__credentials)):
-                if self.__details["Credentials"] in self.__credentials[i]:
-                    count += 1
-
-            if count <= 1:
+            if self.__credentials.count(self.__details["Credentials"]) <= 1:
 
                 list_of_existing_users = [tup[0] for tup in self.__list_of_existing]
                 the_big_ugly_list = [self.__list_of_banned_users[i][0]
@@ -124,7 +118,7 @@ class Login:
                         success_pack = self.create_message(success)
                         m = self.__details["Client"].send(success_pack)
                         print("the", m)
-                        self.__credentials.append(self.__details["Credentials"])
+                        self.__credentials[self.__number] = self.__details["Credentials"]
                         return True
 
                     else:
@@ -152,12 +146,13 @@ class Login:
                     else:
 
                         self.__new_credentials.append(tuple_of_credentials)
+                        self.__list_of_existing.append(tuple_of_credentials)
                         print("NEW ACCOUNT YAY :)")
 
                         success_pack = self.create_message(["Success"])
 
                         self.__details["Client"].send(success_pack)
-                        self.__credentials.append(self.__details["Credentials"])
+                        self.__credentials[self.__number] = self.__details["Credentials"]
                         return True
 
             else:

@@ -1,13 +1,9 @@
-import ssl
+from scapy.layers.inet import *
 from wrapper_of_the_server_socks import *
 from DatabaseCreator import *
-from dnssec_server import *
 from certificate_creator import *
 from counter_attack import *
 
-SYN = 2
-FIN = 1
-ACK = 16
 DEFAULT_IP = '0.0.0.0'
 MAX_MSG_LENGTH = 1024
 THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6": "SELECT", "7": "/", "8": "#",
@@ -128,7 +124,6 @@ class Security:
 
         """
         self.__security_socket.bind((DEFAULT_IP, 443))  # Bind the server IP and Port into a tuple
-        #     print("f")
         self.__security_socket.listen(1)  # Listen to client
 
     def receive_requests(self, list_of_banned_addresses):
@@ -219,7 +214,7 @@ class Security:
         :return: If the packet has TCP in it
         """
 
-        return TCP in packets and Raw in packets and (packets[Raw].load == b'Logged' or packets[Raw].load == b'Urgent')
+        return TCP in packets and Raw in packets
 
     def create_message(self, some_data):
         """

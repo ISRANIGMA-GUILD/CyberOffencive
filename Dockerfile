@@ -26,4 +26,4 @@ COPY . .
 # Set any environment variables if needed
 
 # Run the game script
-CMD ["python", "Game/src/code/the_server.py"]
+CMD ["python", "Game/src/code/testserver.py"]

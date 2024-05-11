@@ -1,17 +1,13 @@
 import pickle
-import ssl
-from wrapper_of_the_client_socks import *
 from creepy import *
 from dnssec_client import *
-import socket
 import pygame
 import random
 import sys
 from socks import *
+from settings import *
 
-pygame.init()
-SYN = 2
-ACK = 16
+
 MY_IP = socket.gethostbyname(socket.gethostname())
 MAX_MSG_LENGTH = 1024
 THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6": "SELECT", "7": "/", "8": "#",
@@ -20,7 +16,6 @@ THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6
                 "25": "CREATE USER", "26": "`", "27": "select", "28": "from", "29": "union", "30": "union",
                 "31": "create user", "32": "sleep", "33": "all", "34": "and", "35": "INSERT", "36": "UPDATE",
                 "37": "DELETE", "38": "\\"}
-FONT = pygame.font.Font(None, 42)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (200, 200, 200)
@@ -30,6 +25,11 @@ IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\LoginS
 class Client:
 
     def __init__(self):
+        pygame.init()
+        pygame.mixer.init()
+
+        pygame.font.init()
+        self.font = pygame.font.Font(FONT_PATH, 60)
         self.__the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.__timer = 0
 
@@ -37,8 +37,19 @@ class Client:
         self.player = CreePy()
 
         self.__logged = ""
+        self.__login_thingy = pygame.Rect(0, 0, 600, 1100)
+        self.__user_box = pygame.Rect(10, 300, 100, 75)
+        self.__pass_box = pygame.Rect(10, 500, 100, 75)
 
-    # self.v = self.player.get_volume()
+        self.__o_width = max(450, 50 + 10)
+        self.__i_width = max(450, 50 + 10)
+        self.__m_width = max(500, 50 + 10)
+
+        self.__user_box.w = self.__o_width
+        self.__pass_box.w = self.__i_width
+        self.__login_thingy.w = self.__m_width
+
+        # self.v = self.player.get_volume()
 
     def run(self):
         """
@@ -48,25 +59,46 @@ class Client:
         #  self.player.run()
 
         server_ip, server_port = self.format_socket()
-        self.connect_to_socket(server_ip, server_port)
+        screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN)
+        clock = pygame.time.Clock()
 
+        self.connect_to_socket(server_ip, server_port, screen, clock)
         self.__start_time = time.time()
 
         while True:
             try:
-                details = self.details_entry()
+                img = pygame.image.load(IMAGE)
+                pygame.transform.scale(img, (1920, 1080))
+                screen.blit(img, (0, 0))
+
+                pygame.draw.rect(screen, (0, 0, 255), self.__login_thingy)
+                pygame.draw.rect(screen, (255, 255, 255), self.__user_box)
+                pygame.draw.rect(screen, (255, 255, 255), self.__pass_box)
+
+                start_button = self.font.render('USERNAME', True, (255, 215, 0))
+                screen.blit(start_button, (10, 210))
+                pygame.display.flip()
+
+                start_button = self.font.render('PASSWORD', True, (255, 215, 0))
+                screen.blit(start_button, (10, 430))
+                pygame.display.flip()
+
+                details = self.details_entry(screen, clock)
+
                 if details == 1:
                     print("leaving1")
-                    message = 'EXIT'.encode()
+                    message = pickle.dumps(["EXIT"])
 
                     self.__the_client_socket.send(message)
                     print("leaving3")
+                    pygame.display.update()
+                    clock.tick(FPS)
                     return 1
 
                 else:
                     print("this", details)
                     checker = self.check_success(details)
-                    print("the checker", checker[0])
+                    print("the checker", checker)
                     self.__logged = checker
                     if self.__logged[0] == 'Success':
                         print("Nice")
@@ -74,79 +106,106 @@ class Client:
 
                     elif self.__logged[0] == "Failure":
                         print("retry")
-                        details = self.details_entry()
+                        details = self.details_entry(screen, clock)
 
                     else:
                         print("retry")
-                        continue
 
+                        continue
+                pygame.display.update()
+                clock.tick(FPS)
             except ConnectionAbortedError:
                 print("Leaving the game1")
-
+                pygame.display.update()
+                clock.tick(FPS)
                 return 1
 
             except ssl.SSLEOFError:
                 print("stop")
                 time.sleep(0.02)
+                pygame.display.update()
+                clock.tick(FPS)
 
             except ConnectionResetError:
                 print("Leaving the game1")
-
+                pygame.display.update()
+                clock.tick(FPS)
                 return 1
 
             except TypeError:
                 print("Leaving the game1")
-                message = 'EXIT'.encode()
+                message = pickle.dumps(["EXIT"])
 
                 self.__the_client_socket.send(message)
+                pygame.display.update()
+                clock.tick(FPS)
                 return 1
 
             except KeyboardInterrupt:
                 print("Leaving the game")
-
+                pygame.display.update()
+                clock.tick(FPS)
                 return 1
+            pygame.display.update()
+            clock.tick(FPS)
 
-    def connect_to_socket(self, server_ip, server_port):
+    def connect_to_socket(self, server_ip, server_port, screen, clock):
         """
 
+        :param screen:
+        :param clock:
         :param server_ip:
         :param server_port:
         :return:
         """
 
-        count = 0
         while True:
+            img = pygame.image.load(IMAGE)
+            screen.blit(img, (0, 0))
+            pygame.display.flip()
+
             print(f'ip:port = {server_ip}:{server_port}')
-            time.sleep(1)
             try:
                 print("Trying to connect...")
                 self.__the_client_socket = TLSSocketWrapper(server_ip).create_sock()
                 self.__the_client_socket.connect((server_ip, server_port))
                 print("Connection established.")
+                pygame.display.update()
+                clock.tick(FPS)
                 break
             
             except ConnectionRefusedError:
                 print("Connection refused. Retrying...")
                 server_port = self.choose_port()
-        
+                pygame.display.update()
+                clock.tick(FPS)
+
             except TimeoutError:
                 print("Connection timeout. Retrying...")
                 server_port = self.choose_port()
-        
+                pygame.display.update()
+                clock.tick(FPS)
+
             except ValueError as ve:
                 # Print the specific ValueError message for debugging
                 print(f"ValueError: {ve}")
                 print("Retrying...")
                 server_port = self.choose_port()
+                pygame.display.update()
+                clock.tick(FPS)
         
             except Exception as e:
                 # Catch any other exceptions for debugging
                 print(f"Unexpected error: {e}")
                 print("Retrying...")
                 server_port = self.choose_port()
+                pygame.display.update()
+                clock.tick(FPS)
+
+            pygame.display.update()
+            clock.tick(FPS)
 
         print("Success")
-        count = 0
 
     def format_socket(self):
         """
@@ -213,6 +272,7 @@ class Client:
         try:
             self.__the_client_socket.settimeout(timer)
             data_pack = self.__the_client_socket.recv(1024)
+            print("data pack", data_pack)
 
             if not data_pack:
                 return
@@ -237,7 +297,7 @@ class Client:
 
         return pickle.dumps(some_data)
 
-    def details_entry(self):
+    def details_entry(self, screen, clock):
         """
 
          Turn the data into a proper message
@@ -247,9 +307,15 @@ class Client:
         while True:
             #  self.good_music()
             try:
-                user, password = self.login()
+                img = pygame.image.load(IMAGE)
+                screen.blit(img, (0, 0))
+
+                user, password = self.login(screen)
                 print("Credes", user, password)
                 if user == 1 and password == 1:
+                    pygame.display.flip()
+                    pygame.display.update()
+                    clock.tick(FPS)
                     return 1
 
                 if self.empty_string(user) or self.empty_string(password):
@@ -269,10 +335,13 @@ class Client:
                     credentials = (user, password)
 
                     pack = self.create_message(credentials)
+                    pygame.display.flip()
+                    pygame.display.update()
+                    clock.tick(FPS)
                     return pack
 
             except KeyboardInterrupt:
-                message = 'EXIT'.encode()
+                message = pickle.dumps(["EXIT"])
                 print(message)
 
                 data = [message]
@@ -280,10 +349,15 @@ class Client:
 
                 self.__the_client_socket.send(full_msg)
                 self.__the_client_socket.close()
-
+                pygame.display.flip()
+                pygame.display.update()
+                clock.tick(FPS)
                 return
+            pygame.display.flip()
+            pygame.display.update()
+            clock.tick(FPS)
 
-    def login(self):
+    def login(self, screen):
         """
 
         """
@@ -291,19 +365,24 @@ class Client:
         username = ""
         password = ""
 
-        screen_width = 1200
-        screen_height = 730
-
-        screen = pygame.display.set_mode((screen_width, screen_height))
         pygame.display.set_caption("Login Screen")
-
-        font = pygame.font.SysFont('arial', 32)
         entering_username = True
 
         while True:
             # self.good_music()
             img = pygame.image.load(IMAGE)
             screen.blit(img, (0, 0))
+
+            pygame.draw.rect(screen, (0, 0, 255), self.__login_thingy)
+            pygame.draw.rect(screen, (255, 255, 255), self.__user_box)
+            pygame.draw.rect(screen, (255, 255, 255), self.__pass_box)
+
+            start_button = self.font.render('USERNAME', True, (255, 215, 0))
+            screen.blit(start_button, (10, 210))
+            pygame.display.flip()
+
+            start_button = self.font.render('PASSWORD', True, (255, 215, 0))
+            screen.blit(start_button, (10, 430))
             pygame.display.flip()
 
             self.__timer = time.time() - self.__start_time
@@ -314,15 +393,15 @@ class Client:
                 return 1, 1
 
             if entering_username:
-                if len(username) < 13:
-                    self.draw_text(username, font, BLACK, screen, 246, 420)
+                if len(username) < 10:
+                    self.draw_text(username, self.font, BLACK, screen, 20, 300)
                 else:
-                    self.draw_text(username[3:], font, BLACK, screen, 246, 420)
+                    self.draw_text(username[3:], self.font, BLACK, screen, 20, 300)
             else:
-                if len(password) < 13:
-                    self.draw_text('*' * len(password), font, BLACK, screen, 246, 522)
+                if len(password) < 10:
+                    self.draw_text('*' * len(password), self.font, BLACK, screen, 20, 522)
                 else:
-                    self.draw_text('*' * len(password[3:]), font, BLACK, screen, 246, 522)
+                    self.draw_text('*' * len(password[3:]), self.font, BLACK, screen, 20, 522)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -385,13 +464,13 @@ class Client:
         while True:
             try:
                 print(details, "\n the check", self.__logged)
-          #      if len(self.__logged) == 0:
                 print("please")
+
                 self.__the_client_socket.send(details)
                 print("details1", details)
-                timer = 1
+
+                timer = 5
                 success = self.receive_data(timer)
-             #   time.sleep(5)
                 print("Did succeed?", success)
 
                 if success is None:
@@ -410,7 +489,8 @@ class Client:
                         print("wrong password or username")
                         return decrypt
 
-            except socket.timeout:
+            except socket.timeout as e:
+                print("exception is", e)
                 pass
 
     def malicious_message(self, message):
