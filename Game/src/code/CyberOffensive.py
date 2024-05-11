@@ -18,8 +18,8 @@ class Game:
         pygame.mixer.init()
         pygame.font.init()
 
-      #  the_program_to_hide = win32gui.GetForegroundWindow()
-      #  win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
+        #  the_program_to_hide = win32gui.GetForegroundWindow()
+        #  win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
 
         self.font = pygame.font.Font(FONT_PATH, 60)
         self.font_chat = pygame.font.Font(FONT_PATH, 30)
@@ -150,14 +150,15 @@ class Game:
                                     print("HP", self.items["EF"])
                                     for item in range(0, self.items["HPF"]):
                                         self.level.player.inventory.hotbar.insert(HPFruit((0, 0),
-                                                                                [self.level.visible_sprites]))
+                                                                                          [self.level.visible_sprites]))
 
                                 if int(items[1]) > 0:
                                     self.items["EF"] = int(items[1])
                                     print("ENERGY", self.items["EF"])
                                     for item in range(0, self.items["EF"]):
                                         self.level.player.inventory.hotbar.insert(EnergyFruit((0, 0),
-                                                                                [self.level.visible_sprites]))
+                                                                                              [
+                                                                                                  self.level.visible_sprites]))
 
                     pygame.display.flip()
 
@@ -185,7 +186,7 @@ class Game:
 
                     list_of_public_details = [current_loc, self.__message, self.level.player.status, 0,
                                               current_status_index]
-                    
+
                     if self.__previous_details != list_of_public_details:
                         self.network.update_server(list_of_public_details, self.items)
                         self.__previous_details = list_of_public_details
@@ -209,7 +210,8 @@ class Game:
                             status_frame_indexes = other_client[3]
 
                             self.__other_messages = other_client[1]
-                            self.__previous_messages = self.__other_messages
+                            if self.__other_messages is not None:
+                                self.__previous_messages.append(self.__other_messages)
                             locations = other_client[0]
 
                             prev_loc_other, other_client = self.get_new_locations(locations, prev_loc_other)
@@ -217,19 +219,19 @@ class Game:
 
                             statuses_updated = f'{statuses}_{status_frame_indexes}'
                             p_image = (pygame.image.load(
-                                       f'{BASE_PATH}graphics\\player\\{statuses}\\{statuses_updated}.png')
+                                f'{BASE_PATH}graphics\\player\\{statuses}\\{statuses_updated}.png')
                                        .convert_alpha())
 
                             if not p_image:
                                 pass
 
                             else:
-                               # for i in range(0, len(prev_loc_other)):
-                                    player_remote = Tile(position=prev_loc_other,
-                                                         groups=[self.level.visible_sprites,
-                                                                 self.level.obstacles_sprites],
-                                                         sprite_type=PLAYER_OBJECT, surface=p_image)
-                                    temp_p = player_remote
+                                # for i in range(0, len(prev_loc_other)):
+                                player_remote = Tile(position=prev_loc_other,
+                                                     groups=[self.level.visible_sprites,
+                                                             self.level.obstacles_sprites],
+                                                     sprite_type=PLAYER_OBJECT, surface=p_image)
+                                temp_p = player_remote
 
                     pygame.draw.rect(self.screen, (0, 0, 0), self.__output_box)
                     pygame.draw.rect(self.screen, (0, 255, 0), self.__input_box)
@@ -243,23 +245,25 @@ class Game:
                             self.draw_text(self.__temp_message, (255, 0, 0), self.screen, 10, 610)
                         else:
                             self.__prev_length += 10
-                            self.draw_text(self.__temp_message[self.__prev_length-2:], (255, 0, 0), self.screen, 10, 610)
+                            self.draw_text(self.__temp_message[self.__prev_length - 2:], (255, 0, 0), self.screen, 10,
+                                           610)
 
-                    for i in range(0, len(self.__locs)):
-                        if len(self.__previous_messages) > 0:
-                            if len(self.__previous_messages) == 1:
-                                self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
-                                               (255, 0, 0), self.screen,
-                                               self.__locs[i][1][0], self.__locs[i][1][1])
-                                break
+                    if self.__previous_messages is not None:
+                        for i in range(0, len(self.__locs)):
+                            if len(self.__previous_messages) > 0:
+                                if len(self.__previous_messages) == 1:
+                                    self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
+                                                   (255, 0, 0), self.screen,
+                                                   self.__locs[i][1][0], self.__locs[i][1][1])
+                                    break
 
-                            else:
-                                self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
-                                               (255, 0, 0), self.screen,
-                                               self.__locs[i][1][0], self.__locs[i][1][1])
-                            if (self.__locs[i][0] != len(self.__other_messages) - 2 or
-                                self.__locs[i][0] != len(self.__other_messages) - 1):
-                                self.__locs[i][0] += 1
+                                else:
+                                    self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
+                                                   (255, 0, 0), self.screen,
+                                                   self.__locs[i][1][0], self.__locs[i][1][1])
+                                if (self.__locs[i][0] != len(self.__previous_messages) - 2 or
+                                        self.__locs[i][0] != len(self.__previous_messages) - 1):
+                                    self.__locs[i][0] += 1
 
                     keys = pygame.key.get_pressed()
 
@@ -271,7 +275,7 @@ class Game:
                             pass
 
                         else:
-                           # print(f"You:", self.__message)
+                            # print(f"You:", self.__message)
                             self.__temp_message = ""
                             self.__using_chat = False
                             self.__prev_length = 19
@@ -280,8 +284,8 @@ class Game:
                     pygame.display.update()
                     self.clock.tick(FPS)
 
-          #  except TypeError:
-           #     print("Hold up wait a minute")
+            #  except TypeError:
+            #     print("Hold up wait a minute")
             #    if game_state == "continue":
             #        list_of_details = ["EXIT", 1, self.items]
             #        other_client = self.network.communicate(list_of_details, self.items)
@@ -301,7 +305,7 @@ class Game:
 
         """
 
-        self.screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode((1920, 1080))
         start_button = self.font.render('START', True, (255, 255, 255))
         img = pygame.image.load(IMAGE)
 
@@ -316,8 +320,8 @@ class Game:
         self.screen.blit(start_button, (self.screen.get_width() / 2 - start_button.get_width() / 2,
                                         self.screen.get_height() / 2 + start_button.get_height() / 2))
 
-     #   pygame.display.update()
-        #self.clock.tick(FPS)
+    #   pygame.display.update()
+    # self.clock.tick(FPS)
 
     def draw_text(self, text, color, surface, x, y):
         """
@@ -375,17 +379,17 @@ class Game:
                         self.__temp_message = message
 
                         done = True
-                        #pygame.display.flip()
+                        # pygame.display.flip()
 
                 #    pygame.display.update()
-                   # self.clock.tick(FPS)
+                # self.clock.tick(FPS)
 
                 end = time.time()
                 timer = start - end
 
                 if timer > 0.001:
-                  #  pygame.display.update()
-                   # self.clock.tick(FPS)
+                    #  pygame.display.update()
+                    # self.clock.tick(FPS)
 
                     return
 
@@ -398,9 +402,9 @@ class Game:
         """
         print(other_client)
         other_coordinates = other_client
-       # other_coordinates = [(other_client[i][0], other_client[i][1])
-       #                      for i in range(0, len(other_client)) if other_client[i] is not None]
-      #  prev_loc_other = [other_coordinates[i] for i in range(0, len(other_coordinates))
+        # other_coordinates = [(other_client[i][0], other_client[i][1])
+        #                      for i in range(0, len(other_client)) if other_client[i] is not None]
+        #  prev_loc_other = [other_coordinates[i] for i in range(0, len(other_coordinates))
         #                  if prev_loc_other != other_coordinates[i]]
         prev_loc_other = other_coordinates
 
