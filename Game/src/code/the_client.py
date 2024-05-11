@@ -180,8 +180,6 @@ class Client:
                 the_real_pass = Verifier().run()
                 their_pass = pickle.loads(self.__the_client_socket.recv(MAX_MSG_LENGTH))
 
-                print(the_real_pass, their_pass)
-
                 if their_pass[0] != the_real_pass:
                     print("its a fake quit!!!!!!!!!!")
                     self.__the_client_socket.close()
@@ -272,12 +270,16 @@ class Client:
 
         while True:
             #   self.good_music()
-            client = ServerDiscoveryClient()
-            server_ip = client.discover_server()
-            print(server_ip)
+            server_discover = ServerDiscoveryClient()
+            servers_ip = server_discover.discover_server()
 
-            if self.ip_v_four_format(server_ip) and not self.empty_string(server_ip):
-                return server_ip
+            print(servers_ip)
+            if servers_ip is None:
+                pass
+
+            else:
+                if self.ip_v_four_format(servers_ip) and not self.empty_string(servers_ip):
+                    return servers_ip
 
     def empty_string(self, message):
         """
@@ -347,7 +349,9 @@ class Client:
 
                 user, password = self.login(screen)
                 print("Credes", user, password)
+
                 if user == 1 and password == 1:
+
                     pygame.display.flip()
                     pygame.display.update()
                     clock.tick(FPS)
@@ -371,6 +375,7 @@ class Client:
 
                     pack = self.create_message(credentials)
                     pygame.display.flip()
+
                     pygame.display.update()
                     clock.tick(FPS)
                     return pack
@@ -384,10 +389,12 @@ class Client:
 
                 self.__the_client_socket.send(full_msg)
                 self.__the_client_socket.close()
+
                 pygame.display.flip()
                 pygame.display.update()
                 clock.tick(FPS)
                 return
+
             pygame.display.flip()
             pygame.display.update()
             clock.tick(FPS)

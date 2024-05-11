@@ -80,8 +80,9 @@ class Server:
         """
 
         # """:TODO(Are they possible?): Check for session injection vulnerabilities """#
-        # """:TODO: Add as secret verification between s -> c and c -> s"""#
+        # """:TODO: Add as secret verification between l-> s, s->l, security->s, s->security
         # """:TODO: Transport databases between servers at the end and updating them accordingly """#
+        # """:*TODO: If transportation is not possible try to use load balancer as the only user of the database"""#
         # """:TODO(Should the server intervene?): Check if users cheat(in speed, damage, etc.) """#
         # """:TODO(finished?): Loading screen between menu and login screens """#
         # """:TODO(Work in progress): Merge with load balancer """#
@@ -92,6 +93,7 @@ class Server:
         # """:TODO: Lock the database with a long and strong password"""#
         # """:TODO: Make sure clients move smoothly move between servers"""#
         # """:TODO: Create a border for clients in your server, when crossed the client is moved to another server"""#
+        # """:TODO: Multiprocess security/server"""#
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
@@ -385,16 +387,14 @@ class Server:
         index = self.__all_details.index(target)
 
         print("pre index", index)
-        #   if index != -1:
-        #   current_socket.settimeout(0.1)
         passw = GetPassword().run()
+
         my_pass = Verifier().run()
         connection, client_address = current_socket.accept()
 
         try:
             connection.settimeout(1)
             their_pass = pickle.loads(connection.recv(MAX_MSG_LENGTH))
-            print(their_pass)
 
             if their_pass[0] != passw:
                 print("shut up")
@@ -444,16 +444,12 @@ class Server:
         target = list(filter(lambda person: person["Client"] == current_socket and person["Credentials"] is None,
                              self.__all_details))[0]
         index = self.__all_details.index(target)
-        #  print("indexc", index)
+
         try:
 
             current_socket.settimeout(0.5)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
 
-            # print("data", index, data, self.__all_details)
-            #  print("start", index)
-
-            # print("please", data)
             if "EXIT" in data[0]:
                 #   print("Connection closed", data)
                 self.__all_details[index]["Connected"] = 1
@@ -464,18 +460,14 @@ class Server:
                 self.__weapons[index] = data[2]
                 self.update_database()
             else:
-                #  print("client", index)
-                #  print(data)
                 if type(data) is tuple:
-                    #   print("well", data, index)
                     loging = Login(self.__all_details[index], self.__list_of_existing_existing_credentials,
                                    self.__list_of_existing_resources, self.__credentials, index,
                                    self.__new_credentials, self.__number_of_clients,
                                    self.__list_of_banned_users, data)
 
-                    (self.__all_details[index], self.__credentials, list_of_existing,
-                     list_of_existing_resources, self.__new_credentials,
-                     self.__number_of_clients) = loging.run()
+                    (self.__all_details[index], self.__credentials, list_of_existing,list_of_existing_resources,
+                     self.__new_credentials, self.__number_of_clients) = loging.run()
                     self.__to_send.append((current_socket, data))
 
                     if self.__all_details[index].get("Credentials") is not None:

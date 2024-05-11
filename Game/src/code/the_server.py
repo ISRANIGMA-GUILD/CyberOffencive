@@ -83,6 +83,7 @@ class Server:
         # """:TODO(almost finished): Make sure when player exits the server wont miss any info"""#
         # """:TODO: Guns"""#
 
+
         info, resource_info, ip_info = self.receive_info()
         list_of_existing_credentials, list_of_existing_resources = self.organize_info(info, resource_info, ip_info)
 
@@ -192,6 +193,7 @@ class Server:
         :param client_address:
         :param number:
         """
+
         print(client_address)
         if client_address[0] in self.__banned_ips or getmacbyip(client_address[0]) in self.__banned_macs:
             self.__all_details[number]["Connected"] = 1

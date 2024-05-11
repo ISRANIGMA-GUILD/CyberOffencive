@@ -8,7 +8,7 @@ from weapon import *
 
 class Player(Entity):
     def __init__(self, position: tuple, groups, obstacle_sprites, create_attack, destroy_weapon,
-                 path='../graphics/brawn_idle.png') -> None:
+                 path='C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\brawn_idle.png') -> None:
         self.max_stats: dict = {
             HEALTH: 100,
             ENERGY: 100,
@@ -65,7 +65,7 @@ class Player(Entity):
         self.hurt_time = None
         self.invulnerability_duration = 500
 
-    def import_player_assets(self, path: str = '../graphics/player/') -> None:
+    def import_player_assets(self, path: str = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\player\\') -> None:
         """
 
         :param path:

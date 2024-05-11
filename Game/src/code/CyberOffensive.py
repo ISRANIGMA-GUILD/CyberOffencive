@@ -73,6 +73,8 @@ class Game:
         self.__input_o_box.w = self.__o_i_width
         self.__prev_length = 19
 
+        self.__remove_item_loc = []
+
     def run(self) -> None:
         """
 
@@ -433,6 +435,7 @@ class Game:
         for item_stack in self.level.player.inventory.hotbar.content:
             if len(item_stack) and issubclass(item_stack[0].__class__, Sword):
                 self.items["S"] = 1
+                self.__remove_item_loc.append(self.level.player.get_location())
 
             for i in range(0, len(item_stack)):
                 if len(item_stack) and issubclass(item_stack[i].__class__, HPFruit):

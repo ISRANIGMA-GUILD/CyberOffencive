@@ -38,8 +38,3 @@ class Verifier:
 
         random.shuffle(password)
         return ''.join(password)
-
-
-# Example usage:
-strong_password = Verifier().run()
-print(strong_password)

@@ -36,14 +36,14 @@ class Level:
         """
 
         layouts = {
-            BOUNDARY : import_csv_layout('../map/FloorBlocks.csv'),
-            GRASS : import_csv_layout('../map/Grass.csv'),
-            OBJECT : import_csv_layout('../map/Objects.csv'),
+            BOUNDARY : import_csv_layout('C:\\Program Files (x86)\\Common Files\\CyberOffensive\\map\\FloorBlocks.csv'),
+            GRASS : import_csv_layout('C:\\Program Files (x86)\\Common Files\\CyberOffensive\\map\\Grass.csv'),
+            OBJECT : import_csv_layout('C:\\Program Files (x86)\\Common Files\\CyberOffensive\\map\\Objects.csv'),
         }
 
         graphics = {
-            GRASS : import_folder('../graphics/grass'),
-            OBJECT : import_folder('../graphics/objects'),
+            GRASS : import_folder('C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\grass'),
+            OBJECT : import_folder('C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\objects'),
             #../graphics/summer/objects
         }
 
@@ -80,7 +80,7 @@ class Level:
         BlueSpider((2000, 900), [self.visible_sprites, self.attackable_sprites],
                    self.obstacles_sprites, self.damage_player, self)
         self.player = Player((2500, 1500), [self.visible_sprites], self.obstacles_sprites,
-                             self.create_attack, self.destroy_weapon, '../graphics/brawn_idle.png')
+                             self.create_attack, self.destroy_weapon, 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\brawn_idle.png')
 
         #self.player.inventory.hotbar.insert(HPFruit((2000, 1680), [self.visible_sprites]))
 

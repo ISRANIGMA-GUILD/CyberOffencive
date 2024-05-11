@@ -38,8 +38,3 @@ class GetPassword:
 
         random.shuffle(password)
         return ''.join(password)
-
-
-# Example usage:
-strong_password = GetPassword().run()
-print(strong_password)
