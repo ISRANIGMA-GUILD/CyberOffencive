@@ -89,15 +89,16 @@ class Login:
 
         """
         self.__details["Credentials"] = self.__sus
-        print("checking", self.__details["Credentials"], self.__details["Client"])
+      #  print("checking", self.__details["Credentials"], self.__details["Client"])
         if not self.__details["Credentials"]:
-            print("really", self.__details["Credentials"], self.__details.keys())
+        #    print("really", self.__details["Credentials"], self.__details.keys())
             pass
 
         else:
 
             tuple_of_credentials = self.__details["Credentials"]
-            print(tuple_of_credentials, self.__credentials)
+            print("print this man", tuple_of_credentials, self.__credentials, "\nyes", self.__list_of_existing,
+                  "\nyes1", self.__list_of_existing_resources)
 
             if self.__credentials.count(self.__details["Credentials"]) <= 1:
 
@@ -145,6 +146,7 @@ class Login:
                     else:
 
                         self.__new_credentials.append(tuple_of_credentials)
+                        self.__list_of_existing.append(tuple_of_credentials)
                         print("NEW ACCOUNT YAY :)")
 
                         success_pack = self.create_message(["Success"])

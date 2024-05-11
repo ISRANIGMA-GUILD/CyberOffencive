@@ -18,11 +18,11 @@ class Game:
         pygame.mixer.init()
         pygame.font.init()
 
-        the_program_to_hide = win32gui.GetForegroundWindow()
-        win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
+      #  the_program_to_hide = win32gui.GetForegroundWindow()
+      #  win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
 
         self.font = pygame.font.Font(FONT_PATH, 60)
-        self.font_chat = pygame.font.Font(FONT_PATH, 40)
+        self.font_chat = pygame.font.Font(FONT_PATH, 30)
 
         pygame.event.set_allowed([QUIT, KEYDOWN, KEYUP])
         self.screen = pygame.display.set_mode((WIDTH, HEIGTH), FLAGS, BITS_PER_PIXEL)
@@ -51,7 +51,7 @@ class Game:
         self.__other_messages = []
         self.__previous_messages = []
 
-        self.__locs = [[0, (30, 150)], [1, (30, 100)]]
+        self.__locs = [[0, (10, 500)], [1, (10, 450)]]
         self.__previous_details = []
 
         self.__output_box = pygame.Rect(0, 500, 500, 100)
@@ -59,8 +59,6 @@ class Game:
 
         self.__output_o_box = pygame.Rect(0, 500, 500, 100)
         self.__input_o_box = pygame.Rect(0, 600, 200, 50)
-
-        # Blit the text.
 
         self.__o_width = max(500, 50 + 10)
         self.__i_width = max(500, 50 + 10)
@@ -110,85 +108,56 @@ class Game:
                         pygame.transform.scale(img, (1920, 1080))
 
                         self.screen.blit(img, (0, 0))
-                        pygame.display.flip()
-
-                        pygame.display.update()
-                        self.clock.tick(FPS)
 
                         ran = self.network.run()
+
                         img = pygame.image.load(LOGIN)
                         pygame.transform.scale(img, (1920, 1080))
 
                         self.screen.blit(img, (0, 0))
-                        pygame.display.flip()
-
-                        pygame.display.update()
-                        self.clock.tick(FPS)
 
                         print("DId it really succeed?", ran)
                         if ran == 2:
                             print("what is that new")
                             game_state = "start_menu"
-                            pygame.display.flip()
-
-                            pygame.display.update()
-                            self.clock.tick(FPS)
 
                         elif ran == 1:
                             print("really oh reaaaaally")
                             game_state = "start_menu"
-                            pygame.display.flip()
-
-                            pygame.display.update()
-                            self.clock.tick(FPS)
 
                         else:
                             game_state = "continue"
-                            print("Thingy", ran)
-                            pygame.display.flip()
+                            pygame.display.set_caption("Cyber Offensive")
 
-                            pygame.display.update()
-                            self.clock.tick(FPS)
+                            print("Thingy", ran)
+
                             if len(ran) > 1:
                                 items = ran[1][1].split(', ')
 
                                 weapons = ran[1][2].split(', ')
-                                pygame.display.flip()
-
-                                pygame.display.update()
-                                self.clock.tick(FPS)
+                                print("the stuff", int(items[0]), weapons, int(items[1]))
                                 #  print(items)
                                 if weapons[0] == '1':
                                     self.items["G"] = 1
-                                    pygame.display.flip()
-
-                                    pygame.display.update()
-                                    self.clock.tick(FPS)
 
                                 if weapons[1] == '1':
                                     self.items["S"] = 1
                                     self.level.player.inventory.hotbar.insert(Sword((0, 0),
                                                                                     [self.level.visible_sprites]))
-                                    pygame.display.flip()
 
-                                    pygame.display.update()
-                                    self.clock.tick(FPS)
-                                if items[0] == '1':
-                                    self.items["HPF"] = 1
-                                    self.level.player.inventory.hotbar.insert(HPFruit((0, 0),
+                                if int(items[0]) > 0:
+                                    self.items["HPF"] = int(items[0])
+                                    print("HP", self.items["EF"])
+                                    for item in range(0, self.items["HPF"]):
+                                        self.level.player.inventory.hotbar.insert(HPFruit((0, 0),
                                                                                 [self.level.visible_sprites]))
-                                    pygame.display.flip()
 
-                                    pygame.display.update()
-                                    self.clock.tick(FPS)
-                                if items[1] == '1':
-                                    self.items["EF"] = 1
-                                    self.level.player.inventory.hotbar.insert(EnergyFruit((0, 0),
+                                if int(items[1]) > 0:
+                                    self.items["EF"] = int(items[1])
+                                    print("ENERGY", self.items["EF"])
+                                    for item in range(0, self.items["EF"]):
+                                        self.level.player.inventory.hotbar.insert(EnergyFruit((0, 0),
                                                                                 [self.level.visible_sprites]))
-                                    pygame.display.flip()
-
-                                    pygame.display.update()
-                                    self.clock.tick(FPS)
 
                     pygame.display.flip()
 
@@ -196,7 +165,6 @@ class Game:
                     self.clock.tick(FPS)
 
                 if game_state == "continue":
-                    pygame.display.set_caption("Cyber Offensive")
                     self.new_frame_time = time.time()
 
                     self.screen.fill((0, 0, 0))
@@ -263,15 +231,11 @@ class Game:
                                                          sprite_type=PLAYER_OBJECT, surface=p_image)
                                     temp_p = player_remote
 
-                        pygame.display.flip()
-                        pygame.display.update()
-                        self.clock.tick(FPS)
-
                     pygame.draw.rect(self.screen, (0, 0, 0), self.__output_box)
                     pygame.draw.rect(self.screen, (0, 255, 0), self.__input_box)
+
                     pygame.draw.rect(self.screen, (255, 215, 0), self.__output_o_box, 2)
                     pygame.draw.rect(self.screen, (255, 215, 0), self.__input_o_box, 10)
-                    pygame.display.flip()
 
                     if self.__other_messages is not None:
 
@@ -281,28 +245,22 @@ class Game:
                             self.__prev_length += 10
                             self.draw_text(self.__temp_message[self.__prev_length-2:], (255, 0, 0), self.screen, 10, 610)
 
-                        for i in range(0, len(self.__locs)):
-                            if len(self.__previous_messages) > 0:
-                                if len(self.__previous_messages) == 1:
-                                    self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
-                                                   (255, 0, 0), self.screen,
-                                                   self.__locs[i][1][0], self.__locs[i][1][1])
-                                    break
+                    for i in range(0, len(self.__locs)):
+                        if len(self.__previous_messages) > 0:
+                            if len(self.__previous_messages) == 1:
+                                self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
+                                               (255, 0, 0), self.screen,
+                                               self.__locs[i][1][0], self.__locs[i][1][1])
+                                break
 
-                                else:
-                                    self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
-                                                   (255, 0, 0), self.screen,
-                                                   self.__locs[i][1][0], self.__locs[i][1][1])
-
+                            else:
+                                self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
+                                               (255, 0, 0), self.screen,
+                                               self.__locs[i][1][0], self.__locs[i][1][1])
                             if (self.__locs[i][0] != len(self.__other_messages) - 2 or
                                 self.__locs[i][0] != len(self.__other_messages) - 1):
                                 self.__locs[i][0] += 1
-                            #pygame.display.flip()
-                        # Blit the input_box rect.
 
-                        pygame.display.flip()
-
-                   # self.__message = None
                     keys = pygame.key.get_pressed()
 
                     if keys[pygame.K_m] or self.__using_chat:
@@ -318,6 +276,7 @@ class Game:
                             self.__using_chat = False
                             self.__prev_length = 19
 
+                    pygame.display.flip()
                     pygame.display.update()
                     self.clock.tick(FPS)
 
@@ -357,7 +316,8 @@ class Game:
         self.screen.blit(start_button, (self.screen.get_width() / 2 - start_button.get_width() / 2,
                                         self.screen.get_height() / 2 + start_button.get_height() / 2))
 
-        pygame.display.update()
+     #   pygame.display.update()
+        #self.clock.tick(FPS)
 
     def draw_text(self, text, color, surface, x, y):
         """
@@ -391,22 +351,17 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     done = True
-                #    pygame.display.flip()
-
-            #        pygame.display.update()
-             #       self.clock.tick(FPS)
 
                 if event.type == pygame.KEYDOWN or active:
                     if event.key == pygame.K_RETURN:
                         print(message)
                         self.__temp_message = message
-
                         self.__using_chat = False
-                     #   pygame.display.flip()
 
-                   ##     pygame.display.update()
-                     #   self.clock.tick(FPS)
+                        self.draw_text(self.__temp_message, (255, 0, 0), self.screen, 10, 510)
+                        assigned = f"YOU: {self.__temp_message}"
 
+                        self.__previous_messages.append(assigned)
                         return message
 
                     elif event.key == pygame.K_BACKSPACE:
@@ -414,26 +369,23 @@ class Game:
                         self.__temp_message = message
 
                         done = True
-                       # pygame.display.flip()
-
-                       ## self.clock.tick(FPS)
 
                     else:
                         message += event.unicode
                         self.__temp_message = message
 
                         done = True
-                        pygame.display.flip()
+                        #pygame.display.flip()
 
-                    pygame.display.update()
-                    self.clock.tick(FPS)
+                #    pygame.display.update()
+                   # self.clock.tick(FPS)
 
                 end = time.time()
                 timer = start - end
 
                 if timer > 0.001:
-                    pygame.display.update()
-                    self.clock.tick(FPS)
+                  #  pygame.display.update()
+                   # self.clock.tick(FPS)
 
                     return
 
@@ -471,19 +423,25 @@ class Game:
         """
 
         """
+        counth = 0
+        countf = 0
 
         for item_stack in self.level.player.inventory.hotbar.content:
             if len(item_stack) and issubclass(item_stack[0].__class__, Sword):
                 self.items["S"] = 1
 
-            if len(item_stack) and issubclass(item_stack[0].__class__, HPFruit):
-                self.items["HPF"] = 1
+            for i in range(0, len(item_stack)):
+                if len(item_stack) and issubclass(item_stack[i].__class__, HPFruit):
+                    counth += 1
 
-            if len(item_stack) and issubclass(item_stack[0].__class__, EnergyFruit):
-                self.items["EF"] = 1
+                if len(item_stack) and issubclass(item_stack[i].__class__, EnergyFruit):
+                    countf += 1
 
-            else:
-                pass
+                else:
+                    pass
+
+        self.items["HPF"] = counth
+        self.items["EF"] = countf
 
 
 def main():
