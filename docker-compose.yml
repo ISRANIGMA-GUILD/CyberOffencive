@@ -13,6 +13,8 @@ services:
       - "443:443/tcp"
       - "1800:1800/tcp"
     tty: true
+    volumes:
+      - server:/app/Game/src/code/Database
   
   dnssec_server:
     build:
@@ -24,3 +26,8 @@ services:
       - "5353:5353/udp"
       - "53:53/udp"
     tty: true
+
+volumes:
+  server:
+    driver: local
+   
