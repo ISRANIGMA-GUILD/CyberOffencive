@@ -2,11 +2,11 @@ import pickle
 from creepy import *
 from dnssec_client import *
 import pygame
-import random
 import sys
 from socks import *
 from settings import *
-
+from clientpasswordgen import *
+from serverpassword import *
 
 MY_IP = socket.gethostbyname(socket.gethostname())
 MAX_MSG_LENGTH = 1024
@@ -59,10 +59,14 @@ class Client:
         #  self.player.run()
 
         server_ip, server_port = self.format_socket()
-        screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN)
-        clock = pygame.time.Clock()
+        screen = pygame.display.set_mode((1920, 1080))
 
-        self.connect_to_socket(server_ip, server_port, screen, clock)
+        clock = pygame.time.Clock()
+        m = self.connect_to_socket(server_ip, server_port, screen, clock)
+
+        if m == 1:
+            return 1
+
         self.__start_time = time.time()
 
         while True:
@@ -168,8 +172,23 @@ class Client:
             try:
                 print("Trying to connect...")
                 self.__the_client_socket = TLSSocketWrapper(server_ip).create_sock()
+
                 self.__the_client_socket.connect((server_ip, server_port))
+
+                self.__the_client_socket.send(pickle.dumps([GetPassword().run()]))
+
+                the_real_pass = Verifier().run()
+                their_pass = pickle.loads(self.__the_client_socket.recv(MAX_MSG_LENGTH))
+
+                print(the_real_pass, their_pass)
+
+                if their_pass[0] != the_real_pass:
+                    print("its a fake quit!!!!!!!!!!")
+                    self.__the_client_socket.close()
+                    return 1
+
                 print("Connection established.")
+
                 pygame.display.update()
                 clock.tick(FPS)
                 break
@@ -177,6 +196,13 @@ class Client:
             except ConnectionRefusedError:
                 print("Connection refused. Retrying...")
                 server_port = self.choose_port()
+                pygame.display.update()
+                clock.tick(FPS)
+
+            except ConnectionResetError:
+                print("Connection refused. Retrying...")
+                server_port = self.choose_port()
+
                 pygame.display.update()
                 clock.tick(FPS)
 
@@ -193,11 +219,20 @@ class Client:
                 server_port = self.choose_port()
                 pygame.display.update()
                 clock.tick(FPS)
-        
+
+            except pickle.UnpicklingError as ve:
+                print(f"FAKE SERVER DONT CONNECT: {ve}")
+                print("Retrying...")
+
+                server_port = self.choose_port()
+                pygame.display.update()
+                clock.tick(FPS)
+
             except Exception as e:
                 # Catch any other exceptions for debugging
                 print(f"Unexpected error: {e}")
                 print("Retrying...")
+
                 server_port = self.choose_port()
                 pygame.display.update()
                 clock.tick(FPS)
@@ -573,6 +608,16 @@ class Client:
             return
 
         except socket.timeout:
+            return
+
+        except ssl.SSLEOFError:
+            print("Server is shutting down")
+            message = ["EXIT", 1, private_data]
+
+            full_msg = self.create_message(message)
+            self.__the_client_socket.send(full_msg)
+
+            self.__the_client_socket.close()
             return
 
         except KeyboardInterrupt:

@@ -1,8 +1,11 @@
+import socket
 from DatabaseCreator import *
 from scapy.layers.inet import *
 from login import *
 from wrapper_of_the_server_socks import *
 from wrapper_of_the_client_socks import *
+from clientpasswordgen import *
+from serverpassword import *
 import os
 import threading
 import pickle
@@ -91,7 +94,9 @@ class Server:
         # """:TODO: Create a border for clients in your server, when crossed the client is moved to another server"""#
 
         info, resource_info, ip_info = self.receive_info()
-        self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info, resource_info, ip_info)
+        self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
+                                                                                                             resource_info,
+                                                                                                             ip_info)
 
         self.__list_of_banned_users = [[self.__list_of_existing_existing_credentials[i][0],
                                         self.__list_of_existing_existing_credentials[i][1],
@@ -248,7 +253,7 @@ class Server:
                     self.__login_data_base.close_conn()
                     self.__main_data_base.close_conn()
 
-             #       self.disconnect_from_security()
+                    #       self.disconnect_from_security()
                     self.__ips_data_base.close_conn()
                     break
 
@@ -263,7 +268,7 @@ class Server:
                 self.__login_data_base.close_conn()
                 self.__main_data_base.close_conn()
 
-              #  self.disconnect_from_security()
+                #  self.disconnect_from_security()
                 self.__ips_data_base.close_conn()
 
                 break
@@ -275,7 +280,7 @@ class Server:
                 self.__login_data_base.close_conn()
                 self.__main_data_base.close_conn()
 
-              #  self.disconnect_from_security()
+                #  self.disconnect_from_security()
                 self.__ips_data_base.close_conn()
 
                 break
@@ -286,9 +291,8 @@ class Server:
         """
 
         """
-      #  print("updating")
+
         if self.__number_of_clients - 1 >= len(self.__all_details) or len(self.__all_details) == 0:
-          #  n = random.randint(0, 2)
             self.__all_details.append({"Credentials": None, "Sockets": None, "Client": None, "Timer": None,
                                        "Connected": 0})
 
@@ -363,10 +367,11 @@ class Server:
         for key, mask in events:
             self.update_credential_list()
             self.update_database()
-          #  print(key.fileobj)
+            #  print(key.fileobj)
             callback = key.data
             callback(key.fileobj, mask)
-      #  print("final", self.__index)
+
+    #  print("final", self.__index)
 
     def accept(self, current_socket, mask):
         """
@@ -380,25 +385,53 @@ class Server:
         index = self.__all_details.index(target)
 
         print("pre index", index)
-     #   if index != -1:
-     #   current_socket.settimeout(0.1)
+        #   if index != -1:
+        #   current_socket.settimeout(0.1)
+        passw = GetPassword().run()
+        my_pass = Verifier().run()
         connection, client_address = current_socket.accept()
-        print("New client joined!", client_address)
 
-        #   data_to_send.append((0, 0))
-        self.__to_send.append((current_socket, "yay"))
-        self.check_for_banned(client_address, index)
+        try:
+            connection.settimeout(1)
+            their_pass = pickle.loads(connection.recv(MAX_MSG_LENGTH))
+            print(their_pass)
 
-        self.__client_sockets.append(connection)
+            if their_pass[0] != passw:
+                print("shut up")
+                connection.close()
+                return
 
-        self.__all_details[index]["Client"] = connection
-        self.__all_details[index]["Sockets"] = current_socket
+        except socket.timeout:
+            print("out")
+            connection.close()
+            return
 
-        self.__number_of_clients += 1
-        self.print_client_sockets()
+        except pickle.UnpicklingError:
+            print("BAN!")
+            connection.close()
+            return
 
-        connection.setblocking(False)
-        self.__selector.register(connection, selectors.EVENT_READ, self.receive_login)
+        try:
+            connection.send(pickle.dumps([my_pass]))
+            print("New client joined!", client_address, their_pass)
+
+            #   data_to_send.append((0, 0))
+            self.__to_send.append((current_socket, "yay"))
+            self.check_for_banned(client_address, index)
+
+            self.__client_sockets.append(connection)
+
+            self.__all_details[index]["Client"] = connection
+            self.__all_details[index]["Sockets"] = current_socket
+
+            self.__number_of_clients += 1
+            self.print_client_sockets()
+
+            connection.setblocking(False)
+            self.__selector.register(connection, selectors.EVENT_READ, self.receive_login)
+
+        except ConnectionResetError:
+            connection.close()
 
     def receive_login(self, current_socket, mask):
         """
@@ -407,22 +440,22 @@ class Server:
         :param mask:
         """
 
-       # print(self.get_current_client_index())
+        # print(self.get_current_client_index())
         target = list(filter(lambda person: person["Client"] == current_socket and person["Credentials"] is None,
                              self.__all_details))[0]
         index = self.__all_details.index(target)
-      #  print("indexc", index)
+        #  print("indexc", index)
         try:
 
             current_socket.settimeout(0.5)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
 
-            #print("data", index, data, self.__all_details)
-          #  print("start", index)
+            # print("data", index, data, self.__all_details)
+            #  print("start", index)
 
-           # print("please", data)
+            # print("please", data)
             if "EXIT" in data[0]:
-             #   print("Connection closed", data)
+                #   print("Connection closed", data)
                 self.__all_details[index]["Connected"] = 1
 
                 self.eliminate_socket(index)
@@ -431,10 +464,10 @@ class Server:
                 self.__weapons[index] = data[2]
                 self.update_database()
             else:
-              #  print("client", index)
-              #  print(data)
+                #  print("client", index)
+                #  print(data)
                 if type(data) is tuple:
-                 #   print("well", data, index)
+                    #   print("well", data, index)
                     loging = Login(self.__all_details[index], self.__list_of_existing_existing_credentials,
                                    self.__list_of_existing_resources, self.__credentials, index,
                                    self.__new_credentials, self.__number_of_clients,
@@ -451,8 +484,8 @@ class Server:
                         self.__selector.modify(current_socket, selectors.EVENT_READ, self.update_clients)
                 #     self.__number_of_clients += 1
                 # current_socket.send(pickle.dumps(["Success"]))
-       # else:
-            #print("logged or spmething", self.__credentials, index, self.__new_credentials)
+        # else:
+        # print("logged or spmething", self.__credentials, index, self.__new_credentials)
 
         except socket.timeout:
             pass
@@ -480,11 +513,11 @@ class Server:
         target = list(filter(lambda person: person["Client"] == current_socket and person["Credentials"] is not None,
                              self.__all_details))[0]
         index = self.__all_details.index(target)
-   #     print(self.__credentials, self.__session_users)
+        #     print(self.__credentials, self.__session_users)
         try:
             current_socket.settimeout(0.01)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
-            #print(data)
+            # print(data)
             if "EXIT" in data[0]:
                 print("Connection closed", data)
                 self.__all_details[index]["Connected"] = 1
@@ -514,7 +547,7 @@ class Server:
                 self.__status[index] = data[2]
                 self.__status_frame_index[index] = data[4]
 
-                self.send_to_clients(self.__data_to_send, self.__to_send, index)
+                self.send_to_clients(index)
 
         except socket.timeout:
             pass
@@ -533,9 +566,9 @@ class Server:
             self.eliminate_socket(index)
             self.print_client_sockets()
 
-      #  except IndexError:
-        #    print("index error")
-        #    self.__index = 0
+    #  except IndexError:
+    #    print("index error")
+    #    self.__index = 0
 
     def handle_security(self, lock):
         """
@@ -588,28 +621,26 @@ class Server:
         except socket.timeout:
             return
 
-    def send_to_clients(self, data_to_send, messages_to_send, number):
+    def send_to_clients(self, number):
         """
 
         :param number:
-        :param data_to_send:
-        :param messages_to_send:
         """
 
-    #    print("daaaaat", data_to_send)
-      #  print("cleaned", messages_to_send)
+        #    print("daaaaat", data_to_send)
+        #  print("cleaned", messages_to_send)
 
-     #   print(self.__all_details[number])
+        #   print(self.__all_details[number])
         eligables = list(filter(lambda person: person["Client"] is not None and person["Credentials"] is not None
                                 and person != self.__all_details[number], self.__all_details))
 
-     #   print(eligables, self.__all_details[number] in eligables, self.__locations[number])
+        #   print(eligables, self.__all_details[number] in eligables, self.__locations[number])
         message = [self.__locations[number], self.__chat[number], self.__status[number],
                    self.__status_frame_index[number]]
 
         for socks in eligables:
             try:
-               # print("What", socks["Client"])
+                # print("What", socks["Client"])
                 socks["Client"].send(pickle.dumps(message))
 
             except ConnectionResetError:
@@ -688,10 +719,11 @@ class Server:
         print(self.__new_credentials)
         if len(self.__new_credentials) > 0:
             print(self.__new_credentials[0])
+
         for index in range(0, len(self.__new_credentials)):
             print(self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
-                                                                self.__new_credentials[index][1]],
-                                                                no_duplicate_params=PARAMETERS["NODUP"]))
+                                                                      self.__new_credentials[index][1]],
+                                                              no_duplicate_params=PARAMETERS["NODUP"]))
 
         #  print(self.__main_data_base, self.__credentials, self.__weapons,
         #       len(self.__session_users) == len(self.__weapons))
@@ -706,7 +738,9 @@ class Server:
                 print(self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
                                                        [self.__session_users[index]]))
         info, resource_info, ip_info = self.receive_info()
-        self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info, resource_info, ip_info)
+        self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
+                                                                                                             resource_info,
+                                                                                                             ip_info)
 
     def disconnect_from_security(self):
         """
