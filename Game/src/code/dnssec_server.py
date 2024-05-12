@@ -21,6 +21,11 @@ class Server:
                 self.server_socket.sendto("SERVER_FOUND".encode(), client_address)
 
     def get_local_ip(self):
+        """
+
+        :return:
+        """
+
         # Get the local IP address
         interfaces = netifaces.interfaces()
         for interface in interfaces:

@@ -1,4 +1,3 @@
-import socket
 from DatabaseCreator import *
 from scapy.layers.inet import *
 from login import *
@@ -54,25 +53,22 @@ class Server:
         self.__ports = []
 
         self.__weapon_status = []
-        self.__status_frame_index = []
-
         self.__weapons = []
+
         self.__hp = []
-
         self.__enemy_location = []
+
         self.__items = []
-
         self.__session_users = []
+
         self.__to_send = []
-
         self.__data_to_send = []
+
         self.__client_sockets = []
-
         self.__selector = selectors.DefaultSelector()
-        self.__list_of_existing_resources = []
 
+        self.__list_of_existing_resources = []
         self.__list_of_existing_existing_credentials = []
-        self.__index = 0
 
     def run(self):
         """
@@ -337,12 +333,6 @@ class Server:
         else:
             pass
 
-        if self.__number_of_clients - 1 >= len(self.__status_frame_index) or len(self.__status_frame_index) == 0:
-            self.__status_frame_index.append(None)
-
-        else:
-            pass
-
         if self.__number_of_clients - 1 >= len(self.__session_users) or len(self.__session_users) == 0:
             self.__session_users.append(None)
 
@@ -363,17 +353,18 @@ class Server:
         return threads
 
     def new_handling(self):
+        """
+
+        """
 
         events = self.__selector.select(0)
 
         for key, mask in events:
             self.update_credential_list()
             self.update_database()
-            #  print(key.fileobj)
+
             callback = key.data
             callback(key.fileobj, mask)
-
-    #  print("final", self.__index)
 
     def accept(self, current_socket, mask):
         """
@@ -415,7 +406,6 @@ class Server:
             connection.send(pickle.dumps([my_pass]))
             print("New client joined!", client_address, their_pass)
 
-            #   data_to_send.append((0, 0))
             self.__to_send.append((current_socket, "yay"))
             self.check_for_banned(client_address, index)
 
@@ -440,25 +430,23 @@ class Server:
         :param mask:
         """
 
-        # print(self.get_current_client_index())
         target = list(filter(lambda person: person["Client"] == current_socket and person["Credentials"] is None,
                              self.__all_details))[0]
         index = self.__all_details.index(target)
 
         try:
-
             current_socket.settimeout(0.5)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
 
             if "EXIT" in data[0]:
                 #   print("Connection closed", data)
                 self.__all_details[index]["Connected"] = 1
-
-                self.eliminate_socket(index)
-                self.print_client_sockets()
-
                 self.__weapons[index] = data[2]
                 self.update_database()
+
+                self.print_client_sockets()
+                self.eliminate_socket(index)
+
             else:
                 if type(data) is tuple:
                     loging = Login(self.__all_details[index], self.__list_of_existing_existing_credentials,
@@ -474,10 +462,6 @@ class Server:
                         print("yayyyy")
                         self.__session_users[index] = self.__all_details[index].get("Credentials")[0]
                         self.__selector.modify(current_socket, selectors.EVENT_READ, self.update_clients)
-                #     self.__number_of_clients += 1
-                # current_socket.send(pickle.dumps(["Success"]))
-        # else:
-        # print("logged or spmething", self.__credentials, index, self.__new_credentials)
 
         except socket.timeout:
             pass
@@ -486,15 +470,15 @@ class Server:
             print("Connection closed", e)
             self.__all_details[index]["Connected"] = 1
 
-            self.eliminate_socket(index)
             self.print_client_sockets()
+            self.eliminate_socket(index)
 
         except EOFError as e:
             print("Connection closed", e)
             self.__all_details[index]["Connected"] = 1
 
-            self.eliminate_socket(index)
             self.print_client_sockets()
+            self.eliminate_socket(index)
 
     def update_clients(self, current_socket, mask):
         """
@@ -505,7 +489,7 @@ class Server:
         target = list(filter(lambda person: person["Client"] == current_socket and person["Credentials"] is not None,
                              self.__all_details))[0]
         index = self.__all_details.index(target)
-        #     print(self.__credentials, self.__session_users)
+
         try:
             current_socket.settimeout(0.01)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
@@ -546,20 +530,19 @@ class Server:
         except ssl.SSLEOFError:
             print("Connection closed", )
             self.__all_details[index]["Connected"] = 1
+            self.print_client_sockets()
+            self.update_database()
 
             self.eliminate_socket(index)
-            self.print_client_sockets()
 
         except EOFError:
             print("Connection closed", )
             self.__all_details[index]["Connected"] = 1
-
-            self.eliminate_socket(index)
+            self.update_database()
             self.print_client_sockets()
 
-    #  except IndexError:
-    #    print("index error")
-    #    self.__index = 0
+            self.eliminate_socket(index)
+
 
     def handle_security(self, lock):
         """
@@ -618,19 +601,13 @@ class Server:
         :param number:
         """
 
-        #    print("daaaaat", data_to_send)
-        #  print("cleaned", messages_to_send)
-
-        #   print(self.__all_details[number])
         eligables = list(filter(lambda person: person["Client"] is not None and person["Credentials"] is not None
                                 and person != self.__all_details[number], self.__all_details))
-
-        #   print(eligables, self.__all_details[number] in eligables, self.__locations[number])
-        message = [self.__locations[number], self.__chat[number], self.__status[number], self.__session_users[number]]
+        chat_message = f'{self.__session_users[number]}: {self.__chat[number]}'
+        message = [self.__locations[number], chat_message, self.__status[number], self.__session_users[number]]
 
         for socks in eligables:
             try:
-                # print("What", socks["Client"])
                 socks["Client"].send(pickle.dumps(message))
 
             except ConnectionResetError:
@@ -649,12 +626,9 @@ class Server:
         for c in self.__client_sockets:
             try:
                 print("\t", c.getpeername())
+
             except OSError as e:
                 print("old client", e)
-
-    #  except Exception:
-    #  print("didnt work")
-    # return
 
     def eliminate_socket(self, number):
         """
@@ -706,6 +680,7 @@ class Server:
         """
 
         """
+
         print(self.__new_credentials)
         if len(self.__new_credentials) > 0:
             print(self.__new_credentials[0])
@@ -715,15 +690,11 @@ class Server:
                                                                       self.__new_credentials[index][1]],
                                                               no_duplicate_params=PARAMETERS["NODUP"]))
 
-        #  print(self.__main_data_base, self.__credentials, self.__weapons,
-        #       len(self.__session_users) == len(self.__weapons))
-
         for index in range(0, len(self.__session_users) - 1):
             if self.__weapons[index] is not None:
                 weapons = str(self.__weapons[index]["G"]) + ", " + str(self.__weapons[index]["S"])
                 items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) + ", " +
                          str(self.__weapons[index]["RHPF"]) + ", " + str(self.__weapons[index]["BEF"]))
-                # print("Ne weapons", weapons, "Ne items", items)
 
                 print(self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
                                                        [self.__session_users[index]]))
