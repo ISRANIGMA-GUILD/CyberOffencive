@@ -25,7 +25,7 @@ class Game:
         self.font_chat = pygame.font.Font(FONT_PATH, 30)
 
         pygame.event.set_allowed([QUIT, KEYDOWN, KEYUP])
-        self.screen = pygame.display.set_mode((WIDTH, HEIGTH), FLAGS, BITS_PER_PIXEL)
+        self.screen = pygame.display.set_mode((WIDTH, HEIGHT), FLAGS, BITS_PER_PIXEL)
 
         pygame.display.set_caption('Cyber Offensive')
         self.clock = pygame.time.Clock()
@@ -43,7 +43,7 @@ class Game:
         self.player = CreePy()
 
         self.__message = ""
-        self.items = {"G": 0, "S": 0, "HPF": 0, "EF": 0, "RHPF": 0, "BEF": 0}
+        self.items = {"A": 0, "B": 0, "S": 0, "HPF": 0, "EF": 0, "RHPF": 0, "BEF": 0}
 
         self.__using_chat = False
         self.__temp_message = ""
@@ -142,17 +142,30 @@ class Game:
                                 weapons = ran[1][2].split(', ')
                                 print("the stuff", int(items[0]), weapons, int(items[1]))
                                 #  print(items)
-                                if weapons[0] == '1':
-                                    self.items["G"] = 1
+                                if int(weapons[0]) > 0:
+                                    self.items["A"] = int(weapons[0])
 
-                                if weapons[1] == '1':
-                                    self.items["S"] = 1
-                                    self.level.player.inventory.hotbar.insert(Sword((0, 0),
-                                                                                    [self.level.visible_sprites]))
+                                    for item in range(0, self.items["A"]):
+                                        self.level.player.inventory.hotbar.insert(Axe((0, 0),
+                                                                                        [self.level.visible_sprites]))
+
+                                if int(weapons[1]) > 0:
+                                    self.items["B"] = int(weapons[1])
+
+                                    for item in range(0, self.items["B"]):
+                                        self.level.player.inventory.hotbar.insert(Bow((0, 0), self.level.visible_sprites,
+                                                                                        [self.level.visible_sprites, self.level.attack_sprites]))
+
+                                if int(weapons[2]) > 0:
+                                    self.items["S"] = int(weapons[2])
+
+                                    for item in range(0, self.items["S"]):
+                                        self.level.player.inventory.hotbar.insert(Sword((0, 0),
+                                                                                        [self.level.visible_sprites]))
 
                                 if int(items[0]) > 0:
                                     self.items["HPF"] = int(items[0])
-                                    print("HP", self.items["EF"])
+
                                     for item in range(0, self.items["HPF"]):
                                         self.level.player.inventory.hotbar.insert(HPFruit((0, 0),
                                                                                           [self.level.visible_sprites]))
@@ -162,8 +175,21 @@ class Game:
                                     print("ENERGY", self.items["EF"])
                                     for item in range(0, self.items["EF"]):
                                         self.level.player.inventory.hotbar.insert(EnergyFruit((0, 0),
-                                                                                              [
-                                                                                                  self.level.visible_sprites]))
+                                                                                              [self.level.visible_sprites]))
+
+                                if int(items[2]) > 0:
+                                    self.items["RHPF"] = int(items[2])
+
+                                    for item in range(0, self.items["RHPF"]):
+                                        self.level.player.inventory.hotbar.insert(RedHPFruit((0, 0),
+                                                                                              [self.level.visible_sprites]))
+
+                                if int(items[3]) > 0:
+                                    self.items["BEF"] = int(items[3])
+
+                                    for item in range(0, self.items["BEF"]):
+                                        self.level.player.inventory.hotbar.insert(BlueEnergyFruit((0, 0),
+                                                                                              [self.level.visible_sprites]))
 
                     pygame.display.flip()
 
@@ -197,7 +223,7 @@ class Game:
 
                     self.__previous_status = self.level.player.status
                     self.prev_loc = current_loc
-                    print("other client", other_client)
+
                     if other_client is None:
                         pass
 
@@ -215,7 +241,6 @@ class Game:
                             self.__prev_info[other_client[3]] = other_client
 
                             self.__other_messages = other_client[1]
-                            print(self.__prev_info, self.__users)
 
                             if self.__other_messages is not None:
                                 self.__previous_messages.append(self.__other_messages)
@@ -408,6 +433,7 @@ class Game:
 
         :param other_client:
         """
+
         print(self.__users, self.__prev_info.keys)
         if self.__users:
             for user in self.__users:
@@ -416,9 +442,9 @@ class Game:
 
         print("do you exist", other_client[3], self.__prev_info, self.__users)
         for user in list(self.__prev_info.keys()):
-            print("what th e fuck", user)
             if user not in self.__users:
                 self.__users.append(user)
+
             else:
                 pass
 
@@ -440,26 +466,48 @@ class Game:
         """
 
         """
-        counth = 0
-        countf = 0
+        count_a = 0
+
+        count_s = 0
+        count_b = 0
+
+        count_h = 0
+        count_f = 0
+
+        count_rf = 0
+        count_bef = 0
 
         for item_stack in self.level.player.inventory.hotbar.content:
-            if len(item_stack) and issubclass(item_stack[0].__class__, Sword):
-                self.items["S"] = 1
-                self.__remove_item_loc.append(self.level.player.get_location())
-
             for i in range(0, len(item_stack)):
+                if len(item_stack) and issubclass(item_stack[i].__class__, Axe):
+                    count_a += 1
+
+                if len(item_stack) and issubclass(item_stack[i].__class__, Sword):
+                    count_s += 1
+
+                if len(item_stack) and issubclass(item_stack[i].__class__, Bow):
+                    count_b += 1
+                #    self.__remove_item_loc.append(self.level.player.get_location())
+
                 if len(item_stack) and issubclass(item_stack[i].__class__, HPFruit):
-                    counth += 1
+                    count_h += 1
 
                 if len(item_stack) and issubclass(item_stack[i].__class__, EnergyFruit):
-                    countf += 1
+                    count_f += 1
 
-                else:
-                    pass
+                if len(item_stack) and issubclass(item_stack[i].__class__, RedHPFruit):
+                    count_rf += 1
 
-        self.items["HPF"] = counth
-        self.items["EF"] = countf
+                if len(item_stack) and issubclass(item_stack[i].__class__, BlueEnergyFruit):
+                    count_bef += 1
+
+        self.items["A"] = count_a
+        self.items["S"] = count_s
+        self.items["B"] = count_b
+        self.items["HPF"] = count_h
+        self.items["EF"] = count_f
+        self.items["RHPF"] = count_rf
+        self.items["BEF"] = count_bef
 
 
 def main():

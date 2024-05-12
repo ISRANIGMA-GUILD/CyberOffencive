@@ -1,6 +1,6 @@
 import pygame
 from settings import *
-
+import math
 
 class UI:
     def __init__(self) -> None:
@@ -10,21 +10,11 @@ class UI:
     
         self.__health_bar_rect = pygame.Rect(10, 10, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT)
         self.__energy_bar_rect = pygame.Rect(10, 10 + HEALTH_BAR_HEIGHT * 1.5, ENERGY_BAR_WIDTH, ENERGY_BAR_HEIGHT)
-
-    def show_bar(self, current_value: float, max_value: float, background_rect, color_start: tuple, color_end: tuple,
-                 text_title: str) -> None:
-        """
-
-        :param current_value:
-        :param max_value:
-        :param background_rect:
-        :param color_start:
-        :param color_end:
-        :param text_title:
-        """
-
+        
+    
+    def show_bar(self, current_value: float, max_value: float, background_rect, color_start: tuple, color_end: tuple, text_title: str) -> None:
         pygame.draw.rect(self.__display_surface, UI_BACKGROUND_COLOR, background_rect)
-
+        
         ratio = current_value / max_value
         normalized_width = int(background_rect.width * ratio)
         
@@ -40,21 +30,27 @@ class UI:
                              (background_rect.x + i, background_rect.y + background_rect.height))
         
         pygame.draw.rect(self.__display_surface, UI_BORDER_COLOR, background_rect, 3) # draw boundary for rect
+        
+        
         text = text_title + " :    " + str(current_value) + " / " + str(max_value)
-
         rendered_text = self.__font.render(text, True, BAR_FONT_COLOR)
         rendered_text_rect = rendered_text.get_rect()
-
         rendered_text_rect.center = (background_rect.centerx - 10 * ratio, background_rect.centery)
         self.__display_surface.blit(rendered_text, rendered_text_rect)
-
+        
+    
     def display(self, player) -> None:
-        """
+        self.show_bar(player.stats[HEALTH], player.max_stats[HEALTH], self.__health_bar_rect, (128, 0, 0), (255, 0, 0), "Health")
+        self.show_bar(player.stats[ENERGY], player.max_stats[ENERGY], self.__energy_bar_rect, (0, 0, 200), (0, 255, 255), "Energy")
 
-        :param player:
-        """
+        up_right_arc_rect = pygame.rect.Rect((WIDTH // 2 - 50, HEIGHT // 2 - 50), (100, 100))
+        pygame.draw.arc(self.__display_surface, 'orange', up_right_arc_rect, math.radians(-90), math.radians(0), 5)
 
-        self.show_bar(player.stats[HEALTH], player.max_stats[HEALTH], self.__health_bar_rect, (128, 0, 0),
-                      (255, 0, 0), "Health")
-        self.show_bar(player.stats[ENERGY], player.max_stats[ENERGY], self.__energy_bar_rect, (0, 0, 200),
-                      (0, 255, 255), "Energy")
+        down_right_arc_rect = pygame.rect.Rect((WIDTH // 2 - 50, HEIGHT // 2 - 50), (100, 100))
+        pygame.draw.arc(self.__display_surface, 'blue', down_right_arc_rect, math.radians(0), math.radians(90), 5)
+
+        down_left_arc_rect = pygame.rect.Rect((WIDTH // 2 - 50, HEIGHT // 2 - 50), (100, 100))
+        pygame.draw.arc(self.__display_surface, 'red', down_left_arc_rect, math.radians(90), math.radians(180), 5)
+
+        up_left_arc_rect = pygame.rect.Rect((WIDTH // 2 - 50, HEIGHT // 2 - 50), (100, 100))
+        pygame.draw.arc(self.__display_surface, 'green', up_left_arc_rect, math.radians(180), math.radians(270), 5)

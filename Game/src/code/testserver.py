@@ -50,7 +50,6 @@ class Server:
         self.__chat = []
 
         self.__status = []
-        self.__ports = []
 
         self.__weapon_status = []
         self.__weapons = []
@@ -648,8 +647,6 @@ class Server:
                 self.__locations.pop(number)
 
                 self.__number_of_clients -= 1
-                self.__ports.pop(number)
-
                 print(self.__number_of_clients, len(self.__all_details))
 
         except Exception:
@@ -692,7 +689,8 @@ class Server:
 
         for index in range(0, len(self.__session_users) - 1):
             if self.__weapons[index] is not None:
-                weapons = str(self.__weapons[index]["G"]) + ", " + str(self.__weapons[index]["S"])
+                weapons = (str(self.__weapons[index]["A"]) + ", " + str(self.__weapons[index]["B"]) + ", "
+                           + str(self.__weapons[index]["S"]))
                 items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) + ", " +
                          str(self.__weapons[index]["RHPF"]) + ", " + str(self.__weapons[index]["BEF"]))
 

@@ -4,13 +4,14 @@ from math import sin
 
 
 class Entity(pygame.sprite.Sprite):
-    def __init__(self, groups, speed: float):
+    def __init__(self, groups):
+        self.stats = self.stats
         super().__init__(groups)
-        self.frame_index = 0
 
+        self.frame_index = 0
         self.animation_speed = 0.15
+
         self.direction = pygame.math.Vector2()
-        self.speed = speed
 
     def move(self) -> None:
         """
@@ -20,11 +21,12 @@ class Entity(pygame.sprite.Sprite):
         if self.direction.magnitude():
             self.direction = self.direction.normalize()
 
-        self.hitbox.x += self.direction.x * self.speed
+        self.hitbox.x += self.direction.x * self.stats[SPEED]
         self.collision(HORIZONTAL)
 
-        self.hitbox.y += self.direction.y * self.speed
+        self.hitbox.y += self.direction.y * self.stats[SPEED]
         self.collision(VERTICAL)
+
         self.rect.center = self.hitbox.center
 
     def collision(self, direction: str) -> None:
