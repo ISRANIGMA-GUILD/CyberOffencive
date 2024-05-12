@@ -74,6 +74,9 @@ class Game:
         self.__prev_length = 19
 
         self.__remove_item_loc = []
+        self.__prev_info = {}
+
+        self.__users = []
 
     def run(self) -> None:
         """
@@ -169,11 +172,9 @@ class Game:
 
                 if game_state == "continue":
                     self.new_frame_time = time.time()
-
                     self.screen.fill((0, 0, 0))
-                    self.level.run()
 
-                    prev_loc_other = (0, 0)
+                    self.level.run()
                     fps = 1.0 / (self.new_frame_time - self.prev_frame_time)
 
                     self.prev_frame_time = self.new_frame_time
@@ -186,8 +187,9 @@ class Game:
                     current_status_index = int(self.level.player.frame_index)
                     self.find()
 
-                    list_of_public_details = [current_loc, self.__message, self.level.player.status, 0,
-                                              current_status_index]
+                    status = f'{self.level.player.status}_{current_status_index}'
+
+                    list_of_public_details = [current_loc, self.__message, status, 0]
 
                     if self.__previous_details != list_of_public_details:
                         self.network.update_server(list_of_public_details, self.items)
@@ -208,32 +210,37 @@ class Game:
 
                         if type(other_client) is list or type(other_client) is tuple:
                             print("updating")
-                            statuses = other_client[2]
-                            status_frame_indexes = other_client[3]
+
+                            self.update_users(other_client)
+                            self.__prev_info[other_client[3]] = other_client
 
                             self.__other_messages = other_client[1]
+                            print(self.__prev_info, self.__users)
+
                             if self.__other_messages is not None:
                                 self.__previous_messages.append(self.__other_messages)
-                            locations = other_client[0]
 
-                            prev_loc_other, other_client = self.get_new_locations(locations, prev_loc_other)
                             self.erase_previous(temp_p)
 
-                            statuses_updated = f'{statuses}_{status_frame_indexes}'
-                            p_image = (pygame.image.load(
-                                f'{BASE_PATH}graphics\\player\\{statuses}\\{statuses_updated}.png')
-                                       .convert_alpha())
+                            temp_p = []
+
+                            p_image = [pygame.image.load(
+                                       f'{BASE_PATH}graphics\\player\\{self.__prev_info[user][2][0:len(self.__prev_info[user][2])-2]}\\{self.__prev_info[user][2]}.png')
+                                       .convert_alpha() for user in self.__users if self.__prev_info[user][2]
+                                       is not None]
 
                             if not p_image:
                                 pass
 
                             else:
-                                # for i in range(0, len(prev_loc_other)):
-                                player_remote = Tile(position=prev_loc_other,
-                                                     groups=[self.level.visible_sprites,
-                                                             self.level.obstacles_sprites],
-                                                     sprite_type=PLAYER_OBJECT, surface=p_image)
-                                temp_p = player_remote
+                                index = 0
+                                for user in self.__users:
+                                    player_remote = Tile(position=self.__prev_info[user][0],
+                                                         groups=[self.level.visible_sprites,
+                                                                 self.level.obstacles_sprites],
+                                                         sprite_type=PLAYER_OBJECT, surface=p_image[index])
+                                    temp_p.append(player_remote)
+                                    index += 1
 
                     pygame.draw.rect(self.screen, (0, 0, 0), self.__output_box)
                     pygame.draw.rect(self.screen, (0, 255, 0), self.__input_box)
@@ -318,6 +325,7 @@ class Game:
 
         pygame.display.flip()
         input_box = pygame.Rect(860, 550, 200, 100)
+
         pygame.draw.rect(self.screen, (0, 255, 0), input_box)
         self.screen.blit(start_button, (self.screen.get_width() / 2 - start_button.get_width() / 2,
                                         self.screen.get_height() / 2 + start_button.get_height() / 2))
@@ -395,22 +403,24 @@ class Game:
 
                     return
 
-    def get_new_locations(self, other_client, prev_loc_other):
+    def update_users(self, other_client):
         """
 
         :param other_client:
-        :param prev_loc_other:
-        :return:
         """
-        print(other_client)
-        other_coordinates = other_client
-        # other_coordinates = [(other_client[i][0], other_client[i][1])
-        #                      for i in range(0, len(other_client)) if other_client[i] is not None]
-        #  prev_loc_other = [other_coordinates[i] for i in range(0, len(other_coordinates))
-        #                  if prev_loc_other != other_coordinates[i]]
-        prev_loc_other = other_coordinates
+        print(self.__users, self.__prev_info.keys)
+        if self.__users:
+            for user in self.__users:
+                if user not in list(self.__prev_info.keys()):
+                    self.__users.pop(user)
 
-        return prev_loc_other, other_coordinates
+        print("do you exist", other_client[3], self.__prev_info, self.__users)
+        for user in list(self.__prev_info.keys()):
+            print("what th e fuck", user)
+            if user not in self.__users:
+                self.__users.append(user)
+            else:
+                pass
 
     def erase_previous(self, temp_p):
         """
@@ -420,10 +430,11 @@ class Game:
         """
 
         if temp_p:
-            self.level.visible_sprites.remove(temp_p)
-            self.level.obstacles_sprites.remove(temp_p)
+            for i in range(0, len(temp_p)):
+                self.level.visible_sprites.remove(temp_p[i])
+                self.level.obstacles_sprites.remove(temp_p[i])
 
-            temp_p.kill()
+                temp_p[i].kill()
 
     def find(self):
         """

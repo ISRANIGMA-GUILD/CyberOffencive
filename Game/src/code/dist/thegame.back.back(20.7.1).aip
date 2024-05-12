@@ -122,7 +122,7 @@
     <ROW Component="BasicCharakterActions.png" ComponentId="{C8BBC815-7493-4E41-92DA-62CB274F82D8}" Directory_="Characters_Dir" Attributes="0" KeyPath="BasicCharakterActions.png" Type="0"/>
     <ROW Component="Basic_Furniture.png" ComponentId="{8B9426B4-351A-4B33-9933-C4950DAC8EFE}" Directory_="Objects_Dir" Attributes="0" KeyPath="Basic_Furniture.png" Type="0"/>
     <ROW Component="Bitmaskreferences1.png" ComponentId="{DC1A4B7C-C51E-4A24-A0C1-3B65EF5AAB1B}" Directory_="Tilesets_Dir" Attributes="0" KeyPath="Bitmaskreferences1.png" Type="0"/>
-    <ROW Component="CyberOffensive.exe" ComponentId="{B7B5EFC3-3250-4864-A7F3-13DC93111238}" Directory_="Game_Dir" Attributes="0" KeyPath="CyberOffensive.exe"/>
+    <ROW Component="CyberOffensive.exe" ComponentId="{9525AE27-4011-45CB-8A15-04234CD659D1}" Directory_="Game_Dir" Attributes="0" KeyPath="CyberOffensive.exe"/>
     <ROW Component="Details.csv" ComponentId="{12167131-EE5C-4518-9417-8F9249422FF9}" Directory_="map_Dir" Attributes="0" KeyPath="Details.csv" Type="0"/>
     <ROW Component="ProductInformation" ComponentId="{E8E638F7-DF77-4AD6-BDE7-7DEE1097FF18}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
     <ROW Component="SproutLandsdefautltpalettesnip.PNG" ComponentId="{31BDD516-C6E0-4DDC-AD81-EDEBA05FDD6E}" Directory_="SproutLandscolorpallet_Dir" Attributes="0" KeyPath="SproutLandsdefautltpalettesnip.PNG" Type="0"/>
@@ -476,9 +476,9 @@
     <ROW File="FloorBlocks.csv" Component_="Details.csv" FileName="FLOORB~1.CSV|FloorBlocks.csv" Attributes="0" SourcePath="..\..\map\FloorBlocks.csv" SelfReg="false"/>
     <ROW File="Grass.csv" Component_="Details.csv" FileName="Grass.csv" Attributes="0" SourcePath="..\..\map\Grass.csv" SelfReg="false"/>
     <ROW File="Objects.csv" Component_="Details.csv" FileName="Objects.csv" Attributes="0" SourcePath="..\..\map\Objects.csv" SelfReg="false"/>
-    <ROW File="CyberOffensive.exe" Component_="CyberOffensive.exe" FileName="CYBERO~1.EXE|CyberOffensive.exe" Attributes="0" SourcePath="CyberOffensive.exe" SelfReg="false" DigSign="true"/>
     <ROW File="login.png" Component_="login.png" FileName="login.png" Attributes="0" SourcePath="..\..\graphics\LoginScreen\login.png" SelfReg="false"/>
     <ROW File="menuscreen.png" Component_="login.png" FileName="MENUSC~1.PNG|menuscreen.png" Attributes="0" SourcePath="..\..\graphics\LoginScreen\menuscreen.png" SelfReg="false"/>
+    <ROW File="CyberOffensive.exe" Component_="CyberOffensive.exe" FileName="CYBERO~1.EXE|CyberOffensive.exe" Attributes="0" SourcePath="CyberOffensive.exe" SelfReg="false" DigSign="true"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" Options="2"/>
@@ -653,8 +653,8 @@
     <ROW Feature_="MainFeature" Component_="png_3"/>
     <ROW Feature_="MainFeature" Component_="winter_tile.png"/>
     <ROW Feature_="MainFeature" Component_="Details.csv"/>
-    <ROW Feature_="MainFeature" Component_="CyberOffensive.exe"/>
     <ROW Feature_="MainFeature" Component_="login.png"/>
+    <ROW Feature_="MainFeature" Component_="CyberOffensive.exe"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
     <ROW Name="CyberOffensive.exe" SourcePath="..\..\graphics\text_logo.ico" Index="0"/>

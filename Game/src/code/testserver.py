@@ -537,7 +537,6 @@ class Server:
                     self.__chat[index] = data[1]
 
                 self.__status[index] = data[2]
-                self.__status_frame_index[index] = data[4]
 
                 self.send_to_clients(index)
 
@@ -627,8 +626,7 @@ class Server:
                                 and person != self.__all_details[number], self.__all_details))
 
         #   print(eligables, self.__all_details[number] in eligables, self.__locations[number])
-        message = [self.__locations[number], self.__chat[number], self.__status[number],
-                   self.__status_frame_index[number]]
+        message = [self.__locations[number], self.__chat[number], self.__status[number], self.__session_users[number]]
 
         for socks in eligables:
             try:
