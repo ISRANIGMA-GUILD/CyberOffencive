@@ -4,17 +4,17 @@ import string
 
 class Verifier:
 
-    def __init__(self):
+    def __init__(self, lengths):
         random.seed(12345)
+        self.__length = lengths
 
     def run(self):
 
         return self.generate_password()
 
-    def generate_password(self, length=34):
+    def generate_password(self):
         """
 
-        :param length:
         :return:
         """
 
@@ -32,7 +32,7 @@ class Verifier:
 
         password.append(random.choice(special_characters))
 
-        remaining_length = length - 4
+        remaining_length = self.__length - 4
         password.extend(
             random.choices(uppercase_letters + lowercase_letters + digits + special_characters, k=remaining_length))
 

@@ -9,7 +9,6 @@ class EncryptClient:
         self.__path = path
         self.__index = index
         self.__secure_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        pass
 
     def run(self):
 
@@ -29,7 +28,7 @@ class EncryptClient:
         self.__secure_context.maximum_version = ssl.TLSVersion.TLSv1_3
 
         self.__secure_context.set_ecdh_curve('prime256v1')
-        socket_client = self.__secure_context.wrap_socket(socket_serv1, server_hostname="mad.cyberoffensive.org")
+        socket_client = self.__secure_context.wrap_socket(socket_serv1, server_hostname="all-we-know")
         socket_serv1.close()
 
         return socket_client

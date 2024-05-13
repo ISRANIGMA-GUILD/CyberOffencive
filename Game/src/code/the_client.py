@@ -72,7 +72,7 @@ class Client:
         while True:
             try:
                 img = pygame.image.load(IMAGE)
-                pygame.transform.scale(img, (1920, 1080))
+            #    pygame.transform.scale(img, (1920, 1080))
                 screen.blit(img, (0, 0))
 
                 pygame.draw.rect(screen, (0, 0, 255), self.__login_thingy)
@@ -81,7 +81,6 @@ class Client:
 
                 start_button = self.font.render('USERNAME', True, (255, 215, 0))
                 screen.blit(start_button, (10, 210))
-                pygame.display.flip()
 
                 start_button = self.font.render('PASSWORD', True, (255, 215, 0))
                 screen.blit(start_button, (10, 430))
@@ -95,6 +94,7 @@ class Client:
 
                     self.__the_client_socket.send(message)
                     print("leaving3")
+
                     pygame.display.update()
                     clock.tick(FPS)
                     return 1
@@ -102,10 +102,15 @@ class Client:
                 else:
                     print("this", details)
                     checker = self.check_success(details)
+
                     print("the checker", checker)
                     self.__logged = checker
+
                     if self.__logged[0] == 'Success':
                         print("Nice")
+                        pygame.display.update()
+
+                        clock.tick(FPS)
                         return checker
 
                     elif self.__logged[0] == "Failure":
@@ -150,6 +155,7 @@ class Client:
                 pygame.display.update()
                 clock.tick(FPS)
                 return 1
+
             pygame.display.update()
             clock.tick(FPS)
 
@@ -166,23 +172,27 @@ class Client:
         while True:
             img = pygame.image.load(IMAGE)
             screen.blit(img, (0, 0))
-            pygame.display.flip()
 
+            pygame.display.flip()
             print(f'ip:port = {server_ip}:{server_port}')
+
             try:
                 print("Trying to connect...")
                 self.__the_client_socket = TLSSocketWrapper(server_ip).create_sock()
 
                 self.__the_client_socket.connect((server_ip, server_port))
+                self.__the_client_socket.send(pickle.dumps([GetPassword(128).run()]))
 
-                self.__the_client_socket.send(pickle.dumps([GetPassword().run()]))
-
-                the_real_pass = Verifier().run()
+                the_real_pass = Verifier(256).run()
                 their_pass = pickle.loads(self.__the_client_socket.recv(MAX_MSG_LENGTH))
 
                 if their_pass[0] != the_real_pass:
                     print("its a fake quit!!!!!!!!!!")
+                    pygame.display.update()
+
+                    clock.tick(FPS)
                     self.__the_client_socket.close()
+
                     return 1
 
                 print("Connection established.")
@@ -194,37 +204,26 @@ class Client:
             except ConnectionRefusedError:
                 print("Connection refused. Retrying...")
                 server_port = self.choose_port()
-                pygame.display.update()
-                clock.tick(FPS)
 
             except ConnectionResetError:
                 print("Connection refused. Retrying...")
                 server_port = self.choose_port()
 
-                pygame.display.update()
-                clock.tick(FPS)
-
             except TimeoutError:
                 print("Connection timeout. Retrying...")
                 server_port = self.choose_port()
-                pygame.display.update()
-                clock.tick(FPS)
 
             except ValueError as ve:
                 # Print the specific ValueError message for debugging
                 print(f"ValueError: {ve}")
                 print("Retrying...")
                 server_port = self.choose_port()
-                pygame.display.update()
-                clock.tick(FPS)
 
             except pickle.UnpicklingError as ve:
                 print(f"FAKE SERVER DONT CONNECT: {ve}")
                 print("Retrying...")
 
                 server_port = self.choose_port()
-                pygame.display.update()
-                clock.tick(FPS)
 
             except Exception as e:
                 # Catch any other exceptions for debugging
@@ -232,12 +231,12 @@ class Client:
                 print("Retrying...")
 
                 server_port = self.choose_port()
-                pygame.display.update()
-                clock.tick(FPS)
 
             pygame.display.update()
             clock.tick(FPS)
 
+        pygame.display.update()
+        clock.tick(FPS)
         print("Success")
 
     def format_socket(self):

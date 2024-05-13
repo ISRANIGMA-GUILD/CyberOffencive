@@ -4,9 +4,11 @@ from cryptography.x509.oid import *
 from cryptography.hazmat.primitives.asymmetric.padding import *
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
-from scapy.all import *
+from datetime import *
 import os
 import string
+import random
+import socket
 
 H_NAME = "Cyber-Offensive"
 D_NAME = "mad.cyberoffensive.org"
@@ -15,11 +17,8 @@ FORMAT_PUBLIC = serialization.PublicFormat.UncompressedPoint
 THE_PEM = serialization.Encoding.PEM
 PRIVATE_OPENSSL = serialization.PrivateFormat.TraditionalOpenSSL
 GOOD_PAD = PSS(MGF1(hashes.SHA256()), PSS.MAX_LENGTH)
-MAX_MSG_LENGTH = 1024
 THE_SHA_256 = hashes.SHA256()
-SECP = 0x0017
-SIGNATURE_ALGORITHIM = 0x0401
-MY_IP = conf.route.route('0.0.0.0')[1]
+MY_IP = socket.gethostbyname(socket.gethostname())
 COUNTRY_NAMES = [u"UG", u"SO", u"US", u"NO", u"NE", u"IL", u"IN", u"DE", u"FR", u"TX", u"MG", u"IE", u"RU", u"PL",
                  u"NL", u"MZ", u"KP", u"CN", u"CI", u"SD", u"IR", u"VA", u"GL", u"PS"]
 PROVINCES = [u"Llanfairpwllgwyngyllgogerychwyrndrobwllllantysiliogogogoch", u"Bronitzki", u"SPIKES#2212", u"Ohio",
@@ -38,9 +37,6 @@ class CertificateCreator:
     def __init__(self, pathname):
         self.__passes = []
         self.__path = pathname
-
-        self.__more_than_a_server = False
-        pass
 
     def run(self):
         """

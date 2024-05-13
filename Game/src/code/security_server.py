@@ -1,8 +1,10 @@
+from scapy.all import *
 from scapy.layers.inet import *
 from wrapper_of_the_server_socks import *
 from DatabaseCreator import *
 from certificate_creator import *
 from counter_attack import *
+import pickle
 
 DEFAULT_IP = '0.0.0.0'
 MAX_MSG_LENGTH = 1024
@@ -21,7 +23,7 @@ class Security:
         self.__servers_database = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
         self.__database = DatabaseManager("IPs", PARAMETERS["IPs"])
 
-        self.__security_socket, self.n = EncryptServer("DNS_SERVER", 443).run()
+        self.__security_socket, self.n = EncryptServer("Top_Secret", 443).run()
 
         self.__upcoming_bans = []
         self.__currently_banned = []
@@ -30,7 +32,7 @@ class Security:
         self.__prev_list = []
 
         self.__counter_attack = None
-        self.__max_index = 19
+        self.__max_index = 4
 
     def run(self):
         """

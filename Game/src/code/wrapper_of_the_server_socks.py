@@ -19,17 +19,18 @@ class EncryptServer:
         """
 
         """
+
         socket_serv1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
         passes = self.activate()
 
         socket_serv1.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         n = random.randint(0, 19)
 
-        self.__security_context.load_cert_chain(certfile=f"{self.__path}_Certificates\\certificate{0}.pem",
-                                                keyfile=f"{self.__path}_Keys\\the_key{0}.key",
-                                                password=passes[0])
+        self.__security_context.load_cert_chain(certfile=f"{self.__path}_Certificates\\certificate{n}.pem",
+                                                keyfile=f"{self.__path}_Keys\\the_key{n}.key",
+                                                password=passes[n])
 
-        self.__security_context.minimum_version = ssl.TLSVersion.TLSv1_3
+        self.__security_context.minimum_version = ssl.TLSVersion.TLSv1_2
         self.__security_context.maximum_version = ssl.TLSVersion.TLSv1_3
 
         self.__security_context.set_ecdh_curve('prime256v1')
@@ -39,6 +40,8 @@ class EncryptServer:
 
         socket_serv = self.__security_context.wrap_socket(socket_serv1, server_hostname="mad.cyberoffensive.org")
         socket_serv1.close()
+
+        socket_serv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
         socket_serv.bind((DEFAULT_IP, self.__port))
         socket_serv.listen()
@@ -56,10 +59,10 @@ class EncryptServer:
         """
 
         n = random.randint(0, 19)
-        with open(f'{path}_Certificates/certificate{0}.pem', 'rb') as certificate_first:
+        with open(f'{path}_Certificates/certificate{n}.pem', 'rb') as certificate_first:
             my_cert_pem = load_pem_x509_certificate(certificate_first.read())
 
-        with open(f'{path}_Keys/the_key{0}.pem', 'rb') as certificate_first:
-            my_key_pem = load_pem_private_key(certificate_first.read(), password=passes[0].encode())
+        with open(f'{path}_Keys/the_key{n}.pem', 'rb') as certificate_first:
+            my_key_pem = load_pem_private_key(certificate_first.read(), password=passes[n].encode())
 
         return my_cert_pem, my_key_pem

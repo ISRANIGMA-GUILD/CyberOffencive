@@ -25,9 +25,6 @@ class Game:
         
     def run(self) -> None:
         while True:
-            if self.level.player.stats[HEALTH] <= 0:
-                pygame.quit()
-                sys.exit()
 
             for event in pygame.event.get():
                 if pygame.QUIT == event.type:

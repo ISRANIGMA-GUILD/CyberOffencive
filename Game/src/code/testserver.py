@@ -9,6 +9,7 @@ import os
 import threading
 import pickle
 import selectors
+import errno
 
 THE_USUAL_IP = '0.0.0.0'
 MY_IP = socket.gethostbyname(socket.gethostname())
@@ -22,8 +23,8 @@ PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weap
 class Server:
 
     def __init__(self, main_data_base, login_data_base, ips_data_base, number):
-        self.__secure_socket = EncryptClient("Servers", number).run()
-        self.__load_balance_socket = EncryptClient("Servers", number).run()
+     #   self.__secure_socket = EncryptClient("Top_Secret", number).run()
+        self.__load_balance_socket = EncryptClient("Secret", number).run()
 
         self.__load_balance_ip = MY_IP  # Will soon be changed according to a mechanism
         self.__load_balance_port = 1800
@@ -105,6 +106,7 @@ class Server:
         print("The server will now wait for clients")
         print("Server is up and running")
 
+        self.connect_to_load_socket()
         self.handle_clients()
 
     def receive_info(self):
@@ -377,9 +379,9 @@ class Server:
         index = self.__all_details.index(target)
 
         print("pre index", index)
-        passw = GetPassword().run()
+        passw = GetPassword(128).run()
 
-        my_pass = Verifier().run()
+        my_pass = Verifier(256).run()
         connection, client_address = current_socket.accept()
 
         try:

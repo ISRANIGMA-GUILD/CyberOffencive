@@ -180,4 +180,3 @@ cython_debug/
 .txt
 *.db
 *.crt
-*.key
