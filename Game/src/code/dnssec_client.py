@@ -2,7 +2,7 @@ import socket
 
 
 class ServerDiscoveryClient:
-    def __init__(self, port=1800):
+    def __init__(self, port=42069):
         self.port = port
 
     def discover_server(self):

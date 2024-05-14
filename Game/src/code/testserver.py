@@ -26,7 +26,8 @@ class Server:
     def __init__(self, main_data_base, login_data_base, ips_data_base, number):
         self.__load_balance_socket = EncryptClient("Secret", number, "load_balancer").run()
 
-        self.__load_balance_ip = MY_IP  # Will soon be changed according to a mechanism
+        self.__load_balance_ip = self.get_load_balancer_ip()
+        print(self.__load_balance_ip)
         self.__load_balance_port = 1800
 
         self.__main_data_base = main_data_base
@@ -725,6 +726,16 @@ class Server:
         """
 
         return self.__main_data_base, self.__login_data_base, self.__ips_data_base
+    def get_load_balancer_ip(self):
+        """
+        Returns:
+            str: The IP address of the "load_balancer" container or None if not found.
+        """
+        ip_address = os.getenv("LOAD_BALANCER_IP")
+        if ip_address:
+            return ip_address
+        else:
+            return None
 
 
 def main():
