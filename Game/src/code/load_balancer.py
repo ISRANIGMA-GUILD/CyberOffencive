@@ -1,51 +1,38 @@
+from wrapper_of_unique import *
 from Cert_creators import *
-import socket
-import ssl
+from interesting_numbers import *
+import os
 import selectors
 import pickle
 import types
-import os
 
 # Define zones on the map with their boundary coordinates
 zones = {
     'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
-    'Zone2': {'min_x': 40320, 'max_x':  76800, 'min_y': 0, 'max_y': 19680},
+    'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680},
     'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
     'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200}
 }
 LB_IP = "0.0.0.0"
 LB_PORT = 1800
-CERT_FILE = "Secret_Certificates/certificate0.pem"
-KEY_FILE = "Secret_Keys/the_key0.key"
 # Define the servers
 servers = ['Server1', 'Server2', 'Server3', 'Server4', 'ServerBuffer']
 
 
 class LoadBalancer:
-    def __init__(self, ip, port, certfile, keyfile):
+    def __init__(self, ip, port):
         self.load_balancer_ip = ip
         self.load_balancer_port = port
 
         self.server_names = ["Server 1", "Server 2", "Server 3", "Server 4", "BufferServer"]
         self.servers = []
 
-        self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        self.context.load_cert_chain(certfile=certfile, keyfile=keyfile, password=Verifier(384).run())
-
-        self.temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.temp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-        self.load_balancer_socket = self.context.wrap_socket(self.temp_socket, server_side=True)
-        self.temp_socket.close()
-
-        self.load_balancer_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.load_balancer_socket.setblocking(False)
-
-        self.load_balancer_socket.bind((self.load_balancer_ip, self.load_balancer_port))
-        self.load_balancer_socket.listen(1)
+        self.__temp_socket = EncryptUniqueServer("Secret", self.load_balancer_port, verifiers=Verifier(384).run(),
+                                                 number=TheNumbers().run())
+        self.__load_balancer_socket = self.__temp_socket.run()
 
         self.selector = selectors.DefaultSelector()
-        self.selector.register(self.load_balancer_socket, selectors.EVENT_READ, self.accept_new_connection)
+        self.selector.register(self.__load_balancer_socket, selectors.EVENT_READ, self.accept_new_connection)
 
         self.zones = {
             'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
@@ -78,7 +65,7 @@ class LoadBalancer:
         connection.setblocking(False)
 
         data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
-      #  self.selector.register(connection, selectors.EVENT_READ | selectors.EVENT_WRITE, data=data)
+        #  self.selector.register(connection, selectors.EVENT_READ | selectors.EVENT_WRITE, data=data)
         self.servers.append(connection)
 
     def relay_client_info(self):
@@ -131,15 +118,14 @@ class LoadBalancer:
 
 
 def main():
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-
-    cert_file_path = os.path.join(dname, CERT_FILE)
-    key_file_path = os.path.join(dname, KEY_FILE)
-
-    lb = LoadBalancer(LB_IP, LB_PORT, cert_file_path, key_file_path)
+    lb = LoadBalancer(LB_IP, LB_PORT)
     lb.run()
+    # Start TLS server
 
 
 if __name__ == '__main__':
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+
+    os.chdir(dname)
     main()

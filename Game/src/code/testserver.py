@@ -5,6 +5,7 @@ from wrapper_of_the_server_socks import *
 from wrapper_of_the_client_socks import *
 from clientpasswordgen import *
 from serverpassword import *
+from interesting_numbers import *
 import os
 import threading
 import pickle
@@ -12,7 +13,7 @@ import selectors
 import errno
 
 THE_USUAL_IP = '0.0.0.0'
-MY_IP = "load_balancer"#socket.gethostbyname(socket.gethostname())
+MY_IP = socket.gethostbyname(socket.gethostname())
 MAX_MSG_LENGTH = 16000
 LOCAL_HOST = '127.0.0.1'
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
@@ -23,8 +24,7 @@ PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weap
 class Server:
 
     def __init__(self, main_data_base, login_data_base, ips_data_base, number):
-     #   self.__secure_socket = EncryptClient("Top_Secret", number).run()
-        self.__load_balance_socket = EncryptClient("Secret", number).run()
+        self.__load_balance_socket = EncryptClient("Secret", number, "load_balancer").run()
 
         self.__load_balance_ip = MY_IP  # Will soon be changed according to a mechanism
         self.__load_balance_port = 1800
@@ -172,26 +172,20 @@ class Server:
         """
 
         """
-
+        print(self.__load_balance_socket)
         while True:
             try:
-                self.__load_balance_socket.connect((MY_IP, 1800))
+                self.__load_balance_socket.connect((self.__load_balance_ip, self.__load_balance_port))
+                print("success")
                 break
 
-            except ConnectionRefusedError as e:
-                print ("Connection refused", e)
+            except ConnectionRefusedError:
                 pass
 
-            except ConnectionResetError as e:
-                print ("Connection reset", e)
+            except ConnectionResetError:
                 pass
 
-            except OSError as e:
-                print("OS error", e)
-                pass
-
-            except Exception as e:
-                print("Exception", e)
+            except OSError:
                 pass
 
     def check_for_banned(self, client_address, number):
@@ -742,8 +736,9 @@ def main():
     ips_data_base = DatabaseManager("IPs", PARAMETERS["IPs"])
 
     login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
-    server = Server(main_data_base, login_data_base, ips_data_base, 0)
+    numbers = TheNumbers().run()
 
+    server = Server(main_data_base, login_data_base, ips_data_base, numbers)
     server.run()
 
 

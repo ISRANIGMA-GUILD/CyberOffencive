@@ -38,12 +38,14 @@ class EncryptServer:
         socket_serv1.setblocking(False)
         socket_serv1.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        socket_serv = self.__security_context.wrap_socket(socket_serv1, server_hostname="mad.cyberoffensive.org")
+        socket_serv = self.__security_context.wrap_socket(socket_serv1, server_side=True)
         socket_serv1.close()
 
         socket_serv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
+        print(socket_serv.getsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR))
         socket_serv.bind((DEFAULT_IP, self.__port))
+        socket_serv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         socket_serv.listen()
 
         return socket_serv

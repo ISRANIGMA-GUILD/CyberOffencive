@@ -1,9 +1,11 @@
 from scapy.all import *
 from scapy.layers.inet import *
-from wrapper_of_the_server_socks import *
+from wrapper_of_unique import *
 from DatabaseCreator import *
 from certificate_creator import *
 from counter_attack import *
+from New_certificates import *
+from interesting_numbers import *
 import pickle
 
 DEFAULT_IP = '0.0.0.0'
@@ -15,6 +17,8 @@ THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6
                 "31": "create user", "32": "sleep", "33": "all", "34": "and", "35": "INSERT", "36": "UPDATE",
                 "37": "DELETE"}
 PARAMETERS = {"IPs": ["IP", "MAC", "Status"], "PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons']}
+SERVER_PORT = 443
+DOMAIN_NAME = "all.we.mightknow"
 
 
 class Security:
@@ -23,7 +27,9 @@ class Security:
         self.__servers_database = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
         self.__database = DatabaseManager("IPs", PARAMETERS["IPs"])
 
-        self.__security_socket, self.n = EncryptServer("Top_Secret", 443).run()
+        self.__verifier = CertificateCreator().run()
+        self.__security_socket = EncryptUniqueServer("Top_Secret", SERVER_PORT, self.__verifier,
+                                                     TheNumbers().run() + 1).run()
 
         self.__upcoming_bans = []
         self.__currently_banned = []

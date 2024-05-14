@@ -9,8 +9,8 @@ from serverpassword import *
 import random
 
 
-H_NAME = "we-know"
-D_NAME = "all-we-know"
+H_NAME = "load_balancer"
+D_NAME = "load_balancer"
 KEY_ENC = serialization.Encoding.X962
 FORMAT_PUBLIC = serialization.PublicFormat.UncompressedPoint
 THE_PEM = serialization.Encoding.PEM
@@ -91,11 +91,16 @@ class CertificateCreator:
                                            encryption_algorithm=serialization
                                            .BestAvailableEncryption(password.encode()))
 
-            with open(f'Secret_certs\\certificate{index}.pem', 'wb') as certificate_first:
+            with open(f'Secret_Certificates\\certificate{index}.pem', 'wb') as certificate_first:
                 certificate_first.write(my_cert_pem)
 
-            with open(f'Secret_keys\\the_key{index}.key', 'wb') as key_first:
+            with open(f'Secret_Certificates\\certificate{index}.crt', 'wb') as certificate_first:
+                certificate_first.write(my_cert_pem)
+
+            with open(f'Secret_Keys\\the_key{index}.key', 'wb') as key_first:
                 key_first.write(my_key_pem)
+
+        return password
 
 
 def main():
