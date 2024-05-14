@@ -4,6 +4,7 @@ import ssl
 import selectors
 import pickle
 import types
+import os
 
 # Define zones on the map with their boundary coordinates
 zones = {
@@ -14,8 +15,8 @@ zones = {
 }
 LB_IP = "0.0.0.0"
 LB_PORT = 1800
-CERT_FILE = "Secret_Certificates\\certificate0.pem"
-KEY_FILE = "Secret_Keys\\the_key0.key"
+CERT_FILE = "Secret_Certificates/certificate0.pem"
+KEY_FILE = "Secret_Keys/the_key0.key"
 # Define the servers
 servers = ['Server1', 'Server2', 'Server3', 'Server4', 'ServerBuffer']
 
@@ -130,9 +131,14 @@ class LoadBalancer:
 
 
 def main():
-    lb = LoadBalancer(LB_IP, LB_PORT, CERT_FILE, KEY_FILE)
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+
+    cert_file_path = os.path.join(dname, CERT_FILE)
+    key_file_path = os.path.join(dname, KEY_FILE)
+
+    lb = LoadBalancer(LB_IP, LB_PORT, cert_file_path, key_file_path)
     lb.run()
-    # Start TLS server
 
 
 if __name__ == '__main__':

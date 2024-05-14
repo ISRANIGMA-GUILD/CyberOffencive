@@ -1,4 +1,5 @@
 version: '3.8'
+
 services:
   the-server:
     build:
@@ -11,23 +12,17 @@ services:
       - "6921:6921/tcp"
       - "8843:8843/tcp"
       - "443:443/tcp"
-      - "1800:1800/tcp"
     tty: true
     volumes:
       - server:/app/Game/src/code/Database
-  
-  dnssec_server:
-    build:
-      context: .
-      dockerfile: Dockerfile-2
-    image: basic_com-dnssec_server
-    container_name: dnssec_server
-    ports:
-      - "5353:5353/udp"
-      - "53:53/udp"
-    tty: true
+    networks:
+      - my-network
 
 volumes:
   server:
     driver: local
-   
+
+networks:
+  my-network:
+    name: my-network
+    external: true

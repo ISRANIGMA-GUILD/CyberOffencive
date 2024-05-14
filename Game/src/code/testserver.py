@@ -12,7 +12,7 @@ import selectors
 import errno
 
 THE_USUAL_IP = '0.0.0.0'
-MY_IP = socket.gethostbyname(socket.gethostname())
+MY_IP = "load_balancer"#socket.gethostbyname(socket.gethostname())
 MAX_MSG_LENGTH = 16000
 LOCAL_HOST = '127.0.0.1'
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
@@ -178,13 +178,20 @@ class Server:
                 self.__load_balance_socket.connect((MY_IP, 1800))
                 break
 
-            except ConnectionRefusedError:
+            except ConnectionRefusedError as e:
+                print ("Connection refused", e)
                 pass
 
-            except ConnectionResetError:
+            except ConnectionResetError as e:
+                print ("Connection reset", e)
                 pass
 
-            except OSError:
+            except OSError as e:
+                print("OS error", e)
+                pass
+
+            except Exception as e:
+                print("Exception", e)
                 pass
 
     def check_for_banned(self, client_address, number):

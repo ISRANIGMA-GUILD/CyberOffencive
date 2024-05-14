@@ -21,4 +21,4 @@ COPY . .
 # Set any environment variables if needed
 
 # Run the game script
-CMD ["python", "Game/src/code/dnssec_server.py"]
+CMD ["python", "Game/src/code/load_balancer.py"]
