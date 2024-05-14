@@ -16,7 +16,7 @@ class Arrow(pygame.sprite.Sprite):
 
         self.damage = damage
 
-        self.image = pygame.transform.scale(pygame.image.load('../graphics/weapons/bow/arrow.png').convert_alpha(), (30, 10))
+        self.image = pygame.transform.scale(pygame.image.load('C:\\Program Files (x86)\\Common Files\\CyberOffensive/graphics/weapons/bow/arrow.png').convert_alpha(), (30, 10))
         self.image = pygame.transform.rotate(self.image, self.angle)
         self.rect = self.image.get_rect(topleft=position)
     

@@ -10,7 +10,7 @@ from enemy import *
 
 class Player(Entity):
     def __init__(self, position: tuple, groups, enemies_group, obstacle_sprites, create_attack, destroy_weapon,
-                 path='../graphics/brawn_idle.png') -> None:
+                 path='C:\\Program Files (x86)\\Common Files\\CyberOffensive/graphics/brawn_idle.png') -> None:
         self.max_stats: dict = {
             HEALTH: 100,
             ENERGY: 100,
@@ -35,7 +35,7 @@ class Player(Entity):
         self.skills = {
             ATTACK_BOOST_SKILL_INDEX: {
                 SKILL_ENERGY_COST: 50,
-                SKILL_ICON_PATH: '../graphics/skills/attack_boost.png',
+                SKILL_ICON_PATH: 'C:\\Program Files (x86)\\Common Files\\CyberOffensive/graphics/skills/attack_boost.png',
                 SKILL_APPLY_FUNC: self.apply_attack_boost_skill,
                 SKILL_COOLDOWN_DURATION: 60000,
                 SKILL_ACTIVE_DURATION: 5000,
@@ -46,7 +46,7 @@ class Player(Entity):
 
             SPEED_BOOST_SKILL_INDEX: {
                 SKILL_ENERGY_COST: 50,
-                SKILL_ICON_PATH: '../graphics/skills/speed_boost.png',
+                SKILL_ICON_PATH: 'C:\\Program Files (x86)\\Common Files\\CyberOffensive/graphics/skills/speed_boost.png',
                 SKILL_APPLY_FUNC: self.apply_speed_boost_skill,
                 SKILL_COOLDOWN_DURATION: 60000,
                 SKILL_ACTIVE_DURATION: 5000,
@@ -57,7 +57,7 @@ class Player(Entity):
 
             REGENERATION_SKILL_INDEX: {
                 SKILL_ENERGY_COST: 80,
-                SKILL_ICON_PATH: '../graphics/skills/regeneration.png',
+                SKILL_ICON_PATH: 'C:\\Program Files (x86)\\Common Files\\CyberOffensive/graphics/skills/regeneration.png',
                 SKILL_APPLY_FUNC: self.apply_regeneration_skill,
                 SKILL_COOLDOWN_DURATION: 60000,
                 SKILL_ACTIVE_DURATION: 2000,
@@ -106,7 +106,7 @@ class Player(Entity):
         self.b_key_pressed = False
         self.enemies_group = enemies_group
 
-    def import_player_assets(self, path: str = '../graphics/player/') -> None:
+    def import_player_assets(self, path: str = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive/graphics/player/') -> None:
         """
 
         :param path:
@@ -530,7 +530,7 @@ class Player(Entity):
         self.skills = {
             ATTACK_BOOST_SKILL_INDEX: {
                 SKILL_ENERGY_COST: 50,
-                SKILL_ICON_PATH: '../graphics/skills/attack_boost.png',
+                SKILL_ICON_PATH: 'C:\\Program Files (x86)\\Common Files\\CyberOffensive/graphics/skills/attack_boost.png',
                 SKILL_APPLY_FUNC: self.apply_attack_boost_skill,
                 SKILL_COOLDOWN_DURATION: 60000,
                 SKILL_ACTIVE_DURATION: 5000,
@@ -541,7 +541,7 @@ class Player(Entity):
 
             SPEED_BOOST_SKILL_INDEX: {
                 SKILL_ENERGY_COST: 50,
-                SKILL_ICON_PATH: '../graphics/skills/speed_boost.png',
+                SKILL_ICON_PATH: 'C:\\Program Files (x86)\\Common Files\\CyberOffensive/graphics/skills/speed_boost.png',
                 SKILL_APPLY_FUNC: self.apply_speed_boost_skill,
                 SKILL_COOLDOWN_DURATION: 60000,
                 SKILL_ACTIVE_DURATION: 5000,
@@ -552,7 +552,7 @@ class Player(Entity):
 
             REGENERATION_SKILL_INDEX: {
                 SKILL_ENERGY_COST: 80,
-                SKILL_ICON_PATH: '../graphics/skills/regeneration.png',
+                SKILL_ICON_PATH: 'C:\\Program Files (x86)\\Common Files\\CyberOffensive/graphics/skills/regeneration.png',
                 SKILL_APPLY_FUNC: self.apply_regeneration_skill,
                 SKILL_COOLDOWN_DURATION: 60000,
                 SKILL_ACTIVE_DURATION: 2000,

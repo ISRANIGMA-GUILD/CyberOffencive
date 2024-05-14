@@ -69,7 +69,7 @@ class Enemy(Entity):
             'death': [],
         }
 
-        base_path = f'../graphics/enemies/{self.monster_name}/'
+        base_path = f'C:\\Program Files (x86)\\Common Files\\CyberOffensive/graphics/enemies/{self.monster_name}/'
 
         for animation in self.animations.keys():
             self.animations[animation] = import_folder(base_path + animation)

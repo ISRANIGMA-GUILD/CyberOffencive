@@ -1,6 +1,7 @@
 import socket
 import configparser
 
+
 class ServerDiscoveryClient:
     def __init__(self, port=1801):
         self.port = port
@@ -28,7 +29,7 @@ class ServerDiscoveryClient:
         
 def update_docker_compose(server_ip):
     # Define the path to your docker-compose.yml file (replace with your actual path)
-    docker_compose_file = "docker-compose.yml"
+    docker_compose_file = "C:\\Users\\imper\\OneDrive\\Desktop\\Cyber\\gitprojects\\Git\\basic_com\\docker-compose.yml"
 
     try:
         # Attempt to open and read the docker-compose.yml file
@@ -63,9 +64,9 @@ def update_docker_compose(server_ip):
         return
 
 
-
 if __name__ == "__main__":
     client = ServerDiscoveryClient()
     server_ip = client.discover_server()
+
     update_docker_compose(server_ip)
     print("Server IP:", server_ip)

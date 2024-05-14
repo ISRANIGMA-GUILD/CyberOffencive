@@ -87,7 +87,7 @@ WEAPON_DATA: dict = {
 	'sword' : {
 		'cooldown' : 100,
 		'damage' : 15,
-		'path' : '../graphics/weapons/sword/full.png',
+		'path' : 'C:\\Program Files (x86)\\Common Files\\CyberOffensive/graphics/weapons/sword/full.png',
 	},
 }
 
@@ -142,7 +142,7 @@ ENERGY_BAR_WIDTH: int = 140
 ENERGY_BAR_COLOR: int = 'blue'
 
 # ~~~ Font ~~~
-FONT_PATH: str = '../fonts/TheWildBreathOfZelda-15Lv.ttf'
+FONT_PATH: str = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive/fonts/TheWildBreathOfZelda-15Lv.ttf'
 FONT_SIZE: int = 18
 #=============================
 

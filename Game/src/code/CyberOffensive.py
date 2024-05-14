@@ -209,6 +209,7 @@ class Game:
 
                     for thread in threads:
                         thread.join()
+
 ########################################################################## Default stuff
 
             except KeyboardInterrupt:
@@ -249,9 +250,6 @@ class Game:
             self.text_surface = self.font.render("FPS: " + str(int(fps)), True, (128, 0, 128))
 
             self.screen.blit(self.text_surface, (350, 10))
-
-            pygame.display.update()
-            self.clock.tick(FPS)
 
     def communication(self, lock):
         """
@@ -362,7 +360,8 @@ class Game:
                     self.__temp_message = ""
                     self.__using_chat = False
                     self.__prev_length = 19
-
+            pygame.display.update()
+            self.clock.tick(FPS)
 
     def draw_start_menu(self):
         """

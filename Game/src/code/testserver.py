@@ -79,10 +79,9 @@ class Server:
 
         # """:TODO(Are they possible?): Check for session injection vulnerabilities """#
         # """:TODO: Add as secret verification between l-> s, s->l, security->s, s->security
-        # """:TODO: Transport databases between servers at the end and updating them accordingly """#
-        # """:*TODO: If transportation is not possible try to use load balancer as the only user of the database"""#
+        # """:TODO: Use load balancer as the only user of the main database and servers with their local ones"""#
         # """:TODO(Should the server intervene?): Check if users cheat(in speed, damage, etc.) """#
-        # """:TODO(finished?): Loading screen between menu and login screens """#
+        # """:TODO(almost finished): Loading screen between menu and login screens """#
         # """:TODO(Work in progress): Merge with load balancer """#
         # """:TODO(almost finished): Try-except on everything """#
         # """:TODO(Work in progress): Receive info about enemy locations, item locations """#
@@ -90,8 +89,9 @@ class Server:
         # """:TODO: Show weapons when attacking"""#
         # """:TODO: Lock the database with a long and strong password"""#
         # """:TODO: Make sure clients move smoothly move between servers"""#
-        # """:TODO: Create a border for clients in your server, when crossed the client is moved to another server"""#
+        # """:TODO(Work in progress): Create a border for clients in your server, when crossed the client is moved to another server"""#
         # """:TODO: Multiprocess security/server"""#
+        # """:TODO: Put chat in a seprate thread"""#
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
@@ -108,8 +108,8 @@ class Server:
         print("The server will now wait for clients")
         print("Server is up and running")
 
-        self.connect_to_security()
-        self.connect_to_load_socket()
+      #  self.connect_to_security()
+       # self.connect_to_load_socket()
         self.handle_clients()
 
     def receive_info(self):
@@ -409,7 +409,7 @@ class Server:
 
         try:
             connection.send(pickle.dumps([my_pass]))
-            print("New client joined!", client_address, their_pass)
+            print("New client joined!", client_address)
 
             self.__to_send.append((current_socket, "yay"))
             self.check_for_banned(client_address, index)
@@ -718,6 +718,8 @@ class Server:
         """
 
         return self.__main_data_base, self.__login_data_base, self.__ips_data_base
+
+
     def get_load_balancer_ip(self):
         """
         Returns:
