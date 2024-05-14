@@ -24,6 +24,7 @@ PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weap
 class Server:
 
     def __init__(self, main_data_base, login_data_base, ips_data_base, number):
+        self.__secure_socket = EncryptClient("Top_Secret", number+1, "all.we.mightknow").run()
         self.__load_balance_socket = EncryptClient("Secret", number, "load_balancer").run()
 
         self.__load_balance_ip = MY_IP  # Will soon be changed according to a mechanism
@@ -106,6 +107,7 @@ class Server:
         print("The server will now wait for clients")
         print("Server is up and running")
 
+        self.connect_to_security()
         self.connect_to_load_socket()
         self.handle_clients()
 
@@ -665,16 +667,6 @@ class Server:
         """
 
         return self.__number_of_clients == 0
-
-    def view_status(self, client_number):
-        """
-
-        :param client_number:
-        """
-
-        print(self.__main_data_base.find(return_params=['Status'], input_params=['Username', 'Password'],
-                                         values=(self.__credentials[client_number][0],
-                                                 self.__credentials[client_number][1])))
 
     def update_database(self):
         """

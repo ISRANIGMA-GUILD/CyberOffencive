@@ -110,7 +110,7 @@ class Level:
 
         enemies_classes = [BasicSpider, BlueSpider, CyanSpider, RedSpider, RedGreenSpider, CyanRedSpider,
                            BlueSnowSpider, Goblin]
-        for i in range(101):
+        for i in range(20):
             pos = (randint(1000, 3000), randint(1000, 3000))
             enemy = choice(enemies_classes)
             enemy(pos, [self.visible_sprites, self.attackable_sprites], self.obstacles_sprites, self.damage_player,

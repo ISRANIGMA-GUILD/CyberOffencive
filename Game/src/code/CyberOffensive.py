@@ -1,3 +1,5 @@
+import threading
+
 import pygame.display
 from level import *
 from the_client import *
@@ -18,8 +20,8 @@ class Game:
         pygame.mixer.init()
         pygame.font.init()
 
-        #  the_program_to_hide = win32gui.GetForegroundWindow()
-        #  win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
+        the_program_to_hide = win32gui.GetForegroundWindow()
+        win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
 
         self.font = pygame.font.Font(FONT_PATH, 60)
         self.font_chat = pygame.font.Font(FONT_PATH, 30)
@@ -77,18 +79,22 @@ class Game:
         self.__prev_info = {}
 
         self.__users = []
+        self.__temp_p = []
 
     def run(self) -> None:
         """
 
         """
         game_state = "start_menu"
-        temp_p = []
+
+        game_lock = threading.Lock()
+        com_lock = threading.Lock()
 
         while True:
             #   v = self.player.get_volume()
             #  v.SetMute(1, None)
             #  v.SetMasterVolumeLevelScalar(1.0, None)
+
             try:
                 for event in pygame.event.get():
                     if pygame.QUIT == event.type:
@@ -98,7 +104,7 @@ class Game:
 
                         pygame.quit()
                         sys.exit()
-
+########################################################################## Login and start
                 if game_state == "start_menu":
                     # self.player.run()
 
@@ -121,26 +127,26 @@ class Game:
 
                         self.screen.blit(img, (0, 0))
 
-                        print("DId it really succeed?", ran)
+                     #   print("DId it really succeed?", ran)
                         if ran == 2:
-                            print("what is that new")
+                          #  print("what is that new")
                             game_state = "start_menu"
 
                         elif ran == 1:
-                            print("really oh reaaaaally")
+                          #  print("really oh reaaaaally")
                             game_state = "start_menu"
 
                         else:
                             game_state = "continue"
                             pygame.display.set_caption("Cyber Offensive")
 
-                            print("Thingy", ran)
+                           # print("Thingy", ran)
 
                             if len(ran) > 1:
                                 items = ran[1][1].split(', ')
 
                                 weapons = ran[1][2].split(', ')
-                                print("the stuff", int(items[0]), weapons, int(items[1]))
+                             #   print("the stuff", int(items[0]), weapons, int(items[1]))
                                 #  print(items)
                                 if int(weapons[0]) > 0:
                                     self.items["A"] = int(weapons[0])
@@ -172,7 +178,6 @@ class Game:
 
                                 if int(items[1]) > 0:
                                     self.items["EF"] = int(items[1])
-                                    print("ENERGY", self.items["EF"])
                                     for item in range(0, self.items["EF"]):
                                         self.level.player.inventory.hotbar.insert(EnergyFruit((0, 0),
                                                                                               [self.level.visible_sprites]))
@@ -191,140 +196,20 @@ class Game:
                                         self.level.player.inventory.hotbar.insert(BlueEnergyFruit((0, 0),
                                                                                               [self.level.visible_sprites]))
 
-                    pygame.display.flip()
-
                     pygame.display.update()
                     self.clock.tick(FPS)
-
+########################################################################## Game(without multiplayer
                 if game_state == "continue":
-                    self.new_frame_time = time.time()
-                    self.screen.fill((0, 0, 0))
 
-                    self.level.run()
-                    fps = 1.0 / (self.new_frame_time - self.prev_frame_time)
+########################################################################## Communication
+                    threads = self.create_threads(game_lock, com_lock)
 
-                    self.prev_frame_time = self.new_frame_time
-                    self.text_surface = self.font.render("FPS: " + str(int(fps)), True, (128, 0, 128))
+                    for thread in threads:
+                        thread.start()
 
-                    self.screen.blit(self.text_surface, (350, 10))
-                    other_client = self.network.receive_location()
-                    current_loc = self.level.player.get_location()
-
-                    current_status_index = int(self.level.player.frame_index)
-                    self.find()
-
-                    status = f'{self.level.player.status}_{current_status_index}'
-
-                    list_of_public_details = [current_loc, self.__message, status, 0]
-
-                    if self.__previous_details != list_of_public_details:
-                        self.network.update_server(list_of_public_details, self.items)
-                        self.__previous_details = list_of_public_details
-
-                    self.__previous_status = self.level.player.status
-                    self.prev_loc = current_loc
-
-                    if other_client is None:
-                        pass
-
-                    elif other_client == 1:
-                        print("what the is happening")
-                        game_state = "start_menu"
-
-                    else:
-                        print("other_client", other_client, type(other_client), other_client[0], other_client[1])
-
-                        if type(other_client) is list or type(other_client) is tuple:
-                            print("updating")
-
-                            self.update_users(other_client)
-                            self.__prev_info[other_client[3]] = other_client
-
-                            self.__other_messages = other_client[1]
-
-                            if self.__other_messages is not None:
-                                self.__previous_messages.append(self.__other_messages)
-
-                            self.erase_previous(temp_p)
-
-                            temp_p = []
-
-                            p_image = [pygame.image.load(
-                                       f'{BASE_PATH}graphics\\player\\{self.__prev_info[user][2][0:len(self.__prev_info[user][2])-2]}\\{self.__prev_info[user][2]}.png')
-                                       .convert_alpha() for user in self.__users if self.__prev_info[user][2]
-                                       is not None]
-
-                            if not p_image:
-                                pass
-
-                            else:
-                                index = 0
-                                for user in self.__users:
-                                    player_remote = Tile(position=self.__prev_info[user][0],
-                                                         groups=[self.level.visible_sprites,
-                                                                 self.level.obstacles_sprites],
-                                                         sprite_type=PLAYER_OBJECT, surface=p_image[index])
-                                    temp_p.append(player_remote)
-                                    index += 1
-
-                    pygame.draw.rect(self.screen, (0, 0, 0), self.__output_box)
-                    pygame.draw.rect(self.screen, (0, 255, 0), self.__input_box)
-
-                    pygame.draw.rect(self.screen, (255, 215, 0), self.__output_o_box, 2)
-                    pygame.draw.rect(self.screen, (255, 215, 0), self.__input_o_box, 10)
-
-                    if self.__other_messages is not None:
-
-                        if 0 < len(self.__temp_message) <= self.__prev_length:
-                            self.draw_text(self.__temp_message, (255, 0, 0), self.screen, 10, 610)
-                        else:
-                            self.__prev_length += 10
-                            self.draw_text(self.__temp_message[self.__prev_length - 2:], (255, 0, 0), self.screen, 10,
-                                           610)
-
-                    if self.__previous_messages is not None:
-                        for i in range(0, len(self.__locs)):
-                            if len(self.__previous_messages) > 0:
-                                if len(self.__previous_messages) == 1:
-                                    self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
-                                                   (255, 0, 0), self.screen,
-                                                   self.__locs[i][1][0], self.__locs[i][1][1])
-                                    break
-
-                                else:
-                                    self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
-                                                   (255, 0, 0), self.screen,
-                                                   self.__locs[i][1][0], self.__locs[i][1][1])
-                                if (self.__locs[i][0] != len(self.__previous_messages) - 2 or
-                                        self.__locs[i][0] != len(self.__previous_messages) - 1):
-                                    self.__locs[i][0] += 1
-
-                    keys = pygame.key.get_pressed()
-
-                    if keys[pygame.K_m] or self.__using_chat:
-                        self.__using_chat = True
-                        self.__message = self.start_chat()
-
-                        if self.__message is None:
-                            pass
-
-                        else:
-                            # print(f"You:", self.__message)
-                            self.__temp_message = ""
-                            self.__using_chat = False
-                            self.__prev_length = 19
-
-                    pygame.display.flip()
-                    pygame.display.update()
-                    self.clock.tick(FPS)
-
-            #  except TypeError:
-            #     print("Hold up wait a minute")
-            #    if game_state == "continue":
-            #        list_of_details = ["EXIT", 1, self.items]
-            #        other_client = self.network.communicate(list_of_details, self.items)
-
-            #    game_state = "start_menu"
+                    for thread in threads:
+                        thread.join()
+########################################################################## Default stuff
 
             except KeyboardInterrupt:
                 if game_state == "continue":
@@ -333,6 +218,151 @@ class Game:
 
                 pygame.quit()
                 sys.exit()
+
+    def create_threads(self, game_lock, com_lock):
+        """
+
+        :param game_lock:
+        :param com_lock:
+        :return:
+        """
+
+        game_thread = threading.Thread(target=self.the_game, args=(game_lock,))
+        comm_thread = threading.Thread(target=self.communication, args=(game_lock,))
+
+        return game_thread, comm_thread
+
+    def the_game(self, lock):
+        """
+
+        :param lock:
+        """
+
+        with lock:
+            self.new_frame_time = time.time()
+            self.screen.fill((0, 0, 0))
+
+            self.level.run()
+            fps = 1.0 / (self.new_frame_time - self.prev_frame_time)
+
+            self.prev_frame_time = self.new_frame_time
+            self.text_surface = self.font.render("FPS: " + str(int(fps)), True, (128, 0, 128))
+
+            self.screen.blit(self.text_surface, (350, 10))
+
+            pygame.display.update()
+            self.clock.tick(FPS)
+
+    def communication(self, lock):
+        """
+
+        :param lock:
+        """
+
+        with lock:
+            current_loc = self.level.player.get_location()
+            current_status_index = int(self.level.player.frame_index)
+            self.find()
+
+            status = f'{self.level.player.status}_{current_status_index}'
+            list_of_public_details = [current_loc, self.__message, status, 0]
+
+            self.__previous_status = self.level.player.status
+            self.prev_loc = current_loc
+
+            other_client = self.network.receive_location()
+            if self.__previous_details != list_of_public_details:
+                self.network.update_server(list_of_public_details, self.items)
+                self.__previous_details = list_of_public_details
+
+            if other_client is None:
+                pass
+
+            elif other_client == 1:
+                #  print("what the is happening")
+                game_state = "start_menu"
+
+            else:
+                #    print("other_client", other_client, type(other_client), other_client[0], other_client[1])
+
+                if type(other_client) is list or type(other_client) is tuple:
+
+                    self.update_users()
+                    self.__prev_info[other_client[3]] = other_client
+
+                    self.__other_messages = other_client[1]
+
+                    if self.__other_messages is not None:
+                        self.__previous_messages.append(self.__other_messages)
+
+                    self.erase_previous()
+
+                    self.__temp_p = []
+
+                    p_image = [pygame.image.load(
+                        f'{BASE_PATH}graphics\\player\\{self.__prev_info[user][2][0:len(self.__prev_info[user][2]) - 2]}\\{self.__prev_info[user][2]}.png')
+                               .convert_alpha() for user in self.__users if self.__prev_info[user][2]
+                               is not None]
+
+                    if not p_image:
+                        pass
+
+                    else:
+                        index = 0
+                        for user in self.__users:
+                            player_remote = Tile(position=self.__prev_info[user][0],
+                                                 groups=[self.level.visible_sprites,
+                                                         self.level.obstacles_sprites],
+                                                 sprite_type=PLAYER_OBJECT, surface=p_image[index])
+                            self.__temp_p.append(player_remote)
+                            index += 1
+
+            pygame.draw.rect(self.screen, (0, 0, 0), self.__output_box)
+            pygame.draw.rect(self.screen, (0, 255, 0), self.__input_box)
+
+            pygame.draw.rect(self.screen, (255, 215, 0), self.__output_o_box, 2)
+            pygame.draw.rect(self.screen, (255, 215, 0), self.__input_o_box, 10)
+
+            if self.__other_messages is not None:
+
+                if 0 < len(self.__temp_message) <= self.__prev_length:
+                    self.draw_text(self.__temp_message, (255, 0, 0), self.screen, 10, 610)
+                else:
+                    self.__prev_length += 10
+                    self.draw_text(self.__temp_message[self.__prev_length - 2:], (255, 0, 0), self.screen, 10,
+                                   610)
+
+            if self.__previous_messages is not None:
+                for i in range(0, len(self.__locs)):
+                    if len(self.__previous_messages) > 0:
+                        if len(self.__previous_messages) == 1:
+                            self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
+                                           (255, 0, 0), self.screen,
+                                           self.__locs[i][1][0], self.__locs[i][1][1])
+                            break
+
+                        else:
+                            self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
+                                           (255, 0, 0), self.screen,
+                                           self.__locs[i][1][0], self.__locs[i][1][1])
+                        if (self.__locs[i][0] != len(self.__previous_messages) - 2 or
+                                self.__locs[i][0] != len(self.__previous_messages) - 1):
+                            self.__locs[i][0] += 1
+
+            keys = pygame.key.get_pressed()
+
+            if keys[pygame.K_m] or self.__using_chat:
+                self.__using_chat = True
+                self.__message = self.start_chat()
+
+                if self.__message is None:
+                    pass
+
+                else:
+                    self.__temp_message = ""
+                    self.__using_chat = False
+                    self.__prev_length = 19
+
 
     def draw_start_menu(self):
         """
@@ -346,17 +376,12 @@ class Game:
         pygame.transform.scale(img, (1920, 1080))
         self.screen.blit(img, (0, 0))
 
-        print("Image size:", img.get_width(), img.get_height())
-
-        pygame.display.flip()
+        pygame.display.update()
         input_box = pygame.Rect(860, 550, 200, 100)
 
         pygame.draw.rect(self.screen, (0, 255, 0), input_box)
         self.screen.blit(start_button, (self.screen.get_width() / 2 - start_button.get_width() / 2,
                                         self.screen.get_height() / 2 + start_button.get_height() / 2))
-
-    #   pygame.display.update()
-    # self.clock.tick(FPS)
 
     def draw_text(self, text, color, surface, x, y):
         """
@@ -393,7 +418,6 @@ class Game:
 
                 if event.type == pygame.KEYDOWN or active:
                     if event.key == pygame.K_RETURN:
-                        print(message)
                         self.__temp_message = message
                         self.__using_chat = False
 
@@ -414,33 +438,25 @@ class Game:
                         self.__temp_message = message
 
                         done = True
-                        # pygame.display.flip()
-
-                #    pygame.display.update()
-                # self.clock.tick(FPS)
 
                 end = time.time()
                 timer = start - end
 
                 if timer > 0.001:
-                    #  pygame.display.update()
-                    # self.clock.tick(FPS)
 
                     return
 
-    def update_users(self, other_client):
+    def update_users(self):
         """
 
         :param other_client:
         """
 
-        print(self.__users, self.__prev_info.keys)
         if self.__users:
             for user in self.__users:
                 if user not in list(self.__prev_info.keys()):
                     self.__users.pop(user)
 
-        print("do you exist", other_client[3], self.__prev_info, self.__users)
         for user in list(self.__prev_info.keys()):
             if user not in self.__users:
                 self.__users.append(user)
@@ -448,19 +464,18 @@ class Game:
             else:
                 pass
 
-    def erase_previous(self, temp_p):
+    def erase_previous(self):
         """
 
-        :param temp_p:
         :return:
         """
 
-        if temp_p:
-            for i in range(0, len(temp_p)):
-                self.level.visible_sprites.remove(temp_p[i])
-                self.level.obstacles_sprites.remove(temp_p[i])
+        if self.__temp_p:
+            for i in range(0, len(self.__temp_p)):
+                self.level.visible_sprites.remove(self.__temp_p[i])
+                self.level.obstacles_sprites.remove(self.__temp_p[i])
 
-                temp_p[i].kill()
+                self.__temp_p[i].kill()
 
     def find(self):
         """
@@ -479,26 +494,26 @@ class Game:
 
         for item_stack in self.level.player.inventory.hotbar.content:
             for i in range(0, len(item_stack)):
-                if len(item_stack) and issubclass(item_stack[i].__class__, Axe):
+                if issubclass(item_stack[i].__class__, Axe):
                     count_a += 1
 
-                if len(item_stack) and issubclass(item_stack[i].__class__, Sword):
+                if issubclass(item_stack[i].__class__, Sword):
                     count_s += 1
 
-                if len(item_stack) and issubclass(item_stack[i].__class__, Bow):
+                if issubclass(item_stack[i].__class__, Bow):
                     count_b += 1
                 #    self.__remove_item_loc.append(self.level.player.get_location())
 
-                if len(item_stack) and issubclass(item_stack[i].__class__, HPFruit):
+                if issubclass(item_stack[i].__class__, HPFruit):
                     count_h += 1
 
-                if len(item_stack) and issubclass(item_stack[i].__class__, EnergyFruit):
+                if issubclass(item_stack[i].__class__, EnergyFruit):
                     count_f += 1
 
-                if len(item_stack) and issubclass(item_stack[i].__class__, RedHPFruit):
+                if issubclass(item_stack[i].__class__, RedHPFruit):
                     count_rf += 1
 
-                if len(item_stack) and issubclass(item_stack[i].__class__, BlueEnergyFruit):
+                if issubclass(item_stack[i].__class__, BlueEnergyFruit):
                     count_bef += 1
 
         self.items["A"] = count_a

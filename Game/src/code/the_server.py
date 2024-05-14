@@ -811,16 +811,6 @@ class Server:
 
         return self.__number_of_clients == 0
 
-    def view_status(self, client_number):
-        """
-
-        :param client_number:
-        """
-
-        print(self.__main_data_base.find(return_params=['Status'], input_params=['Username', 'Password'],
-                                         values=(self.__credentials[str(client_number)][0],
-                                                 self.__credentials[str(client_number)][1])))
-
     def update_database(self):
         """
 

@@ -27,7 +27,7 @@ class Security:
         self.__servers_database = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
         self.__database = DatabaseManager("IPs", PARAMETERS["IPs"])
 
-        self.__verifier = CertificateCreator().run()
+        self.__verifier = Verifier(512).run()
         self.__security_socket = EncryptUniqueServer("Top_Secret", SERVER_PORT, self.__verifier,
                                                      TheNumbers().run() + 1).run()
 
@@ -61,78 +61,78 @@ class Security:
         """
 
         """
+        while True:
+            try:
 
-        try:
+                self.receive_requests(list_of_banned_addresses)
 
-            self.receive_requests(list_of_banned_addresses)
+                if self.__upcoming_bans:
+                    for i in range(0, len(self.__upcoming_bans)):
+                        self.__database.insert_no_duplicates(values=[self.__upcoming_bans[i][0],
+                                                                     self.__upcoming_bans[i][1], 'Banned'],
+                                                             no_duplicate_params=PARAMETERS['IPs'])
 
-            if self.__upcoming_bans:
-                for i in range(0, len(self.__upcoming_bans)):
-                    self.__database.insert_no_duplicates(values=[self.__upcoming_bans[i][0],
-                                                                 self.__upcoming_bans[i][1], 'Banned'],
-                                                         no_duplicate_params=PARAMETERS['IPs'])
+            except ConnectionAbortedError:
+                pass
 
-        except ConnectionAbortedError:
-            pass
+            except ConnectionRefusedError:
+                pass
 
-        except ConnectionRefusedError:
-            pass
+            except ConnectionResetError:
+                self.__security_socket.close()
+                self.__security_socket = EncryptUniqueServer("Top_Secret", SERVER_PORT, self.__verifier,
+                                                             TheNumbers().run() + 1).run()
+                pass
 
-        except ConnectionResetError:
-            self.__security_socket.close()
-            pass
+            except KeyboardInterrupt:
+                self.__security_socket.close()
+                self.__security_socket = EncryptUniqueServer("Top_Secret", SERVER_PORT, self.__verifier,
+                                                             TheNumbers().run() + 1).run()
+                pass
 
-        except KeyboardInterrupt:
-            self.__security_socket.close()
-            pass
+            else:
+                pass
 
-        else:
-            pass
-
-        print("connect to the main server")
-        self.__database.close_conn()
+    #    print("connect to the main server")
+    #    self.__database.close_conn()
 
     def allow_server_connection(self):
         """
 
         :return:
         """
+        while True:
+            if self.__service_socket is None:
+                try:
+                    print("Server is up and running")
+                    connection, service_address = self.__security_socket.accept()  # Accept clients request
 
-        if self.__service_socket is None:
-            try:
-                print("Server is up and running")
-                connection, service_address = self.__security_socket.accept()  # Accept clients request
+                    print("Client connected")
+                    service_socket = connection
 
-                print("Client connected")
-                service_socket = connection
+                    self.__service_socket = service_socket
+                    return True
 
-                self.__service_socket = service_socket
+                except ConnectionAbortedError:
+                    self.__security_socket.close()
+                    return False
+
+                except ConnectionRefusedError:
+                    return False
+
+                except ConnectionResetError:
+                    self.__security_socket.close()
+                    return False
+
+                except KeyboardInterrupt:
+                    self.__security_socket.close()
+                    return False
+
+                except BlockingIOError:
+                    pass
+
+            else:
                 return True
-
-            except ConnectionAbortedError:
-                self.__security_socket.close()
-                return False
-
-            except ConnectionRefusedError:
-                return False
-
-            except ConnectionResetError:
-                self.__security_socket.close()
-                return False
-
-            except KeyboardInterrupt:
-                self.__security_socket.close()
-                return False
-
-        else:
-            return True
-
-    def create_bind_security(self):
-        """
-
-        """
-        self.__security_socket.bind((DEFAULT_IP, 443))  # Bind the server IP and Port into a tuple
-        self.__security_socket.listen(1)  # Listen to client
 
     def receive_requests(self, list_of_banned_addresses):
         """

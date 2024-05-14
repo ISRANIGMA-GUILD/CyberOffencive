@@ -527,9 +527,6 @@ class Player(Entity):
         self.hurt_time = pygame.time.get_ticks()
         self.invulnerability_duration = 500
 
-        self.auto_play = True
-        self.b_key_pressed = False
-
         self.skills = {
             ATTACK_BOOST_SKILL_INDEX: {
                 SKILL_ENERGY_COST: 50,

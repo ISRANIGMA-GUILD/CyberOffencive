@@ -72,7 +72,6 @@ class Client:
         while True:
             try:
                 img = pygame.image.load(IMAGE)
-            #    pygame.transform.scale(img, (1920, 1080))
                 screen.blit(img, (0, 0))
 
                 pygame.draw.rect(screen, (0, 0, 255), self.__login_thingy)
@@ -84,16 +83,16 @@ class Client:
 
                 start_button = self.font.render('PASSWORD', True, (255, 215, 0))
                 screen.blit(start_button, (10, 430))
-                pygame.display.flip()
+                pygame.display.update()
 
                 details = self.details_entry(screen, clock)
 
                 if details == 1:
-                    print("leaving1")
+                  #  print("leaving1")
                     message = pickle.dumps(["EXIT"])
 
                     self.__the_client_socket.send(message)
-                    print("leaving3")
+               #     print("leaving3")
 
                     pygame.display.update()
                     clock.tick(FPS)
@@ -173,7 +172,7 @@ class Client:
             img = pygame.image.load(IMAGE)
             screen.blit(img, (0, 0))
 
-            pygame.display.flip()
+            pygame.display.update()
             print(f'ip:port = {server_ip}:{server_port}')
 
             try:
@@ -308,7 +307,7 @@ class Client:
         try:
             self.__the_client_socket.settimeout(timer)
             data_pack = self.__the_client_socket.recv(1024)
-            print("data pack", data_pack)
+        #    print("data pack", data_pack)
 
             if not data_pack:
                 return
@@ -351,7 +350,6 @@ class Client:
 
                 if user == 1 and password == 1:
 
-                    pygame.display.flip()
                     pygame.display.update()
                     clock.tick(FPS)
                     return 1
@@ -373,7 +371,6 @@ class Client:
                     credentials = (user, password)
 
                     pack = self.create_message(credentials)
-                    pygame.display.flip()
 
                     pygame.display.update()
                     clock.tick(FPS)
@@ -389,12 +386,10 @@ class Client:
                 self.__the_client_socket.send(full_msg)
                 self.__the_client_socket.close()
 
-                pygame.display.flip()
                 pygame.display.update()
                 clock.tick(FPS)
                 return
 
-            pygame.display.flip()
             pygame.display.update()
             clock.tick(FPS)
 
@@ -420,11 +415,11 @@ class Client:
 
             start_button = self.font.render('USERNAME', True, (255, 215, 0))
             screen.blit(start_button, (10, 210))
-            pygame.display.flip()
+            pygame.display.update()
 
             start_button = self.font.render('PASSWORD', True, (255, 215, 0))
             screen.blit(start_button, (10, 430))
-            pygame.display.flip()
+            pygame.display.update()
 
             self.__timer = time.time() - self.__start_time
             hour, minutes, seconds = time.strftime("%Hh %Mm %Ss",
@@ -576,7 +571,7 @@ class Client:
             else:
 
                 full_msg = self.create_message(public_data)
-                print("the full message", full_msg)
+           #     print("the full message", full_msg)
                 self.__the_client_socket.send(full_msg)
 
             # if message == 'EXIT':
@@ -650,7 +645,6 @@ class Client:
                 pass
 
             else:
-                print("successsss")
                 return data_recv
 
         except socket.timeout:
