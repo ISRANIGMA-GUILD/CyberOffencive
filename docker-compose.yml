@@ -17,6 +17,8 @@ services:
       - server:/app/Game/src/code/Database
     networks:
       - my-network
+    environment:
+      - LOAD_BALANCER_IP=10.0.0.7  # Assuming container name is "load_balancer"
 
 volumes:
   server:

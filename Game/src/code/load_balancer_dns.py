@@ -3,7 +3,7 @@ import netifaces
 
 
 class Server:
-    def __init__(self, port=42069):
+    def __init__(self, port=1801):
         self.port = port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -17,8 +17,8 @@ class Server:
             data, client_address = self.server_socket.recvfrom(1024)
             print(f"Received discovery request from {client_address}")
 
-            if data.decode() == "DISCOVER":
-                self.server_socket.sendto("SERVER_FOUND".encode(), client_address)
+            if data.decode() == "LOAD_BALANCER_DISCOVER":
+                self.server_socket.sendto("LOAD_BALANCER_SERVER_FOUND".encode(), client_address)
 
     def get_local_ip(self):
         """
