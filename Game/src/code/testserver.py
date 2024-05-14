@@ -43,10 +43,13 @@ class Server:
         self.__zone = None
         self.__server_name = None
 
+<<<<<<< Updated upstream
         self.__certfile = certfile
         self.__context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
         self.__context.load_verify_locations(cafile=self.__certfile)
 
+=======
+>>>>>>> Stashed changes
         self.__main_data_base = main_data_base
         self.__login_data_base = login_data_base
 
@@ -193,15 +196,25 @@ class Server:
 
         while True:
             try:
+<<<<<<< Updated upstream
                 self.__load_balance_socket.connect((MY_IP, 1800))
                 print("SSL connection established with Load Balancer.")
 
                 # Receive configuration data from the load balancer
+=======
+                # self.__load_balance_socket.connect((self.__load_balance_ip, self.__load_balance_port))
+                print("success")
+>>>>>>> Stashed changes
                 data = self.__load_balance_socket.recv(1024)  # Adjust buffer size based on expected data
                 configuration = pickle.loads(data)
                 self.__server_name = configuration['server_name']
                 self.__zone = configuration['zone']
+<<<<<<< Updated upstream
                 print(f"Received configuration: Server Name - {self.server_name}, Zone - {self.zone}")
+=======
+                print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
+
+>>>>>>> Stashed changes
                 break
 
             except ConnectionRefusedError:
@@ -213,14 +226,33 @@ class Server:
             except OSError:
                 pass
 
+<<<<<<< Updated upstream
     def send_message_to_load_balancer(self, secure_sock, message):
         """Send messages to the Load Balancer."""
         try:
             secure_sock.send(pickle.dumps(message))
+=======
+    def handle_client_location(self):
+        """Check client location and notify load balancer if out of zone."""
+        x, y = self.__locations
+        min_x, max_x, min_y, max_y = self.__zone['min_x'], self.__zone['max_x'], self.__zone['min_y'], self.__zone['max_y']
+        if not (min_x <= x <= max_x and min_y <= y <= max_y):
+            print(f"Client location {self.__locations} out of assigned zone.")
+            self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': self.__locations,
+                                                'server': self.__server_name})
+        else:
+            print("Client location within assigned zone.")
+
+    def send_message_to_load_balancer(self, message):
+        """Send messages to the Load Balancer."""
+        try:
+            self.__load_balance_socket.send(pickle.dumps(message))
+>>>>>>> Stashed changes
             print(f"Message sent to Load Balancer: {message}")
         except Exception as e:
             print(f"Failed to send message: {e}")
 
+<<<<<<< Updated upstream
     def handle_client_location(self, client_location, secure_sock):
         """Check client location and notify load balancer if out of zone."""
         x, y = client_location
@@ -232,6 +264,8 @@ class Server:
         else:
             print("Client location within assigned zone.")
 
+=======
+>>>>>>> Stashed changes
     def check_for_banned(self, client_address, number):
         """
 
@@ -562,6 +596,7 @@ class Server:
                         self.__data_to_send[index] = data
 
                 self.__locations[index] = data[0]
+                self.handle_client_location()
 
                 if data[1] is not None and len(data[1]) > 0:
                     self.__chat[index] = data[1]
@@ -744,9 +779,8 @@ class Server:
                 print(self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
                                                        [self.__session_users[index]]))
         info, resource_info, ip_info = self.receive_info()
-        self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
-                                                                                                             resource_info,
-                                                                                                             ip_info)
+        self.__list_of_existing_existing_credentials, self.__list_of_existing_resources\
+            = (self.organize_info(info, resource_info, ip_info))
 
     def disconnect_from_security(self):
         """

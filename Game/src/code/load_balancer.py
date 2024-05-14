@@ -21,13 +21,20 @@ servers = ['Server1', 'Server2', 'Server3', 'Server4', 'ServerBuffer']
 
 
 class LoadBalancer:
+<<<<<<< Updated upstream
     def __init__(self, ip, port, certfile, keyfile):
         self.load_balancer_ip = ip
         self.load_balancer_port = port
+=======
+    def __init__(self, ip, port):
+        self.__load_balancer_ip = ip
+        self.__load_balancer_port = port
+>>>>>>> Stashed changes
 
-        self.server_names = ["Server 1", "Server 2", "Server 3", "Server 4", "BufferServer"]
-        self.servers = []
+        self.__server_names = ["Server 1", "Server 2", "Server 3", "Server 4", "BufferServer"]
+        self.__servers = []
 
+<<<<<<< Updated upstream
         self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         self.context.load_cert_chain(certfile=certfile, keyfile=keyfile, password=Verifier(384).run())
 
@@ -45,12 +52,30 @@ class LoadBalancer:
 
         self.selector = selectors.DefaultSelector()
         self.selector.register(self.load_balancer_socket, selectors.EVENT_READ, self.accept_new_connection)
+=======
+        self.__temp_socket = EncryptUniqueServer("Secret", self.__load_balancer_port, verifiers=Verifier(384).run(),
+                                                 number=TheNumbers().run())
+        self.__load_balancer_socket = self.__temp_socket.run()
+        self.__load_balancer_socket.setblocking(False)
 
-        self.zones = {
+        self.__selector = selectors.DefaultSelector()
+        self.__selector.register(self.__load_balancer_socket, selectors.EVENT_READ,
+                                 self.accept_new_connection(self.__load_balancer_socket))
+>>>>>>> Stashed changes
+
+        self.__zones = {
             'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
             'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680},
             'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
             'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200}
+        }
+
+        self.__server_zone_map = {
+            'Zone1': None,  # These will hold actual server socket connections
+            'Zone2': None,
+            'Zone3': None,
+            'Zone4': None,
+            'Buffer': None  # A buffer server for out-of-zone or overflow handling
         }
         print("Load balancer setup complete. Listening for server connections...")
 
@@ -59,13 +84,14 @@ class LoadBalancer:
 
         """
         while True:
-            events = self.selector.select(0)
+            events = self.__selector.select(0)
 
             for key, mask in events:
                 callback = key.data
                 callback(key.fileobj, mask)
 
     def accept_new_connection(self, sock):
+<<<<<<< Updated upstream
         print("starting")
         new_socket, addr = sock.accept()
         print(f"Connected to {addr}")
@@ -91,13 +117,61 @@ class LoadBalancer:
         # data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
         # self.selector.register(connection, selectors.EVENT_READ | selectors.EVENT_WRITE, data=data)
         # self.servers.append(connection)
+=======
+        """
+
+        :param sock:
+        """
+        try:
+            print("starting")
+            connection, addr = sock.accept()
+
+            print(f"Connected to {addr}")
+            connection.setblocking(False)
+            self.__servers.append(connection)
+            # data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
+            #  self.__selector.register(connection, selectors.EVENT_READ | selectors.EVENT_WRITE, data=data)
+            if self.__servers:
+                server_name = self.__server_names[
+                    len(self.__servers) % len(self.__server_names)]  # Cycle through server names if more than defined
+            else:
+                server_name = self.__server_names[0]
+
+                # Append the new server connection
+            self.__servers.append(connection)
+
+            # Send configuration to the newly connected server
+            self.send_server_configuration(connection, server_name, self.__zones[server_name.replace("Server", "Zone")])
+
+            # Register the new server for read events
+            self.__selector.register(connection, selectors.EVENT_READ, self.service_connection(key, mask))
+
+            print(f"Configuration sent to {server_name} at {addr}")
+            assigned_zone = self.__server_names[len(self.__servers) % len(self.__server_names)]
+            self.__server_zone_map[assigned_zone] = connection  # Map server to its zone
+            print(f"Server connected and assigned to {assigned_zone} at {addr}")
+        except BlockingIOError:
+            pass
+
+    def determine_server(self, client_info):
+        """
+        Determines which server should handle the given client based on zone information.
+        :param client_info: Dictionary containing 'x' and 'y' coordinates of the client
+        :return: The socket connection to the appropriate server
+        """
+        x, y = client_info['x'], client_info['y']
+        for zone_name, bounds in self.zones.items():
+            if bounds['min_x'] <= x <= bounds['max_x'] and bounds['min_y'] <= y <= bounds['max_y']:
+                return self.server_zone_map[zone_name]
+        return self.server_zone_map['Buffer']  # Default to buffer server if no zone matches
+>>>>>>> Stashed changes
 
     def relay_client_info(self):
         """
 
         """
         while True:
-            events = self.selector.select(timeout=None)
+            events = self.__selector.select(timeout=None)
             for key, mask in events:
                 if key.data:
                     self.service_connection(key, mask)
@@ -108,7 +182,6 @@ class LoadBalancer:
         :param key:
         :param mask:
         """
-
         sock = key.fileobj
         data = key.data
 
@@ -122,7 +195,7 @@ class LoadBalancer:
                 target_server.send(pickle.dumps(client_info))
             else:
                 print("Closing connection to", data.addr)
-                self.selector.unregister(sock)
+                self.__selector.unregister(sock)
                 sock.close()
 
     def run(self):
@@ -135,7 +208,7 @@ class LoadBalancer:
     def send_server_configuration(self, server_socket, server_name, zone):
         config_data = {
             'server_name': server_name,
-            'zone': self.zones[server_name]  # assuming a mapping from server names to zones
+            'zone': self.__zones[server_name]  # assuming a mapping from server names to zones
         }
         serialized_data = pickle.dumps(config_data)
         server_socket.send(serialized_data)
