@@ -1,5 +1,6 @@
 import socket
 import configparser
+import os
 
 
 class ServerDiscoveryClient:
@@ -29,7 +30,7 @@ class ServerDiscoveryClient:
         
 def update_docker_compose(server_ip):
     # Define the path to your docker-compose.yml file (replace with your actual path)
-    docker_compose_file = "C:\\Users\\imper\\OneDrive\\Desktop\\Cyber\\gitprojects\\Git\\basic_com\\docker-compose.yml"
+    docker_compose_file = "../../../docker-compose.yml"
 
     try:
         # Attempt to open and read the docker-compose.yml file
@@ -57,14 +58,20 @@ def update_docker_compose(server_ip):
     # Write the updated content back to the file
     try:
         with open(docker_compose_file, 'w') as f:
+            print(updated_content)
             f.write(updated_content)
+
         print(f"Updated LOAD_BALANCER_IP in {docker_compose_file}")
+
     except IOError as e:
         print(f"Error writing to {docker_compose_file}: {e}")
         return
 
 
 if __name__ == "__main__":
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+
     client = ServerDiscoveryClient()
     server_ip = client.discover_server()
 

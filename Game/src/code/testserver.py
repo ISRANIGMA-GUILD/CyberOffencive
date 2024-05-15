@@ -89,9 +89,8 @@ class Server:
         # """:TODO: Show weapons when attacking"""#
         # """:TODO: Lock the database with a long and strong password"""#
         # """:TODO: Make sure clients move smoothly move between servers"""#
-        # """:TODO(Work in progress): Create a border for clients in your server, when crossed the client is moved to another server"""#
+        # """:TODO(Work in progress): Create a border for clie  nts in your server, when crossed the client is moved to another server"""#
         # """:TODO: Multiprocess security/server"""#
-        # """:TODO: Put chat in a seprate thread"""#
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
@@ -109,7 +108,7 @@ class Server:
         print("Server is up and running")
 
       #  self.connect_to_security()
-       # self.connect_to_load_socket()
+        self.connect_to_load_socket()
         self.handle_clients()
 
     def receive_info(self):
@@ -179,17 +178,23 @@ class Server:
         while True:
             try:
                 self.__load_balance_socket.connect((self.__load_balance_ip, self.__load_balance_port))
+                print(self.__load_balance_socket)
                 print("success")
                 break
 
-            except ConnectionRefusedError:
+            except ConnectionRefusedError as e:
+                print (e)
                 pass
 
-            except ConnectionResetError:
+            except ConnectionResetError as e:
+                print (e)
                 pass
 
             except OSError:
+                print (e)
                 pass
+            except Exception as e:
+                print(e)
 
     def check_for_banned(self, client_address, number):
         """

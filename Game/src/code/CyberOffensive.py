@@ -20,8 +20,8 @@ class Game:
         pygame.mixer.init()
         pygame.font.init()
 
-        the_program_to_hide = win32gui.GetForegroundWindow()
-        win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
+        #the_program_to_hide = win32gui.GetForegroundWindow()
+      #  win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
 
         self.font = pygame.font.Font(FONT_PATH, 60)
         self.font_chat = pygame.font.Font(FONT_PATH, 30)
@@ -81,6 +81,9 @@ class Game:
         self.__users = []
         self.__temp_p = []
 
+        self.__keys = pygame.key.get_pressed()
+        self.__done = True
+
     def run(self) -> None:
         """
 
@@ -112,9 +115,9 @@ class Game:
                     game_state = "game"
 
                 if game_state == "game":
-                    keys = pygame.key.get_pressed()
+                    self.__keys = pygame.key.get_pressed()
 
-                    if keys[pygame.K_SPACE]:
+                    if self.__keys[pygame.K_SPACE]:
                         img = pygame.image.load(LOGIN)
                         pygame.transform.scale(img, (1920, 1080))
 
@@ -210,6 +213,19 @@ class Game:
                     for thread in threads:
                         thread.join()
 
+                    self.__keys = pygame.key.get_pressed()
+
+                    if self.__keys[pygame.K_m] or self.__using_chat:
+                        self.__using_chat = True
+                        self.__message = self.start_chat()
+
+                        if self.__message is None:
+                            pass
+
+                        else:
+                            self.__temp_message = ""
+                            self.__using_chat = False
+                            self.__prev_length = 19
 ########################################################################## Default stuff
 
             except KeyboardInterrupt:
@@ -347,19 +363,6 @@ class Game:
                                 self.__locs[i][0] != len(self.__previous_messages) - 1):
                             self.__locs[i][0] += 1
 
-            keys = pygame.key.get_pressed()
-
-            if keys[pygame.K_m] or self.__using_chat:
-                self.__using_chat = True
-                self.__message = self.start_chat()
-
-                if self.__message is None:
-                    pass
-
-                else:
-                    self.__temp_message = ""
-                    self.__using_chat = False
-                    self.__prev_length = 19
             pygame.display.update()
             self.clock.tick(FPS)
 
@@ -407,13 +410,14 @@ class Game:
         message = self.__temp_message
         active = False
 
-        done = False
+        self.__done = False
         start = time.time()
 
-        while not done:
+        while not self.__done:
+            print("stuck")
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    done = True
+                    self.__done = True
 
                 if event.type == pygame.KEYDOWN or active:
                     if event.key == pygame.K_RETURN:
@@ -430,20 +434,26 @@ class Game:
                         message = message[:-1]
                         self.__temp_message = message
 
-                        done = True
+                        self.__done = True
 
                     else:
                         message += event.unicode
                         self.__temp_message = message
 
-                        done = True
+                        self.__done = True
 
                 end = time.time()
                 timer = start - end
 
+                pygame.display.update()
+                self.clock.tick(FPS)
+
                 if timer > 0.001:
 
                     return
+
+
+
 
     def update_users(self):
         """

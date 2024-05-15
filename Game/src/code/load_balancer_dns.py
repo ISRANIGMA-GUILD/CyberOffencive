@@ -30,8 +30,10 @@ class Server:
         interfaces = netifaces.interfaces()
         for interface in interfaces:
             addresses = netifaces.ifaddresses(interface)
+
             if netifaces.AF_INET in addresses:
                 for address_info in addresses[netifaces.AF_INET]:
+
                     if 'addr' in address_info:
                         return address_info['addr']
         return None
