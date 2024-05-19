@@ -89,8 +89,10 @@ class Server:
         # """:TODO: Show weapons when attacking"""#
         # """:TODO: Lock the database with a long and strong password"""#
         # """:TODO: Make sure clients move smoothly move between servers"""#
-        # """:TODO(Work in progress): Create a border for clie  nts in your server, when crossed the client is moved to another server"""#
+        # """:TODO(Work in progress): Create a border for clients in your server, when crossed the client is moved to another server"""#
         # """:TODO: Multiprocess security/server"""#
+        # """:TODO: Make sure all clients appear )some disappear while still connected)"""#
+        # """:TODO: Make sure data is saved even if there is a duplicate password"""#
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
@@ -387,7 +389,7 @@ class Server:
                              self.__all_details))[0]
         index = self.__all_details.index(target)
 
-        print("pre index", index)
+       # print("pre index", index)
         passw = GetPassword(128).run()
 
         my_pass = Verifier(256).run()
@@ -469,7 +471,7 @@ class Server:
                     self.__to_send.append((current_socket, data))
 
                     if self.__all_details[index].get("Credentials") is not None:
-                        print("yayyyy")
+                     #   print("yayyyy")
                         self.__session_users[index] = self.__all_details[index].get("Credentials")[0]
                         self.__selector.modify(current_socket, selectors.EVENT_READ, self.update_clients)
 
@@ -531,6 +533,11 @@ class Server:
                     self.__chat[index] = data[1]
 
                 self.__status[index] = data[2]
+
+               # if 'attack' in self.__status[index]:
+               #     self.__attack[index] = 0
+
+              #  el
 
                 self.send_to_clients(index)
 
@@ -658,7 +665,7 @@ class Server:
                 self.__locations.pop(number)
 
                 self.__number_of_clients -= 1
-                print(self.__number_of_clients, len(self.__all_details))
+              #  print(self.__number_of_clients, len(self.__all_details))
 
         except Exception:
             return
@@ -679,14 +686,14 @@ class Server:
 
         """
 
-        print(self.__new_credentials)
-        if len(self.__new_credentials) > 0:
-            print(self.__new_credentials[0])
+     #  print(self.__number_of_clients)
+       # if len(self.__new_credentials) > 0:
+            #print(self.__new_credentials[0])
 
         for index in range(0, len(self.__new_credentials)):
-            print(self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
+            self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
                                                                       self.__new_credentials[index][1]],
-                                                              no_duplicate_params=PARAMETERS["NODUP"]))
+                                                              no_duplicate_params=PARAMETERS["NODUP"])
 
         for index in range(0, len(self.__session_users) - 1):
             if self.__weapons[index] is not None:
@@ -695,8 +702,8 @@ class Server:
                 items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) + ", " +
                          str(self.__weapons[index]["RHPF"]) + ", " + str(self.__weapons[index]["BEF"]))
 
-                print(self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
-                                                       [self.__session_users[index]]))
+                self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
+                                                       [self.__session_users[index]])
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
                                                                                                              resource_info,

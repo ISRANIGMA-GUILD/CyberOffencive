@@ -212,6 +212,12 @@ class Client:
                 print("Connection timeout. Retrying...")
                 server_port = self.choose_port()
 
+            except ssl.SSLEOFError:
+                print("stop")
+                time.sleep(0.02)
+                pygame.display.update()
+                clock.tick(FPS)
+
             except ValueError as ve:
                 # Print the specific ValueError message for debugging
                 print(f"ValueError: {ve}")
@@ -306,7 +312,7 @@ class Client:
 
         try:
             self.__the_client_socket.settimeout(timer)
-            data_pack = self.__the_client_socket.recv(1024)
+            data_pack = self.__the_client_socket.recv(200)
         #    print("data pack", data_pack)
 
             if not data_pack:
@@ -319,6 +325,11 @@ class Client:
 
         except IndexError:
             return
+
+        except ssl.SSLEOFError:
+            print("stop")
+            time.sleep(0.02)
+            pygame.display.update()
 
         except socket.timeout:
             return
@@ -375,6 +386,12 @@ class Client:
                     pygame.display.update()
                     clock.tick(FPS)
                     return pack
+
+            except ssl.SSLEOFError:
+                print("stop")
+                time.sleep(0.02)
+                pygame.display.update()
+                clock.tick(FPS)
 
             except KeyboardInterrupt:
                 message = pickle.dumps(["EXIT"])
@@ -528,6 +545,12 @@ class Client:
             except socket.timeout as e:
                 print("exception is", e)
                 pass
+
+            except ssl.SSLEOFError:
+                print("stop")
+                time.sleep(0.02)
+                pygame.display.update()
+              #  clock.tick(FPS)
 
     def malicious_message(self, message):
         """

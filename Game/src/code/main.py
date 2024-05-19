@@ -22,7 +22,6 @@ class Game:
         self.prev_frame_time = 0
         self.new_frame_time = 0
         
-        
     def run(self) -> None:
         while True:
 
@@ -33,30 +32,15 @@ class Game:
                     
             self.new_frame_time = time.time()        
             self.screen.fill((0,0,0))
+
             self.level.run()
-            fps = 1.0 / (self.new_frame_time - self.prev_frame_time) 
-            self.prev_frame_time = self.new_frame_time 
+            fps = 1.0 / (self.new_frame_time - self.prev_frame_time)
+
+            self.prev_frame_time = self.new_frame_time
             self.text_surface = self.font.render("FPS: " + str(int(fps)), True, (128, 0, 128))
+            
             self.screen.blit(self.text_surface, (350, 10))
 
-            if issubclass(Axe, type):
-                subclasses = self.level.player.inventory.hotbar.content.__subclasses__(Axe)
-           # else:
-             #   subclasses = cls.__subclasses__()
-            n = len(self.level.player.inventory.hotbar.content)
-            sublists = []
-
-         #   for start in range(n):
-            #    for end in range(start + 1, n + 1):
-           #         if issubclass(self.level.player.inventory.hotbar.content[start:end].__class__, Axe):
-              ##         sublists.append(self.level.player.inventory.hotbar.content[start:end])
-
-         #   print(sublists)
-
-              #  if Axe in it:
-                #    print(type(it[0]))
-      #      print(m)
-         #   print(c)
 #
             pygame.display.update()
             self.clock.tick(FPS)

@@ -17,7 +17,7 @@ LOGIN = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\LoginS
 class Game:
     def __init__(self) -> None:
         pygame.init()
-        pygame.mixer.init()
+    #    pygame.mixer.init()
         pygame.font.init()
 
         #the_program_to_hide = win32gui.GetForegroundWindow()
@@ -42,7 +42,7 @@ class Game:
         self.prev_loc = 0
 
         self.__previous_status = 0
-        self.player = CreePy()
+     #   self.player = CreePy()
 
         self.__message = ""
         self.items = {"A": 0, "B": 0, "S": 0, "HPF": 0, "EF": 0, "RHPF": 0, "BEF": 0}
@@ -94,7 +94,7 @@ class Game:
         com_lock = threading.Lock()
 
         while True:
-            #   v = self.player.get_volume()
+            #  v = self.player.get_volume()
             #  v.SetMute(1, None)
             #  v.SetMasterVolumeLevelScalar(1.0, None)
 
@@ -107,7 +107,7 @@ class Game:
 
                         pygame.quit()
                         sys.exit()
-########################################################################## Login and start
+
                 if game_state == "start_menu":
                     # self.player.run()
 
@@ -201,11 +201,10 @@ class Game:
 
                     pygame.display.update()
                     self.clock.tick(FPS)
-########################################################################## Game(without multiplayer
+
                 if game_state == "continue":
 
-########################################################################## Communication
-                    threads = self.create_threads(game_lock, com_lock)
+                    threads = self.create_threads(game_lock)
 
                     for thread in threads:
                         thread.start()
@@ -226,7 +225,6 @@ class Game:
                             self.__temp_message = ""
                             self.__using_chat = False
                             self.__prev_length = 19
-########################################################################## Default stuff
 
             except KeyboardInterrupt:
                 if game_state == "continue":
@@ -236,11 +234,10 @@ class Game:
                 pygame.quit()
                 sys.exit()
 
-    def create_threads(self, game_lock, com_lock):
+    def create_threads(self, game_lock):
         """
 
         :param game_lock:
-        :param com_lock:
         :return:
         """
 
@@ -451,9 +448,6 @@ class Game:
                 if timer > 0.001:
 
                     return
-
-
-
 
     def update_users(self):
         """

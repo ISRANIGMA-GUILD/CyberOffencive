@@ -65,7 +65,7 @@ class DatabaseManager:
             return False
 
         values_str = ", ".join("'" + value + "'" for value in values)
-        print(values_str)
+       # print(values_str)
 
         self.__cursor.execute(f"INSERT INTO {self.table_name} ({self.__list_of_params_str}) VALUES ({values_str});")
         self.__conn.commit()
@@ -156,7 +156,7 @@ class DatabaseManager:
 
         set_str = ", ".join(
             [str(update_params[i] + " = '" + update_values[i] + "'") for i in range(len(update_params))])
-        print(set_str)
+        #print(set_str)
 
         where_str = " AND ".join(
             [str(condition_params[i] + " = '" + condition_values[i] + "'") for i in range(len(condition_params))])
@@ -183,11 +183,11 @@ def run_tests_a() -> None:
     #  print(manager.insert_no_duplicates(["Gafhggfvfsdffgfdgrie", "12sdfs34d5"],
     #                                   ['Username', 'Password']))
 
-    print(main_manager.insert_no_duplicates(["hhi", "hi", "null", "null", "null"],
-                                        ['Username', 'Password', 'Status', 'Items', 'Weapons']))
+  #  print(main_manager.insert_no_duplicates(["hhi", "hi", "null", "null", "null"],
+                                  #      ['Username', 'Password', 'Status', 'Items', 'Weapons']))
 
-    print(main_manager.set_values(['Status', 'Items', 'Weapons'], ["banned", "null", "null"],
-                                ['Username', 'Password'], ["hhi", "hi"]))
+   # print(main_manager.set_values(['Status', 'Items', 'Weapons'], ["banned", "null", "null"],
+                             #   ['Username', 'Password'], ["hhi", "hi"]))
 
   #  print(main_manager.find(['Status', 'Items', 'Weapons'], ['Username', 'Password'],
   #                          ["h", "gfh"]))

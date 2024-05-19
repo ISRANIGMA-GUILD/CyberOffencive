@@ -93,9 +93,6 @@ class Security:
             else:
                 pass
 
-    #    print("connect to the main server")
-    #    self.__database.close_conn()
-
     def allow_server_connection(self):
         """
 
