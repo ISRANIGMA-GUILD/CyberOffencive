@@ -12,7 +12,7 @@ zones = {
     'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
     'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200}
 }
-LB_IP = "0.0.0.0"
+LB_IP = "127.0.0.1"
 LB_PORT = 1800
 CERT_FILE = "Secret_Certificates\\certificate0.pem"
 KEY_FILE = "Secret_Keys\\the_key0.key"
@@ -80,17 +80,20 @@ class LoadBalancer:
         print("Load balancer setup complete. Listening for server connections...")
 
     def accept_connections(self):
-        """
-
-        """
+        print("wip")
         while True:
+<<<<<<< Updated upstream
             events = self.__selector.select(0)
 
+=======
+            events = self.selector.select(timeout=None)
+>>>>>>> Stashed changes
             for key, mask in events:
                 callback = key.data
                 callback(key.fileobj, mask)
 
     def accept_new_connection(self, sock):
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
         print("starting")
         new_socket, addr = sock.accept()
@@ -165,6 +168,41 @@ class LoadBalancer:
                 return self.server_zone_map[zone_name]
         return self.server_zone_map['Buffer']  # Default to buffer server if no zone matches
 >>>>>>> Stashed changes
+=======
+        print("Attempting to accept a new connection...")
+        try:
+            connection, addr = sock.accept()
+            print(f"Connected to {addr}")
+            connection.setblocking(False)
+            self.servers.append(connection)
+
+            self.send_server_configuration(connection, self.get_name())
+
+            data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
+            self.selector.register(connection, selectors.EVENT_READ, self.service_connection)
+        except BlockingIOError:
+            print("BlockingIOError: No incoming connections to accept yet.")
+        except Exception as e:
+            print(f"Exception in accept_new_connection: {e}")
+
+    def get_name(self):
+        if len(self.servers) == 1:
+            return "Server 1", 1
+        if len(self.servers) == 2:
+            return "Server 2", 2
+        if len(self.servers) == 3:
+            return "Server 3", 3
+        if len(self.servers) == 4:
+            return "Server 4", 4
+        if len(self.servers) == 5:
+            return "Buffer server", 5
+
+    def accept(self, sock, mask):
+        conn, addr = sock.accept()  # Should be ready
+        print('accepted', conn, 'from', addr)
+        conn.setblocking(False)
+        sel.register(conn, selectors.EVENT_READ, read)
+>>>>>>> Stashed changes
 
     def relay_client_info(self):
         """
@@ -199,16 +237,19 @@ class LoadBalancer:
                 sock.close()
 
     def run(self):
-        """
-
-        """
+        while len(self.servers) != 1:
+            self.accept_new_connection(self.__load_balancer_socket)
         self.accept_connections()
-        self.relay_client_info()
 
-    def send_server_configuration(self, server_socket, server_name, zone):
+    def send_server_configuration(self, server_socket, data):
+        server_name, zone = data
         config_data = {
             'server_name': server_name,
+<<<<<<< Updated upstream
             'zone': self.__zones[server_name]  # assuming a mapping from server names to zones
+=======
+            'zone': self.zones[zone]  # assuming a mapping from server names to zones
+>>>>>>> Stashed changes
         }
         serialized_data = pickle.dumps(config_data)
         server_socket.send(serialized_data)

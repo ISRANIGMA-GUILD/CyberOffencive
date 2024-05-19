@@ -37,17 +37,25 @@ class Server:
         # self.__secure_socket = EncryptClient("Top_Secret", number).run()
         self.__load_balance_socket = EncryptClient("Secret", number).run()
 
+<<<<<<< Updated upstream
         self.__load_balance_ip = MY_IP  # Will soon be changed according to a mechanism
+=======
+        self.__load_balance_ip = LOCAL_HOST
+        print(self.__load_balance_ip)
+>>>>>>> Stashed changes
         self.__load_balance_port = 1800
 
         self.__zone = None
         self.__server_name = None
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         self.__certfile = certfile
         self.__context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
         self.__context.load_verify_locations(cafile=self.__certfile)
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
         self.__main_data_base = main_data_base
@@ -197,23 +205,33 @@ class Server:
         while True:
             try:
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
                 self.__load_balance_socket.connect((MY_IP, 1800))
                 print("SSL connection established with Load Balancer.")
 
                 # Receive configuration data from the load balancer
+<<<<<<< Updated upstream
 =======
                 # self.__load_balance_socket.connect((self.__load_balance_ip, self.__load_balance_port))
                 print("success")
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
                 data = self.__load_balance_socket.recv(1024)  # Adjust buffer size based on expected data
                 configuration = pickle.loads(data)
                 self.__server_name = configuration['server_name']
                 self.__zone = configuration['zone']
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 print(f"Received configuration: Server Name - {self.server_name}, Zone - {self.zone}")
 =======
                 print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
 
+>>>>>>> Stashed changes
+=======
+                print(f"Received configuration: Server Name - {self.server_name}, Zone - {self.zone}")
 >>>>>>> Stashed changes
                 break
 
@@ -225,6 +243,37 @@ class Server:
 
             except OSError:
                 pass
+<<<<<<< Updated upstream
+=======
+
+    def complete_connection(self, sock, mask):
+        try:
+            sock.getpeername()  # Check if connection is established
+        except socket.error:
+            print("Socket not yet connected, retrying...")
+            return
+
+        print("Successfully connected to the load balancer.")
+        self.__selector.unregister(sock)
+        self.__selector.register(sock, selectors.EVENT_READ, self.receive_data_from_load_balancer)
+
+    def receive_data_from_load_balancer(self, sock, mask):
+        try:
+            data = sock.recv(1024)
+            if data:
+                configuration = pickle.loads(data)
+                self.__server_name = configuration['server_name']
+                self.__zone = configuration['zone']
+                print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
+            else:
+                print("Load balancer closed the connection.")
+                self.__selector.unregister(sock)
+                sock.close()
+        except ssl.SSLError as e:
+            print(f"SSL error: {e}")
+        except Exception as e:
+            print(f"Error: {e}")
+>>>>>>> Stashed changes
 
 <<<<<<< Updated upstream
     def send_message_to_load_balancer(self, secure_sock, message):
