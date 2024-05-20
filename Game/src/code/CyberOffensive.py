@@ -83,11 +83,12 @@ class Game:
         self.__keys = pygame.key.get_pressed()
         self.__done = True
 
+        self.__game_state = "start_menu"
+
     def run(self) -> None:
         """
 
         """
-        game_state = "start_menu"
 
         game_lock = threading.Lock()
         com_lock = threading.Lock()
@@ -100,20 +101,20 @@ class Game:
             try:
                 for event in pygame.event.get():
                     if pygame.QUIT == event.type:
-                        if game_state == "continue":
+                        if self.__game_state == "continue":
                             list_of_details = ["EXIT", 1, self.items]
                             self.network.update_server(list_of_details, self.items)
 
                         pygame.quit()
                         sys.exit()
 
-                if game_state == "start_menu":
+                if self.__game_state == "start_menu":
                     # self.player.run()
 
                     self.draw_start_menu()
-                    game_state = "game"
+                    self.__game_state = "game"
 
-                if game_state == "game":
+                if self.__game_state == "game":
                     self.__keys = pygame.key.get_pressed()
 
                     if self.__keys[pygame.K_SPACE]:
@@ -132,14 +133,14 @@ class Game:
                      #   print("DId it really succeed?", ran)
                         if ran == 2:
                           #  print("what is that new")
-                            game_state = "start_menu"
+                            self.__game_state = "start_menu"
 
                         elif ran == 1:
                           #  print("really oh reaaaaally")
-                            game_state = "start_menu"
+                            self.__game_state = "start_menu"
 
                         else:
-                            game_state = "continue"
+                            self.__game_state = "continue"
                             pygame.display.set_caption("Cyber Offensive")
 
                            # print("Thingy", ran)
@@ -201,7 +202,7 @@ class Game:
                     pygame.display.update()
                     self.clock.tick(FPS)
 
-                if game_state == "continue":
+                if self.__game_state == "continue":
 
                     threads = self.create_threads(game_lock)
 
@@ -225,8 +226,9 @@ class Game:
                             self.__using_chat = False
                             self.__prev_length = 19
 
-            except KeyboardInterrupt:
-                if game_state == "continue":
+            except KeyboardInterrupt as e:
+                print(e)
+                if self.__game_state == "continue":
                     list_of_details = ["EXIT", 1, self.items]
                     self.network.update_server(list_of_details, self.items)
 
@@ -296,7 +298,7 @@ class Game:
 
             elif other_client == 1:
                 #  print("what the is happening")
-                game_state = "start_menu"
+                self.__game_state = "start_menu"
 
             else:
                 #    print("other_client", other_client, type(other_client), other_client[0], other_client[1])
@@ -525,8 +527,10 @@ class Game:
 
         self.items["A"] = count_a
         self.items["S"] = count_s
+
         self.items["B"] = count_b
         self.items["HPF"] = count_h
+
         self.items["EF"] = count_f
         self.items["RHPF"] = count_rf
         self.items["BEF"] = count_bef

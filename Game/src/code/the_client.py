@@ -122,35 +122,39 @@ class Client:
                         continue
                 pygame.display.update()
                 clock.tick(FPS)
-            except ConnectionAbortedError:
-                print("Leaving the game1")
+            except ConnectionAbortedError as e:
+                print(e)
                 pygame.display.update()
+
                 clock.tick(FPS)
                 return 1
 
-            except ssl.SSLEOFError:
-                print("stop")
+            except ssl.SSLEOFError as e:
+                print("stop", e)
                 time.sleep(0.02)
+
                 pygame.display.update()
                 clock.tick(FPS)
 
-            except ConnectionResetError:
-                print("Leaving the game1")
+            except ConnectionResetError as e:
+                print(e)
                 pygame.display.update()
+
                 clock.tick(FPS)
                 return 1
 
-            except TypeError:
-                print("Leaving the game1")
+            except TypeError as e:
+                print(e)
                 message = pickle.dumps(["EXIT"])
 
                 self.__the_client_socket.send(message)
                 pygame.display.update()
+
                 clock.tick(FPS)
                 return 1
 
-            except KeyboardInterrupt:
-                print("Leaving the game")
+            except KeyboardInterrupt as e:
+                print("Leaving the game", e)
                 pygame.display.update()
                 clock.tick(FPS)
                 return 1
@@ -200,20 +204,20 @@ class Client:
                 clock.tick(FPS)
                 break
             
-            except ConnectionRefusedError:
-                print("Connection refused. Retrying...")
+            except ConnectionRefusedError as e:
+                print("Connection refused. Retrying...", e)
                 server_port = self.choose_port()
 
-            except ConnectionResetError:
-                print("Connection refused. Retrying...")
+            except ConnectionResetError as e:
+                print("Connection refused. Retrying...", e)
                 server_port = self.choose_port()
 
-            except TimeoutError:
-                print("Connection timeout. Retrying...")
+            except TimeoutError as e:
+                print("Connection timeout. Retrying...", e)
                 server_port = self.choose_port()
 
-            except ssl.SSLEOFError:
-                print("stop")
+            except ssl.SSLEOFError as e:
+                print("stop", e)
                 time.sleep(0.02)
                 pygame.display.update()
                 clock.tick(FPS)
@@ -323,11 +327,12 @@ class Client:
 
             return data
 
-        except IndexError:
+        except IndexError as e:
+            print(e)
             return
 
-        except ssl.SSLEOFError:
-            print("stop")
+        except ssl.SSLEOFError as e:
+            print("stop", e)
             time.sleep(0.02)
             pygame.display.update()
 
@@ -387,15 +392,16 @@ class Client:
                     clock.tick(FPS)
                     return pack
 
-            except ssl.SSLEOFError:
-                print("stop")
+            except ssl.SSLEOFError as e:
+                print("stop", e)
                 time.sleep(0.02)
+
                 pygame.display.update()
                 clock.tick(FPS)
 
-            except KeyboardInterrupt:
+            except KeyboardInterrupt as e:
                 message = pickle.dumps(["EXIT"])
-                print(message)
+                print(e)
 
                 data = [message]
                 full_msg = self.create_message(data)
@@ -542,12 +548,12 @@ class Client:
                         print("wrong password or username")
                         return decrypt
 
-            except socket.timeout as e:
-                print("exception is", e)
+            except socket.timeout:
+                print("exception is")
                 pass
 
-            except ssl.SSLEOFError:
-                print("stop")
+            except ssl.SSLEOFError as e:
+                print("stop", e)
                 time.sleep(0.02)
                 pygame.display.update()
               #  clock.tick(FPS)
@@ -601,11 +607,12 @@ class Client:
             # self.__the_client_socket.close()
             # return
 
-        except TypeError:
+        except TypeError as e:
+            print(e)
             return
 
-        except ConnectionResetError:
-            print("no no no n")
+        except ConnectionResetError as e:
+            print("no no no n", e)
             message = ["EXIT", 1, private_data]
 
             full_msg = self.create_message(message)
@@ -615,11 +622,11 @@ class Client:
 
             return
 
-        except ConnectionRefusedError:
-            print("Retrying")
+        except ConnectionRefusedError as e:
+            print("Retrying", e)
 
-        except ConnectionAbortedError:
-            print("srsly")
+        except ConnectionAbortedError as e:
+            print("srsly", e)
             message = ["EXIT", 1, private_data]
             full_msg = self.create_message(message)
 
@@ -628,14 +635,15 @@ class Client:
 
             return
 
-        except pickle.PickleError:
+        except pickle.PickleError as e:
+            print(e)
             return
 
         except socket.timeout:
             return
 
-        except ssl.SSLEOFError:
-            print("Server is shutting down")
+        except ssl.SSLEOFError as e:
+            print("Server is shutting down", e)
            # message = ["EXIT", 1, private_data]
 
            # full_msg = self.create_message(message)
@@ -645,8 +653,8 @@ class Client:
             time.sleep(0.002)
             return
 
-        except KeyboardInterrupt:
-            print("Server is shutting down")
+        except KeyboardInterrupt as e:
+            print("Server is shutting down", e)
             message = ["EXIT", 1, private_data]
 
             full_msg = self.create_message(message)

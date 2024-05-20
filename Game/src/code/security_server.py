@@ -72,23 +72,23 @@ class Security:
                                                                      self.__upcoming_bans[i][1], 'Banned'],
                                                              no_duplicate_params=PARAMETERS['IPs'])
 
-            except ConnectionAbortedError:
-                pass
+            except ConnectionAbortedError as e:
+                print(e)
 
-            except ConnectionRefusedError:
-                pass
+            except ConnectionRefusedError as e:
+                print(e)
 
-            except ConnectionResetError:
+            except ConnectionResetError as e:
+                print(e)
                 self.__security_socket.close()
                 self.__security_socket = EncryptUniqueServer("Top_Secret", SERVER_PORT, self.__verifier,
                                                              TheNumbers().run() + 1).run()
-                pass
 
-            except KeyboardInterrupt:
+            except KeyboardInterrupt as e:
+                print(e)
                 self.__security_socket.close()
                 self.__security_socket = EncryptUniqueServer("Top_Secret", SERVER_PORT, self.__verifier,
                                                              TheNumbers().run() + 1).run()
-                pass
 
             else:
                 pass
@@ -110,23 +110,27 @@ class Security:
                     self.__service_socket = service_socket
                     return True
 
-                except ConnectionAbortedError:
+                except ConnectionAbortedError as e:
+                    print(e)
                     self.__security_socket.close()
                     return False
 
-                except ConnectionRefusedError:
+                except ConnectionRefusedError as e:
+                    print(e)
                     return False
 
-                except ConnectionResetError:
+                except ConnectionResetError as e:
+                    print(e)
                     self.__security_socket.close()
                     return False
 
-                except KeyboardInterrupt:
+                except KeyboardInterrupt as e:
+                    print(e)
                     self.__security_socket.close()
                     return False
 
-                except BlockingIOError:
-                    pass
+                except BlockingIOError as e:
+                    print(e)
 
             else:
                 return True
@@ -246,10 +250,8 @@ class Security:
             else:
                 data = pickle.loads(data_pack)
 
-        except IndexError:
-            return
-
-        except struct.error:
+        except IndexError as e:
+            print(e)
             return
 
         except socket.timeout:

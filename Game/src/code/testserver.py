@@ -1,5 +1,3 @@
-import random
-
 from DatabaseCreator import *
 from scapy.layers.inet import *
 from login import *
@@ -121,7 +119,7 @@ class Server:
         print("The server will now wait for clients")
         print("Server is up and running")
 
-        #  self.connect_to_security()
+       # self.connect_to_security()
         self.connect_to_load_socket()
         self.handle_clients()
 
@@ -190,13 +188,11 @@ class Server:
 
                 break
 
-            except ConnectionRefusedError:
-                print("what")
-                pass
+            except ConnectionRefusedError as e:
+                print("what", e)
 
-            except ConnectionResetError:
-                print("huh")
-                pass
+            except ConnectionResetError as e:
+                print("huh", e)
 
             except socket.error as e:
                 if e.errno == errno.EADDRINUSE:
@@ -216,15 +212,13 @@ class Server:
 
             except ConnectionRefusedError as e:
                 print(e)
-                pass
 
             except ConnectionResetError as e:
                 print(e)
-                pass
 
-            except OSError:
+            except OSError as e:
                 print(e)
-                pass
+
             except Exception as e:
                 print(e)
 
@@ -254,13 +248,16 @@ class Server:
                 print(f"creating for clients")
                 self.__sockets.append(sockets)
 
-        except OSError:
+        except OSError as e:
+            print(e)
             return
 
-        except TypeError:
+        except TypeError as e:
+            print(e)
             return
 
-        except IndexError:
+        except IndexError as e:
+            print(e)
             return
 
     def create_message(self, some_data):
@@ -293,7 +290,7 @@ class Server:
                     self.__login_data_base.close_conn()
                     self.__main_data_base.close_conn()
 
-                    #       self.disconnect_from_security()
+                    self.disconnect_from_security()
                     self.__ips_data_base.close_conn()
                     break
 
@@ -301,28 +298,30 @@ class Server:
             #       print("wait huh")
             #      pass
 
-            except ConnectionResetError:
+            except ConnectionResetError as e:
                 print("Server will end service")
+                print(e)
+
                 self.update_database()
-
                 self.__login_data_base.close_conn()
+
                 self.__main_data_base.close_conn()
+                self.disconnect_from_security()
 
-                #  self.disconnect_from_security()
                 self.__ips_data_base.close_conn()
-
                 break
 
-            except KeyboardInterrupt:
+            except KeyboardInterrupt as e:
                 print("Server will end service")
+                print(e)
+
                 self.update_database()
-
                 self.__login_data_base.close_conn()
+
                 self.__main_data_base.close_conn()
+                self.disconnect_from_security()
 
-                #  self.disconnect_from_security()
                 self.__ips_data_base.close_conn()
-
                 break
 
         print("FINISH")
@@ -439,8 +438,8 @@ class Server:
             connection.close()
             return
 
-        except pickle.UnpicklingError:
-            print("BAN!")
+        except pickle.UnpicklingError as e:
+            print("BAN!", e)
             connection.close()
             return
 
@@ -462,7 +461,8 @@ class Server:
             connection.setblocking(False)
             self.__selector.register(connection, selectors.EVENT_READ, self.receive_login)
 
-        except ConnectionResetError:
+        except ConnectionResetError as e:
+            print(e)
             connection.close()
 
     def receive_login(self, current_socket, mask):
@@ -532,8 +532,6 @@ class Server:
                              self.__all_details))[0]
         index = self.__all_details.index(target)
 
-        nearby_sprites = self.nearby_them(index)
-
         try:
             current_socket.settimeout(0.01)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
@@ -549,6 +547,7 @@ class Server:
                 self.update_database()
 
             elif len(self.__credentials) <= len(self.__session_users) and type(data) is not tuple:
+                nearby_sprites = self.nearby_them(index)
 
                 if nearby_sprites:
                     for message in nearby_sprites:
@@ -581,17 +580,19 @@ class Server:
         except socket.timeout:
             pass
 
-        except ssl.SSLEOFError:
-            print("Connection closed", )
+        except ssl.SSLEOFError as e:
+            print("Connection closed", e)
             self.__all_details[index]["Connected"] = 1
+
             self.print_client_sockets()
             self.update_database()
 
             self.eliminate_socket(index)
 
-        except EOFError:
-            print("Connection closed", )
+        except EOFError as e:
+            print("Connection closed", e)
             self.__all_details[index]["Connected"] = 1
+
             self.update_database()
             self.print_client_sockets()
 
@@ -608,13 +609,14 @@ class Server:
 
         else:
             print("locs", self.__enemy_locations)
+
             if self.__locations[index] is not None:
                 e_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][0]) <= 20
-                                             and 0 <= abs(m[1][1] - self.__locations[index][1]) <= 20,
-                                   self.__enemy_locations))
+                                     and 0 <= abs(m[1][1] - self.__locations[index][1]) <= 20,
+                                     self.__enemy_locations))
                 w_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][0]) <= 20
-                                             and 0 <= abs(m[1][1] - self.__locations[index][1]) <= 20,
-                                   self.__item_locations))
+                                     and 0 <= abs(m[1][1] - self.__locations[index][1]) <= 20,
+                                     self.__item_locations))
 
                 return e_near, w_near
 
@@ -644,11 +646,12 @@ class Server:
 
     def security_server_report(self):
         """
-
+        //will be finished soon
         """
 
         try:
-            data = self.deconstruct_data(self.__secure_socket, 0.001)
+            self.__secure_socket.settimeout(0.1)
+            data = pickle.loads(self.__secure_socket.recv(MAX_MSG_LENGTH))
 
             if not data:
                 return
@@ -658,12 +661,13 @@ class Server:
 
                 if decrypted_data == 1:
                     self.__secure_socket.close()
-                    self.__secure_socket = EncryptClient("Server", 2)
+                    self.__secure_socket = EncryptClient("Server", 2, "all.we.mightknow")
 
                     self.connect_to_security()
                     return
 
                 unpacked_data = pickle.loads(decrypted_data)
+
                 return unpacked_data
 
         except socket.timeout:
@@ -684,12 +688,12 @@ class Server:
             try:
                 socks["Client"].send(pickle.dumps(message))
 
-            except ConnectionResetError:
-                print("not  good")
+            except ConnectionResetError as e:
+                print("not  good", e)
                 pass
 
-            except ssl.SSLError:
-                print("not  good")
+            except ssl.SSLError as e:
+                print("not  good",  e)
                 pass
 
     def print_client_sockets(self):
@@ -724,7 +728,8 @@ class Server:
                 self.__number_of_clients -= 1
             #  print(self.__number_of_clients, len(self.__all_details))
 
-        except Exception:
+        except Exception as e:
+            print(e)
             return
 
         finally:
@@ -778,7 +783,8 @@ class Server:
             self.__secure_socket.send(message)
             self.__secure_socket.close()
 
-        except ConnectionResetError:
+        except ConnectionResetError as e:
+            print(e)
             return
 
     def get_local_client_details(self):
