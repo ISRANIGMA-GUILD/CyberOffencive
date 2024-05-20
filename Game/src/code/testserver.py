@@ -122,7 +122,7 @@ class Server:
         print("Server is up and running")
 
         #  self.connect_to_security()
-      #  self.connect_to_load_socket()
+        self.connect_to_load_socket()
         self.handle_clients()
 
     def receive_info(self):
