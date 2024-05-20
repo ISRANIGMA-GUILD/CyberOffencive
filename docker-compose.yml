@@ -18,7 +18,7 @@ services:
     networks:
       - my-network
     environment:
-      - LOAD_BALANCER_IP=169.254.24.148 # Assuming container name is "load_balancer"
+      - LOAD_BALANCER_IP=172.20.128.1 # Assuming container name is "load_balancer"
 
 volumes:
   server:

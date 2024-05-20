@@ -1,7 +1,6 @@
 import socket
-import configparser
 import os
-
+import re
 
 class ServerDiscoveryClient:
     def __init__(self, port=1801):
@@ -27,7 +26,7 @@ class ServerDiscoveryClient:
         except socket.timeout:
             print("No server found.")
             return None
-        
+
 def update_docker_compose(server_ip):
     # Define the path to your docker-compose.yml file (replace with your actual path)
     docker_compose_file = "../../../docker-compose.yml"
@@ -36,7 +35,7 @@ def update_docker_compose(server_ip):
         # Attempt to open and read the docker-compose.yml file
         with open(docker_compose_file, 'r') as f:
             content = f.read()
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         print(f"Error: {docker_compose_file} not found.")
         return
     except IOError as e:
@@ -50,7 +49,7 @@ def update_docker_compose(server_ip):
 
     # Attempt to update the environment variable in the YAML content
     try:
-        updated_content = content.replace('LOAD_BALANCER_IP=load_balancer', f'LOAD_BALANCER_IP={server_ip}', 1)
+        updated_content = re.sub(r'LOAD_BALANCER_IP=\S+', f'LOAD_BALANCER_IP={server_ip}', content)
     except Exception as e:
         print(f"Error updating {docker_compose_file}: {e}")
         return
@@ -67,7 +66,6 @@ def update_docker_compose(server_ip):
         print(f"Error writing to {docker_compose_file}: {e}")
         return
 
-
 if __name__ == "__main__":
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
@@ -75,5 +73,8 @@ if __name__ == "__main__":
     client = ServerDiscoveryClient()
     server_ip = client.discover_server()
 
-    update_docker_compose(server_ip)
-    print("Server IP:", server_ip)
+    if server_ip:
+        update_docker_compose(server_ip)
+        print("Server IP:", server_ip)
+    else:
+        print("Server discovery failed.")

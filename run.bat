@@ -1,6 +1,6 @@
 @echo off
 
-python Game\src\code\load_balancer_dnsclient.py
+python load_balancer_dnsclient.exe
 
 REM Stop and remove existing containers and networks
 docker-compose -f docker-compose.yml down
