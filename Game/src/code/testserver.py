@@ -1,3 +1,5 @@
+import random
+
 from DatabaseCreator import *
 from scapy.layers.inet import *
 from login import *
@@ -11,6 +13,7 @@ import threading
 import pickle
 import selectors
 import errno
+from random import *
 
 THE_USUAL_IP = '0.0.0.0'
 MY_IP = socket.gethostbyname(socket.gethostname())
@@ -24,7 +27,7 @@ PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weap
 class Server:
 
     def __init__(self, main_data_base, login_data_base, ips_data_base, number):
-        self.__secure_socket = EncryptClient("Top_Secret", number+1, "all.we.mightknow").run()
+        self.__secure_socket = EncryptClient("Top_Secret", number + 1, "all.we.mightknow").run()
         self.__load_balance_socket = EncryptClient("Secret", number, "load_balancer").run()
 
         self.__load_balance_ip = self.get_load_balancer_ip()
@@ -58,7 +61,7 @@ class Server:
         self.__weapons = []
 
         self.__hp = []
-        self.__enemy_location = []
+        self.__energy = []
 
         self.__items = []
         self.__session_users = []
@@ -71,6 +74,12 @@ class Server:
 
         self.__list_of_existing_resources = []
         self.__list_of_existing_existing_credentials = []
+
+        self.__enemy_locations = []
+        self.__item_locations = []
+
+        self.__e_possabilities = ["BSS", "BS", "CRS", "CS", "RGS", "RS", "GOB"]
+        self.__w_possabilities = ["A", "B", "S", "HPF", "EF", "RHPF", "BEF"]
 
     def run(self):
         """
@@ -93,24 +102,27 @@ class Server:
         # """:TODO: Multiprocess security/server"""#
         # """:TODO: Make sure all clients appear )some disappear while still connected)"""#
         # """:TODO: Make sure data is saved even if there is a duplicate password"""#
+        # """:TODO: Exit message when server closes"""#
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
                                                                                                              resource_info,
                                                                                                              ip_info)
 
+        self.set_locations()
         self.__list_of_banned_users = [[self.__list_of_existing_existing_credentials[i][0],
                                         self.__list_of_existing_existing_credentials[i][1],
                                         self.__list_of_existing_existing_credentials[i][0]]
                                        for i in range(0, len(self.__list_of_existing_resources))
                                        if self.__list_of_existing_resources[i][0] == "banned"]
+
         print(self.__banned_ips, self.__banned_macs, self.__list_of_existing_resources, self.__list_of_banned_users)
 
         print("The server will now wait for clients")
         print("Server is up and running")
 
-      #  self.connect_to_security()
-        self.connect_to_load_socket()
+        #  self.connect_to_security()
+      #  self.connect_to_load_socket()
         self.handle_clients()
 
     def receive_info(self):
@@ -151,6 +163,24 @@ class Server:
 
         return list_of_existing_credentials, list_of_existing_resources
 
+    def set_locations(self):
+        """
+
+        """
+
+        while len(self.__enemy_locations) < 101:
+            enemy_is = choice(self.__e_possabilities)
+            self.__enemy_locations.append((enemy_is, (randint(1000, 3000), randint(1000, 3000))))
+
+    def set_item_locations(self):
+        """
+
+        """
+
+        while len(self.__item_locations) < 20:
+            enemy_is = random.choice(self.__w_possabilities)
+            self.__item_locations.append((enemy_is, (randint(1000, 3000), randint(1000, 3000))))
+
     def connect_to_security(self):
 
         while True:
@@ -185,15 +215,15 @@ class Server:
                 break
 
             except ConnectionRefusedError as e:
-                print (e)
+                print(e)
                 pass
 
             except ConnectionResetError as e:
-                print (e)
+                print(e)
                 pass
 
             except OSError:
-                print (e)
+                print(e)
                 pass
             except Exception as e:
                 print(e)
@@ -389,7 +419,7 @@ class Server:
                              self.__all_details))[0]
         index = self.__all_details.index(target)
 
-       # print("pre index", index)
+        # print("pre index", index)
         passw = GetPassword(128).run()
 
         my_pass = Verifier(256).run()
@@ -466,12 +496,12 @@ class Server:
                                    self.__new_credentials, self.__number_of_clients,
                                    self.__list_of_banned_users, data)
 
-                    (self.__all_details[index], self.__credentials, list_of_existing,list_of_existing_resources,
+                    (self.__all_details[index], self.__credentials, list_of_existing, list_of_existing_resources,
                      self.__new_credentials, self.__number_of_clients) = loging.run()
                     self.__to_send.append((current_socket, data))
 
                     if self.__all_details[index].get("Credentials") is not None:
-                     #   print("yayyyy")
+                        #   print("yayyyy")
                         self.__session_users[index] = self.__all_details[index].get("Credentials")[0]
                         self.__selector.modify(current_socket, selectors.EVENT_READ, self.update_clients)
 
@@ -502,6 +532,8 @@ class Server:
                              self.__all_details))[0]
         index = self.__all_details.index(target)
 
+        nearby_sprites = self.nearby_them(index)
+
         try:
             current_socket.settimeout(0.01)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
@@ -517,6 +549,11 @@ class Server:
                 self.update_database()
 
             elif len(self.__credentials) <= len(self.__session_users) and type(data) is not tuple:
+
+                if nearby_sprites:
+                    for message in nearby_sprites:
+                        current_socket.send(pickle.dumps(message))
+
                 self.__to_send.append((current_socket, data))
                 #  print("success", len(self.__client_sockets), len(data), data)
 
@@ -534,10 +571,10 @@ class Server:
 
                 self.__status[index] = data[2]
 
-               # if 'attack' in self.__status[index]:
-               #     self.__attack[index] = 0
+                # if 'attack' in self.__status[index]:
+                #     self.__attack[index] = 0
 
-              #  el
+                #  el
 
                 self.send_to_clients(index)
 
@@ -560,6 +597,26 @@ class Server:
 
             self.eliminate_socket(index)
 
+    def nearby_them(self, index):
+        """
+
+        :param index:
+        """
+
+        if not self.__locations:
+            return
+
+        else:
+            print("locs", self.__enemy_locations)
+            if self.__locations[index] is not None:
+                e_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][0]) <= 20
+                                             and 0 <= abs(m[1][1] - self.__locations[index][1]) <= 20,
+                                   self.__enemy_locations))
+                w_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][0]) <= 20
+                                             and 0 <= abs(m[1][1] - self.__locations[index][1]) <= 20,
+                                   self.__item_locations))
+
+                return e_near, w_near
 
     def handle_security(self, lock):
         """
@@ -619,7 +676,7 @@ class Server:
         """
 
         eligables = list(filter(lambda person: person["Client"] is not None and person["Credentials"] is not None
-                                and person != self.__all_details[number], self.__all_details))
+                                               and person != self.__all_details[number], self.__all_details))
         chat_message = f'{self.__session_users[number]}: {self.__chat[number]}'
         message = [self.__locations[number], chat_message, self.__status[number], self.__session_users[number]]
 
@@ -665,7 +722,7 @@ class Server:
                 self.__locations.pop(number)
 
                 self.__number_of_clients -= 1
-              #  print(self.__number_of_clients, len(self.__all_details))
+            #  print(self.__number_of_clients, len(self.__all_details))
 
         except Exception:
             return
@@ -686,14 +743,15 @@ class Server:
 
         """
 
-     #  print(self.__number_of_clients)
-       # if len(self.__new_credentials) > 0:
-            #print(self.__new_credentials[0])
+        #  print(self.__number_of_clients)
+        # if len(self.__new_credentials) > 0:
+        # print(self.__new_credentials[0])
 
         for index in range(0, len(self.__new_credentials)):
-            self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
-                                                                      self.__new_credentials[index][1]],
-                                                              no_duplicate_params=PARAMETERS["NODUP"])
+            print(self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0]],
+                                                              no_duplicate_params=['Username']))
+            print(self.__login_data_base.set_values(['Password'], [self.__new_credentials[index][1]], ['Username'],
+                                                    [self.__new_credentials[index][0]]))
 
         for index in range(0, len(self.__session_users) - 1):
             if self.__weapons[index] is not None:
@@ -703,7 +761,7 @@ class Server:
                          str(self.__weapons[index]["RHPF"]) + ", " + str(self.__weapons[index]["BEF"]))
 
                 self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
-                                                       [self.__session_users[index]])
+                                                 [self.__session_users[index]])
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
                                                                                                              resource_info,
@@ -730,7 +788,6 @@ class Server:
         """
 
         return self.__main_data_base, self.__login_data_base, self.__ips_data_base
-
 
     def get_load_balancer_ip(self):
         """

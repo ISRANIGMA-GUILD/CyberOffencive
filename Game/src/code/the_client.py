@@ -636,12 +636,13 @@ class Client:
 
         except ssl.SSLEOFError:
             print("Server is shutting down")
-            message = ["EXIT", 1, private_data]
+           # message = ["EXIT", 1, private_data]
 
-            full_msg = self.create_message(message)
-            self.__the_client_socket.send(full_msg)
+           # full_msg = self.create_message(message)
+           # self.__the_client_socket.send(full_msg)
 
-            self.__the_client_socket.close()
+           # self.__the_client_socket.close()
+            time.sleep(0.002)
             return
 
         except KeyboardInterrupt:

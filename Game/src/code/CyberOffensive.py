@@ -1,5 +1,4 @@
 import threading
-
 import pygame.display
 from level import *
 from the_client import *
@@ -281,7 +280,13 @@ class Game:
             self.__previous_status = self.level.player.status
             self.prev_loc = current_loc
 
+            enemies = self.network.receive_data(0.01)
+            weapons = self.network.receive_data(0.01)
             other_client = self.network.receive_location()
+
+            print("e", enemies)
+            print("w", weapons)
+
             if self.__previous_details != list_of_public_details:
                 self.network.update_server(list_of_public_details, self.items)
                 self.__previous_details = list_of_public_details
@@ -411,7 +416,6 @@ class Game:
         start = time.time()
 
         while not self.__done:
-            print("stuck")
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.__done = True

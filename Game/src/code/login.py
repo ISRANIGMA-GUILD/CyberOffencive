@@ -103,6 +103,8 @@ class Login:
             if self.__credentials.count(self.__details["Credentials"]) <= 1:
 
                 list_of_existing_users = [tup[0] for tup in self.__list_of_existing]
+                list_of_existing_passes = [tup[1] for tup in self.__list_of_existing]
+                
                 the_big_ugly_list = [self.__list_of_banned_users[i][0]
                                      for i in range(0, len(self.__list_of_banned_users))]
 
@@ -131,9 +133,10 @@ class Login:
                         return False
 
                 else:
+                    print("credes", self.__list_of_existing, "\n", tuple_of_credentials)
 
                     if (self.username_exists(list_of_existing_users, tuple_of_credentials) and
-                       not self.password_exists(self.__list_of_existing, tuple_of_credentials)):
+                       not self.password_exists(list_of_existing_passes, tuple_of_credentials)):
 
                         print("Wrong username or password")
 
