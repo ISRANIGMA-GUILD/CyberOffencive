@@ -1,4 +1,5 @@
 from wrapper_of_unique import *
+from DatabaseCreator import *
 from Cert_creators import *
 from interesting_numbers import *
 import os
@@ -11,25 +12,42 @@ zones = {
     'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
     'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680},
     'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
-    'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200}
+    'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
+    'Zone5': {'min_x': 36481, 'max_x': 40320, 'min_y': 19680, 'max_y': 36480}
 }
-LB_IP = "0.0.0.0"
+LB_IP = "127.0.0.1"
 LB_PORT = 1800
+NUMBER_OF_SERVERS = 1
 # Define the servers
-servers = ['Server1', 'Server2', 'Server3', 'Server4', 'ServerBuffer']
+servers = ['Server1', 'Server2', 'Server3', 'Server4', 'Server5']
+PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
+              "NODUP": ['Username', 'Password'], "DUP": ['Status', 'Items', 'Weapons'],
+              "IPs": ["IP", "MAC", "Status"]}
 
 
 class LoadBalancer:
-    def __init__(self, ip, port):
+    def __init__(self, ip, port, main_data_base, login_data_base, ips_data_base):
         self.load_balancer_ip = ip
         self.load_balancer_port = port
 
-        self.server_names = ["Server 1", "Server 2", "Server 3", "Server 4", "BufferServer"]
+        self.server_names = ["Server 1", "Server 2", "Server 3", "Server 4", "Server5"]
         self.servers = []
+
+        self.__credentials = []
+
+        self.__session_users = []
+
+        self.__weapons = []
 
         self.__temp_socket = EncryptUniqueServer("Secret", self.load_balancer_port, verifiers=Verifier(384).run(),
                                                  number=TheNumbers().run())
         self.__load_balancer_socket = self.__temp_socket.run()
+
+        self.__main_data_base = main_data_base
+        self.__login_data_base = login_data_base
+
+        self.__ips_data_base = ips_data_base
+        self.__default_port = 443
 
         self.selector = selectors.DefaultSelector()
         self.selector.register(self.__load_balancer_socket, selectors.EVENT_READ, self.accept_new_connection)
@@ -38,35 +56,114 @@ class LoadBalancer:
             'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
             'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680},
             'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
-            'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200}
+            'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
+            'Zone5': {'min_x': 36481, 'max_x': 40320, 'min_y': 19680, 'max_y': 36480}
         }
         print("Load balancer setup complete. Listening for server connections...")
+
+    def run(self):
+        """
+
+        """
+        while len(self.servers) != NUMBER_OF_SERVERS:
+            self.accept_new_connection(self.__load_balancer_socket)
+
+        self.accept_connections()
+        self.relay_client_info()
 
     def accept_connections(self):
         """
 
         """
+
+        print("wip")
+
         while True:
-            events = self.selector.select(0)
+            events = self.selector.select(timeout=None)
 
             for key, mask in events:
                 callback = key.data
                 callback(key.fileobj, mask)
 
-    def accept_new_connection(self, sock, mask):
+    def accept_new_connection(self, sock):
         """
 
         :param sock:
         """
-        print("starting")
-        connection, addr = sock.accept()
 
-        print(f"Connected to {addr}")
-        connection.setblocking(False)
+        print("Attempting to accept a new connection...")
 
-        data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
-        #  self.selector.register(connection, selectors.EVENT_READ | selectors.EVENT_WRITE, data=data)
-        self.servers.append(connection)
+        try:
+            connection, addr = sock.accept()
+            print(f"Connected to {addr}")
+
+            connection.setblocking(False)
+            self.servers.append(connection)
+
+            print("la")
+            self.send_server_configuration(connection, self.get_name())
+
+            data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
+            self.selector.register(connection, selectors.EVENT_READ, self.service_connection)
+
+        except BlockingIOError:
+            print("BlockingIOError: No incoming connections to accept yet.")
+
+        except Exception as e:
+            print(f"Exception in accept_new_connection: {e}")
+
+    def get_name(self):
+        """
+
+        :return:
+        """
+
+        if len(self.servers) == 1:
+            print("moo")
+            return "Server 1", 1
+
+        if len(self.servers) == 2:
+            return "Server 2", 2
+
+        if len(self.servers) == 3:
+            return "Server 3", 3
+
+        if len(self.servers) == 4:
+            return "Server 4", 4
+
+        if len(self.servers) == 5:
+            return "Server 5", 5
+
+    def get_zone(self, zone):
+
+        if zone == 1:
+            print("moo")
+            return {'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680}}
+
+        if zone == 2:
+            return {'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680}}
+
+        if zone == 3:
+            return {'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200}}
+
+        if zone == 4:
+            return {'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200}}
+
+        if zone == 5:
+            return {'Zone5': {'min_x': 36481, 'max_x': 40320, 'min_y': 19680, 'max_y': 36480}}
+
+    def accept(self, sock, mask):
+        """
+
+        :param sock:
+        :param mask:
+        """
+
+        conn, addr = sock.accept()  # Should be ready
+        print('accepted', conn, 'from', addr)
+
+        conn.setblocking(False)
+        self.selector.register(conn, selectors.EVENT_READ, self.read)
 
     def relay_client_info(self):
         """
@@ -80,7 +177,7 @@ class LoadBalancer:
 
     def service_connection(self, key, mask):
         """
-
+        get the data
         :param key:
         :param mask:
         """
@@ -94,31 +191,79 @@ class LoadBalancer:
                 print("Data received:", recv_data)
                 client_info = pickle.loads(recv_data)
 
-                target_server = self.determine_server(client_info)
+                target_server = self.determine_server(client_info['location'])
+                self.update_database()
                 target_server.send(pickle.dumps(client_info))
             else:
                 print("Closing connection to", data.addr)
                 self.selector.unregister(sock)
                 sock.close()
 
-    def run(self):
+    def determine_server(self, client_info):
         """
 
+        :param client_info:
+        :return:
         """
-        self.accept_connections()
-        self.relay_client_info()
 
-    def send_server_configuration(self, server_socket, server_name, zone):
+        x, y = client_info['x'], client_info['y']
+        for zone_name, bounds in self.zones.items():
+            if bounds['min_x'] <= x <= bounds['max_x'] and bounds['min_y'] <= y <= bounds['max_y']:
+                return self.server_zone_map[zone_name]
+
+    def send_server_configuration(self, server_socket, data):
+        """
+
+        :param server_socket:
+        :param data:
+        """
+
+        print("ko")
+        server_name, zone = data
+
         config_data = {
             'server_name': server_name,
-            'zone': self.zones[server_name]  # assuming a mapping from server names to zones
+            'zone': self.get_zone(zone)  # assuming a mapping from server names to zones
         }
+
+        print("po")
         serialized_data = pickle.dumps(config_data)
+
+        print("op")
         server_socket.send(serialized_data)
+
+    def update_database(self):
+        """
+
+        """
+        print(self.__new_credentials)
+        if len(self.__new_credentials) > 0:
+            print(self.__new_credentials[0])
+
+        for index in range(0, len(self.__new_credentials)):
+            print(self.__login_data_base.insert_no_duplicates
+                  (values=[self.__new_credentials[index][0],
+                           self.__new_credentials[index][1]],
+                   no_duplicate_params=PARAMETERS["NODUP"]))
+
+        for index in range(0, len(self.__session_users) - 1):
+            if self.__weapons[index] is not None:
+                weapons = (str(self.__weapons[index]["A"]) + ", " + str(self.__weapons[index]["B"]) +
+                           ", " + str(self.__weapons[index]["S"]))
+                items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) +
+                         ", " + str(self.__weapons[index]["RHPF"]) + ", " + str(self.__weapons[index]["BEF"]))
+
+                print(self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons],
+                                                       ['Username'], [self.__session_users[index]]))
 
 
 def main():
-    lb = LoadBalancer(LB_IP, LB_PORT)
+    main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
+    ips_data_base = DatabaseManager("IPs", PARAMETERS["IPs"])
+
+    login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
+
+    lb = LoadBalancer(LB_IP, LB_PORT, main_data_base, login_data_base, ips_data_base)
     lb.run()
     # Start TLS server
 

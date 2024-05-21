@@ -79,6 +79,9 @@ class Server:
         self.__e_possabilities = ["BSS", "BS", "CRS", "CS", "RGS", "RS", "GOB"]
         self.__w_possabilities = ["A", "B", "S", "HPF", "EF", "RHPF", "BEF"]
 
+        self.__server_name = "load_balancer"
+        self.__zone = ""
+
     def run(self):
         """
 
@@ -89,14 +92,12 @@ class Server:
         # """:TODO: Use load balancer as the only user of the main database and servers with their local ones"""#
         # """:TODO(Should the server intervene?): Check if users cheat(in speed, damage, etc.) """#
         # """:TODO(almost finished): Loading screen between menu and login screens """#
-        # """:TODO(Work in progress): Merge with load balancer """#
         # """:TODO(almost finished): Try-except on everything """#
-        # """:TODO(Work in progress): Receive info about enemy locations, item locations """#
+        # """:TODO(almost finished): Receive info about enemy locations, item locations """#
         # """:TODO(almost finished): Make sure server isn't bogged down due to heavy packs"""#
         # """:TODO: Show weapons when attacking"""#
         # """:TODO: Lock the database with a long and strong password"""#
         # """:TODO: Make sure clients move smoothly move between servers"""#
-        # """:TODO(Work in progress): Create a border for clients in your server, when crossed the client is moved to another server"""#
         # """:TODO: Multiprocess security/server"""#
         # """:TODO: Make sure all clients appear )some disappear while still connected)"""#
         # """:TODO: Make sure data is saved even if there is a duplicate password"""#
@@ -142,7 +143,6 @@ class Server:
         main_ip_cursor.execute("SELECT IP, MAC FROM IPs")
 
         ip_info = main_ip_cursor.fetchall()
-
         return info, resource_info, ip_info
 
     def organize_info(self, info, resource_info, ip_info):
@@ -180,6 +180,9 @@ class Server:
             self.__item_locations.append((enemy_is, (randint(1000, 3000), randint(1000, 3000))))
 
     def connect_to_security(self):
+        """
+
+        """
 
         while True:
             try:
@@ -202,25 +205,107 @@ class Server:
         """
 
         """
-        print(self.__load_balance_socket)
+
         while True:
             try:
-                self.__load_balance_socket.connect((self.__load_balance_ip, self.__load_balance_port))
-                print(self.__load_balance_socket)
-                print("success")
+                self.__load_balance_socket.connect((MY_IP, 1800))
+                print("SSL connection established with Load Balancer.")
+
+                # Receive configuration data from the load balancer
+                data = self.__load_balance_socket.recv(1024)  # Adjust buffer size based on expected data
+                configuration = pickle.loads(data)
+
+                self.__server_name = configuration['server_name']
+                self.__zone = configuration['zone']
+
+                print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
                 break
 
-            except ConnectionRefusedError as e:
-                print(e)
+            except ConnectionRefusedError:
+                pass
 
-            except ConnectionResetError as e:
-                print(e)
+            except ConnectionResetError:
+                pass
 
-            except OSError as e:
-                print(e)
+            except OSError:
+                pass
 
-            except Exception as e:
-                print(e)
+    def send_message_to_load_balancer(self,  message):
+        """
+         Send messages to the Load Balancer.
+        :param message:
+        """
+
+        try:
+            self.__load_balance_socket.send(pickle.dumps(message))
+            print(f"Message sent to Load Balancer: {message}")
+        except Exception as e:
+            print(f"Failed to send message: {e}")
+
+    def handle_client_location(self, client_location):
+        """
+         Check client location and notify load balancer if out of zone.
+        :param client_location:
+        """
+
+        x, y = client_location
+        min_x, max_x, min_y, max_y = (self.__zone['min_x'], self.__zone['max_x'], self.__zone['min_y'],
+                                      self.__zone['max_y'])
+
+        if not (min_x <= x <= max_x and min_y <= y <= max_y):
+            print(f"Client location {client_location} out of assigned zone.")
+            self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
+                                                'server': self.__server_name,
+                                                'client_data': self.get_local_client_details})
+        else:
+            print("Client location within assigned zone.")
+
+    def complete_connection(self, sock, mask):
+        """
+
+        :param sock:
+        :param mask:
+        :return:
+        """
+
+        try:
+            sock.getpeername()  # Check if connection is established
+
+        except socket.error as e:
+            print("Socket not yet connected, retrying...", e)
+            return
+
+        print("Successfully connected to the load balancer.")
+        self.__selector.unregister(sock)
+        self.__selector.register(sock, selectors.EVENT_READ, self.receive_data_from_load_balancer)
+
+    def receive_data_from_load_balancer(self, sock, mask):
+        """
+
+        :param sock:
+        :param mask:
+        """
+
+        try:
+            data = sock.recv(1024)
+
+            if data:
+                configuration = pickle.loads(data)
+                self.__server_name = configuration['server_name']
+
+                self.__zone = configuration['zone']
+                print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
+
+            else:
+                print("Load balancer closed the connection.")
+                self.__selector.unregister(sock)
+                sock.close()
+
+        except ssl.SSLError as e:
+            print(f"SSL error: {e}")
+
+        except Exception as e:
+            print(f"Error: {e}")
 
     def check_for_banned(self, client_address, number):
         """
@@ -228,6 +313,7 @@ class Server:
         :param client_address:
         :param number:
         """
+
         print(client_address)
         if client_address[0] in self.__banned_ips or getmacbyip(client_address[0]) in self.__banned_macs:
             self.__all_details[number]["Connected"] = 1
@@ -335,50 +421,26 @@ class Server:
             self.__all_details.append({"Credentials": None, "Sockets": None, "Client": None, "Timer": None,
                                        "Connected": 0})
 
-        else:
-            pass
-
         if self.__number_of_clients - 1 >= len(self.__credentials) or len(self.__credentials) == 0:
             self.__credentials.append(None)
-
-        else:
-            pass
 
         if self.__number_of_clients - 1 >= len(self.__locations) or len(self.__locations) == 0:
             self.__locations.append(None)
 
-        else:
-            pass
-
         if self.__number_of_clients - 1 >= len(self.__chat) or len(self.__chat) == 0:
             self.__chat.append(None)
-
-        else:
-            pass
 
         if self.__number_of_clients - 1 >= len(self.__status) or len(self.__status) == 0:
             self.__status.append(None)
 
-        else:
-            pass
-
         if self.__number_of_clients - 1 >= len(self.__items) or len(self.__items) == 0:
             self.__items.append(None)
-
-        else:
-            pass
 
         if self.__number_of_clients - 1 >= len(self.__weapons) or len(self.__weapons) == 0:
             self.__weapons.append(None)
 
-        else:
-            pass
-
         if self.__number_of_clients - 1 >= len(self.__session_users) or len(self.__session_users) == 0:
             self.__session_users.append(None)
-
-        else:
-            pass
 
     def create_security_threads(self, lock):
         """
@@ -481,7 +543,6 @@ class Server:
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
 
             if "EXIT" in data[0]:
-                #   print("Connection closed", data)
                 self.__all_details[index]["Connected"] = 1
                 self.__weapons[index] = data[2]
                 self.update_database()
@@ -501,7 +562,6 @@ class Server:
                     self.__to_send.append((current_socket, data))
 
                     if self.__all_details[index].get("Credentials") is not None:
-                        #   print("yayyyy")
                         self.__session_users[index] = self.__all_details[index].get("Credentials")[0]
                         self.__selector.modify(current_socket, selectors.EVENT_READ, self.update_clients)
 
@@ -528,6 +588,7 @@ class Server:
         :param current_socket:
         :param mask:
         """
+
         target = list(filter(lambda person: person["Client"] == current_socket and person["Credentials"] is not None,
                              self.__all_details))[0]
         index = self.__all_details.index(target)
@@ -554,11 +615,10 @@ class Server:
                         current_socket.send(pickle.dumps(message))
 
                 self.__to_send.append((current_socket, data))
-                #  print("success", len(self.__client_sockets), len(data), data)
 
                 if len(self.__client_sockets) > len(self.__data_to_send):
                     self.__data_to_send.append(data)
-                #    print(self.__data_to_send)
+
                 else:
                     if len(self.__data_to_send) > 0:
                         self.__data_to_send[index] = data
@@ -628,7 +688,9 @@ class Server:
         """
 
         with lock:
+
             ban_users = self.security_server_report()
+
             if not ban_users:
                 pass
 
@@ -726,7 +788,6 @@ class Server:
                 self.__locations.pop(number)
 
                 self.__number_of_clients -= 1
-            #  print(self.__number_of_clients, len(self.__all_details))
 
         except Exception as e:
             print(e)
@@ -747,10 +808,6 @@ class Server:
         """
 
         """
-
-        #  print(self.__number_of_clients)
-        # if len(self.__new_credentials) > 0:
-        # print(self.__new_credentials[0])
 
         for index in range(0, len(self.__new_credentials)):
             print(self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0]],
@@ -800,9 +857,12 @@ class Server:
         Returns:
             str: The IP address of the "load_balancer" container or None if not found.
         """
+
         ip_address = os.getenv("LOAD_BALANCER_IP")
+
         if ip_address:
             return ip_address
+
         else:
             return None
 
