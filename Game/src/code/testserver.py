@@ -214,10 +214,8 @@ class Server:
                 # Receive configuration data from the load balancer
                 data = self.__load_balance_socket.recv(1024)  # Adjust buffer size based on expected data
                 configuration = pickle.loads(data)
-
                 self.__server_name = configuration['server_name']
                 self.__zone = configuration['zone']
-
                 print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
                 break
 
@@ -230,12 +228,11 @@ class Server:
             except OSError:
                 pass
 
-    def send_message_to_load_balancer(self,  message):
+    def send_message_to_load_balancer(self, message):
         """
-         Send messages to the Load Balancer.
+        Send messages to the Load Balancer.
         :param message:
         """
-
         try:
             self.__load_balance_socket.send(pickle.dumps(message))
             print(f"Message sent to Load Balancer: {message}")
@@ -244,35 +241,26 @@ class Server:
 
     def handle_client_location(self, client_location):
         """
-         Check client location and notify load balancer if out of zone.
+        Check client location and notify load balancer if out of zone.
         :param client_location:
         """
 
         x, y = client_location
-        min_x, max_x, min_y, max_y = (self.__zone['min_x'], self.__zone['max_x'], self.__zone['min_y'],
-                                      self.__zone['max_y'])
-
+        min_x, max_x, min_y, max_y = self.__zone['min_x'], self.__zone['max_x'], self.__zone['min_y'], self.__zone[
+            'max_y']
         if not (min_x <= x <= max_x and min_y <= y <= max_y):
             print(f"Client location {client_location} out of assigned zone.")
             self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
-                                                'server': self.__server_name,
-                                                'client_data': self.get_local_client_details})
+                                                             'server': self.__server_name,
+                                                             'client_data': self.get_local_client_details})
         else:
             print("Client location within assigned zone.")
 
     def complete_connection(self, sock, mask):
-        """
-
-        :param sock:
-        :param mask:
-        :return:
-        """
-
         try:
             sock.getpeername()  # Check if connection is established
-
-        except socket.error as e:
-            print("Socket not yet connected, retrying...", e)
+        except socket.error:
+            print("Socket not yet connected, retrying...")
             return
 
         print("Successfully connected to the load balancer.")
@@ -288,22 +276,17 @@ class Server:
 
         try:
             data = sock.recv(1024)
-
             if data:
                 configuration = pickle.loads(data)
                 self.__server_name = configuration['server_name']
-
                 self.__zone = configuration['zone']
                 print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
-
             else:
                 print("Load balancer closed the connection.")
                 self.__selector.unregister(sock)
                 sock.close()
-
         except ssl.SSLError as e:
             print(f"SSL error: {e}")
-
         except Exception as e:
             print(f"Error: {e}")
 

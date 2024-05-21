@@ -59,6 +59,13 @@ class LoadBalancer:
             'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
             'Zone5': {'min_x': 36481, 'max_x': 40320, 'min_y': 19680, 'max_y': 36480}
         }
+        self.server_zone_map = {
+            'Zone1': None,  # These will hold actual server socket connections
+            'Zone2': None,
+            'Zone3': None,
+            'Zone4': None,
+            'Zone5': None
+        }
         print("Load balancer setup complete. Listening for server connections...")
 
     def run(self):
@@ -67,103 +74,67 @@ class LoadBalancer:
         """
         while len(self.servers) != NUMBER_OF_SERVERS:
             self.accept_new_connection(self.__load_balancer_socket)
-
         self.accept_connections()
         self.relay_client_info()
 
     def accept_connections(self):
-        """
-
-        """
-
         print("wip")
-
         while True:
             events = self.selector.select(timeout=None)
-
             for key, mask in events:
                 callback = key.data
                 callback(key.fileobj, mask)
 
     def accept_new_connection(self, sock):
-        """
-
-        :param sock:
-        """
-
         print("Attempting to accept a new connection...")
-
         try:
             connection, addr = sock.accept()
             print(f"Connected to {addr}")
-
             connection.setblocking(False)
             self.servers.append(connection)
-
+            assigned_zone = self.server_names[len(self.servers) % len(self.server_names)]
+            self.server_zone_map[assigned_zone] = connection  # Map server to its zone
             print("la")
             self.send_server_configuration(connection, self.get_name())
 
             data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
             self.selector.register(connection, selectors.EVENT_READ, self.service_connection)
-
         except BlockingIOError:
             print("BlockingIOError: No incoming connections to accept yet.")
-
         except Exception as e:
             print(f"Exception in accept_new_connection: {e}")
 
     def get_name(self):
-        """
-
-        :return:
-        """
-
         if len(self.servers) == 1:
             print("moo")
             return "Server 1", 1
-
         if len(self.servers) == 2:
             return "Server 2", 2
-
         if len(self.servers) == 3:
             return "Server 3", 3
-
         if len(self.servers) == 4:
             return "Server 4", 4
-
         if len(self.servers) == 5:
             return "Server 5", 5
 
     def get_zone(self, zone):
-
         if zone == 1:
             print("moo")
             return {'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680}}
-
         if zone == 2:
             return {'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680}}
-
         if zone == 3:
             return {'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200}}
-
         if zone == 4:
             return {'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200}}
-
         if zone == 5:
             return {'Zone5': {'min_x': 36481, 'max_x': 40320, 'min_y': 19680, 'max_y': 36480}}
 
     def accept(self, sock, mask):
-        """
-
-        :param sock:
-        :param mask:
-        """
-
         conn, addr = sock.accept()  # Should be ready
         print('accepted', conn, 'from', addr)
-
         conn.setblocking(False)
-        self.selector.register(conn, selectors.EVENT_READ, self.read)
+        self.selector.register(conn, selectors.EVENT_READ, read)
 
     def relay_client_info(self):
         """
@@ -200,35 +171,20 @@ class LoadBalancer:
                 sock.close()
 
     def determine_server(self, client_info):
-        """
-
-        :param client_info:
-        :return:
-        """
-
         x, y = client_info['x'], client_info['y']
         for zone_name, bounds in self.zones.items():
             if bounds['min_x'] <= x <= bounds['max_x'] and bounds['min_y'] <= y <= bounds['max_y']:
                 return self.server_zone_map[zone_name]
 
     def send_server_configuration(self, server_socket, data):
-        """
-
-        :param server_socket:
-        :param data:
-        """
-
         print("ko")
         server_name, zone = data
-
         config_data = {
             'server_name': server_name,
-            'zone': self.get_zone(zone)  # assuming a mapping from server names to zones
+            'zone': self.get_zone(zone)
         }
-
         print("po")
         serialized_data = pickle.dumps(config_data)
-
         print("op")
         server_socket.send(serialized_data)
 
