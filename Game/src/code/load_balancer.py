@@ -2,6 +2,7 @@ from wrapper_of_unique import *
 from DatabaseCreator import *
 from Cert_creators import *
 from interesting_numbers import *
+from clientpasswordgen import *
 import os
 import selectors
 import pickle
@@ -89,20 +90,33 @@ class LoadBalancer:
         print("Attempting to accept a new connection...")
         try:
             connection, addr = sock.accept()
+
             print(f"Connected to {addr}")
             connection.setblocking(False)
+
             self.servers.append(connection)
             assigned_zone = self.server_names[len(self.servers) % len(self.server_names)]
+
             self.server_zone_map[assigned_zone] = connection  # Map server to its zone
             print("la")
-            self.send_server_configuration(connection, self.get_name())
 
+            self.send_server_configuration(connection, self.get_name())
             data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
+
             self.selector.register(connection, selectors.EVENT_READ, self.service_connection)
         except BlockingIOError:
             print("BlockingIOError: No incoming connections to accept yet.")
         except Exception as e:
             print(f"Exception in accept_new_connection: {e}")
+
+    def accept(self, sock, mask):
+
+
+        conn, addr = sock.accept()  # Should be ready
+
+        print('accepted', conn, 'from', addr)
+        conn.setblocking(False)
+        self.selector.register(conn, selectors.EVENT_READ, read)
 
     def get_name(self):
         if len(self.servers) == 1:
@@ -129,12 +143,6 @@ class LoadBalancer:
             return {'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200}}
         if zone == 5:
             return {'Zone5': {'min_x': 36481, 'max_x': 40320, 'min_y': 19680, 'max_y': 36480}}
-
-    def accept(self, sock, mask):
-        conn, addr = sock.accept()  # Should be ready
-        print('accepted', conn, 'from', addr)
-        conn.setblocking(False)
-        self.selector.register(conn, selectors.EVENT_READ, read)
 
     def relay_client_info(self):
         """

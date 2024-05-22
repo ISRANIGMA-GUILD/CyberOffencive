@@ -290,13 +290,17 @@ class Game:
             print("w", weapons)
 
             if self.__previous_details != list_of_public_details:
-                self.network.update_server(list_of_public_details, self.items)
-                self.__previous_details = list_of_public_details
+                s = self.network.update_server(list_of_public_details, self.items)
+                if s == 1:
+                    self.__game_state = "start_menu"
 
-            if other_client is None:
+                else:
+                    self.__previous_details = list_of_public_details
+
+            if other_client is None or self.__game_state == "start_menu":
                 pass
 
-            elif other_client == 1:
+            elif other_client == 1 or 'LEAVE' == enemies[0] or "LEAVE" == weapons[0]:
                 #  print("what the is happening")
                 self.__game_state = "start_menu"
 

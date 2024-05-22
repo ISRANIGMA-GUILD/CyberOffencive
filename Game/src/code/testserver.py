@@ -101,7 +101,7 @@ class Server:
         # """:TODO: Multiprocess security/server"""#
         # """:TODO: Make sure all clients appear )some disappear while still connected)"""#
         # """:TODO: Make sure data is saved even if there is a duplicate password"""#
-        # """:TODO: Exit message when server closes"""#
+        # """:TODO(almost finished): Database updates correctly even if server is closed"""#
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
@@ -214,8 +214,10 @@ class Server:
                 # Receive configuration data from the load balancer
                 data = self.__load_balance_socket.recv(1024)  # Adjust buffer size based on expected data
                 configuration = pickle.loads(data)
+
                 self.__server_name = configuration['server_name']
                 self.__zone = configuration['zone']
+                
                 print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
                 break
 
@@ -344,24 +346,14 @@ class Server:
         """
 
         """
-        self.__selector.register(self.__sockets[0], selectors.EVENT_READ, self.accept)
-        self.__selector.register(self.__sockets[1], selectors.EVENT_READ, self.accept)
-        self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept)
+        self.__selector.register(self.__sockets[0], selectors.EVENT_READ, self.accept_client)
+        self.__selector.register(self.__sockets[1], selectors.EVENT_READ, self.accept_client)
+        self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
 
         while True:
             try:
 
                 self.new_handling()
-
-                if self.empty_server():
-                    self.update_database()
-
-                    self.__login_data_base.close_conn()
-                    self.__main_data_base.close_conn()
-
-                    self.disconnect_from_security()
-                    self.__ips_data_base.close_conn()
-                    break
 
             #       except AttributeError:
             #       print("wait huh")
@@ -375,7 +367,7 @@ class Server:
                 self.__login_data_base.close_conn()
 
                 self.__main_data_base.close_conn()
-                self.disconnect_from_security()
+               # self.disconnect_from_security()
 
                 self.__ips_data_base.close_conn()
                 break
@@ -385,10 +377,11 @@ class Server:
                 print(e)
 
                 self.update_database()
-                self.__login_data_base.close_conn()
+                self.kick_all()
 
+                self.__login_data_base.close_conn()
                 self.__main_data_base.close_conn()
-                self.disconnect_from_security()
+          #      self.disconnect_from_security()
 
                 self.__ips_data_base.close_conn()
                 break
@@ -442,7 +435,6 @@ class Server:
         """
 
         """
-
         events = self.__selector.select(0)
 
         for key, mask in events:
@@ -452,7 +444,9 @@ class Server:
             callback = key.data
             callback(key.fileobj, mask)
 
-    def accept(self, current_socket, mask):
+
+
+    def accept_client(self, current_socket, mask):
         """
 
         :param current_socket:
@@ -579,6 +573,7 @@ class Server:
         try:
             current_socket.settimeout(0.01)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
+
             # print(data)
             if "EXIT" in data[0]:
                 print("Connection closed", data)
@@ -779,14 +774,6 @@ class Server:
         finally:
             return
 
-    def empty_server(self):
-        """
-
-        :return:
-        """
-
-        return self.__number_of_clients == 0
-
     def update_database(self):
         """
 
@@ -811,6 +798,15 @@ class Server:
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
                                                                                                              resource_info,
                                                                                                              ip_info)
+
+    def kick_all(self):
+        """
+
+        """
+
+        for sock in self.__client_sockets:
+            sock.send(pickle.dumps(["LEAVE"]))
+            sock.close()
 
     def disconnect_from_security(self):
         """

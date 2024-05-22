@@ -102,6 +102,9 @@ class Client:
                     print("this", details)
                     checker = self.check_success(details)
 
+                    if checker == 1:
+                        return 1
+
                     print("the checker", checker)
                     self.__logged = checker
 
@@ -116,12 +119,24 @@ class Client:
                         print("retry")
                         details = self.details_entry(screen, clock)
 
+                    elif self.__logged[0] == "LEAVE":
+                        print("go back")
+                        return 1
+
                     else:
                         print("retry")
 
                         continue
                 pygame.display.update()
                 clock.tick(FPS)
+
+            except OSError as e:
+                print(e)
+                pygame.display.update()
+
+                clock.tick(FPS)
+                return 1
+
             except ConnectionAbortedError as e:
                 print(e)
                 pygame.display.update()
@@ -130,11 +145,11 @@ class Client:
                 return 1
 
             except ssl.SSLEOFError as e:
-                print("stop", e)
-                time.sleep(0.02)
-
+                print(e)
                 pygame.display.update()
+
                 clock.tick(FPS)
+                return 1
 
             except ConnectionResetError as e:
                 print(e)
@@ -548,14 +563,16 @@ class Client:
                         print("wrong password or username")
                         return decrypt
 
+                    elif "LEAVE" == decrypt[0]:
+                        return 1
+
             except socket.timeout:
                 print("exception is")
                 pass
 
             except ssl.SSLEOFError as e:
                 print("stop", e)
-                time.sleep(0.02)
-                pygame.display.update()
+                return 1
               #  clock.tick(FPS)
 
     def malicious_message(self, message):
@@ -650,8 +667,8 @@ class Client:
            # self.__the_client_socket.send(full_msg)
 
            # self.__the_client_socket.close()
-            time.sleep(0.002)
-            return
+           # time.sleep(0.002)
+            return 1
 
         except KeyboardInterrupt as e:
             print("Server is shutting down", e)
@@ -675,6 +692,9 @@ class Client:
 
             if not data_recv:
                 pass
+
+            elif data_recv[0] == "LEAVE":
+                return 1
 
             else:
                 return data_recv
