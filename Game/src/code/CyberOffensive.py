@@ -287,28 +287,28 @@ class Game:
             weapons = self.network.receive_data(0.01)
             other_client = self.network.receive_location()
 
-         #   if enemies:
-              #  [BlueSnowSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
-                 #               self.level.damage_player, self.level) for loc in list(filter(lambda person: "BSS" in person, enemies))]
+            if enemies:
+                [BlueSnowSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
+                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "BSS" in person, enemies))]
 
-              #  [BlueSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
-               #                 self.level.damage_player, self.level) for loc in list(filter(lambda person: "BS" in person, enemies))]
+                [BlueSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
+                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "BS" in person, enemies))]
 
-             #   [CyanRedSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
-                #                self.level.damage_player, self.level) for loc in list(filter(lambda person: "CRS" in person, enemies))]
+                [CyanRedSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
+                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "CRS" in person, enemies))]
 
-             #   [CyanSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
-             #                   self.level.damage_player, self.level) for loc in list(filter(lambda person: "CS" in person, enemies))]
+                [CyanSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
+                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "CS" in person, enemies))]
 
-            #    [RedGreenSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
-              #                  self.level.damage_player, self.level) for loc in list(filter(lambda person: "RGS" in person, enemies))]
+                [RedGreenSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
+                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "RGS" in person, enemies))]
 
-              #  [RedSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
-               #                 self.level.damage_player, self.level) for loc in list(filter(lambda person: "RS" in person, enemies))]
+                [RedSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
+                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "RS" in person, enemies))]
 
-           #     [Goblin(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
-           #                     self.level.damage_player, self.level) for loc in list(filter(lambda person: "GOB" in person, enemies))]
-                #print("e", enemies)
+                [Goblin(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
+                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "GOB" in person, enemies))]
+                print("e", enemies)
 
             if weapons:
                 print("w", weapons)
