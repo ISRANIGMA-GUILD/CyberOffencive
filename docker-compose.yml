@@ -2,10 +2,7 @@ version: '3.8'
 
 services:
   the-server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: basic_com-server
+    image: cat69/cyber_offensive:server
     container_name: server
     ports:
       - "8820:8820/tcp"
@@ -18,7 +15,7 @@ services:
     networks:
       - my-network
     environment:
-      - LOAD_BALANCER_IP=172.20.128.1 # Assuming container name is "load_balancer"
+      - LOAD_BALANCER_IP=10.0.0.7 # Assuming container name is "load_balancer"
 
 volumes:
   server:

@@ -2,10 +2,7 @@ version: '3.8'
 
 services:
   load_balancer:
-    build:
-      context: .
-      dockerfile: Dockerfile-2
-    image: basic_com-load_balancer
+    image: cat69/cyber_offensive:load_balancer
     container_name: load_balancer
     ports:
       - "1800:1800/tcp"

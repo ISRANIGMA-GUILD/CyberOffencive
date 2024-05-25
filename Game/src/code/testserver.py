@@ -211,7 +211,7 @@ class Server:
 
         while True:
             try:
-                self.__load_balance_socket.connect((MY_IP, 1800))
+                self.__load_balance_socket.connect((self.__load_balance_ip, 1800))
                 print("SSL connection established with Load Balancer.")
 
                 # Receive configuration data from the load balancer
@@ -857,9 +857,8 @@ class Server:
 
         if ip_address:
             return ip_address
-
         else:
-            return None
+            return socket.gethostbyname(socket.gethostname())
 
 
 def main():

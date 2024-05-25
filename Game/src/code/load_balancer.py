@@ -104,8 +104,8 @@ class LoadBalancer:
             data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
 
             self.selector.register(connection, selectors.EVENT_READ, self.service_connection)
-        except BlockingIOError:
-            print("BlockingIOError: No incoming connections to accept yet.")
+        except BlockingIOError as e:
+            print(f"BlockingIOError: No incoming connections to accept yet. {e}")
         except Exception as e:
             print(f"Exception in accept_new_connection: {e}")
 
