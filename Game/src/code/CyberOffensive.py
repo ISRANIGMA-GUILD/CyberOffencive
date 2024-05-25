@@ -84,6 +84,7 @@ class Game:
         self.__done = True
 
         self.__game_state = "start_menu"
+        self.__item_locs = []
 
     def run(self) -> None:
         """
@@ -286,8 +287,52 @@ class Game:
             weapons = self.network.receive_data(0.01)
             other_client = self.network.receive_location()
 
-            print("e", enemies)
-            print("w", weapons)
+         #   if enemies:
+              #  [BlueSnowSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
+                 #               self.level.damage_player, self.level) for loc in list(filter(lambda person: "BSS" in person, enemies))]
+
+              #  [BlueSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
+               #                 self.level.damage_player, self.level) for loc in list(filter(lambda person: "BS" in person, enemies))]
+
+             #   [CyanRedSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
+                #                self.level.damage_player, self.level) for loc in list(filter(lambda person: "CRS" in person, enemies))]
+
+             #   [CyanSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
+             #                   self.level.damage_player, self.level) for loc in list(filter(lambda person: "CS" in person, enemies))]
+
+            #    [RedGreenSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
+              #                  self.level.damage_player, self.level) for loc in list(filter(lambda person: "RGS" in person, enemies))]
+
+              #  [RedSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
+               #                 self.level.damage_player, self.level) for loc in list(filter(lambda person: "RS" in person, enemies))]
+
+           #     [Goblin(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
+           #                     self.level.damage_player, self.level) for loc in list(filter(lambda person: "GOB" in person, enemies))]
+                #print("e", enemies)
+
+            if weapons:
+                print("w", weapons)
+                [Axe(loc[1], [self.level.visible_sprites])
+                 for loc in list(filter(lambda person: "A" in person, weapons)) if loc[1] not in self.__item_locs]
+                [Bow(loc[1], [self.level.visible_sprites], [self.level.visible_sprites, self.level.attack_sprites])
+                 for loc in list(filter(lambda person: "B" in person, weapons)) if loc[1] not in self.__item_locs]
+
+                [Sword(loc[1], [self.level.visible_sprites])
+                 for loc in list(filter(lambda person: "S" in person, weapons)) if loc[1] not in self.__item_locs]
+                [HPFruit(loc[1], [self.level.visible_sprites])
+                 for loc in list(filter(lambda person: "HPF" in person, weapons)) if loc[1] not in self.__item_locs]
+
+                [EnergyFruit(loc[1], [self.level.visible_sprites])
+                 for loc in list(filter(lambda person: "EF" in person, weapons)) if loc[1] not in self.__item_locs]
+                [RedHPFruit(loc[1], [self.level.visible_sprites])
+                 for loc in list(filter(lambda person: "RHPF" in person, weapons)) if loc[1] not in self.__item_locs]
+
+                [BlueEnergyFruit(loc[1], [self.level.visible_sprites])
+                 for loc in list(filter(lambda person: "BEF" in person, weapons)) if loc[1] not in self.__item_locs]
+
+                for loc in weapons:
+                    if loc[1] not in self.__item_locs:
+                        self.__item_locs.append(loc[1])
 
             if self.__previous_details != list_of_public_details:
                 s = self.network.update_server(list_of_public_details, self.items)
@@ -301,11 +346,9 @@ class Game:
                 pass
 
             elif other_client == 1 or 'LEAVE' == enemies[0] or "LEAVE" == weapons[0]:
-                #  print("what the is happening")
                 self.__game_state = "start_menu"
 
             else:
-                #    print("other_client", other_client, type(other_client), other_client[0], other_client[1])
 
                 if type(other_client) is list or type(other_client) is tuple:
 

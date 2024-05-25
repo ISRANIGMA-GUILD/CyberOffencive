@@ -89,11 +89,10 @@ class Server:
 
         # """:TODO(Are they possible?): Check for session injection vulnerabilities """#
         # """:TODO: Add as secret verification between l-> s, s->l, security->s, s->security
-        # """:TODO: Use load balancer as the only user of the main database and servers with their local ones"""#
+        # """:TODO(Work in progress): Use load balancer as the only user of the main database and servers with their local ones"""#
         # """:TODO(Should the server intervene?): Check if users cheat(in speed, damage, etc.) """#
         # """:TODO(almost finished): Loading screen between menu and login screens """#
         # """:TODO(almost finished): Try-except on everything """#
-        # """:TODO(almost finished): Receive info about enemy locations, item locations """#
         # """:TODO(almost finished): Make sure server isn't bogged down due to heavy packs"""#
         # """:TODO: Show weapons when attacking"""#
         # """:TODO: Lock the database with a long and strong password"""#
@@ -101,7 +100,10 @@ class Server:
         # """:TODO: Multiprocess security/server"""#
         # """:TODO: Make sure all clients appear )some disappear while still connected)"""#
         # """:TODO: Make sure data is saved even if there is a duplicate password"""#
+        # """:TODO: Erase items and enemies from client side to make sure they dont still appear if collected or killed"""#
         # """:TODO(almost finished): Database updates correctly even if server is closed"""#
+        # """:TODO(almost finished): Fix attribute error if server closes before clients"""#
+        # """:TODO(almost finished): Make sure if items are collected the server knows, enemies update via the server"""#
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
@@ -109,6 +111,7 @@ class Server:
                                                                                                              ip_info)
 
         self.set_locations()
+        self.set_item_locations()
         self.__list_of_banned_users = [[self.__list_of_existing_existing_credentials[i][0],
                                         self.__list_of_existing_existing_credentials[i][1],
                                         self.__list_of_existing_existing_credentials[i][0]]
@@ -176,7 +179,7 @@ class Server:
         """
 
         while len(self.__item_locations) < 20:
-            enemy_is = random.choice(self.__w_possabilities)
+            enemy_is = choice(self.__w_possabilities)
             self.__item_locations.append((enemy_is, (randint(1000, 3000), randint(1000, 3000))))
 
     def connect_to_security(self):
@@ -440,11 +443,10 @@ class Server:
         for key, mask in events:
             self.update_credential_list()
             self.update_database()
+            self.update_items()
 
             callback = key.data
             callback(key.fileobj, mask)
-
-
 
     def accept_client(self, current_socket, mask):
         """
@@ -646,14 +648,14 @@ class Server:
             return
 
         else:
-            print("locs", self.__enemy_locations)
+          #  print("locs", self.__item_locations)
 
             if self.__locations[index] is not None:
-                e_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][0]) <= 20
-                                     and 0 <= abs(m[1][1] - self.__locations[index][1]) <= 20,
+                e_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][0]) <= 70
+                                     and 0 <= abs(m[1][1] - self.__locations[index][1]) <= 70,
                                      self.__enemy_locations))
-                w_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][0]) <= 20
-                                     and 0 <= abs(m[1][1] - self.__locations[index][1]) <= 20,
+                w_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][0]) <= 70
+                                     and 0 <= abs(m[1][1] - self.__locations[index][1]) <= 70,
                                      self.__item_locations))
 
                 return e_near, w_near
@@ -798,6 +800,20 @@ class Server:
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
                                                                                                              resource_info,
                                                                                                              ip_info)
+
+    def update_items(self):
+        """
+
+        """
+
+        m = [loc for loc in self.__item_locations if loc[1] in self.__locations]
+        print("the equal", m, self.__locations)
+
+        if m:
+            for collected in m:
+                self.__item_locations.remove(collected)
+                self.set_item_locations()
+                print("GOT HIM")
 
     def kick_all(self):
         """

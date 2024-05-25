@@ -110,13 +110,13 @@ class Level:
 
         enemies_classes = [BasicSpider, BlueSpider, CyanSpider, RedSpider, RedGreenSpider, CyanRedSpider,
                            BlueSnowSpider, Goblin]
-        for i in range(101):
+      #  for i in range(2):
 
-            pos = (randint(1000, 3000), randint(1000, 3000))
-            enemy = choice(enemies_classes)
+        #    pos = (randint(1000, 3000), randint(1000, 3000))
+         #   enemy = choice(enemies_classes)
 
-            enemy(pos, [self.visible_sprites, self.attackable_sprites], self.obstacles_sprites, self.damage_player,
-                  self)
+          #  enemy(pos, [self.visible_sprites, self.attackable_sprites], self.obstacles_sprites, self.damage_player,
+           #       self)
 
         self.player = Player((2500, 1500), [self.visible_sprites], self.attackable_sprites, self.obstacles_sprites,
                              self.create_attack, self.destroy_weapon, 'C:\\Program Files (x86)\\Common Files\\CyberOffensive/graphics/player/up_idle/up_idle_0.png')
