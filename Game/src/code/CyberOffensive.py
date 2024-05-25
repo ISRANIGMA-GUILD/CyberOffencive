@@ -85,6 +85,7 @@ class Game:
 
         self.__game_state = "start_menu"
         self.__item_locs = []
+        self.__enemy_locs = []
 
     def run(self) -> None:
         """
@@ -289,26 +290,30 @@ class Game:
 
             if enemies:
                 [BlueSnowSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
-                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "BSS" in person, enemies))]
+                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "BSS" in person, enemies)) if loc[1] not in self.__enemy_locs]
 
                 [BlueSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
-                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "BS" in person, enemies))]
+                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "BS" in person, enemies)) if loc[1] not in self.__enemy_locs]
 
                 [CyanRedSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
-                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "CRS" in person, enemies))]
+                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "CRS" in person, enemies)) if loc[1] not in self.__enemy_locs]
 
                 [CyanSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
-                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "CS" in person, enemies))]
+                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "CS" in person, enemies)) if loc[1] not in self.__enemy_locs]
 
                 [RedGreenSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
-                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "RGS" in person, enemies))]
+                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "RGS" in person, enemies)) if loc[1] not in self.__enemy_locs]
 
                 [RedSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
-                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "RS" in person, enemies))]
+                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "RS" in person, enemies)) if loc[1] not in self.__enemy_locs]
 
                 [Goblin(loc[1], [self.level.visible_sprites, self.level.attackable_sprites], self.level.obstacles_sprites,
-                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "GOB" in person, enemies))]
+                                self.level.damage_player, self.level) for loc in list(filter(lambda person: "GOB" in person, enemies)) if loc[1] not in self.__enemy_locs]
                 print("e", enemies)
+
+                for loc in enemies:
+                    if loc[1] not in self.__enemy_locs:
+                        self.__enemy_locs.append(loc[1])
 
             if weapons:
                 print("w", weapons)
@@ -345,7 +350,7 @@ class Game:
             if other_client is None or self.__game_state == "start_menu":
                 pass
 
-            elif other_client == 1 or 'LEAVE' == enemies[0] or "LEAVE" == weapons[0]:
+            elif other_client == 1 or (enemies and 'LEAVE' == enemies[0]) or (weapons and "LEAVE" == weapons[0]):
                 self.__game_state = "start_menu"
 
             else:
