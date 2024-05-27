@@ -355,8 +355,7 @@ class Game:
 
             else:
 
-                if type(other_client) is list or type(other_client) is tuple:
-
+                if (type(other_client) is list or type(other_client) is tuple) and (len(other_client) == 4):
                     self.update_users()
                     self.__prev_info[other_client[3]] = other_client
 
@@ -510,7 +509,6 @@ class Game:
     def update_users(self):
         """
 
-        :param other_client:
         """
 
         if self.__users:
