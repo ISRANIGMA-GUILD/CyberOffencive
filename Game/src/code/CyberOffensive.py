@@ -121,14 +121,12 @@ class Game:
 
                     if self.__keys[pygame.K_SPACE]:
                         img = pygame.image.load(LOGIN)
-                        pygame.transform.scale(img, (1920, 1080))
 
                         self.screen.blit(img, (0, 0))
 
                         ran = self.network.run()
 
                         img = pygame.image.load(LOGIN)
-                        pygame.transform.scale(img, (1920, 1080))
 
                         self.screen.blit(img, (0, 0))
 
@@ -430,7 +428,6 @@ class Game:
         start_button = self.font.render('START', True, (255, 255, 255))
         img = pygame.image.load(IMAGE)
 
-        pygame.transform.scale(img, (1920, 1080))
         self.screen.blit(img, (0, 0))
 
         pygame.display.update()

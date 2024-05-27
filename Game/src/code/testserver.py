@@ -254,12 +254,15 @@ class Server:
 
         key = list(self.__zone.keys())[0]
         x, y = client_location
+
         min_x, max_x, min_y, max_y = (self.__zone.get(key)['min_x'], self.__zone.get(key)['max_x'],
                                       self.__zone.get(key)['min_y'], self.__zone.get(key)['max_y'])
+
         if not (min_x <= x <= max_x and min_y <= y <= max_y):
             print(f"Client location {client_location} out of assigned zone.")
             self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location, 'server':
                                                 self.__server_name, 'client_data': self.get_local_client_details})
+
         else:
             print("Client location within assigned zone.")
 
@@ -271,6 +274,7 @@ class Server:
 
         try:
             self.__load_balance_socket.getsockname()  # Check if connection is established
+
         except socket.error:
             print("Socket not yet connected, retrying...")
             return
@@ -297,6 +301,7 @@ class Server:
 
         except ssl.SSLError as e:
             print(f"SSL error: {e}")
+
         except Exception as e:
             print(f"Error: {e}")
 
@@ -308,9 +313,11 @@ class Server:
         try:
             self.__load_balance_socket.settimeout(0.1)
             data = self.__load_balance_socket.recv(1024)
+
             if data:
                 new_client_info = pickle.loads(data)
                 self.add_new_client(new_client_info)
+
         except Exception as e:
             print("Failed to receive data from load balancer:", e)
             self.__load_balance_socket.close()
@@ -320,8 +327,10 @@ class Server:
 
         :param client_info:
         """
+
         username, client_details = client_info['username'], client_info['details']
         self.__session_users.append(username)
+
         self.__all_details.append(client_details)
         print(f"Added new client {username} with details {client_details}")
 
