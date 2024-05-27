@@ -155,6 +155,24 @@ class LoadBalancer:
                 if key.data:
                     self.service_connection(key, mask)
 
+    def update_client_database(self, username, password, status, items, weapons):
+        """
+        Insert or update client data in the database.
+
+        :param username: Client's username
+        :param password: Client's password
+        :param status: Client's status
+        :param items: Client's initial items
+        :param weapons: Client's initial weapons
+        """
+        self.__login_data_base.insert_no_duplicates(values=[username, password], no_duplicate_params=["Username"])
+
+        values = [username, password, status, items, weapons]
+        params = PARAMETERS["PlayerDetails"]
+        self.__main_data_base.insert_no_duplicates(values=values, no_duplicate_params=["Username"])
+
+        print(f"Updated database for client {username}")
+
     def service_connection(self, key, mask):
         """
         get the data
@@ -168,12 +186,32 @@ class LoadBalancer:
         if mask & selectors.EVENT_READ:
             recv_data = sock.recv(1024)
             if recv_data:
-                print("Data received:", recv_data)
-                client_info = pickle.loads(recv_data)
+                try:
+                    print("Data received:", recv_data)
+                    client_info = pickle.loads(recv_data)
 
-                target_server = self.determine_server(client_info['location'])
-                self.update_database()
-                target_server.send(pickle.dumps(client_info))
+                    username = client_info.get('username')
+                    password = client_info.get('password', 'defaultPassword')  # Default password if not provided
+                    status = client_info.get('status', 'Active')  # Default status if not provided
+                    items = client_info.get('items', 'None')  # Default items if not provided
+                    weapons = client_info.get('weapons', 'None')  # Default weapons if not provided
+                    location = client_info.get('location', {'x': 0, 'y': 0})  # Default location if not provided
+
+                    self.__session_users.append(username)
+                    self.__credentials.append({
+                        'username': username, 'password': password, 'status': status, 'items': items, 'weapons': weapons
+                    })
+
+                    self.update_client_database(username, password, status, items, weapons)
+
+                    target_server = self.determine_server(location)
+                    if target_server:
+                        target_server.send(pickle.dumps(client_info))
+                    else:
+                        print("No appropriate server found for the given location.")
+                except (pickle.PickleError, KeyError) as e:
+                    print("Failed to process received data:", str(e))
+
             else:
                 pass
                 # print("Closing connection to", data.addr)
@@ -232,6 +270,24 @@ class LoadBalancer:
 
                 print(self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons],
                                                        ['Username'], [self.__session_users[index]]))
+
+    def insert_no_duplicates(self, values, no_duplicate_params):
+        """
+        Insert a record into the database ensuring there are no duplicates based on certain parameters.
+
+        :param values: List of values corresponding to the database schema
+        :param no_duplicate_params: List of parameters to check for duplication
+        """
+        try:
+            with self.connection.cursor() as cursor:
+                columns = ', '.join(PARAMETERS["PlayerDetails"])
+                placeholders = ', '.join(['%s'] * len(values))
+                query = (f"INSERT INTO PlayerDetails ({columns}) SELECT {placeholders}"
+                         f" WHERE NOT EXISTS (SELECT 1 FROM PlayerDetails WHERE Username=%s)")
+                cursor.execute(query, values + [values[PARAMETERS["PlayerDetails"].index("Username")]])
+                self.connection.commit()
+        except Exception as e:
+            print("Database error:", e)
 
 
 def main():
