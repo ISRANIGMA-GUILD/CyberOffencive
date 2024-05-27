@@ -75,8 +75,9 @@ class LoadBalancer:
         """
         while len(self.servers) != NUMBER_OF_SERVERS:
             self.accept_new_connection(self.__load_balancer_socket)
-        self.accept_connections()
-        self.relay_client_info()
+        while True:
+            self.accept_connections()
+            self.relay_client_info()
 
     def accept_connections(self):
         print("wip")
@@ -109,14 +110,13 @@ class LoadBalancer:
         except Exception as e:
             print(f"Exception in accept_new_connection: {e}")
 
-    def accept(self, sock, mask):
+    # def accept(self, sock, mask):
 
+        # conn, addr = sock.accept()  # Should be ready
 
-        conn, addr = sock.accept()  # Should be ready
-
-        print('accepted', conn, 'from', addr)
-        conn.setblocking(False)
-        self.selector.register(conn, selectors.EVENT_READ, read)
+        # print('accepted', conn, 'from', addr)
+        # conn.setblocking(False)
+        # self.selector.register(conn, selectors.EVENT_READ, read)
 
     def get_name(self):
         if len(self.servers) == 1:
@@ -131,7 +131,8 @@ class LoadBalancer:
         if len(self.servers) == 5:
             return "Server 5", 5
 
-    def get_zone(self, zone):
+    @staticmethod
+    def get_zone(zone):
         if zone == 1:
             print("moo")
             return {'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680}}
@@ -174,11 +175,17 @@ class LoadBalancer:
                 self.update_database()
                 target_server.send(pickle.dumps(client_info))
             else:
-                print("Closing connection to", data.addr)
-                self.selector.unregister(sock)
-                sock.close()
+                pass
+                # print("Closing connection to", data.addr)
+                # self.selector.unregister(sock)
+                # sock.close()
 
     def determine_server(self, client_info):
+        """
+        return a socket for a certain server according to the location and zone
+        :param client_info:
+        :return:
+        """
         x, y = client_info['x'], client_info['y']
         for zone_name, bounds in self.zones.items():
             if bounds['min_x'] <= x <= bounds['max_x'] and bounds['min_y'] <= y <= bounds['max_y']:
@@ -200,6 +207,12 @@ class LoadBalancer:
         """
 
         """
+        for index in range(0, len(self.__new_credentials)):
+            print(self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0]],
+                                                              no_duplicate_params=['Username']))
+            print(self.__login_data_base.set_values(['Password'], [self.__new_credentials[index][1]], ['Username'],
+                                                    [self.__new_credentials[index][0]]))
+
         print(self.__new_credentials)
         if len(self.__new_credentials) > 0:
             print(self.__new_credentials[0])

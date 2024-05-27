@@ -80,7 +80,7 @@ class Server:
         self.__w_possabilities = ["A", "B", "S", "HPF", "EF", "RHPF", "BEF"]
 
         self.__server_name = "load_balancer"
-        self.__zone = ""
+        self.__zone = {}
 
     def run(self):
         """
@@ -255,9 +255,8 @@ class Server:
             'max_y']
         if not (min_x <= x <= max_x and min_y <= y <= max_y):
             print(f"Client location {client_location} out of assigned zone.")
-            self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
-                                                             'server': self.__server_name,
-                                                             'client_data': self.get_local_client_details})
+            self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location, 'server':
+                                                self.__server_name, 'client_data': self.get_local_client_details})
         else:
             print("Client location within assigned zone.")
 
@@ -270,9 +269,9 @@ class Server:
 
         print("Successfully connected to the load balancer.")
         self.__selector.unregister(sock)
-        self.__selector.register(sock, selectors.EVENT_READ, self.receive_data_from_load_balancer)
+        self.__selector.register(sock, selectors.EVENT_READ, self.receive_configiration_from_load_balancer)
 
-    def receive_data_from_load_balancer(self, sock, mask):
+    def receive_configiration_from_load_balancer(self, sock, mask):
         """
 
         :param sock:
@@ -294,6 +293,32 @@ class Server:
             print(f"SSL error: {e}")
         except Exception as e:
             print(f"Error: {e}")
+
+    def receive_data_from_load_balancer(self, sock, mask):
+        """
+
+        :param sock:
+        :param mask:
+        """
+        try:
+            data = sock.recv(1024)
+            if data:
+                new_client_info = pickle.loads(data)
+                self.add_new_client(new_client_info)
+        except Exception as e:
+            print("Failed to receive data from load balancer:", e)
+            self.__selector.unregister(sock)
+            sock.close()
+
+    def add_new_client(self, client_info):
+        """
+
+        :param client_info:
+        """
+        username, client_details = client_info['username'], client_info['details']
+        self.__session_users.append(username)
+        self.__all_details.append(client_details)
+        print(f"Added new client {username} with details {client_details}")
 
     def check_for_banned(self, client_address, number):
         """
@@ -353,6 +378,7 @@ class Server:
         self.__selector.register(self.__sockets[1], selectors.EVENT_READ, self.accept_client)
         self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
 
+        self.__selector.register(self.__load_balance_socket, selectors.EVENT_READ, self.receive_data_from_load_balancer)
         while True:
             try:
 
@@ -604,6 +630,7 @@ class Server:
                         self.__data_to_send[index] = data
 
                 self.__locations[index] = data[0]
+                self.handle_client_location(self.__locations[index])
 
                 if data[1] is not None and len(data[1]) > 0:
                     self.__chat[index] = data[1]
@@ -797,9 +824,8 @@ class Server:
                 self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
                                                  [self.__session_users[index]])
         info, resource_info, ip_info = self.receive_info()
-        self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
-                                                                                                             resource_info,
-                                                                                                             ip_info)
+        self.__list_of_existing_existing_credentials, self.__list_of_existing_resources\
+            = self.organize_info(info,resource_info, ip_info)
 
     def update_items(self):
         """
