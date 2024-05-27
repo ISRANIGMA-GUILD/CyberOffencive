@@ -1,3 +1,5 @@
+import socket
+
 from wrapper_of_unique import *
 from DatabaseCreator import *
 from Cert_creators import *
@@ -149,11 +151,13 @@ class LoadBalancer:
         """
 
         """
+
         while True:
             events = self.selector.select(timeout=None)
             for key, mask in events:
                 if key.data:
-                    self.service_connection(key, mask)
+                    callback = key.data
+                    callback(key.fileobj, mask)
 
     def update_client_database(self, username, password, status, items, weapons):
         """
@@ -173,20 +177,17 @@ class LoadBalancer:
 
         print(f"Updated database for client {username}")
 
-    def service_connection(self, key, mask):
+    def service_connection(self, sock, mask):
         """
         get the data
-        :param key:
+        :param sock:
         :param mask:
         """
-
-        sock = key.fileobj
-        data = key.data
-
-        if mask & selectors.EVENT_READ:
-            recv_data = sock.recv(1024)
-            if recv_data:
-                try:
+        try:
+            if mask & selectors.EVENT_READ:
+                sock.settimeout(0.01)
+                recv_data = sock.recv(1024)
+                if recv_data:
                     print("Data received:", recv_data)
                     client_info = pickle.loads(recv_data)
 
@@ -209,14 +210,17 @@ class LoadBalancer:
                         target_server.send(pickle.dumps(client_info))
                     else:
                         print("No appropriate server found for the given location.")
-                except (pickle.PickleError, KeyError) as e:
-                    print("Failed to process received data:", str(e))
 
-            else:
-                pass
-                # print("Closing connection to", data.addr)
-                # self.selector.unregister(sock)
-                # sock.close()
+                else:
+                    pass
+                    # print("Closing connection to", data.addr)
+                    # self.selector.unregister(sock)
+                    # sock.close()
+        except (pickle.PickleError, KeyError) as e:
+            print("Failed to process received data:", str(e))
+
+        except socket.timeout:
+            pass
 
     def determine_server(self, client_info):
         """

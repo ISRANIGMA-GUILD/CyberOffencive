@@ -233,6 +233,8 @@ class Server:
             except OSError:
                 pass
 
+        print("out")
+
     def send_message_to_load_balancer(self, message):
         """
         Send messages to the Load Balancer.
@@ -250,9 +252,10 @@ class Server:
         :param client_location:
         """
 
+        key = list(self.__zone.keys())[0]
         x, y = client_location
-        min_x, max_x, min_y, max_y = self.__zone['min_x'], self.__zone['max_x'], self.__zone['min_y'], self.__zone[
-            'max_y']
+        min_x, max_x, min_y, max_y = (self.__zone.get(key)['min_x'], self.__zone.get(key)['max_x'],
+                                      self.__zone.get(key)['min_y'], self.__zone.get(key)['max_y'])
         if not (min_x <= x <= max_x and min_y <= y <= max_y):
             print(f"Client location {client_location} out of assigned zone.")
             self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location, 'server':
@@ -260,26 +263,29 @@ class Server:
         else:
             print("Client location within assigned zone.")
 
-    def complete_connection(self, sock, mask):
+    def complete_connection(self):
+        """
+
+        :return:
+        """
+
         try:
-            sock.getpeername()  # Check if connection is established
+            self.__load_balance_socket.getsockname()  # Check if connection is established
         except socket.error:
             print("Socket not yet connected, retrying...")
             return
 
         print("Successfully connected to the load balancer.")
-        self.__selector.unregister(sock)
-        self.__selector.register(sock, selectors.EVENT_READ, self.receive_configiration_from_load_balancer)
+        self.receive_configiration_from_load_balancer()
 
-    def receive_configiration_from_load_balancer(self, sock, mask):
+    def receive_configiration_from_load_balancer(self):
         """
 
-        :param sock:
-        :param mask:
         """
 
         try:
-            data = sock.recv(1024)
+            self.__load_balance_socket.settimeout(0.1)
+            data = self.__load_balance_socket.recv(1024)
             if data:
                 configuration = pickle.loads(data)
                 self.__server_name = configuration['server_name']
@@ -287,28 +293,27 @@ class Server:
                 print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
             else:
                 print("Load balancer closed the connection.")
-                self.__selector.unregister(sock)
-                sock.close()
+                self.__load_balance_socket.close()
+
         except ssl.SSLError as e:
             print(f"SSL error: {e}")
         except Exception as e:
             print(f"Error: {e}")
 
-    def receive_data_from_load_balancer(self, sock, mask):
+    def receive_data_from_load_balancer(self):
         """
 
-        :param sock:
-        :param mask:
         """
+
         try:
-            data = sock.recv(1024)
+            self.__load_balance_socket.settimeout(0.1)
+            data = self.__load_balance_socket.recv(1024)
             if data:
                 new_client_info = pickle.loads(data)
                 self.add_new_client(new_client_info)
         except Exception as e:
             print("Failed to receive data from load balancer:", e)
-            self.__selector.unregister(sock)
-            sock.close()
+            self.__load_balance_socket.close()
 
     def add_new_client(self, client_info):
         """
@@ -378,7 +383,7 @@ class Server:
         self.__selector.register(self.__sockets[1], selectors.EVENT_READ, self.accept_client)
         self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
 
-        self.__selector.register(self.__load_balance_socket, selectors.EVENT_READ, self.receive_data_from_load_balancer)
+       # self.__selector.register(self.__load_balance_socket, selectors.EVENT_READ, self.receive_data_from_load_balancer)
         while True:
             try:
 
@@ -467,9 +472,11 @@ class Server:
         events = self.__selector.select(0)
 
         for key, mask in events:
+
             self.update_credential_list()
             self.update_database()
             self.update_items()
+            self.receive_data_from_load_balancer()
 
             callback = key.data
             callback(key.fileobj, mask)

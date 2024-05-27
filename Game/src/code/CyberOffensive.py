@@ -16,7 +16,7 @@ LOGIN = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\LoginS
 class Game:
     def __init__(self) -> None:
         pygame.init()
-    #    pygame.mixer.init()
+        pygame.mixer.init()
         pygame.font.init()
 
         #the_program_to_hide = win32gui.GetForegroundWindow()
