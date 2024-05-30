@@ -1,5 +1,3 @@
-import socket
-
 from wrapper_of_unique import *
 from DatabaseCreator import *
 from Cert_creators import *

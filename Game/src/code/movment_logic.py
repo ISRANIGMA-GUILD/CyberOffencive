@@ -1,4 +1,3 @@
-from random import randint
 import pygame
 
 
@@ -14,24 +13,25 @@ class EnemyManager:
         """
         Updates the locations of all enemies based on the nearest player.
 
+        :param enemies:
         :param players: List of player tuples (name, position).
         """
-
+        pre_enemies = enemies.copy()
         for enemy in enemies:
             enemy_pos = enemy[1]
             nearest_player = self.get_nearest_player(enemy_pos, players)
 
             if nearest_player:
                 new_location = self.move_towards_player(enemy, nearest_player[1])
-                enemy = (enemy[0], new_location)
+                pre_enemies[pre_enemies.index(enemy)] = (enemy[0], (int(new_location[0]), int(new_location[1])))
 
-        for i in range(0, len(enemies)):
+    #    for i in range(0, len(pre_enemies)):
 
-            enemies[i] = (enemies[i][0], (int(enemies[i][1][0]), int(enemies[i][1][1])))
+       #     enemies[i] = (enemies[i][0], (int(enemies[i][1][0]), int(enemies[i][1][1])))
 
-        print("done?", enemies)
+        print("done?", enemies, len(enemies))
 
-        return enemies
+        return pre_enemies
 
     def get_player_distance_and_direction(self, enemy_pos, player_pos):
         """

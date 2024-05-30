@@ -174,7 +174,7 @@ class Server:
 
         while len(self.__enemy_locations) < 101:
             enemy_is = f'{choice(self.__e_possabilities)}{self.__id}'
-            self.__enemy_locations.append((enemy_is, (randint(1000, 3000), randint(1000, 3000))))
+            self.__enemy_locations.append((enemy_is, (randint(500, 3000), randint(500, 3000))))
             self.__id += 1
 
     def set_item_locations(self):
@@ -708,7 +708,7 @@ class Server:
                                      and 0 <= abs(m[1][1] - self.__locations[index][1][1]) <= 70,
                                      self.__item_locations))
 
-                return e_near, w_near
+                return ("e", e_near), ("w", w_near)
 
     def handle_security(self, lock):
         """
