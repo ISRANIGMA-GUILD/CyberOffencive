@@ -11,3 +11,7 @@ docker-compose -f docker-compose.yml down
 
 REM Build and start containers
 docker-compose -f docker-compose.yml up
+
+docker-compose -f docker-compose.yml down
+
+docker network rm my-network
