@@ -236,6 +236,15 @@ class Game:
                 pygame.quit()
                 sys.exit()
 
+            except Exception as e:
+                print(e)
+                if self.__game_state == "continue":
+                    list_of_details = ["EXIT", 1, self.items]
+                    self.network.update_server(list_of_details, self.items)
+
+                pygame.quit()
+                sys.exit()
+
     def create_threads(self, game_lock):
         """
 
