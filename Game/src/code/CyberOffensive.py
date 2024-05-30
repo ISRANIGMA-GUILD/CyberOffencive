@@ -16,7 +16,7 @@ LOGIN = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\LoginS
 class Game:
     def __init__(self) -> None:
         pygame.init()
-        pygame.mixer.init()
+        pygame.mixer.pre_init(44100, 16, 2, 4096)
         pygame.font.init()
 
         #the_program_to_hide = win32gui.GetForegroundWindow()
@@ -356,6 +356,11 @@ class Game:
                         self.level.obstacles_sprites,
                         self.level.damage_player, self.level) for loc in
                  list(filter(lambda person: "GOB" in person[0], enemies)) if loc[0] not in self.__the_enemies]
+
+                [Frenzy(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
+                        self.level.obstacles_sprites,
+                        self.level.damage_player, self.level) for loc in
+                 list(filter(lambda person: "FRE" in person[0], enemies)) if loc[0] not in self.__the_enemies]
                 print("e", enemies)
 
                 for loc in enemies:
@@ -364,9 +369,6 @@ class Game:
 
             elif enemies and 'LEAVE' == enemies[0]:
                 self.__game_state = "start_menu"
-
-               #     if loc[0] in self.__enemy_locs:
-                   #     self.__enemy_locs[self.__enemy_locs.index(loc[0])]
 
             weapons = self.__weapons
             if weapons:

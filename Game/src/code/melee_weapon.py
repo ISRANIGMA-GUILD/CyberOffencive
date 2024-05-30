@@ -1,6 +1,4 @@
-import pygame
 from weapon import *
-from settings import *
 
 
 class MeleeWeapon(Weapon):

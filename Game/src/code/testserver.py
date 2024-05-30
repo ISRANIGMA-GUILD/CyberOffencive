@@ -77,7 +77,7 @@ class Server:
         self.__enemy_locations = []
         self.__item_locations = []
 
-        self.__e_possabilities = ["BSS", "BS", "CRS", "CS", "RGS", "RS", "GOB"]
+        self.__e_possabilities = ["BSS", "BS", "CRS", "CS", "RGS", "RS", "GOB", "FRE"]
         self.__w_possabilities = ["A", "B", "S", "HPF", "EF", "RHPF", "BEF"]
 
         self.__server_name = "load_balancer"
@@ -92,8 +92,8 @@ class Server:
 
         # """:TODO(Are they possible?): Check for session injection vulnerabilities """#
         # """:TODO: Add as secret verification between l-> s, s->l, security->s, s->security
-        # """:TODO(Work in progress): Use load balancer as the only user of the main database and servers with their local ones"""#
-        # """:TODO(Should the server intervene?): Check if users cheat(in speed, damage, etc.) """#
+        # """:TODO(finished?): Use load balancer as the only user of the main database and servers with their local ones"""#
+        # """:TODO: Check if users cheat(in speed, damage, etc.) """#
         # """:TODO(almost finished): Loading screen between menu and login screens """#
         # """:TODO(almost finished): Try-except on everything """#
         # """:TODO(almost finished): Make sure server isn't bogged down due to heavy packs"""#
@@ -175,7 +175,7 @@ class Server:
 
         while len(self.__enemy_locations) < 101:
             enemy_is = f'{choice(self.__e_possabilities)}{self.__id}'
-            self.__enemy_locations.append((enemy_is, (randint(500, 3000), randint(500, 3000))))
+            self.__enemy_locations.append((enemy_is, (randint(1000, 10000), randint(1000, 10000))))
             self.__id += 1
 
     def set_item_locations(self):
@@ -185,7 +185,7 @@ class Server:
 
         while len(self.__item_locations) < 20:
             enemy_is = choice(self.__w_possabilities)
-            self.__item_locations.append((enemy_is, (randint(1000, 3000), randint(1000, 3000))))
+            self.__item_locations.append((enemy_is, (randint(1000, 10000), randint(1000, 10000))))
 
     def connect_to_security(self):
         """

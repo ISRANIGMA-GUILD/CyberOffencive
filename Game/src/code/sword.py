@@ -1,8 +1,6 @@
 from settings import *
 from melee_weapon import MeleeWeapon
 
-BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive'
-
 
 class Sword(MeleeWeapon):
     def __init__(self, position, groups) -> None:

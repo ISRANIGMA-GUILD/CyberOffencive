@@ -1,7 +1,7 @@
 from pygame.locals import *
 import ctypes
 user32 = ctypes.windll.user32
-
+BASE_PATH: str = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive'
 # ==== Window Settings =====
 WIDTH: int = user32.GetSystemMetrics(0) # 800
 HEIGHT: int = user32.GetSystemMetrics(1) - 50 # 600
@@ -13,12 +13,25 @@ HALF_HEIGHT: int = HEIGHT // 2 # 300
 # ==== Game Settings =====
 FPS: float = 60
 FLAGS: int = DOUBLEBUF
-BITS_PER_PIXEL: int = 16
+BITS_PER_PIXEL: int = 8
 
 # ~~~ Tile Settings ~~~
 TILE_WIDTH: int = 64
 TILE_HEIGHT: int = 64
 # ~~~~~~~~~~~~~~~~~~~~~
+
+# ~~~ tmx Settings ~~~
+TMX_MAP_PATH = f'{BASE_PATH}/new_map/cyber_map.tmx'
+# ~~~~~~~~~~~~~~~~~~~~~
+
+# ~~ Objects Settings ~~
+SMALL_OBJECTS_GIDS: list = [3205, 3207, 3208, 3211]
+SMALL_OBJECTS_WIDTH: int = 64
+SMALL_OBJECTS_HEIGHT: int = 64
+
+BIG_OBJECT_GIDS: list = [3206, 3209, 3210, 3212, 3213]
+BIG_OBJECTS_WIDTH: int = 128
+BIG_OBJECTS_HEIGHT: int = 128
 
 # ========================
 
@@ -87,7 +100,7 @@ WEAPON_DATA: dict = {
 	'sword' : {
 		'cooldown' : 100,
 		'damage' : 15,
-		'path' : 'C:\\Program Files (x86)\\Common Files\\CyberOffensive/graphics/weapons/sword/full.png',
+		'path' : f'{BASE_PATH}/graphics/weapons/sword/full.png',
 	},
 }
 
@@ -142,7 +155,7 @@ ENERGY_BAR_WIDTH: int = 140
 ENERGY_BAR_COLOR: int = 'blue'
 
 # ~~~ Font ~~~
-FONT_PATH: str = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive/fonts/TheWildBreathOfZelda-15Lv.ttf'
+FONT_PATH: str = f'{BASE_PATH}/fonts/TheWildBreathOfZelda-15Lv.ttf'
 FONT_SIZE: int = 18
 #=============================
 
@@ -160,6 +173,7 @@ SPIDER_DATA: str = {
 }
 
 GOBLIN: str = 'Goblin'
+FRENZY: str = 'Frenzy'
 
 ENEMIES_DATA = {
 	'Spider' : SPIDER_DATA,
@@ -185,7 +199,16 @@ ENEMIES_DATA = {
 		RESISTANCE: 3,
 		ATTACK_RADIUS: 100,
 		NOTICE_RADIUS: 360,
-	}
+	},
+ 
+	FRENZY : {
+		HEALTH : 50,
+		DAMAGE : 5,
+		SPEED : 3,
+		RESISTANCE : 5,
+		ATTACK_RADIUS : 200,
+		NOTICE_RADIUS : 900,
+	},
 
  
 }
@@ -220,3 +243,5 @@ BULLET_SIZE: int = 8
 BULLET_COLOR: tuple = (255, 255, 255)
 BULLET_SPEED: int = 10
 # =======================
+
+

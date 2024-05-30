@@ -1,4 +1,3 @@
-import pygame
 from weapon import *
 from settings import *
 import math
@@ -8,10 +7,8 @@ from arrow import Arrow
 class RangedWeapon(Weapon):
     def __init__(self, position, groups, groups_for_arrow, cooldown: int, damage: int, weapon_name: str) -> None:
         super().__init__(position, groups, cooldown, damage, weapon_name)
-        self.image_paths[
-            ON_MAP] = f'C:\\Program Files (x86)\\Common Files\\CyberOffensive/graphics/weapons/{weapon_name}/on_map.png'
-        self.image_paths[
-            ON_HOTBAR] = f'C:\\Program Files (x86)\\Common Files\\CyberOffensive/graphics/weapons/{weapon_name}/on_hotbar.png'
+        self.image_paths[ON_MAP] = f'{BASE_PATH}/graphics/weapons/{weapon_name}/on_map.png'
+        self.image_paths[ON_HOTBAR] = f'{BASE_PATH}/graphics/weapons/{weapon_name}/on_hotbar.png'
         self.damage = damage
         self.groups_for_arrow = groups_for_arrow
         self.stats: dict = {
@@ -21,13 +18,10 @@ class RangedWeapon(Weapon):
 
     # TODO: when we finish graphics scale the weapons in the graphics and delete the pygame scaling
     def attack(self, player) -> None:
-
         self.direction = player.status.split(UNDERSCORE, 1)[0]
-        self.full_path = f'C:\\Program Files (x86)\\Common Files\\CyberOffensive/graphics/weapons/{self.weapon_name}/{self.direction}.png'
-
+        self.full_path = f'{BASE_PATH}/graphics/weapons/{self.weapon_name}/{self.direction}.png'
         if self.direction in [DOWN, UP]:
             self.image = pygame.transform.scale(pygame.image.load(self.full_path).convert_alpha(), (60, 40))
-
         elif self.direction in [LEFT, RIGHT]:
             self.image = pygame.transform.scale(pygame.image.load(self.full_path).convert_alpha(), (40, 60))
 
@@ -35,13 +29,10 @@ class RangedWeapon(Weapon):
 
         if RIGHT == self.direction:
             self.rect = self.image.get_rect(midleft=player.rect.midright + pygame.math.Vector2(-10, 3))  # 0, 16
-
         elif LEFT == self.direction:
             self.rect = self.image.get_rect(midright=player.rect.midleft + pygame.math.Vector2(10, -3))  # 0, 16
-
         elif DOWN == self.direction:
             self.rect = self.image.get_rect(midtop=player.rect.midbottom + pygame.math.Vector2(-6, -16))  # -10, 0
-
         elif UP == self.direction:
             self.rect = self.image.get_rect(midbottom=player.rect.midtop + pygame.math.Vector2(10, 10))  # -10, 0
 
