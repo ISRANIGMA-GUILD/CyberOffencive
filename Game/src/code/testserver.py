@@ -103,10 +103,11 @@ class Server:
         # """:TODO: Multiprocess security/server"""#
         # """:TODO: Make sure all clients appear )some disappear while still connected)"""#
         # """:TODO: Make sure data is saved even if there is a duplicate password"""#
-        # """:TODO: Erase items and enemies from client side to make sure they dont still appear if collected or killed"""#
+        # """:TODO(almost finished): Erase items and enemies from client side to make sure they dont still appear if collected or killed"""#
         # """:TODO(almost finished): Database updates correctly even if server is closed"""#
         # """:TODO(almost finished): Fix attribute error if server closes before clients"""#
-        # """:TODO(almost finished): Make sure if items are collected the server knows, enemies update via the server"""#
+        # """:TODO(almost finished): Make sure if items are collected the server knows"""#
+        # """:TODO: Make sure enemies dont run to clients at the start"""#
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
