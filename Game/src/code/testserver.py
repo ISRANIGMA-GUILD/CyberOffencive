@@ -6,6 +6,7 @@ from wrapper_of_the_client_socks import *
 from clientpasswordgen import *
 from serverpassword import *
 from interesting_numbers import *
+from movment_logic import *
 import os
 import threading
 import pickle
@@ -81,6 +82,8 @@ class Server:
 
         self.__server_name = "load_balancer"
         self.__zone = {}
+
+        self.__id = 0
 
     def run(self):
         """
@@ -166,16 +169,17 @@ class Server:
 
     def set_locations(self):
         """
-
+        Updates list of enemy locations, adds enemies if there are less than 100 enemies in total
         """
 
         while len(self.__enemy_locations) < 101:
-            enemy_is = choice(self.__e_possabilities)
+            enemy_is = f'{choice(self.__e_possabilities)}{self.__id}'
             self.__enemy_locations.append((enemy_is, (randint(1000, 3000), randint(1000, 3000))))
+            self.__id += 1
 
     def set_item_locations(self):
         """
-
+        Updates list of item locations, adds enemies if there are less than 100 enemies in total
         """
 
         while len(self.__item_locations) < 20:
@@ -237,7 +241,7 @@ class Server:
 
     def send_message_to_load_balancer(self, message):
         """
-        Send messages to the Load Balancer.
+         Send messages to the Load Balancer.
         :param message:
         """
         try:
@@ -388,11 +392,11 @@ class Server:
         """
 
         """
+
         self.__selector.register(self.__sockets[0], selectors.EVENT_READ, self.accept_client)
         self.__selector.register(self.__sockets[1], selectors.EVENT_READ, self.accept_client)
         self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
 
-       # self.__selector.register(self.__load_balance_socket, selectors.EVENT_READ, self.receive_data_from_load_balancer)
         while True:
             try:
 
@@ -484,7 +488,10 @@ class Server:
 
             self.update_credential_list()
             self.update_database()
+
             self.update_items()
+            self.update_enemies()
+
             self.receive_data_from_load_balancer()
 
             callback = key.data
@@ -645,8 +652,8 @@ class Server:
                     if len(self.__data_to_send) > 0:
                         self.__data_to_send[index] = data
 
-                self.__locations[index] = data[0]
-                self.handle_client_location(self.__locations[index])
+                self.__locations[index] = (self.__session_users[index], data[0])
+                self.handle_client_location(self.__locations[index][1])
 
                 if data[1] is not None and len(data[1]) > 0:
                     self.__chat[index] = data[1]
@@ -683,22 +690,22 @@ class Server:
 
     def nearby_them(self, index):
         """
-
-        :param index:
+         Checks for each player which items and enemies are in visible distance
+        :param index: The index of the player in the list of locations
+        :return: List of enemy, item locations which are in visible distance for the client
         """
 
         if not self.__locations:
             return
 
         else:
-          #  print("locs", self.__item_locations)
 
             if self.__locations[index] is not None:
-                e_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][0]) <= 70
-                                     and 0 <= abs(m[1][1] - self.__locations[index][1]) <= 70,
+                e_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][1][0]) <= 70
+                                     and 0 <= abs(m[1][1] - self.__locations[index][1][1]) <= 70,
                                      self.__enemy_locations))
-                w_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][0]) <= 70
-                                     and 0 <= abs(m[1][1] - self.__locations[index][1]) <= 70,
+                w_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][1][0]) <= 70
+                                     and 0 <= abs(m[1][1] - self.__locations[index][1][1]) <= 70,
                                      self.__item_locations))
 
                 return e_near, w_near
@@ -731,7 +738,7 @@ class Server:
 
     def security_server_report(self):
         """
-        //will be finished soon
+        Will be finished soon
         """
 
         try:
@@ -767,7 +774,7 @@ class Server:
         eligables = list(filter(lambda person: person["Client"] is not None and person["Credentials"] is not None
                                                and person != self.__all_details[number], self.__all_details))
         chat_message = f'{self.__session_users[number]}: {self.__chat[number]}'
-        message = [self.__locations[number], chat_message, self.__status[number], self.__session_users[number]]
+        message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number]]
 
         for socks in eligables:
             try:
@@ -813,6 +820,7 @@ class Server:
                 self.__number_of_clients -= 1
 
         except Exception as e:
+
             print(e)
             return
 
@@ -856,6 +864,18 @@ class Server:
                 self.__item_locations.remove(collected)
                 self.set_item_locations()
                 print("GOT HIM")
+
+    def update_enemies(self):
+        """
+
+        """
+
+        m = [loc for loc in self.__enemy_locations]
+        print("the equal", m, self.__enemy_locations)
+
+        if m:
+            g = EnemyManager()
+            self.__enemy_locations = g.update_locations(self.__enemy_locations, self.__locations)
 
     def kick_all(self):
         """
@@ -901,7 +921,6 @@ class Server:
             return ip_address
         else:
             return socket.gethostbyname(socket.gethostname())
-
 
 def main():
     """
