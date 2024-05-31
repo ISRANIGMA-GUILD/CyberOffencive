@@ -1,3 +1,5 @@
+import socket
+
 from DatabaseCreator import *
 from scapy.layers.inet import *
 from login import *
@@ -304,6 +306,9 @@ class Server:
                 print("Load balancer closed the connection.")
                 self.__load_balance_socket.close()
 
+        except socket.timeout as e:
+            print("error when receiveing another from load balancer", e)
+
         except ssl.SSLError as e:
             print(f"SSL error: {e}")
 
@@ -322,6 +327,10 @@ class Server:
             if data:
                 new_client_info = pickle.loads(data)
                 self.add_new_client(new_client_info)
+
+        except socket.timeout as e:
+            print("timeout load balancer", e)
+            pass
 
         except Exception as e:
             print("Failed to receive data from load balancer:", e)
@@ -524,8 +533,8 @@ class Server:
                 connection.close()
                 return
 
-        except socket.timeout:
-            print("out")
+        except socket.timeout as e:
+            print("Didn't receive this time a client connection", e)
             connection.close()
             return
 
@@ -594,7 +603,8 @@ class Server:
                         self.__session_users[index] = self.__all_details[index].get("Credentials")[0]
                         self.__selector.modify(current_socket, selectors.EVENT_READ, self.update_clients)
 
-        except socket.timeout:
+        except socket.timeout as e:
+            print("Still waiting for login from client", index, e)
             pass
 
         except ssl.SSLEOFError as e:
@@ -613,9 +623,9 @@ class Server:
 
     def update_clients(self, current_socket, mask):
         """
-
-        :param current_socket:
-        :param mask:
+         Send any updates to chosen client
+        :param current_socket: The socket of the client
+        :param mask: Damascus
         """
 
         target = list(filter(lambda person: person["Client"] == current_socket and person["Credentials"] is not None,
@@ -623,10 +633,12 @@ class Server:
         index = self.__all_details.index(target)
 
         try:
+            print("meow")
+
             current_socket.settimeout(0.01)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
 
-            # print(data)
+            # If client has quit save their data
             if "EXIT" in data[0]:
                 print("Connection closed", data)
                 self.__all_details[index]["Connected"] = 1
@@ -637,7 +649,10 @@ class Server:
                 self.__weapons[index] = data[2]
                 self.update_database()
 
+            # If client has logged in and there are clients update them
+
             elif len(self.__credentials) <= len(self.__session_users) and type(data) is not tuple:
+                print("eeeeeeeeee")
                 nearby_sprites = self.nearby_them(index)
 
                 if nearby_sprites:
@@ -668,7 +683,8 @@ class Server:
 
                 self.send_to_clients(index)
 
-        except socket.timeout:
+        except socket.timeout as e:
+            print("meow", e)
             pass
 
         except ssl.SSLEOFError as e:
@@ -702,11 +718,11 @@ class Server:
         else:
 
             if self.__locations[index] is not None:
-                e_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][1][0]) <= 70
-                                     and 0 <= abs(m[1][1] - self.__locations[index][1][1]) <= 70,
+                e_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][1][0]) <= 1000
+                                     and 0 <= abs(m[1][1] - self.__locations[index][1][1]) <= 1000,
                                      self.__enemy_locations))
-                w_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][1][0]) <= 70
-                                     and 0 <= abs(m[1][1] - self.__locations[index][1][1]) <= 70,
+                w_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][1][0]) <= 1000
+                                     and 0 <= abs(m[1][1] - self.__locations[index][1][1]) <= 1000,
                                      self.__item_locations))
 
                 return ("e", e_near), ("w", w_near)

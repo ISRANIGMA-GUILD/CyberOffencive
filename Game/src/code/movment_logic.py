@@ -25,10 +25,6 @@ class EnemyManager:
                 new_location = self.move_towards_player(enemy, nearest_player[1])
                 pre_enemies[pre_enemies.index(enemy)] = (enemy[0], (int(new_location[0]), int(new_location[1])))
 
-    #    for i in range(0, len(pre_enemies)):
-
-       #     enemies[i] = (enemies[i][0], (int(enemies[i][1][0]), int(enemies[i][1][1])))
-
         print("done?", enemies, len(enemies))
 
         return pre_enemies
@@ -91,7 +87,7 @@ class EnemyManager:
 
         distance, direction = self.get_player_distance_and_direction(enemy_pos, player_pos)
 
-        if distance > 0:
+        if distance < 300:
             new_position = pygame.math.Vector2(enemy_pos) + direction * speed
             return new_position.x, new_position.y
 

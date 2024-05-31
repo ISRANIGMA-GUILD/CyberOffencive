@@ -117,8 +117,7 @@ class Level:
         if player_active_item and len(player_active_item):
             if not self.player.using_item and self.player.attacking:
                 self.visible_sprites.add(player_active_item[0])
-            
-        # Let MapRenderer handle the offset during rendering
+
         self.map_renderer.render(self.display_surface, self.player.rect.center, (WIDTH, HEIGHT))
 
         self.visible_sprites.custom_draw(self.player)

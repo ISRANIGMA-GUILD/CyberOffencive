@@ -95,7 +95,10 @@ class Game:
 
         self.__enemies = []
         self.__weapons = []
+
         self.__other_client = []
+        self.__timer = 0
+        self.__previous = 0
 
     def run(self) -> None:
         """
@@ -214,6 +217,9 @@ class Game:
                     self.clock.tick(FPS)
 
                 if self.__game_state == "continue":
+                #    self.network.i_am_alive()
+                #    if self.__timer == "":
+                #        self.__timer = time.time()
 
                     threads = self.create_threads(game_lock, com_lock, div_lock)
 
@@ -236,6 +242,20 @@ class Game:
                             self.__temp_message = ""
                             self.__using_chat = False
                             self.__prev_length = 19
+
+                    if self.__previous == 30:
+                        self.__timer = 1
+                        self.__previous = 0
+
+                    else:
+                        self.__previous += 1
+                        self.__timer = 0
+
+                    pygame.display.update()
+                    self.clock.tick(FPS)
+
+             #       self.__timer = time.strftime("%Ss", time.gmtime(time.time() - self.__timer).split(' '))
+
 
             except KeyboardInterrupt as e:
                 print(e)
@@ -265,8 +285,8 @@ class Game:
         """
 
         game_thread = threading.Thread(target=self.the_game, args=(game_lock,))
-        divide_thread = threading.Thread(target=self.divide_data, args=(game_lock,))
-        com_thread = threading.Thread(target=self.communication, args=(game_lock,))
+        divide_thread = threading.Thread(target=self.divide_data, args=(com_lock,))
+        com_thread = threading.Thread(target=self.communication, args=(com_lock,))
 
         return game_thread, divide_thread, com_thread
 
@@ -300,7 +320,6 @@ class Game:
 
             self.__enemies, self.__weapons, self.__other_client = self.which_is_it(data)
 
-
     def communication(self, lock):
         """
 
@@ -319,58 +338,74 @@ class Game:
             self.prev_loc = current_loc
 
             enemies = self.__enemies
-
+            # If we received new locations of enemies from server see if we need to spawn them,
+            # If they exist just update according to data in this message (enemies)
             if enemies:
+              #  print("w")
                 [BlueSnowSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
                                 self.level.obstacles_sprites,
-                                self.level.damage_player, self.level) for loc in
+                                self.level.damage_player, self.level, loc[0]) for loc in
                  list(filter(lambda person: "BSS" in person[0], enemies))
                  if loc[0] not in self.__the_enemies]
 
                 [BlueSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
                             self.level.obstacles_sprites,
-                            self.level.damage_player, self.level) for loc in
+                            self.level.damage_player, self.level, loc[0]) for loc in
                  list(filter(lambda person: "BS" in person[0], enemies)) if loc[0] not in self.__the_enemies]
 
                 [CyanRedSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
                                self.level.obstacles_sprites,
-                               self.level.damage_player, self.level) for loc in
+                               self.level.damage_player, self.level, loc[0]) for loc in
                  list(filter(lambda person: "CRS" in person[0], enemies)) if loc[0] not in self.__the_enemies]
 
                 [CyanSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
                             self.level.obstacles_sprites,
-                            self.level.damage_player, self.level) for loc in
+                            self.level.damage_player, self.level, loc[0]) for loc in
                  list(filter(lambda person: "CS" in person[0], enemies)) if loc[0] not in self.__the_enemies]
 
                 [RedGreenSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
                                 self.level.obstacles_sprites,
-                                self.level.damage_player, self.level) for loc in
+                                self.level.damage_player, self.level, loc[0]) for loc in
                  list(filter(lambda person: "RGS" in person[0], enemies)) if loc[0] not in self.__the_enemies]
 
                 [RedSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
                            self.level.obstacles_sprites,
-                           self.level.damage_player, self.level) for loc in
+                           self.level.damage_player, self.level, loc[0]) for loc in
                  list(filter(lambda person: "RS" in person[0], enemies)) if loc[0] not in self.__the_enemies]
 
                 [Goblin(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
                         self.level.obstacles_sprites,
-                        self.level.damage_player, self.level) for loc in
+                        self.level.damage_player, self.level, loc[0]) for loc in
                  list(filter(lambda person: "GOB" in person[0], enemies)) if loc[0] not in self.__the_enemies]
 
                 [Frenzy(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
                         self.level.obstacles_sprites,
-                        self.level.damage_player, self.level) for loc in
+                        self.level.damage_player, self.level, loc[0]) for loc in
                  list(filter(lambda person: "FRE" in person[0], enemies)) if loc[0] not in self.__the_enemies]
                 print("e", enemies)
 
                 for loc in enemies:
                     if loc[0] not in self.__the_enemies:
                         self.__the_enemies.append(loc[0])
+                        self.__enemy_locs.append(loc[1])
+                    else:
+                        self.__enemy_locs[self.__the_enemies.index(loc[0])] = loc[1]
+
+                for loc in enemies:
+                    for enemie in self.level.attackable_sprites:
+                        if enemie.id == loc[0]:
+                            enemie.hitbox.center = loc[1]
+                print("meow")
 
             elif enemies and 'LEAVE' == enemies[0]:
                 self.__game_state = "start_menu"
 
+               #     if loc[0] in self.__enemy_locs:
+                   #     self.__enemy_locs[self.__enemy_locs.index(loc[0])]
+
             weapons = self.__weapons
+            # If we received new locations of weapons\items from server see if we need to spawn them,
+            # If they exist just update according to data in this message (weapons)
             if weapons:
                 print("w", weapons)
                 [Axe(loc[1], [self.level.visible_sprites])
@@ -400,13 +435,16 @@ class Game:
 
             other_client = self.__other_client
 
-            if self.__previous_details != list_of_public_details:
+            if self.__previous_details != list_of_public_details or self.__timer == 1:
                 s = self.network.update_server(list_of_public_details, self.items)
                 if s == 1:
                     self.__game_state = "start_menu"
 
                 else:
                     self.__previous_details = list_of_public_details
+
+                self.__previous = 1
+                self.__timer = 0
 
             if other_client is None or self.__game_state == "start_menu":
                 pass
@@ -479,8 +517,8 @@ class Game:
                                 self.__locs[i][0] != len(self.__previous_messages) - 1):
                             self.__locs[i][0] += 1
 
-            pygame.display.update()
-            self.clock.tick(FPS)
+         #   pygame.display.update()
+          #  self.clock.tick(FPS)
 
     def draw_start_menu(self):
         """
@@ -538,7 +576,8 @@ class Game:
                 weapons = d[1]
 
             else:
-                other_client = d[1]
+                print("oth client", d)
+                other_client = d
 
         return enemies, weapons, other_client
 

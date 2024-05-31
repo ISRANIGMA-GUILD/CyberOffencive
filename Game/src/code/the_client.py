@@ -752,6 +752,10 @@ class Client:
             print("epic fail")
             return
 
+    #def i_am_alive(self):
+
+    #    self.__the_client_socket.send(pickle.dumps(['None']))
+
     def good_music(self):
         """
 

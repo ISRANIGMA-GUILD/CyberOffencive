@@ -1,5 +1,6 @@
 from pygame.locals import *
 import ctypes
+
 user32 = ctypes.windll.user32
 BASE_PATH: str = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive'
 # ==== Window Settings =====

@@ -13,16 +13,13 @@ class Entity(pygame.sprite.Sprite):
         self.collision_grid = None
 
     def move(self, collision_grid) -> None:
+        #return
         if self.collision_grid is None:
             self.collision_grid = collision_grid
 
         if self.direction.magnitude():
             self.direction = self.direction.normalize()
 
-        # Move the entity first
-        self.hitbox.x += self.direction.x * self.stats[SPEED]
-        self.hitbox.y += self.direction.y * self.stats[SPEED]
-        self.rect.center = self.hitbox.center
 
         # Then check for collisions 
         entity_x, entity_y = self.collision_grid.get_grid_coords(self.hitbox.centerx, self.hitbox.centery)
@@ -31,6 +28,10 @@ class Entity(pygame.sprite.Sprite):
                 for obstacle in self.collision_grid.grid[grid_x][grid_y]:
                     self.collision(HORIZONTAL, obstacle)
                     self.collision(VERTICAL, obstacle)
+
+        self.hitbox.x += self.direction.x * self.stats[SPEED]
+        self.hitbox.y += self.direction.y * self.stats[SPEED]
+        self.rect.center = self.hitbox.center
 
     def collision(self, direction: str, sprite) -> None:
         if HORIZONTAL == direction:

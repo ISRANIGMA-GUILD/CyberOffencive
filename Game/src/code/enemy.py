@@ -10,7 +10,8 @@ from melee_weapon import MeleeWeapon
 from arrow import Arrow
 
 class Enemy(Entity):
-    def __init__(self,monster_name: str, position: tuple, groups, obstacle_sprites, damage_player_func, attack_type, level) -> None:
+    def __init__(self,monster_name: str, position: tuple, groups, obstacle_sprites, damage_player_func, attack_type, level, id=None) -> None:
+        print("id", id)
         self.stats = {
             HEALTH: ENEMIES_DATA[monster_name][HEALTH],
             SPEED: ENEMIES_DATA[monster_name][SPEED],
@@ -46,6 +47,8 @@ class Enemy(Entity):
         
         self.damage_player = damage_player_func
         self.attack_type = attack_type
+
+        self.id = id
     
     
     def import_graphics(self) -> None:
@@ -189,7 +192,7 @@ class Enemy(Entity):
             self.frame_index = 0
         
         self.image = animation[int(self.frame_index)]
-        self.rect = self.image.get_rect(center = self.hitbox.center)
+        self.rect = self.image.get_rect(center=self.hitbox.center)
         
         if not self.vulnerable:
             alpha = self.wave_value()
@@ -246,11 +249,15 @@ class Enemy(Entity):
     def hit_reaction(self) -> None:
         if not self.vulnerable:
             self.direction *= -self.stats[RESISTANCE]
-        
+
+    def direction_get(self):
+        if self.direction.magnitude():
+            self.direction = self.direction.normalize()
             
     def update(self, collision_grid) -> None:
         self.hit_reaction()
-        self.move(collision_grid)
+        #self.move(collision_grid)
+        self.direction_get()
         
         self.animate()
         self.cooldowns()

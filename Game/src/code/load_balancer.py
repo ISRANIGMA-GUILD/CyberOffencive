@@ -82,7 +82,7 @@ class LoadBalancer:
     def accept_connections(self):
         print("wip")
         while True:
-            events = self.selector.select(timeout=None)
+            events = self.selector.select(0)
             for key, mask in events:
                 callback = key.data
                 callback(key.fileobj, mask)

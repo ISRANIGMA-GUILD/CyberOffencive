@@ -7,8 +7,8 @@ import math
 
 class RangedEnemy(Enemy):
     def __init__(self, monster_name: str, position: tuple, groups, obstacle_sprites, damage_player_func, attack_type,
-                 level) -> None:
-        super().__init__(monster_name, position, groups, obstacle_sprites, damage_player_func, attack_type, level)
+                 level, id) -> None:
+        super().__init__(monster_name, position, groups, obstacle_sprites, damage_player_func, attack_type, level, id)
 
     def get_status(self, player) -> None:
         distance, self.direction = self.get_player_distance_and_direction(player)
