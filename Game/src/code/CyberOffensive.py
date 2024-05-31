@@ -428,6 +428,11 @@ class Game:
 
                 print("meow")
 
+                for enemie in self.level.attackable_sprites:
+                    if enemie.status == 'death':
+                        self.__the_enemies.remove(enemie.id) ######yoval do something
+                        self.__enemy_locs.remove(enemie.hitbox.center) ######yoval do something
+
             elif enemies and 'LEAVE' == enemies[0]:
                 self.__game_state = "start_menu"
 

@@ -705,6 +705,9 @@ class Client:
         except socket.timeout:
             print("epic fail")
             return
+        except Exception as e:
+            print(e)
+            return
 
     def receive_items(self):
         """
@@ -728,6 +731,9 @@ class Client:
         except socket.timeout:
             print("epic fail")
             return
+        except Exception as e:
+            print(e)
+            return
 
     def receive_enemies(self):
         """
@@ -750,6 +756,9 @@ class Client:
 
         except socket.timeout:
             print("epic fail")
+            return
+        except Exception as e:
+            print(e)
             return
 
     def receive_ack(self):
