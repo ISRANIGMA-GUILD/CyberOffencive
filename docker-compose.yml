@@ -15,15 +15,7 @@ services:
     networks:
       - my-network
     environment:
-<<<<<<< HEAD
-      - LOAD_BALANCER_IP=192.168.56.1 # Assuming container name is "load_balancer"
-=======
-<<<<<<< HEAD
-      - LOAD_BALANCER_IP=192.168.56.1 # Assuming container name is "load_balancer"
-=======
-      - LOAD_BALANCER_IP=load_balancer # Assuming container name is "load_balancer"
->>>>>>> 3caee80555e51bc5f10399bdfe5d4e3deefc6b01
->>>>>>> f9bad6d2c4158006b1b28baf5903bb84d1b43ea4
+      - LOAD_BALANCER_IP=10.100.102.19 # Assuming container name is "load_balancer"
 
 volumes:
   server:

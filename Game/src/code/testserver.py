@@ -123,7 +123,7 @@ class Server:
         print("The server will now wait for clients")
         print("Server is up and running")
 
-       # self.connect_to_security()
+        # self.connect_to_security()
         self.connect_to_load_socket()
         self.handle_clients()
 
@@ -215,7 +215,7 @@ class Server:
                 print("SSL connection established with Load Balancer.")
 
                 # Receive configuration data from the load balancer
-                data = self.__load_balance_socket.recv(1024)  # Adjust buffer size based on expected data
+                data = self.__load_balance_socket.recv(1024)
                 configuration = pickle.loads(data)
 
                 self.__server_name = configuration['server_name']
@@ -225,12 +225,15 @@ class Server:
                 break
 
             except ConnectionRefusedError:
+                print("no1")
                 pass
 
             except ConnectionResetError:
+                print("no2")
                 pass
 
             except OSError:
+                print("no 2")
                 pass
 
     def send_message_to_load_balancer(self, message):
@@ -250,15 +253,18 @@ class Server:
         :param client_location:
         """
 
-        x, y = client_location
-        min_x, max_x, min_y, max_y = self.__zone['min_x'], self.__zone['max_x'], self.__zone['min_y'], self.__zone[
-            'max_y']
-        if not (min_x <= x <= max_x and min_y <= y <= max_y):
-            print(f"Client location {client_location} out of assigned zone.")
-            self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location, 'server':
-                                                self.__server_name, 'client_data': self.get_local_client_details})
-        else:
-            print("Client location within assigned zone.")
+        x, y = client_location['x'], client_location['y']
+        if 'min_x' in self._zone and 'max_x' in self._zone and 'min_y' in self._zone and 'max_y' in self._zone:
+            min_x, max_x, min_y, max_y = self._zone['min_x'], self._zone['max_x'], self._zone['min_y'], self._zone[
+                'max_y']
+
+            if not (min_x <= x <= max_x and min_y <= y <= max_y):
+                print(f"Client location {client_location} out of assigned zone.")
+                self.send_message_to_load_balancer({'location': client_location,
+                                                    'server': self.__server_name, 'client_data':
+                                                        self.get_local_client_details})
+            else:
+                print("Client location within assigned zone.")
 
     def complete_connection(self, sock, mask):
         try:
@@ -294,19 +300,18 @@ class Server:
         except Exception as e:
             print(f"Error: {e}")
 
-    def receive_data_from_load_balancer(self, sock, mask):
+    def receive_data_from_load_balancer(self):
         """
 
-        :param sock:
-        :param mask:
         """
         try:
-            data = sock.recv(1024)
+            data = self.__load_balance_socket.recv(1024)
             if data:
                 new_client_info = pickle.loads(data)
                 self.add_new_client(new_client_info)
         except Exception as e:
             print("Failed to receive data from load balancer:", e)
+            pass
             self.__selector.unregister(sock)
             sock.close()
 
@@ -378,7 +383,6 @@ class Server:
         self.__selector.register(self.__sockets[1], selectors.EVENT_READ, self.accept_client)
         self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
 
-        self.__selector.register(self.__load_balance_socket, selectors.EVENT_READ, self.receive_data_from_load_balancer)
         while True:
             try:
 
@@ -630,7 +634,9 @@ class Server:
                         self.__data_to_send[index] = data
 
                 self.__locations[index] = data[0]
+                print(self.__locations[index])
                 self.handle_client_location(self.__locations[index])
+                self.receive_data_from_load_balancer()
 
                 if data[1] is not None and len(data[1]) > 0:
                     self.__chat[index] = data[1]

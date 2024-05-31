@@ -10,15 +10,15 @@ import types
 
 # Define zones on the map with their boundary coordinates
 zones = {
-    'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
-    'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680},
-    'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
-    'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
-    'Zone5': {'min_x': 36481, 'max_x': 40320, 'min_y': 19680, 'max_y': 36480}
+    'Zone1': {'min_x': 0, 'max_x': 1459, 'min_y': 0, 'max_y': 1280},
+    'Zone2': {'min_x': 2188, 'max_x': 3648, 'min_y': 0, 'max_y': 1280},
+    'Zone3': {'min_x': 0, 'max_x': 1459, 'min_y': 1920, 'max_y': 3200},
+    'Zone4': {'min_x': 2188, 'max_x': 3648, 'min_y': 1920, 'max_y': 3200},
+    'ZoneBuffer': {'min_x': 1458, 'max_x': 2187, 'min_y': 0, 'max_y': 3200}
 }
 LB_IP = "127.0.0.1"
 LB_PORT = 1800
-NUMBER_OF_SERVERS = 1
+NUMBER_OF_SERVERS = 3
 # Define the servers
 servers = ['Server1', 'Server2', 'Server3', 'Server4', 'Server5']
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
@@ -54,11 +54,12 @@ class LoadBalancer:
         self.selector.register(self.__load_balancer_socket, selectors.EVENT_READ, self.accept_new_connection)
 
         self.zones = {
-            'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
-            'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680},
-            'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
-            'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
-            'Zone5': {'min_x': 36481, 'max_x': 40320, 'min_y': 19680, 'max_y': 36480}
+            'Zone1': {'min_x': 0, 'max_x': 1459, 'min_y': 0, 'max_y': 1280},
+            'Zone2': {'min_x': 2188, 'max_x': 3648, 'min_y': 0, 'max_y': 1280},
+            'Zone3': {'min_x': 0, 'max_x': 1459, 'min_y': 1920, 'max_y': 3200},
+            'Zone4': {'min_x': 2188, 'max_x': 3648, 'min_y': 1920, 'max_y': 3200},
+            'ZoneBuffer1': {'min_x1': 1458, 'max_x1': 2187, 'min_y1': 0, 'max_y1': 3200},
+            'ZoneBuffer2': {'min_x2': 0, 'max_x2': 3648, 'min_y2': 1281, 'max_y2': 1919}
         }
         self.server_zone_map = {
             'Zone1': None,  # These will hold actual server socket connections
@@ -73,6 +74,7 @@ class LoadBalancer:
         """
 
         """
+        print("NUMBER_OF_SERVERS")
         while len(self.servers) != NUMBER_OF_SERVERS:
             self.accept_new_connection(self.__load_balancer_socket)
         while True:
@@ -135,15 +137,16 @@ class LoadBalancer:
     def get_zone(zone):
         if zone == 1:
             print("moo")
-            return {'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680}}
+            return {'min_x': 0, 'max_x': 1459, 'min_y': 0, 'max_y': 1280}
         if zone == 2:
-            return {'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680}}
+            return {'min_x': 2188, 'max_x': 3648, 'min_y': 0, 'max_y': 1280}
         if zone == 3:
-            return {'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200}}
+            return {'min_x': 0, 'max_x': 1459, 'min_y': 1920, 'max_y': 3200}
         if zone == 4:
-            return {'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200}}
+            return {'min_x': 2188, 'max_x': 3648, 'min_y': 1920, 'max_y': 3200}
         if zone == 5:
-            return {'Zone5': {'min_x': 36481, 'max_x': 40320, 'min_y': 19680, 'max_y': 36480}}
+            return ({'min_x1': 1458, 'max_x1': 2187, 'min_y1': 0, 'max_y1': 3200},
+                    {'min_x2': 0, 'max_x2': 3648, 'min_y2': 1281, 'max_y2': 1919})
 
     def relay_client_info(self):
         """
@@ -153,7 +156,7 @@ class LoadBalancer:
             events = self.selector.select(timeout=None)
             for key, mask in events:
                 if key.data:
-                    self.service_connection(key, mask)
+                    self.service_connection(key.fileobj, key, mask)
 
     def update_client_database(self, username, password, status, items, weapons):
         """
@@ -173,18 +176,17 @@ class LoadBalancer:
 
         print(f"Updated database for client {username}")
 
-    def service_connection(self, key, mask):
+    def service_connection(self, sock, key, mask):
         """
         get the data
         :param key:
+        :param sock:
         :param mask:
         """
 
-        sock = key.fileobj
-        data = key.data
-
         if mask & selectors.EVENT_READ:
             recv_data = sock.recv(1024)
+            data = key.data
             if recv_data:
                 try:
                     print("Data received:", recv_data)
@@ -214,9 +216,9 @@ class LoadBalancer:
 
             else:
                 pass
-                # print("Closing connection to", data.addr)
-                # self.selector.unregister(sock)
-                # sock.close()
+                print("Closing connection to", data.addr)
+                self.selector.unregister(sock)
+                sock.close()
 
     def determine_server(self, client_info):
         """
@@ -225,6 +227,17 @@ class LoadBalancer:
         :return:
         """
         x, y = client_info['x'], client_info['y']
+        buffer_zone_1 = self.zones[ZoneBuffer1]
+        buffer_zone_2 = self.zones[ZoneBuffer1]
+        if (self.zones['min_x'] <= x <= buffer_zone_1['max_x'] and buffer_zone_1['min_y'] <= y <= buffer_zone_1[
+            'max_y']) or \
+                (buffer_zone_2['min_x'] <= x <= buffer_zone_2['max_x'] and buffer_zone_2['min_y'] <= y <= buffer_zone_2[
+                    'max_y']):
+            print("Client assigned to buffer server based on buffer zone coordinates.")
+            return self.server_zone_map[self.__server_name]  # Return the buffer server
+        else:
+            print("Client not within any buffer zones, routing to a regular server based on location.")
+
         for zone_name, bounds in self.zones.items():
             if bounds['min_x'] <= x <= bounds['max_x'] and bounds['min_y'] <= y <= bounds['max_y']:
                 return self.server_zone_map[zone_name]
