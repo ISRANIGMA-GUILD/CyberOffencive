@@ -8,6 +8,7 @@ from serverpassword import *
 from interesting_numbers import *
 from movment_logic import *
 import time
+import numpy
 import os
 import threading
 import pickle
@@ -112,8 +113,9 @@ class Server:
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
                                                                                                              resource_info,
                                                                                                              ip_info)
-
+        self.set_ids()
         self.set_locations()
+
         self.set_item_locations()
         self.__list_of_banned_users = [[self.__list_of_existing_existing_credentials[i][0],
                                         self.__list_of_existing_existing_credentials[i][1],
@@ -167,12 +169,22 @@ class Server:
 
         return list_of_existing_credentials, list_of_existing_resources
 
+    def set_ids(self):
+        """
+        Updates list of enemy locations, adds enemies if there are less than 100 enemies in total
+        """
+
+        for i in range(0, 101):
+            enemy_is = f'{i}'
+            self.__id.append(enemy_is)
+
     def set_locations(self):
         """
         Updates list of enemy locations, adds enemies if there are less than 100 enemies in total
         """
 
         while len(self.__enemy_locations) < 101:
+
             enemy_is = f'{choice(self.__e_possabilities)}{self.__id}'
             self.__enemy_locations.append((enemy_is, (randint(1000, 10000), randint(1000, 10000))))
             self.__id += 1
@@ -185,6 +197,25 @@ class Server:
         while len(self.__item_locations) < 101:
             enemy_is = choice(self.__w_possabilities)
             self.__item_locations.append((enemy_is, (randint(1000, 10000), randint(1000, 10000))))
+
+    def difference(self):
+        """
+        This function creates a list of elements from list1 that are not in list2.
+
+        Args:
+            list1: The first list.
+            list2: The second list.
+
+        Returns:
+            A list containing elements from list1 that are not in list2.
+        """
+        # Convert the second list to a set for faster membership checks
+
+        if self.__enemy_locations:
+            return list(filter(lambda x: x not in [identity[0][0:2] for identity in self.__enemy_locations]
+                                or x not in [identity[0][0:1] for identity in self.__enemy_locations], self.__id))
+
+        return self.__id
 
     def connect_to_security(self):
         """
@@ -499,9 +530,12 @@ class Server:
             self.update_items()
             self.update_enemies()
 
-            self.inform_all()
+            self.set_locations()
+            self.set_item_locations()
 
+            self.inform_all()
             callback = key.data
+
             callback(key.fileobj, mask)
             self.receive_data_from_load_balancer()
 
@@ -516,8 +550,6 @@ class Server:
                     if nearby_sprites:
                         for message in nearby_sprites:
                             self.__client_sockets[index].send(pickle.dumps(message))
-
-                            #time.sleep(0.01)
 
                 except ssl.SSLEOFError as e:
                     print("Connection closedh", e)
@@ -690,9 +722,8 @@ class Server:
 
             # If client has logged in and there are clients update them
 
-            elif len(self.__credentials) <= len(self.__session_users) and type(data) is not tuple:
+            elif len(self.__credentials) <= len(self.__session_users) and type(data) is not tuple and len(data) != 2:
                 print("eeeeeeeeee")
-
 
                 self.__to_send.append((current_socket, data))
 
@@ -717,6 +748,18 @@ class Server:
                 #  el
 
                 self.send_to_clients(index)
+
+            elif len(data) == 2:
+                print("kill that enemy", data)
+                if data[0] == "kill":
+                    for stuff in self.__enemy_locations:
+                        if stuff[0] == data[1]:
+                            self.__enemy_locations.remove(stuff)
+
+                elif data[0] == "collected":
+                    for stuff in self.__item_locations:
+                        if stuff[0] == data[1]:
+                            self.__item_locations.remove(stuff)
 
         except socket.timeout as e:
             print("meow", e)
