@@ -1,4 +1,5 @@
 from weapon import *
+from fruit import *
 
 
 class HotBar:
