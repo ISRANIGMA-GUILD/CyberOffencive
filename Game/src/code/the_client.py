@@ -752,6 +752,29 @@ class Client:
             print("epic fail")
             return
 
+    def receive_ack(self):
+        """
+
+        :return:
+        """
+
+        try:
+            timer = 0.05
+            data_recv = self.receive_data(timer, 2000)
+
+            if not data_recv:
+                pass
+
+            elif data_recv[0] == "LEAVE":
+                return 1
+
+            else:
+                return data_recv
+
+        except socket.timeout:
+            print("epic fail")
+            return
+
     #def i_am_alive(self):
 
     #    self.__the_client_socket.send(pickle.dumps(['None']))

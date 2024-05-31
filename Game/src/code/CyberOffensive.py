@@ -118,8 +118,18 @@ class Game:
                 for event in pygame.event.get():
                     if pygame.QUIT == event.type:
                         if self.__game_state == "continue":
+                            self.find()
                             list_of_details = ["EXIT", 1, self.items]
-                            self.network.update_server(list_of_details, self.items)
+
+                            while True:
+                                ack = self.network.receive_ack()
+                                self.network.update_server(list_of_details, self.items)
+
+                                print(ack)
+
+                                if ack:
+                                    if "OK" in ack:
+                                        break
 
                         pygame.quit()
                         sys.exit()
@@ -218,8 +228,8 @@ class Game:
 
                 if self.__game_state == "continue":
                 #    self.network.i_am_alive()
-                #    if self.__timer == "":
-                #        self.__timer = time.time()
+                    if self.__previous == 0:
+                        self.__previous = time.time()
 
                     threads = self.create_threads(game_lock, com_lock, div_lock)
 
@@ -243,25 +253,35 @@ class Game:
                             self.__using_chat = False
                             self.__prev_length = 19
 
-                    if self.__previous == 30:
-                        self.__timer = 1
-                        self.__previous = 0
+                   # if self.__previous == 120:
+                   #     self.__timer = 1
+                   #    self.__previous = 0
 
-                    else:
-                        self.__previous += 1
-                        self.__timer = 0
+                   # else:
+                   #     self.__previous += 1
+                   #     self.__timer = 0
 
                     pygame.display.update()
                     self.clock.tick(FPS)
 
-             #       self.__timer = time.strftime("%Ss", time.gmtime(time.time() - self.__timer).split(' '))
-
+                    if self.__previous != 0:
+                        self.__timer = time.time() - self.__previous
 
             except KeyboardInterrupt as e:
                 print(e)
                 if self.__game_state == "continue":
+                    self.find()
                     list_of_details = ["EXIT", 1, self.items]
-                    self.network.update_server(list_of_details, self.items)
+
+                    while True:
+                        ack = self.network.receive_ack()
+                        self.network.update_server(list_of_details, self.items)
+
+                        print(ack)
+
+                        if ack:
+                            if "OK" in ack:
+                                break
 
                 pygame.quit()
                 sys.exit()
@@ -269,8 +289,18 @@ class Game:
             except Exception as e:
                 print(e)
                 if self.__game_state == "continue":
+                    self.find()
                     list_of_details = ["EXIT", 1, self.items]
-                    self.network.update_server(list_of_details, self.items)
+
+                    while True:
+                        ack = self.network.receive_ack()
+                        self.network.update_server(list_of_details, self.items)
+
+                        print(ack)
+
+                        if ack:
+                            if "OK" in ack:
+                                break
 
                 pygame.quit()
                 sys.exit()
@@ -395,6 +425,7 @@ class Game:
                     for enemie in self.level.attackable_sprites:
                         if enemie.id == loc[0]:
                             enemie.hitbox.center = loc[1]
+
                 print("meow")
 
             elif enemies and 'LEAVE' == enemies[0]:
@@ -435,15 +466,14 @@ class Game:
 
             other_client = self.__other_client
 
-            if self.__previous_details != list_of_public_details or self.__timer == 1:
+            if self.__previous_details != list_of_public_details: #or self.__timer >= 0.02:
                 s = self.network.update_server(list_of_public_details, self.items)
+                self.__previous_details = list_of_public_details
+
                 if s == 1:
                     self.__game_state = "start_menu"
 
-                else:
-                    self.__previous_details = list_of_public_details
-
-                self.__previous = 1
+                self.__previous = 0
                 self.__timer = 0
 
             if other_client is None or self.__game_state == "start_menu":

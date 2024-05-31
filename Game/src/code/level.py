@@ -36,84 +36,79 @@ from collisiongrid import CollisionGrid
 class Level:
     def __init__(self) -> None:
         self.display_surface = pygame.display.get_surface()
-        
+
         self.visible_sprites = YSortCameraGroup()
         self.obstacles_sprites = pygame.sprite.Group()
         self.attack_sprites = pygame.sprite.Group()
         self.attackable_sprites = pygame.sprite.Group()
         self.enemies_projectiles = pygame.sprite.Group()
-        
+
         self.sprite_cash = {}
 
         self.current_attack = None
 
         self.map_renderer = MapRenderer(TMX_MAP_PATH)  # Create MapRenderer instance
-        self.collision_grid = CollisionGrid(self.map_renderer.tmx_data.width, self.map_renderer.tmx_data.height, TILE_WIDTH, TILE_HEIGHT)
+        self.collision_grid = CollisionGrid(self.map_renderer.tmx_data.width, self.map_renderer.tmx_data.height,
+                                            TILE_WIDTH, TILE_HEIGHT)
         self.create_map()
         print(self.collision_grid.grid)
-        
+
         self.ui = UI()
-
-
-                # Add TMX objects to the appropriate sprite groups
-        for obj in self.map_renderer.get_objects(): 
-            if obj.obj.type == 'obstacle': # Replace 'obstacle' with the actual object type from Tiled
+        # Add TMX objects to the appropriate sprite groups
+        for obj in self.map_renderer.get_objects():
+            if obj.obj.type == 'obstacle':  # Replace 'obstacle' with the actual object type from Tiled
                 self.obstacles_sprites.add(obj)
-            elif obj.obj.type == 'item':   # Example: add objects of type 'item' to visible_sprites
+            elif obj.obj.type == 'item':  # Example: add objects of type 'item' to visible_sprites
                 self.visible_sprites.add(obj)
-
 
     def create_map(self) -> None:
         # *** Using the MapRenderer for map loading and object placement ***
         self.obstacles_sprites = self.map_renderer.object_group
         for obj in self.map_renderer.get_objects():
             self.collision_grid.add_to_grid(obj)
-        
+
         self.player = Player((6000, 6000), [self.visible_sprites], self.attackable_sprites,
                              self.obstacles_sprites, self.create_attack, self.destroy_weapon,
                              f'{BASE_PATH}/graphics/player/up_idle/up_idle_0.png')
 
     def create_attack(self) -> None:
-        self.current_attack = None # Sword(self.player, [self.visible_sprites]) # MeleeWeapon(self.player, [self.visible_sprites])
-        
-        
+        self.current_attack = None  # Sword(self.player, [self.visible_sprites]) # MeleeWeapon(self.player, [self.visible_sprites])
+
     def destroy_weapon(self) -> None:
         if self.current_attack:
             self.current_attack.kill()
         self.current_attack = None
 
-
     def player_attack_logic(self) -> None:
-        
+
         if self.attack_sprites:
             for attack_sprite in self.attack_sprites:
-                
+
                 collision_sprites = pygame.sprite.spritecollide(attack_sprite, self.attackable_sprites, False)
-                
+
                 if collision_sprites:
                     for target_sprite in collision_sprites:
-                        
+
                         if ENEMY == target_sprite.sprite_type:
                             target_sprite.get_damage(self.player, attack_sprite)
-                    
-    
+
     def damage_player(self, player, amount_of_damage, attack_type) -> None:
         if player.vulnerable and player.stats[HEALTH] > 0:
-            #print("the player is: ", player.status)
+            # print("the player is: ", player.status)
             player.stats[HEALTH] -= amount_of_damage
-            
+
             player.vulnerable = False
             player.hurt_time = pygame.time.get_ticks()
-                        
-                            
+
     def run(self) -> None:
         check = self.player.inventory.hotbar.content[self.player.inventory.hotbar.active_item_index]
-        
+
         if self.player.attacking and len(check) and (check[0].__class__, MeleeWeapon):
-            self.attack_sprites.add(self.player.inventory.hotbar.content[self.player.inventory.hotbar.active_item_index][0])
-        
+            self.attack_sprites.add(
+                self.player.inventory.hotbar.content[self.player.inventory.hotbar.active_item_index][0])
+
         player_active_item = self.player.inventory.hotbar.content[self.player.inventory.hotbar.active_item_index]
-        
+
         if player_active_item and len(player_active_item):
             if not self.player.using_item and self.player.attacking:
                 self.visible_sprites.add(player_active_item[0])
@@ -122,22 +117,23 @@ class Level:
 
         self.visible_sprites.custom_draw(self.player)
         self.visible_sprites.update(self.collision_grid)
-        
+
         self.visible_sprites.enemy_update(self.player, [self.visible_sprites, self.enemies_projectiles])
         self.player_attack_logic()
-        
+
         self.ui.display(self.player)
         self.player.inventory.display()
-        
+
         self.player.render_skills()
-        
+
         if player_active_item and len(player_active_item):
-           self.visible_sprites.remove(player_active_item[0])
-        
+            self.visible_sprites.remove(player_active_item[0])
+
         for visible_sprite in self.visible_sprites:
-            if self.player.hitbox.colliderect(visible_sprite.rect) and (issubclass(visible_sprite.__class__, Fruit) or issubclass(visible_sprite.__class__, Weapon)):
+            if self.player.hitbox.colliderect(visible_sprite.rect) and (
+                    issubclass(visible_sprite.__class__, Fruit) or issubclass(visible_sprite.__class__, Weapon)):
                 could_pickup_item = self.player.inventory.hotbar.insert(visible_sprite)
-                
+
                 if could_pickup_item:
                     self.visible_sprites.remove(visible_sprite)
 
@@ -149,20 +145,20 @@ class Level:
                         self.damage_player(self.player, visible_sprite.damage, '')
                         visible_sprite.kill()
 
-                                    
         check = self.player.inventory.hotbar.content[self.player.inventory.hotbar.active_item_index]
-        
+
         if len(check) and (check[0].__class__, MeleeWeapon):
-            self.attack_sprites.remove(self.player.inventory.hotbar.content[self.player.inventory.hotbar.active_item_index][0])
-            
+            self.attack_sprites.remove(
+                self.player.inventory.hotbar.content[self.player.inventory.hotbar.active_item_index][0])
+
         # check if there are Arrows that collide with some obstacles and attackable sprites:
         for attack_sprite in self.attack_sprites:
             if issubclass(attack_sprite.__class__, Arrow):
-                
+
                 for attackable_sprite in self.attackable_sprites:
                     if attack_sprite.rect.colliderect(attackable_sprite.rect):
                         attack_sprite.kill()
-                        
+
                 for obstacle_sprite in self.obstacles_sprites:
                     if attack_sprite.rect.colliderect(obstacle_sprite.rect):
                         attack_sprite.kill()

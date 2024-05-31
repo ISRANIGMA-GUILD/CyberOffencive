@@ -1,5 +1,3 @@
-import socket
-
 from DatabaseCreator import *
 from scapy.layers.inet import *
 from login import *
@@ -9,6 +7,7 @@ from clientpasswordgen import *
 from serverpassword import *
 from interesting_numbers import *
 from movment_logic import *
+import time
 import os
 import threading
 import pickle
@@ -22,7 +21,7 @@ MAX_MSG_LENGTH = 16000
 LOCAL_HOST = '127.0.0.1'
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
               "NODUP": ['Username', 'Password'], "DUP": ['Status', 'Items', 'Weapons'],
-              "IPs": ["IP", "MAC", "Status"]}
+              "IPs": ["IP", "MAC", "Status"], "Users": ['Username']}
 
 
 class Server:
@@ -103,13 +102,11 @@ class Server:
         # """:TODO: Lock the database with a long and strong password"""#
         # """:TODO: Make sure clients move smoothly move between servers"""#
         # """:TODO: Multiprocess security/server"""#
-        # """:TODO: Make sure all clients appear )some disappear while still connected)"""#
         # """:TODO: Make sure data is saved even if there is a duplicate password"""#
         # """:TODO(almost finished): Erase items and enemies from client side to make sure they dont still appear if collected or killed"""#
         # """:TODO(almost finished): Database updates correctly even if server is closed"""#
         # """:TODO(almost finished): Fix attribute error if server closes before clients"""#
         # """:TODO(almost finished): Make sure if items are collected the server knows"""#
-        # """:TODO: Make sure enemies dont run to clients at the start"""#
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
@@ -185,7 +182,7 @@ class Server:
         Updates list of item locations, adds enemies if there are less than 100 enemies in total
         """
 
-        while len(self.__item_locations) < 20:
+        while len(self.__item_locations) < 101:
             enemy_is = choice(self.__w_possabilities)
             self.__item_locations.append((enemy_is, (randint(1000, 10000), randint(1000, 10000))))
 
@@ -295,7 +292,7 @@ class Server:
         """
 
         try:
-            self.__load_balance_socket.settimeout(0.1)
+            self.__load_balance_socket.settimeout(0.01)
             data = self.__load_balance_socket.recv(1024)
             if data:
                 configuration = pickle.loads(data)
@@ -321,7 +318,7 @@ class Server:
         """
 
         try:
-            self.__load_balance_socket.settimeout(0.1)
+            self.__load_balance_socket.settimeout(0.01)
             data = self.__load_balance_socket.recv(1024)
 
             if data:
@@ -502,10 +499,43 @@ class Server:
             self.update_items()
             self.update_enemies()
 
-            self.receive_data_from_load_balancer()
+            self.inform_all()
 
             callback = key.data
             callback(key.fileobj, mask)
+            self.receive_data_from_load_balancer()
+
+    def inform_all(self):
+
+        if len(self.__credentials) <= len(self.__session_users):
+
+            for index in range(0, len(self.__client_sockets)):
+                try:
+                    nearby_sprites = self.nearby_them(index)
+
+                    if nearby_sprites:
+                        for message in nearby_sprites:
+                            self.__client_sockets[index].send(pickle.dumps(message))
+
+                            #time.sleep(0.01)
+
+                except ssl.SSLEOFError as e:
+                    print("Connection closedh", e)
+                    self.__all_details[index]["Connected"] = 1
+
+                    self.print_client_sockets()
+                    self.update_database()
+
+                    self.eliminate_socket(index)
+
+                except EOFError as e:
+                    print("Connection closede", e)
+                    self.__all_details[index]["Connected"] = 1
+
+                    self.update_database()
+                    self.print_client_sockets()
+
+                    self.eliminate_socket(index)
 
     def accept_client(self, current_socket, mask):
         """
@@ -585,6 +615,8 @@ class Server:
                 self.__weapons[index] = data[2]
                 self.update_database()
 
+                current_socket.send(pickle.dumps(["OK"]))
+
                 self.print_client_sockets()
                 self.eliminate_socket(index)
 
@@ -627,37 +659,40 @@ class Server:
         :param current_socket: The socket of the client
         :param mask: Damascus
         """
-
         target = list(filter(lambda person: person["Client"] == current_socket and person["Credentials"] is not None,
                              self.__all_details))[0]
         index = self.__all_details.index(target)
-
+        data = ""
         try:
             print("meow")
 
-            current_socket.settimeout(0.01)
-            data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
+          #  nearby_sprites = self.nearby_them(index)
 
+        #    if nearby_sprites:
+          #      for message in nearby_sprites:
+              #      self.__client_sockets[index].send(pickle.dumps(message))
+
+            current_socket.settimeout(0.05)
+            data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
+            print("I should see you", data)
             # If client has quit save their data
             if "EXIT" in data[0]:
-                print("Connection closed", data)
+                print("Connection closedg", data)
                 self.__all_details[index]["Connected"] = 1
-
-                self.eliminate_socket(index)
-                self.print_client_sockets()
 
                 self.__weapons[index] = data[2]
                 self.update_database()
+
+                current_socket.send(pickle.dumps(["OK"]))
+
+                self.eliminate_socket(index)
+                self.print_client_sockets()
 
             # If client has logged in and there are clients update them
 
             elif len(self.__credentials) <= len(self.__session_users) and type(data) is not tuple:
                 print("eeeeeeeeee")
-                nearby_sprites = self.nearby_them(index)
 
-                if nearby_sprites:
-                    for message in nearby_sprites:
-                        current_socket.send(pickle.dumps(message))
 
                 self.__to_send.append((current_socket, data))
 
@@ -688,7 +723,7 @@ class Server:
             pass
 
         except ssl.SSLEOFError as e:
-            print("Connection closed", e)
+            print("Connection closedm", e)
             self.__all_details[index]["Connected"] = 1
 
             self.print_client_sockets()
@@ -697,7 +732,7 @@ class Server:
             self.eliminate_socket(index)
 
         except EOFError as e:
-            print("Connection closed", e)
+            print("Connection closedn", e, data)
             self.__all_details[index]["Connected"] = 1
 
             self.update_database()
@@ -848,15 +883,17 @@ class Server:
         """
 
         """
-
         for index in range(0, len(self.__new_credentials)):
-            print(self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0]],
-                                                              no_duplicate_params=['Username']))
-            print(self.__login_data_base.set_values(['Password'], [self.__new_credentials[index][1]], ['Username'],
-                                                    [self.__new_credentials[index][0]]))
+            print("creds are", self.__new_credentials[index][0], self.__new_credentials[index][1])
+            print(self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
+                                                                      self.__new_credentials[index][1]],
+                                                              no_duplicate_params=['Username', 'Password']))
+           # print(self.__login_data_base.set_values(['Password'], [self.__new_credentials[index][1]], ['Username'],
+                            #                        [self.__new_credentials[index][0]]))
 
         for index in range(0, len(self.__session_users) - 1):
             if self.__weapons[index] is not None:
+                print("user is:", self.__session_users[index])
                 weapons = (str(self.__weapons[index]["A"]) + ", " + str(self.__weapons[index]["B"]) + ", "
                            + str(self.__weapons[index]["S"]))
                 items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) + ", " +
@@ -865,8 +902,8 @@ class Server:
                 self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
                                                  [self.__session_users[index]])
         info, resource_info, ip_info = self.receive_info()
-        self.__list_of_existing_existing_credentials, self.__list_of_existing_resources\
-            = self.organize_info(info,resource_info, ip_info)
+        self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = (
+            self.organize_info(info, resource_info, ip_info))
 
     def update_items(self):
         """
@@ -947,6 +984,7 @@ def main():
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
     ips_data_base = DatabaseManager("IPs", PARAMETERS["IPs"])
 
+    login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
     login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
     numbers = TheNumbers().run()
 
