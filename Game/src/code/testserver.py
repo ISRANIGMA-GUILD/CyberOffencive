@@ -7,13 +7,8 @@ from clientpasswordgen import *
 from serverpassword import *
 from interesting_numbers import *
 from movment_logic import *
-<<<<<<< HEAD
-=======
 from map import MapRenderer
 from collisiongrid import CollisionGrid
-import time
-import numpy
->>>>>>> 30ba6502a4ebb58af020611717c1057aa18c775c
 import os
 import threading
 import pickle
@@ -113,17 +108,13 @@ class Server:
         # """:TODO(almost finished): Erase items and enemies from client side to make sure they dont still appear if collected or killed"""#
         # """:TODO(almost finished): Database updates correctly even if server is closed"""#
         # """:TODO(almost finished): Fix attribute error if server closes before clients"""#
-        # """:TODO(almost finished): Make sure if items are collected the server knows"""#
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
                                                                                                              resource_info,
                                                                                                              ip_info)
-<<<<<<< HEAD
       #  self.set_ids()
-=======
         #self.set_ids()
->>>>>>> 30ba6502a4ebb58af020611717c1057aa18c775c
         self.set_locations()
 
         self.set_item_locations()
@@ -222,7 +213,7 @@ class Server:
         # Convert the second list to a set for faster membership checks
 
         if self.__enemy_locations:
-            return list(filter(lambda x: x not in [identity[0][0:2] for identity in self.__enemy_locations]
+            return list(filter(lambda x: x not in [identity[0][len(identity)-1:2:len(identity)-3] for identity in self.__enemy_locations]
                                 or x not in [identity[0][0:1] for identity in self.__enemy_locations], self.__id))
 
         return self.__id
