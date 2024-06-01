@@ -5,6 +5,7 @@ from the_client import *
 from creepy import *
 from settings import *
 import os
+import re
 import win32gui
 import win32con
 
@@ -89,6 +90,7 @@ class Game:
         self.__enemy_locs = []
 
         self.__the_enemies = []
+        self.__the_e_id = []
 
         self.__sample_w = ["A", "B", "S", "HPF", "EF", "RHPF", "BEF"]
         self.__sample_e = ["BSS", "BS", "CRS", "CS", "RGS", "RS", "GOB"]
@@ -356,7 +358,7 @@ class Game:
         :param lock:
         """
 
-        with lock:
+        with (lock):
             current_loc = self.level.player.get_location()
             current_status_index = int(self.level.player.frame_index)
             self.find()
@@ -368,6 +370,10 @@ class Game:
             self.prev_loc = current_loc
 
             enemies = self.__enemies
+
+            id_numbers = [re.findall(r'\d+', i)[0] for i in [identity[0] for identity in self.__enemies]]
+
+
             # If we received new locations of enemies from server see if we need to spawn them,
             # If they exist just update according to data in this message (enemies)
             if enemies:
@@ -416,15 +422,24 @@ class Game:
 
                 for loc in enemies:
                     if loc[0] not in self.__the_enemies:
+
+                        new_id = re.findall(r'\d+', loc[0])
+
+                        if new_id[0] in self.__the_e_id:
+                            print("killing", self.__the_enemies[self.__the_e_id.index(new_id[0])])
+                            self.__the_enemies.pop(self.__the_e_id.index(new_id[0]))
+                            self.__the_e_id.remove(new_id[0]) #make sure order of ids is the same as order of id numbers
+
+                            self.__the_e_id.append(new_id[0])
+
+                        else:
+                            self.__the_e_id.append(new_id[0])
+
                         self.__the_enemies.append(loc[0])
                         self.__enemy_locs.append(loc[1])
+
                     else:
                         self.__enemy_locs[self.__the_enemies.index(loc[0])] = loc[1]
-
-                for loc in enemies:
-                    for enemie in self.level.attackable_sprites:
-                        if enemie.id == loc[0]:
-                            enemie.hitbox.center = loc[1]
 
                 print("meow")
 
@@ -436,14 +451,13 @@ class Game:
                         self.__enemy_locs.remove(enemie.hitbox.center)
                         self.network.kill_enemy(enemie.id)
 
-<<<<<<< HEAD
-                 #   elif (enemie.status == 'death' and enemie.id not in self.__the_enemies
-                  #       or enemie.id):
-                  #      self.level.attackable_sprites.remove(enemie)
-=======
-                    elif (enemie.status == 'death' and enemie.id not in self.__the_enemies):
+                    elif enemie.status == 'death' or enemie.id not in self.__the_enemies:
                         self.level.attackable_sprites.remove(enemie)
->>>>>>> ba60210e407ddefcfa64462b7e0df08eaefabec5
+
+                for loc in enemies:
+                    for enemie in self.level.attackable_sprites:
+                        if enemie.id == loc[0]:
+                            enemie.hitbox.center = loc[1]
 
             elif enemies and 'LEAVE' == enemies[0]:
                 self.__game_state = "start_menu"

@@ -9,12 +9,8 @@ from interesting_numbers import *
 from movment_logic import *
 from map import MapRenderer
 from collisiongrid import CollisionGrid
-<<<<<<< HEAD
-=======
-import time
-import numpy
->>>>>>> ba60210e407ddefcfa64462b7e0df08eaefabec5
 import os
+import re
 import threading
 import pickle
 import selectors
@@ -91,7 +87,7 @@ class Server:
         self.__server_name = "load_balancer"
         self.__zone = {}
 
-        self.__id = 0
+        self.__id = []
 
     def run(self):
         """
@@ -118,11 +114,7 @@ class Server:
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
                                                                                                              resource_info,
                                                                                                              ip_info)
-<<<<<<< HEAD
-      #  self.set_ids()
-=======
->>>>>>> ba60210e407ddefcfa64462b7e0df08eaefabec5
-        #self.set_ids()
+        self.set_ids()
         self.set_locations()
 
         self.set_item_locations()
@@ -185,18 +177,25 @@ class Server:
 
         for i in range(0, 101):
             enemy_is = f'{i}'
-          #  self.__id.append(enemy_is)
+            self.__id.append(enemy_is)
 
     def set_locations(self):
         """
         Updates list of enemy locations, adds enemies if there are less than 100 enemies in total
         """
 
+        if self.__enemy_locations:
+            used = [re.findall(r'\d+', i[0])[0] for i in self.__enemy_locations]
+            unused = list(filter(lambda x: x not in used, self.__id))
+
+        else:
+            unused = self.__id
+
         while len(self.__enemy_locations) < 101:
 
-            enemy_is = f'{choice(self.__e_possabilities)}{self.__id}'
-            self.__enemy_locations.append((enemy_is, (randint(1000, 10000), randint(1000, 10000))))
-            self.__id += 1
+            for identity in unused:
+                enemy_is = f'{choice(self.__e_possabilities)}{identity}'
+                self.__enemy_locations.append((enemy_is, (randint(1000, 10000), randint(1000, 10000))))
 
     def set_item_locations(self):
         """
