@@ -436,8 +436,7 @@ class Game:
                         self.__enemy_locs.remove(enemie.hitbox.center)
                         self.network.kill_enemy(enemie.id)
 
-                    elif (enemie.status == 'death' and enemie.id not in self.__the_enemies
-                         or enemie.id):
+                    elif (enemie.status == 'death' and enemie.id not in self.__the_enemies):
                         self.level.attackable_sprites.remove(enemie)
 
             elif enemies and 'LEAVE' == enemies[0]:
