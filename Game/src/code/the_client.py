@@ -323,7 +323,7 @@ class Client:
         return (ip_address.count('.') == 3 and ''.join(ip_address.split('.')).isnumeric() and
                 len(''.join(ip_address.split('.'))) <= 12)
 
-    def receive_data(self, timer):
+    def receive_data(self, timer, sized):
         """
          Dissect the data received from the server
         :return: The data iv, data and tag
@@ -331,7 +331,7 @@ class Client:
 
         try:
             self.__the_client_socket.settimeout(timer)
-            data_pack = self.__the_client_socket.recv(200)
+            data_pack = self.__the_client_socket.recv(sized)
         #    print("data pack", data_pack)
 
             if not data_pack:
@@ -352,6 +352,9 @@ class Client:
             pygame.display.update()
 
         except socket.timeout:
+            return
+
+        except pickle.UnpicklingError:
             return
 
     def create_message(self, some_data):
@@ -544,7 +547,7 @@ class Client:
                 print("details1", details)
 
                 timer = 5
-                success = self.receive_data(timer)
+                success = self.receive_data(timer, 200)
                 print("Did succeed?", success)
 
                 if success is None:
@@ -688,7 +691,7 @@ class Client:
 
         try:
             timer = 0.01
-            data_recv = self.receive_data(timer)
+            data_recv = self.receive_data(timer, 200)
 
             if not data_recv:
                 pass
@@ -702,6 +705,56 @@ class Client:
         except socket.timeout:
             print("epic fail")
             return
+
+    def receive_items(self):
+        """
+
+        :return:
+        """
+
+        try:
+            timer = 0.01
+            data_recv = self.receive_data(timer, 200)
+
+            if not data_recv:
+                pass
+
+            elif data_recv[0] == "LEAVE":
+                return 1
+
+            else:
+                return data_recv
+
+        except socket.timeout:
+            print("epic fail")
+            return
+
+    def receive_enemies(self):
+        """
+
+        :return:
+        """
+
+        try:
+            timer = 0.01
+            data_recv = self.receive_data(timer, 2000)
+
+            if not data_recv:
+                pass
+
+            elif data_recv[0] == "LEAVE":
+                return 1
+
+            else:
+                return data_recv
+
+        except socket.timeout:
+            print("epic fail")
+            return
+
+    #def i_am_alive(self):
+
+    #    self.__the_client_socket.send(pickle.dumps(['None']))
 
     def good_music(self):
         """

@@ -11,11 +11,15 @@ services:
       - "443:443/tcp"
     tty: true
     volumes:
-      - server:/app/Game/src/code/Database
+        - server:/app/Game/src/code/Database
     networks:
-      - my-network
+        - my-network
     environment:
+<<<<<<< HEAD
       - LOAD_BALANCER_IP=10.100.102.19 # Assuming container name is "load_balancer"
+=======
+        - LOAD_BALANCER_IP=192.168.56.1 # Assuming container name is "load_balancer"
+>>>>>>> f7060b43e8b54043aa7e2bd6754d2182fe4b0502
 
 volumes:
   server:

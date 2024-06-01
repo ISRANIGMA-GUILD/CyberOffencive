@@ -220,7 +220,7 @@ class Server:
 
                 self.__server_name = configuration['server_name']
                 self.__zone = configuration['zone']
-                
+
                 print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
                 break
 

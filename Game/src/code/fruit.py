@@ -7,6 +7,7 @@ class Fruit(Item):
         super().__init__(position, groups, path)
         self.hp_boost = hp_boost
         self.energy_boost = energy_boost
+        self.sprite_type = 'Fruit'
         
     
     def apply(self, player) -> None:
