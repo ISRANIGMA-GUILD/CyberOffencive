@@ -116,7 +116,7 @@ class Server:
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
                                                                                                              resource_info,
                                                                                                              ip_info)
-        self.set_ids()
+        #self.set_ids()
         self.set_locations()
 
         self.set_item_locations()

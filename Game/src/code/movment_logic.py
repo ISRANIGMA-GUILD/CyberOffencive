@@ -110,6 +110,6 @@ class EnemyManager:
                         if obstacle.hitbox.colliderect(new_position_rect):  # Use new_position_rect here
                             return enemy_pos  # Stop movement if collision occurs
 
-            return new_position.x, new_position.y
+            return (new_position.x, new_position.y)
 
         return enemy_pos
