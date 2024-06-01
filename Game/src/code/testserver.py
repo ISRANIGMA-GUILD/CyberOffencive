@@ -7,8 +7,6 @@ from clientpasswordgen import *
 from serverpassword import *
 from interesting_numbers import *
 from movment_logic import *
-import time
-import numpy
 import os
 import threading
 import pickle
@@ -95,10 +93,10 @@ class Server:
         # """:TODO(Are they possible?): Check for session injection vulnerabilities """#
         # """:TODO: Add as secret verification between l-> s, s->l, security->s, s->security
         # """:TODO(finished?): Use load balancer as the only user of the main database and servers with their local ones"""#
-        # """:TODO: Check if users cheat(in speed, damage, etc.) """#
+        # """:TODO: Ban all processes that are not the game or server processes"""#
         # """:TODO(almost finished): Loading screen between menu and login screens """#
         # """:TODO(almost finished): Try-except on everything """#
-        # """:TODO(almost finished): Make sure server isn't bogged down due to heavy packs"""#
+        # """:TODO(finished?): Make sure server isn't bogged down due to heavy packs"""#
         # """:TODO: Show weapons when attacking"""#
         # """:TODO: Lock the database with a long and strong password"""#
         # """:TODO: Make sure clients move smoothly move between servers"""#
@@ -113,7 +111,7 @@ class Server:
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
                                                                                                              resource_info,
                                                                                                              ip_info)
-        self.set_ids()
+      #  self.set_ids()
         self.set_locations()
 
         self.set_item_locations()
@@ -176,7 +174,7 @@ class Server:
 
         for i in range(0, 101):
             enemy_is = f'{i}'
-            self.__id.append(enemy_is)
+          #  self.__id.append(enemy_is)
 
     def set_locations(self):
         """
