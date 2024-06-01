@@ -7,6 +7,13 @@ from clientpasswordgen import *
 from serverpassword import *
 from interesting_numbers import *
 from movment_logic import *
+<<<<<<< HEAD
+=======
+from map import MapRenderer
+from collisiongrid import CollisionGrid
+import time
+import numpy
+>>>>>>> 30ba6502a4ebb58af020611717c1057aa18c775c
 import os
 import threading
 import pickle
@@ -74,6 +81,7 @@ class Server:
         self.__list_of_existing_resources = []
         self.__list_of_existing_existing_credentials = []
 
+        self.collision_grid = self.create_collision_grid()
         self.__enemy_locations = []
         self.__item_locations = []
 
@@ -111,7 +119,11 @@ class Server:
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
                                                                                                              resource_info,
                                                                                                              ip_info)
+<<<<<<< HEAD
       #  self.set_ids()
+=======
+        #self.set_ids()
+>>>>>>> 30ba6502a4ebb58af020611717c1057aa18c775c
         self.set_locations()
 
         self.set_item_locations()
@@ -969,8 +981,17 @@ class Server:
         print("the equal", m, self.__enemy_locations)
 
         if m:
-            g = EnemyManager()
+            g = EnemyManager(self.collision_grid)
             self.__enemy_locations = g.update_locations(self.__enemy_locations, self.__locations)
+
+    def create_collision_grid(self):
+        """Creates the collision grid for the server."""
+        map_renderer = MapRenderer(TMX_MAP_PATH)  # Create MapRenderer instance
+        collision_grid = CollisionGrid(map_renderer.tmx_data.width, map_renderer.tmx_data.height,
+                                        TILE_WIDTH, TILE_HEIGHT)
+        for obj in map_renderer.get_objects():
+            collision_grid.add_to_grid(obj)
+        return collision_grid
 
     def kick_all(self):
         """
@@ -1021,6 +1042,13 @@ def main():
     """
     Main function
     """
+
+    pygame.init() 
+    pygame.mixer.pre_init(44100, 16, 2, 4096)
+    pygame.font.init()
+
+    # Create a dummy, invisible display (1x1 pixel)
+    screen = pygame.display.set_mode((1, 1), pygame.NOFRAME, BITS_PER_PIXEL) 
 
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
     ips_data_base = DatabaseManager("IPs", PARAMETERS["IPs"])
