@@ -6,9 +6,12 @@ from wrapper_of_the_client_socks import *
 from clientpasswordgen import *
 from serverpassword import *
 from interesting_numbers import *
+<<<<<<< HEAD
+=======
 from movment_logic import *
 from map import MapRenderer
 from collisiongrid import CollisionGrid
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
 import os
 import re
 import threading
@@ -82,14 +85,17 @@ class Server:
         self.__enemy_locations = []
         self.__item_locations = []
 
-        self.__e_possabilities = ["BSS", "BS", "CRS", "CS", "RGS", "RS", "GOB", "FRE"]
+        self.__e_possabilities = ["BSS", "BS", "CRS", "CS", "RGS", "RS", "GOB"]
         self.__w_possabilities = ["A", "B", "S", "HPF", "EF", "RHPF", "BEF"]
 
         self.__server_name = "load_balancer"
         self.__zone = {}
 
+<<<<<<< HEAD
+=======
         self.__id = []
 
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
     def run(self):
         """
 
@@ -97,8 +103,13 @@ class Server:
 
         # """:TODO(Are they possible?): Check for session injection vulnerabilities """#
         # """:TODO: Add as secret verification between l-> s, s->l, security->s, s->security
+<<<<<<< HEAD
+        # """:TODO(Work in progress): Use load balancer as the only user of the main database and servers with their local ones"""#
+        # """:TODO(Should the server intervene?): Check if users cheat(in speed, damage, etc.) """#
+=======
         # """:TODO(finished?): Use load balancer as the only user of the main database and servers with their local ones"""#
         # """:TODO: Ban all processes that are not the game or server processes"""#
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
         # """:TODO(almost finished): Loading screen between menu and login screens """#
         # """:TODO(almost finished): Try-except on everything """#
         # """:TODO(finished?): Make sure server isn't bogged down due to heavy packs"""#
@@ -107,9 +118,13 @@ class Server:
         # """:TODO: Make sure clients move smoothly move between servers"""#
         # """:TODO: Multiprocess security/server"""#
         # """:TODO: Make sure data is saved even if there is a duplicate password"""#
-        # """:TODO(almost finished): Erase items and enemies from client side to make sure they dont still appear if collected or killed"""#
+        # """:TODO: Erase items and enemies from client side to make sure they dont still appear if collected or killed"""#
         # """:TODO(almost finished): Database updates correctly even if server is closed"""#
         # """:TODO(almost finished): Fix attribute error if server closes before clients"""#
+<<<<<<< HEAD
+        # """:TODO(almost finished): Make sure if items are collected the server knows, enemies update via the server"""#
+=======
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
@@ -130,7 +145,7 @@ class Server:
         print("The server will now wait for clients")
         print("Server is up and running")
 
-       # self.connect_to_security()
+        # self.connect_to_security()
         self.connect_to_load_socket()
         self.handle_clients()
 
@@ -182,7 +197,7 @@ class Server:
 
     def set_locations(self):
         """
-        Updates list of enemy locations, adds enemies if there are less than 100 enemies in total
+
         """
 
         if self.__enemy_locations:
@@ -193,21 +208,26 @@ class Server:
             unused = self.__id
 
         while len(self.__enemy_locations) < 101:
+<<<<<<< HEAD
+            enemy_is = choice(self.__e_possabilities)
+            self.__enemy_locations.append((enemy_is, (randint(1000, 3000), randint(1000, 3000))))
+=======
 
             for identity in unused:
                 enemy_is = f'{choice(self.__e_possabilities)}{identity}'
                 self.__enemy_locations.append((enemy_is, (randint(1000, 10000), randint(1000, 10000))))
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
 
         print("fixed length", len(self.__enemy_locations) == 100, len(self.__enemy_locations) == 101)
 
     def set_item_locations(self):
         """
-        Updates list of item locations, adds enemies if there are less than 100 enemies in total
+
         """
 
         while len(self.__item_locations) < 101:
             enemy_is = choice(self.__w_possabilities)
-            self.__item_locations.append((enemy_is, (randint(1000, 10000), randint(1000, 10000))))
+            self.__item_locations.append((enemy_is, (randint(1000, 3000), randint(1000, 3000))))
 
     def difference(self):
         """
@@ -261,29 +281,30 @@ class Server:
                 print("SSL connection established with Load Balancer.")
 
                 # Receive configuration data from the load balancer
-                data = self.__load_balance_socket.recv(1024)  # Adjust buffer size based on expected data
+                data = self.__load_balance_socket.recv(1024)
                 configuration = pickle.loads(data)
 
                 self.__server_name = configuration['server_name']
                 self.__zone = configuration['zone']
-                
+
                 print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
                 break
 
             except ConnectionRefusedError:
+                print("no1")
                 pass
 
             except ConnectionResetError:
+                print("no2")
                 pass
 
             except OSError:
+                print("no 2")
                 pass
-
-        print("out")
 
     def send_message_to_load_balancer(self, message):
         """
-         Send messages to the Load Balancer.
+        Send messages to the Load Balancer.
         :param message:
         """
         try:
@@ -298,44 +319,44 @@ class Server:
         :param client_location:
         """
 
-        key = list(self.__zone.keys())[0]
-        x, y = client_location
+        x, y = client_location['x'], client_location['y']
+        if 'min_x' in self._zone and 'max_x' in self._zone and 'min_y' in self._zone and 'max_y' in self._zone:
+            min_x, max_x, min_y, max_y = self._zone['min_x'], self._zone['max_x'], self._zone['min_y'], self._zone[
+                'max_y']
 
-        min_x, max_x, min_y, max_y = (self.__zone.get(key)['min_x'], self.__zone.get(key)['max_x'],
-                                      self.__zone.get(key)['min_y'], self.__zone.get(key)['max_y'])
+            if not (min_x <= x <= max_x and min_y <= y <= max_y):
+                print(f"Client location {client_location} out of assigned zone.")
+                self.send_message_to_load_balancer({'location': client_location,
+                                                    'server': self.__server_name, 'client_data':
+                                                        self.get_local_client_details})
+            else:
+                print("Client location within assigned zone.")
 
-        if not (min_x <= x <= max_x and min_y <= y <= max_y):
-            print(f"Client location {client_location} out of assigned zone.")
-            self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location, 'server':
-                                                self.__server_name, 'client_data': self.get_local_client_details})
-
-        else:
-            print("Client location within assigned zone.")
-
-    def complete_connection(self):
-        """
-
-        :return:
-        """
-
+    def complete_connection(self, sock, mask):
         try:
-            self.__load_balance_socket.getsockname()  # Check if connection is established
-
+            sock.getpeername()  # Check if connection is established
         except socket.error:
             print("Socket not yet connected, retrying...")
             return
 
         print("Successfully connected to the load balancer.")
-        self.receive_configiration_from_load_balancer()
+        self.__selector.unregister(sock)
+        self.__selector.register(sock, selectors.EVENT_READ, self.receive_configiration_from_load_balancer)
 
-    def receive_configiration_from_load_balancer(self):
+    def receive_configiration_from_load_balancer(self, sock, mask):
         """
 
+        :param sock:
+        :param mask:
         """
 
         try:
+<<<<<<< HEAD
+            data = sock.recv(1024)
+=======
             self.__load_balance_socket.settimeout(0.01)
             data = self.__load_balance_socket.recv(1024)
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
             if data:
                 configuration = pickle.loads(data)
                 self.__server_name = configuration['server_name']
@@ -343,14 +364,10 @@ class Server:
                 print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
             else:
                 print("Load balancer closed the connection.")
-                self.__load_balance_socket.close()
-
-        except socket.timeout as e:
-            print("error when receiveing another from load balancer", e)
-
+                self.__selector.unregister(sock)
+                sock.close()
         except ssl.SSLError as e:
             print(f"SSL error: {e}")
-
         except Exception as e:
             print(f"Error: {e}")
 
@@ -358,32 +375,28 @@ class Server:
         """
 
         """
-
         try:
+<<<<<<< HEAD
+=======
             self.__load_balance_socket.settimeout(0.01)
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
             data = self.__load_balance_socket.recv(1024)
-
             if data:
                 new_client_info = pickle.loads(data)
                 self.add_new_client(new_client_info)
-
-        except socket.timeout as e:
-            print("timeout load balancer", e)
-            pass
-
         except Exception as e:
             print("Failed to receive data from load balancer:", e)
-            self.__load_balance_socket.close()
+            pass
+            self.__selector.unregister(sock)
+            sock.close()
 
     def add_new_client(self, client_info):
         """
 
         :param client_info:
         """
-
         username, client_details = client_info['username'], client_info['details']
         self.__session_users.append(username)
-
         self.__all_details.append(client_details)
         print(f"Added new client {username} with details {client_details}")
 
@@ -441,13 +454,14 @@ class Server:
         """
 
         """
-
         self.__selector.register(self.__sockets[0], selectors.EVENT_READ, self.accept_client)
         self.__selector.register(self.__sockets[1], selectors.EVENT_READ, self.accept_client)
         self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
 
         update_interval = 1/30  # Seconds (adjust as needed for responsiveness)
+        update_interval2 = 1/15  # Seconds (adjust as needed for responsiveness)
         last_update_time = time.time()
+        last_update_time2 = time.time()
 
         while True:
             try:
@@ -455,10 +469,13 @@ class Server:
                 self.new_handling()
 
                 current_time = time.time()
+                current_time2 = time.time()
                 if current_time - last_update_time >= update_interval:
                     self.update_game_state()
-                    self.inform_all()
+                    if current_time2 - last_update_time2 >= update_interval2:
+                        self.inform_all()
                     last_update_time = current_time
+                    last_update_time2 = current_time2
 
             except ConnectionResetError as e:
                 print("Server will end service")
@@ -553,11 +570,19 @@ class Server:
         events = self.__selector.select(0)
 
         for key, mask in events:
-
             self.update_credential_list()
             self.update_database()
+<<<<<<< HEAD
+            self.update_items()
 
+=======
+
+<<<<<<< HEAD
         #    self.inform_all()
+=======
+            self.inform_all()
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
+>>>>>>> 7f62a0d0671404a6ffd9d4b64d8d92591f74324f
             callback = key.data
             callback(key.fileobj, mask)
 
@@ -628,8 +653,8 @@ class Server:
                 connection.close()
                 return
 
-        except socket.timeout as e:
-            print("Didn't receive this time a client connection", e)
+        except socket.timeout:
+            print("out")
             connection.close()
             return
 
@@ -700,8 +725,7 @@ class Server:
                         self.__session_users[index] = self.__all_details[index].get("Credentials")[0]
                         self.__selector.modify(current_socket, selectors.EVENT_READ, self.update_clients)
 
-        except socket.timeout as e:
-            print("Still waiting for login from client", index, e)
+        except socket.timeout:
             pass
 
         except ssl.SSLEOFError as e:
@@ -720,15 +744,21 @@ class Server:
 
     def update_clients(self, current_socket, mask):
         """
-         Send any updates to chosen client
-        :param current_socket: The socket of the client
-        :param mask: Damascus
+
+        :param current_socket:
+        :param mask:
         """
         target = list(filter(lambda person: person["Client"] == current_socket and person["Credentials"] is not None,
                              self.__all_details))[0]
         index = self.__all_details.index(target)
         data = ""
         try:
+<<<<<<< HEAD
+            current_socket.settimeout(0.01)
+            data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
+
+            # print(data)
+=======
             print("meow")
 
           #  nearby_sprites = self.nearby_them(index)
@@ -741,6 +771,7 @@ class Server:
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
             print("I should see you", data)
             # If client has quit save their data
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
             if "EXIT" in data[0]:
                 print("Connection closedg", data)
                 self.__all_details[index]["Connected"] = 1
@@ -748,6 +779,14 @@ class Server:
                 self.__weapons[index] = data[2]
                 self.update_database()
 
+<<<<<<< HEAD
+            elif len(self.__credentials) <= len(self.__session_users) and type(data) is not tuple:
+                nearby_sprites = self.nearby_them(index)
+
+                if nearby_sprites:
+                    for message in nearby_sprites:
+                        current_socket.send(pickle.dumps(message))
+=======
                 current_socket.send(pickle.dumps(["OK"]))
 
                 self.eliminate_socket(index)
@@ -757,6 +796,7 @@ class Server:
 
             elif len(self.__credentials) <= len(self.__session_users) and type(data) is not tuple and len(data) != 2:
                 print("eeeeeeeeee")
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
 
                 self.__to_send.append((current_socket, data))
 
@@ -767,8 +807,10 @@ class Server:
                     if len(self.__data_to_send) > 0:
                         self.__data_to_send[index] = data
 
-                self.__locations[index] = (self.__session_users[index], data[0])
-                self.handle_client_location(self.__locations[index][1])
+                self.__locations[index] = data[0]
+                print(self.__locations[index])
+                self.handle_client_location(self.__locations[index])
+                self.receive_data_from_load_balancer()
 
                 if data[1] is not None and len(data[1]) > 0:
                     self.__chat[index] = data[1]
@@ -782,6 +824,9 @@ class Server:
 
                 self.send_to_clients(index)
 
+<<<<<<< HEAD
+        except socket.timeout:
+=======
             elif len(data) == 2:
                 print("kill that enemy", data)
                 if data[0] == "kill":
@@ -796,6 +841,7 @@ class Server:
 
         except socket.timeout as e:
             print("meow", e)
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
             pass
 
         except ssl.SSLEOFError as e:
@@ -818,25 +864,25 @@ class Server:
 
     def nearby_them(self, index):
         """
-         Checks for each player which items and enemies are in visible distance
-        :param index: The index of the player in the list of locations
-        :return: List of enemy, item locations which are in visible distance for the client
+
+        :param index:
         """
 
         if not self.__locations:
             return
 
         else:
+          #  print("locs", self.__item_locations)
 
             if self.__locations[index] is not None:
-                e_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][1][0]) <= 1000
-                                     and 0 <= abs(m[1][1] - self.__locations[index][1][1]) <= 1000,
+                e_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][0]) <= 70
+                                     and 0 <= abs(m[1][1] - self.__locations[index][1]) <= 70,
                                      self.__enemy_locations))
-                w_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][1][0]) <= 1000
-                                     and 0 <= abs(m[1][1] - self.__locations[index][1][1]) <= 1000,
+                w_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][0]) <= 70
+                                     and 0 <= abs(m[1][1] - self.__locations[index][1]) <= 70,
                                      self.__item_locations))
 
-                return ("e", e_near), ("w", w_near)
+                return e_near, w_near
 
     def handle_security(self, lock):
         """
@@ -866,7 +912,7 @@ class Server:
 
     def security_server_report(self):
         """
-        Will be finished soon
+        //will be finished soon
         """
 
         try:
@@ -902,7 +948,7 @@ class Server:
         eligables = list(filter(lambda person: person["Client"] is not None and person["Credentials"] is not None
                                                and person != self.__all_details[number], self.__all_details))
         chat_message = f'{self.__session_users[number]}: {self.__chat[number]}'
-        message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number]]
+        message = [self.__locations[number], chat_message, self.__status[number], self.__session_users[number]]
 
         for socks in eligables:
             try:
@@ -948,7 +994,6 @@ class Server:
                 self.__number_of_clients -= 1
 
         except Exception as e:
-
             print(e)
             return
 
@@ -995,6 +1040,8 @@ class Server:
                 self.set_item_locations()
                 print("GOT HIM")
 
+<<<<<<< HEAD
+=======
     def update_enemies(self):
         """
 
@@ -1016,6 +1063,7 @@ class Server:
             collision_grid.add_to_grid(obj)
         return collision_grid
 
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
     def kick_all(self):
         """
 
@@ -1060,6 +1108,7 @@ class Server:
             return ip_address
         else:
             return socket.gethostbyname(socket.gethostname())
+
 
 def main():
     """
