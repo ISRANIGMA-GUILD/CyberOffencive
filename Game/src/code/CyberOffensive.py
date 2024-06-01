@@ -429,9 +429,16 @@ class Game:
                 print("meow")
 
                 for enemie in self.level.attackable_sprites:
-                    if enemie.status == 'death':
-                        self.__the_enemies.remove(enemie.id) ######yoval do something
-                        self.__enemy_locs.remove(enemie.hitbox.center) ######yoval do something
+                    if enemie.status == 'death' and enemie.id in self.__the_enemies:
+                        print(enemie.id, self.__the_enemies)
+                        self.__the_enemies.remove(enemie.id)
+
+                        self.__enemy_locs.remove(enemie.hitbox.center)
+                        self.network.kill_enemy(enemie.id)
+
+                    elif (enemie.status == 'death' and enemie.id not in self.__the_enemies
+                         or enemie.id):
+                        self.level.attackable_sprites.remove(enemie)
 
             elif enemies and 'LEAVE' == enemies[0]:
                 self.__game_state = "start_menu"
