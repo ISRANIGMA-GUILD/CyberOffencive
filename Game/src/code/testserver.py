@@ -7,13 +7,10 @@ from clientpasswordgen import *
 from serverpassword import *
 from interesting_numbers import *
 from movment_logic import *
-<<<<<<< HEAD
-=======
 from map import MapRenderer
 from collisiongrid import CollisionGrid
 import time
 import numpy
->>>>>>> 30ba6502a4ebb58af020611717c1057aa18c775c
 import os
 import threading
 import pickle
@@ -119,11 +116,7 @@ class Server:
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
                                                                                                              resource_info,
                                                                                                              ip_info)
-<<<<<<< HEAD
-      #  self.set_ids()
-=======
         #self.set_ids()
->>>>>>> 30ba6502a4ebb58af020611717c1057aa18c775c
         self.set_locations()
 
         self.set_item_locations()

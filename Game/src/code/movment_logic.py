@@ -20,6 +20,7 @@ class EnemyManager:
         :param enemies:
         :param players: List of player tuples (name, position).
         """
+        print("enemies", enemies, len(enemies))
         pre_enemies = enemies.copy()
         for enemy in enemies:
             enemy_pos = enemy[1]
@@ -31,6 +32,7 @@ class EnemyManager:
 
         print("done?", enemies, len(enemies))
 
+        print("enemies", pre_enemies, len(pre_enemies))
         return pre_enemies
 
     def get_player_distance_and_direction(self, enemy_pos, player_pos):
