@@ -445,7 +445,9 @@ class Server:
         self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
 
         update_interval = 1/30  # Seconds (adjust as needed for responsiveness)
+        update_interval2 = 1/15  # Seconds (adjust as needed for responsiveness)
         last_update_time = time.time()
+        last_update_time2 = time.time()
 
         while True:
             try:
@@ -453,10 +455,13 @@ class Server:
                 self.new_handling()
 
                 current_time = time.time()
+                current_time2 = time.time()
                 if current_time - last_update_time >= update_interval:
                     self.update_game_state()
-                    self.inform_all()
+                    if current_time2 - last_update_time2 >= update_interval2:
+                        self.inform_all()
                     last_update_time = current_time
+                    last_update_time2 = current_time2
 
             except ConnectionResetError as e:
                 print("Server will end service")
