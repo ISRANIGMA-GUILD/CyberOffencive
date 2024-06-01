@@ -6,12 +6,20 @@ from wrapper_of_the_client_socks import *
 from clientpasswordgen import *
 from serverpassword import *
 from interesting_numbers import *
+<<<<<<< HEAD
+=======
+from movment_logic import *
+from map import MapRenderer
+from collisiongrid import CollisionGrid
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
 import os
+import re
 import threading
 import pickle
 import selectors
 import errno
 from random import *
+import time
 
 THE_USUAL_IP = '0.0.0.0'
 MY_IP = socket.gethostbyname(socket.gethostname())
@@ -19,7 +27,7 @@ MAX_MSG_LENGTH = 16000
 LOCAL_HOST = '127.0.0.1'
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
               "NODUP": ['Username', 'Password'], "DUP": ['Status', 'Items', 'Weapons'],
-              "IPs": ["IP", "MAC", "Status"]}
+              "IPs": ["IP", "MAC", "Status"], "Users": ['Username']}
 
 
 class Server:
@@ -73,6 +81,7 @@ class Server:
         self.__list_of_existing_resources = []
         self.__list_of_existing_existing_credentials = []
 
+        self.collision_grid = self.create_collision_grid()
         self.__enemy_locations = []
         self.__item_locations = []
 
@@ -82,6 +91,11 @@ class Server:
         self.__server_name = "load_balancer"
         self.__zone = {}
 
+<<<<<<< HEAD
+=======
+        self.__id = []
+
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
     def run(self):
         """
 
@@ -89,28 +103,36 @@ class Server:
 
         # """:TODO(Are they possible?): Check for session injection vulnerabilities """#
         # """:TODO: Add as secret verification between l-> s, s->l, security->s, s->security
+<<<<<<< HEAD
         # """:TODO(Work in progress): Use load balancer as the only user of the main database and servers with their local ones"""#
         # """:TODO(Should the server intervene?): Check if users cheat(in speed, damage, etc.) """#
+=======
+        # """:TODO(finished?): Use load balancer as the only user of the main database and servers with their local ones"""#
+        # """:TODO: Ban all processes that are not the game or server processes"""#
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
         # """:TODO(almost finished): Loading screen between menu and login screens """#
         # """:TODO(almost finished): Try-except on everything """#
-        # """:TODO(almost finished): Make sure server isn't bogged down due to heavy packs"""#
+        # """:TODO(finished?): Make sure server isn't bogged down due to heavy packs"""#
         # """:TODO: Show weapons when attacking"""#
         # """:TODO: Lock the database with a long and strong password"""#
         # """:TODO: Make sure clients move smoothly move between servers"""#
         # """:TODO: Multiprocess security/server"""#
-        # """:TODO: Make sure all clients appear )some disappear while still connected)"""#
         # """:TODO: Make sure data is saved even if there is a duplicate password"""#
         # """:TODO: Erase items and enemies from client side to make sure they dont still appear if collected or killed"""#
         # """:TODO(almost finished): Database updates correctly even if server is closed"""#
         # """:TODO(almost finished): Fix attribute error if server closes before clients"""#
+<<<<<<< HEAD
         # """:TODO(almost finished): Make sure if items are collected the server knows, enemies update via the server"""#
+=======
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
                                                                                                              resource_info,
                                                                                                              ip_info)
-
+        self.set_ids()
         self.set_locations()
+
         self.set_item_locations()
         self.__list_of_banned_users = [[self.__list_of_existing_existing_credentials[i][0],
                                         self.__list_of_existing_existing_credentials[i][1],
@@ -164,23 +186,65 @@ class Server:
 
         return list_of_existing_credentials, list_of_existing_resources
 
+    def set_ids(self):
+        """
+        Updates list of enemy locations, adds enemies if there are less than 100 enemies in total
+        """
+
+        for i in range(0, 101):
+            enemy_is = f'{i}'
+            self.__id.append(enemy_is)
+
     def set_locations(self):
         """
 
         """
 
+        if self.__enemy_locations:
+            used = [re.findall(r'\d+', i[0])[0] for i in self.__enemy_locations]
+            unused = list(filter(lambda x: x not in used, self.__id))
+
+        else:
+            unused = self.__id
+
         while len(self.__enemy_locations) < 101:
+<<<<<<< HEAD
             enemy_is = choice(self.__e_possabilities)
             self.__enemy_locations.append((enemy_is, (randint(1000, 3000), randint(1000, 3000))))
+=======
+
+            for identity in unused:
+                enemy_is = f'{choice(self.__e_possabilities)}{identity}'
+                self.__enemy_locations.append((enemy_is, (randint(1000, 10000), randint(1000, 10000))))
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
 
     def set_item_locations(self):
         """
 
         """
 
-        while len(self.__item_locations) < 20:
+        while len(self.__item_locations) < 101:
             enemy_is = choice(self.__w_possabilities)
             self.__item_locations.append((enemy_is, (randint(1000, 3000), randint(1000, 3000))))
+
+    def difference(self):
+        """
+        This function creates a list of elements from list1 that are not in list2.
+
+        Args:
+            list1: The first list.
+            list2: The second list.
+
+        Returns:
+            A list containing elements from list1 that are not in list2.
+        """
+        # Convert the second list to a set for faster membership checks
+
+        if self.__enemy_locations:
+            return list(filter(lambda x: x not in [identity[0][len(identity)-1:2:len(identity)-3] for identity in self.__enemy_locations]
+                                or x not in [identity[0][0:1] for identity in self.__enemy_locations], self.__id))
+
+        return self.__id
 
     def connect_to_security(self):
         """
@@ -285,7 +349,12 @@ class Server:
         """
 
         try:
+<<<<<<< HEAD
             data = sock.recv(1024)
+=======
+            self.__load_balance_socket.settimeout(0.01)
+            data = self.__load_balance_socket.recv(1024)
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
             if data:
                 configuration = pickle.loads(data)
                 self.__server_name = configuration['server_name']
@@ -305,6 +374,10 @@ class Server:
 
         """
         try:
+<<<<<<< HEAD
+=======
+            self.__load_balance_socket.settimeout(0.01)
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
             data = self.__load_balance_socket.recv(1024)
             if data:
                 new_client_info = pickle.loads(data)
@@ -383,14 +456,24 @@ class Server:
         self.__selector.register(self.__sockets[1], selectors.EVENT_READ, self.accept_client)
         self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
 
+        update_interval = 1/30  # Seconds (adjust as needed for responsiveness)
+        update_interval2 = 1/15  # Seconds (adjust as needed for responsiveness)
+        last_update_time = time.time()
+        last_update_time2 = time.time()
+
         while True:
             try:
 
                 self.new_handling()
 
-            #       except AttributeError:
-            #       print("wait huh")
-            #      pass
+                current_time = time.time()
+                current_time2 = time.time()
+                if current_time - last_update_time >= update_interval:
+                    self.update_game_state()
+                    if current_time2 - last_update_time2 >= update_interval2:
+                        self.inform_all()
+                    last_update_time = current_time
+                    last_update_time2 = current_time2
 
             except ConnectionResetError as e:
                 print("Server will end service")
@@ -400,7 +483,7 @@ class Server:
                 self.__login_data_base.close_conn()
 
                 self.__main_data_base.close_conn()
-               # self.disconnect_from_security()
+                #self.disconnect_from_security()
 
                 self.__ips_data_base.close_conn()
                 break
@@ -414,7 +497,21 @@ class Server:
 
                 self.__login_data_base.close_conn()
                 self.__main_data_base.close_conn()
-          #      self.disconnect_from_security()
+                #self.disconnect_from_security()
+
+                self.__ips_data_base.close_conn()
+                break
+
+            except Exception as e:
+                print("Server will end service")
+                print(e)
+
+                self.update_database()
+                self.kick_all()
+
+                self.__login_data_base.close_conn()
+                self.__main_data_base.close_conn()
+                #self.disconnect_from_security()
 
                 self.__ips_data_base.close_conn()
                 break
@@ -473,10 +570,56 @@ class Server:
         for key, mask in events:
             self.update_credential_list()
             self.update_database()
+<<<<<<< HEAD
             self.update_items()
 
+=======
+
+            self.inform_all()
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
             callback = key.data
+
             callback(key.fileobj, mask)
+            self.receive_data_from_load_balancer()
+    
+    def update_game_state(self):
+        print("Updating game state...")
+
+        self.update_items()
+        self.update_enemies()
+
+        self.set_locations()
+        self.set_item_locations()
+
+    def inform_all(self):
+
+        if len(self.__credentials) <= len(self.__session_users):
+
+            for index in range(0, len(self.__client_sockets)):
+                try:
+                    nearby_sprites = self.nearby_them(index)
+
+                    if nearby_sprites:
+                        for message in nearby_sprites:
+                            self.__client_sockets[index].send(pickle.dumps(message))
+
+                except ssl.SSLEOFError as e:
+                    print("Connection closedh", e)
+                    self.__all_details[index]["Connected"] = 1
+
+                    self.print_client_sockets()
+                    self.update_database()
+
+                    self.eliminate_socket(index)
+
+                except EOFError as e:
+                    print("Connection closede", e)
+                    self.__all_details[index]["Connected"] = 1
+
+                    self.update_database()
+                    self.print_client_sockets()
+
+                    self.eliminate_socket(index)
 
     def accept_client(self, current_socket, mask):
         """
@@ -556,6 +699,8 @@ class Server:
                 self.__weapons[index] = data[2]
                 self.update_database()
 
+                current_socket.send(pickle.dumps(["OK"]))
+
                 self.print_client_sockets()
                 self.eliminate_socket(index)
 
@@ -597,32 +742,55 @@ class Server:
         :param current_socket:
         :param mask:
         """
-
         target = list(filter(lambda person: person["Client"] == current_socket and person["Credentials"] is not None,
                              self.__all_details))[0]
         index = self.__all_details.index(target)
-
+        data = ""
         try:
+<<<<<<< HEAD
             current_socket.settimeout(0.01)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
 
             # print(data)
-            if "EXIT" in data[0]:
-                print("Connection closed", data)
-                self.__all_details[index]["Connected"] = 1
+=======
+            print("meow")
 
-                self.eliminate_socket(index)
-                self.print_client_sockets()
+          #  nearby_sprites = self.nearby_them(index)
+
+        #    if nearby_sprites:
+          #      for message in nearby_sprites:
+              #      self.__client_sockets[index].send(pickle.dumps(message))
+
+            current_socket.settimeout(0.05)
+            data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
+            print("I should see you", data)
+            # If client has quit save their data
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
+            if "EXIT" in data[0]:
+                print("Connection closedg", data)
+                self.__all_details[index]["Connected"] = 1
 
                 self.__weapons[index] = data[2]
                 self.update_database()
 
+<<<<<<< HEAD
             elif len(self.__credentials) <= len(self.__session_users) and type(data) is not tuple:
                 nearby_sprites = self.nearby_them(index)
 
                 if nearby_sprites:
                     for message in nearby_sprites:
                         current_socket.send(pickle.dumps(message))
+=======
+                current_socket.send(pickle.dumps(["OK"]))
+
+                self.eliminate_socket(index)
+                self.print_client_sockets()
+
+            # If client has logged in and there are clients update them
+
+            elif len(self.__credentials) <= len(self.__session_users) and type(data) is not tuple and len(data) != 2:
+                print("eeeeeeeeee")
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
 
                 self.__to_send.append((current_socket, data))
 
@@ -650,11 +818,28 @@ class Server:
 
                 self.send_to_clients(index)
 
+<<<<<<< HEAD
         except socket.timeout:
+=======
+            elif len(data) == 2:
+                print("kill that enemy", data)
+                if data[0] == "kill":
+                    for stuff in self.__enemy_locations:
+                        if stuff[0] == data[1]:
+                            self.__enemy_locations.remove(stuff)
+
+                elif data[0] == "collected":
+                    for stuff in self.__item_locations:
+                        if stuff[0] == data[1]:
+                            self.__item_locations.remove(stuff)
+
+        except socket.timeout as e:
+            print("meow", e)
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
             pass
 
         except ssl.SSLEOFError as e:
-            print("Connection closed", e)
+            print("Connection closedm", e)
             self.__all_details[index]["Connected"] = 1
 
             self.print_client_sockets()
@@ -663,7 +848,7 @@ class Server:
             self.eliminate_socket(index)
 
         except EOFError as e:
-            print("Connection closed", e)
+            print("Connection closedn", e, data)
             self.__all_details[index]["Connected"] = 1
 
             self.update_database()
@@ -813,15 +998,17 @@ class Server:
         """
 
         """
-
         for index in range(0, len(self.__new_credentials)):
-            print(self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0]],
-                                                              no_duplicate_params=['Username']))
-            print(self.__login_data_base.set_values(['Password'], [self.__new_credentials[index][1]], ['Username'],
-                                                    [self.__new_credentials[index][0]]))
+            print("creds are", self.__new_credentials[index][0], self.__new_credentials[index][1])
+            print(self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
+                                                                      self.__new_credentials[index][1]],
+                                                              no_duplicate_params=['Username', 'Password']))
+           # print(self.__login_data_base.set_values(['Password'], [self.__new_credentials[index][1]], ['Username'],
+                            #                        [self.__new_credentials[index][0]]))
 
         for index in range(0, len(self.__session_users) - 1):
             if self.__weapons[index] is not None:
+                print("user is:", self.__session_users[index])
                 weapons = (str(self.__weapons[index]["A"]) + ", " + str(self.__weapons[index]["B"]) + ", "
                            + str(self.__weapons[index]["S"]))
                 items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) + ", " +
@@ -830,8 +1017,8 @@ class Server:
                 self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
                                                  [self.__session_users[index]])
         info, resource_info, ip_info = self.receive_info()
-        self.__list_of_existing_existing_credentials, self.__list_of_existing_resources\
-            = self.organize_info(info,resource_info, ip_info)
+        self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = (
+            self.organize_info(info, resource_info, ip_info))
 
     def update_items(self):
         """
@@ -839,7 +1026,7 @@ class Server:
         """
 
         m = [loc for loc in self.__item_locations if loc[1] in self.__locations]
-        print("the equal", m, self.__locations)
+        #print("the equal", m, self.__locations)
 
         if m:
             for collected in m:
@@ -847,6 +1034,30 @@ class Server:
                 self.set_item_locations()
                 print("GOT HIM")
 
+<<<<<<< HEAD
+=======
+    def update_enemies(self):
+        """
+
+        """
+
+        m = [loc for loc in self.__enemy_locations]
+        #print("the equal", m, self.__enemy_locations)
+
+        if m:
+            g = EnemyManager(self.collision_grid)
+            self.__enemy_locations = g.update_locations(self.__enemy_locations, self.__locations)
+
+    def create_collision_grid(self):
+        """Creates the collision grid for the server."""
+        map_renderer = MapRenderer(TMX_MAP_PATH)  # Create MapRenderer instance
+        collision_grid = CollisionGrid(map_renderer.tmx_data.width, map_renderer.tmx_data.height,
+                                        TILE_WIDTH, TILE_HEIGHT)
+        for obj in map_renderer.get_objects():
+            collision_grid.add_to_grid(obj)
+        return collision_grid
+
+>>>>>>> 33485bcd6f475e233b6ee92de2e72a54a5028652
     def kick_all(self):
         """
 
@@ -898,9 +1109,17 @@ def main():
     Main function
     """
 
+    pygame.init() 
+    pygame.mixer.pre_init(44100, 16, 2, 4096)
+    pygame.font.init()
+
+    # Create a dummy, invisible display (1x1 pixel)
+    screen = pygame.display.set_mode((1, 1), pygame.NOFRAME, BITS_PER_PIXEL) 
+
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
     ips_data_base = DatabaseManager("IPs", PARAMETERS["IPs"])
 
+    login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
     login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
     numbers = TheNumbers().run()
 

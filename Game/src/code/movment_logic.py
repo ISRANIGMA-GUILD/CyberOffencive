@@ -1,4 +1,7 @@
 import pygame
+from settings import *
+from map import MapRenderer
+from collisiongrid import CollisionGrid
 
 
 class EnemyManager:
@@ -6,12 +9,13 @@ class EnemyManager:
     Manages a group of enemies and their movement towards players.
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, collision_grid):  # Pass collision grid here
+        self.collision_grid = collision_grid
 
     def update_locations(self, enemies, players):
         """
         Updates the locations of all enemies based on the nearest player.
+        Also handles collision with obstacles.
 
         :param enemies:
         :param players: List of player tuples (name, position).
@@ -24,8 +28,6 @@ class EnemyManager:
             if nearest_player:
                 new_location = self.move_towards_player(enemy, nearest_player[1])
                 pre_enemies[pre_enemies.index(enemy)] = (enemy[0], (int(new_location[0]), int(new_location[1])))
-
-        print("done?", enemies, len(enemies))
 
         return pre_enemies
 
@@ -76,6 +78,7 @@ class EnemyManager:
     def move_towards_player(self, enemy, player_pos):
         """
         Calculates the new position of an enemy moving towards a player.
+        Handles collisions with obstacles.
 
         :param enemy: Enemy tuple (name, position).
         :param player_pos: Player position (x, y).
@@ -89,6 +92,22 @@ class EnemyManager:
 
         if distance < 300:
             new_position = pygame.math.Vector2(enemy_pos) + direction * speed
-            return new_position.x, new_position.y
+
+            # Collision detection
+            enemy_x, enemy_y = self.collision_grid.get_grid_coords(new_position.x, new_position.y)
+
+            # Convert enemy_x and enemy_y to integers before using them in range
+            enemy_x = int(enemy_x) 
+            enemy_y = int(enemy_y) 
+
+            new_position_rect = pygame.Rect(new_position.x, new_position.y, 1, 1)  # Create a small Rect
+
+            for grid_x in range(enemy_x - 1, enemy_x + 2):
+                for grid_y in range(enemy_y - 1, enemy_y + 2):
+                    for obstacle in self.collision_grid.grid[grid_x][grid_y]:
+                        if obstacle.hitbox.colliderect(new_position_rect):  # Use new_position_rect here
+                            return enemy_pos  # Stop movement if collision occurs
+
+            return (new_position.x, new_position.y)
 
         return enemy_pos

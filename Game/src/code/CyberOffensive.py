@@ -5,6 +5,7 @@ from the_client import *
 from creepy import *
 from settings import *
 import os
+import re
 import win32gui
 import win32con
 
@@ -89,6 +90,7 @@ class Game:
         self.__enemy_locs = []
 
         self.__the_enemies = []
+        self.__the_e_id = []
 
         self.__sample_w = ["A", "B", "S", "HPF", "EF", "RHPF", "BEF"]
         self.__sample_e = ["BSS", "BS", "CRS", "CS", "RGS", "RS", "GOB"]
@@ -118,8 +120,18 @@ class Game:
                 for event in pygame.event.get():
                     if pygame.QUIT == event.type:
                         if self.__game_state == "continue":
+                            self.find()
                             list_of_details = ["EXIT", 1, self.items]
-                            self.network.update_server(list_of_details, self.items)
+
+                            while True:
+                                ack = self.network.receive_ack()
+                                self.network.update_server(list_of_details, self.items)
+
+                                print(ack)
+
+                                if ack:
+                                    if "OK" in ack:
+                                        break
 
                         pygame.quit()
                         sys.exit()
@@ -218,8 +230,8 @@ class Game:
 
                 if self.__game_state == "continue":
                 #    self.network.i_am_alive()
-                #    if self.__timer == "":
-                #        self.__timer = time.time()
+                    if self.__previous == 0:
+                        self.__previous = time.time()
 
                     threads = self.create_threads(game_lock, com_lock, div_lock)
 
@@ -243,25 +255,35 @@ class Game:
                             self.__using_chat = False
                             self.__prev_length = 19
 
-                    if self.__previous == 30:
-                        self.__timer = 1
-                        self.__previous = 0
+                   # if self.__previous == 120:
+                   #     self.__timer = 1
+                   #    self.__previous = 0
 
-                    else:
-                        self.__previous += 1
-                        self.__timer = 0
+                   # else:
+                   #     self.__previous += 1
+                   #     self.__timer = 0
 
                     pygame.display.update()
                     self.clock.tick(FPS)
 
-             #       self.__timer = time.strftime("%Ss", time.gmtime(time.time() - self.__timer).split(' '))
-
+                    if self.__previous != 0:
+                        self.__timer = time.time() - self.__previous
 
             except KeyboardInterrupt as e:
                 print(e)
                 if self.__game_state == "continue":
+                    self.find()
                     list_of_details = ["EXIT", 1, self.items]
-                    self.network.update_server(list_of_details, self.items)
+
+                    while True:
+                        ack = self.network.receive_ack()
+                        self.network.update_server(list_of_details, self.items)
+
+                        print(ack)
+
+                        if ack:
+                            if "OK" in ack:
+                                break
 
                 pygame.quit()
                 sys.exit()
@@ -269,8 +291,18 @@ class Game:
             except Exception as e:
                 print(e)
                 if self.__game_state == "continue":
+                    self.find()
                     list_of_details = ["EXIT", 1, self.items]
-                    self.network.update_server(list_of_details, self.items)
+
+                    while True:
+                        ack = self.network.receive_ack()
+                        self.network.update_server(list_of_details, self.items)
+
+                        print(ack)
+
+                        if ack:
+                            if "OK" in ack:
+                                break
 
                 pygame.quit()
                 sys.exit()
@@ -326,7 +358,7 @@ class Game:
         :param lock:
         """
 
-        with lock:
+        with (lock):
             current_loc = self.level.player.get_location()
             current_status_index = int(self.level.player.frame_index)
             self.find()
@@ -338,6 +370,10 @@ class Game:
             self.prev_loc = current_loc
 
             enemies = self.__enemies
+
+            id_numbers = [re.findall(r'\d+', i)[0] for i in [identity[0] for identity in self.__enemies]]
+
+
             # If we received new locations of enemies from server see if we need to spawn them,
             # If they exist just update according to data in this message (enemies)
             if enemies:
@@ -386,16 +422,42 @@ class Game:
 
                 for loc in enemies:
                     if loc[0] not in self.__the_enemies:
+
+                        new_id = re.findall(r'\d+', loc[0])
+
+                        if new_id[0] in self.__the_e_id:
+                            print("killing", self.__the_enemies[self.__the_e_id.index(new_id[0])])
+                            self.__the_enemies.pop(self.__the_e_id.index(new_id[0]))
+                            self.__the_e_id.remove(new_id[0]) #make sure order of ids is the same as order of id numbers
+
+                            self.__the_e_id.append(new_id[0])
+
+                        else:
+                            self.__the_e_id.append(new_id[0])
+
                         self.__the_enemies.append(loc[0])
                         self.__enemy_locs.append(loc[1])
+
                     else:
                         self.__enemy_locs[self.__the_enemies.index(loc[0])] = loc[1]
+
+                print("meow")
+
+                for enemie in self.level.attackable_sprites:
+                    if enemie.status == 'death' and enemie.id in self.__the_enemies:
+                        print(enemie.id, self.__the_enemies)
+                        self.__the_enemies.remove(enemie.id)
+
+                        self.__enemy_locs.remove(enemie.hitbox.center)
+                        self.network.kill_enemy(enemie.id)
+
+                    elif enemie.status == 'death' or enemie.id not in self.__the_enemies:
+                        self.level.attackable_sprites.remove(enemie)
 
                 for loc in enemies:
                     for enemie in self.level.attackable_sprites:
                         if enemie.id == loc[0]:
                             enemie.hitbox.center = loc[1]
-                print("meow")
 
             elif enemies and 'LEAVE' == enemies[0]:
                 self.__game_state = "start_menu"
@@ -435,15 +497,14 @@ class Game:
 
             other_client = self.__other_client
 
-            if self.__previous_details != list_of_public_details or self.__timer == 1:
+            if self.__previous_details != list_of_public_details: #or self.__timer >= 0.02:
                 s = self.network.update_server(list_of_public_details, self.items)
+                self.__previous_details = list_of_public_details
+
                 if s == 1:
                     self.__game_state = "start_menu"
 
-                else:
-                    self.__previous_details = list_of_public_details
-
-                self.__previous = 1
+                self.__previous = 0
                 self.__timer = 0
 
             if other_client is None or self.__game_state == "start_menu":

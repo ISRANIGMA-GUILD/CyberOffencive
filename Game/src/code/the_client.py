@@ -683,6 +683,24 @@ class Client:
             self.__the_client_socket.close()
             return
 
+    def kill_enemy(self, enemy_id):
+        """
+
+        :param enemy_id:
+        """
+
+        full_msg = self.create_message(["kill", enemy_id])
+        self.__the_client_socket.send(full_msg)
+
+    def picked_up(self, item_id):
+        """
+
+        :param item_id:
+        """
+
+        full_msg = self.create_message(["collected", item_id])
+        self.__the_client_socket.send(full_msg)
+
     def receive_location(self):
         """
 
@@ -704,6 +722,9 @@ class Client:
 
         except socket.timeout:
             print("epic fail")
+            return
+        except Exception as e:
+            print(e)
             return
 
     def receive_items(self):
@@ -728,6 +749,9 @@ class Client:
         except socket.timeout:
             print("epic fail")
             return
+        except Exception as e:
+            print(e)
+            return
 
     def receive_enemies(self):
         """
@@ -737,6 +761,32 @@ class Client:
 
         try:
             timer = 0.01
+            data_recv = self.receive_data(timer, 2000)
+
+            if not data_recv:
+                pass
+
+            elif data_recv[0] == "LEAVE":
+                return 1
+
+            else:
+                return data_recv
+
+        except socket.timeout:
+            print("epic fail")
+            return
+        except Exception as e:
+            print(e)
+            return
+
+    def receive_ack(self):
+        """
+
+        :return:
+        """
+
+        try:
+            timer = 0.05
             data_recv = self.receive_data(timer, 2000)
 
             if not data_recv:
@@ -763,6 +813,12 @@ class Client:
 
         self.v.SetMute(1, None)
         self.v.SetMasterVolumeLevelScalar(1.0, None)
+
+    def dummy(self):
+        """
+        sends a dummy massege to the server
+        """
+        self.__the_client_socket.send(pickle.dumps(['None']))
 
 
 def main():
