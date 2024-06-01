@@ -16,6 +16,7 @@ import pickle
 import selectors
 import errno
 from random import *
+import time
 
 THE_USUAL_IP = '0.0.0.0'
 MY_IP = socket.gethostbyname(socket.gethostname())
@@ -443,14 +444,19 @@ class Server:
         self.__selector.register(self.__sockets[1], selectors.EVENT_READ, self.accept_client)
         self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
 
+        update_interval = 1/30  # Seconds (adjust as needed for responsiveness)
+        last_update_time = time.time()
+
         while True:
             try:
 
                 self.new_handling()
 
-            #       except AttributeError:
-            #       print("wait huh")
-            #      pass
+                current_time = time.time()
+                if current_time - last_update_time >= update_interval:
+                    self.update_game_state()
+                    self.inform_all()
+                    last_update_time = current_time
 
             except ConnectionResetError as e:
                 print("Server will end service")
@@ -460,7 +466,7 @@ class Server:
                 self.__login_data_base.close_conn()
 
                 self.__main_data_base.close_conn()
-               # self.disconnect_from_security()
+                #self.disconnect_from_security()
 
                 self.__ips_data_base.close_conn()
                 break
@@ -474,7 +480,21 @@ class Server:
 
                 self.__login_data_base.close_conn()
                 self.__main_data_base.close_conn()
-          #      self.disconnect_from_security()
+                #self.disconnect_from_security()
+
+                self.__ips_data_base.close_conn()
+                break
+
+            except Exception as e:
+                print("Server will end service")
+                print(e)
+
+                self.update_database()
+                self.kick_all()
+
+                self.__login_data_base.close_conn()
+                self.__main_data_base.close_conn()
+                #self.disconnect_from_security()
 
                 self.__ips_data_base.close_conn()
                 break
@@ -535,17 +555,20 @@ class Server:
             self.update_credential_list()
             self.update_database()
 
-            self.update_items()
-            self.update_enemies()
-
-            self.set_locations()
-            self.set_item_locations()
-
             self.inform_all()
             callback = key.data
 
             callback(key.fileobj, mask)
             self.receive_data_from_load_balancer()
+    
+    def update_game_state(self):
+        print("Updating game state...")
+
+        self.update_items()
+        self.update_enemies()
+
+        self.set_locations()
+        self.set_item_locations()
 
     def inform_all(self):
 
@@ -962,7 +985,7 @@ class Server:
         """
 
         m = [loc for loc in self.__item_locations if loc[1] in self.__locations]
-        print("the equal", m, self.__locations)
+        #print("the equal", m, self.__locations)
 
         if m:
             for collected in m:
@@ -976,7 +999,7 @@ class Server:
         """
 
         m = [loc for loc in self.__enemy_locations]
-        print("the equal", m, self.__enemy_locations)
+        #print("the equal", m, self.__enemy_locations)
 
         if m:
             g = EnemyManager(self.collision_grid)

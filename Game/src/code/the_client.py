@@ -814,6 +814,12 @@ class Client:
         self.v.SetMute(1, None)
         self.v.SetMasterVolumeLevelScalar(1.0, None)
 
+    def dummy(self):
+        """
+        sends a dummy massege to the server
+        """
+        self.__the_client_socket.send(pickle.dumps(['None']))
+
 
 def main():
     """

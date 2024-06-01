@@ -20,7 +20,6 @@ class EnemyManager:
         :param enemies:
         :param players: List of player tuples (name, position).
         """
-        print("enemies", enemies, len(enemies))
         pre_enemies = enemies.copy()
         for enemy in enemies:
             enemy_pos = enemy[1]
@@ -30,9 +29,6 @@ class EnemyManager:
                 new_location = self.move_towards_player(enemy, nearest_player[1])
                 pre_enemies[pre_enemies.index(enemy)] = (enemy[0], (int(new_location[0]), int(new_location[1])))
 
-        print("done?", enemies, len(enemies))
-
-        print("enemies", pre_enemies, len(pre_enemies))
         return pre_enemies
 
     def get_player_distance_and_direction(self, enemy_pos, player_pos):
