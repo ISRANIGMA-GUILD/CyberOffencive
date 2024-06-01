@@ -198,6 +198,8 @@ class Server:
                 enemy_is = f'{choice(self.__e_possabilities)}{identity}'
                 self.__enemy_locations.append((enemy_is, (randint(1000, 10000), randint(1000, 10000))))
 
+        print("fixed length", len(self.__enemy_locations) == 100, len(self.__enemy_locations) == 101)
+
     def set_item_locations(self):
         """
         Updates list of item locations, adds enemies if there are less than 100 enemies in total
@@ -555,10 +557,10 @@ class Server:
             self.update_credential_list()
             self.update_database()
 
-            self.inform_all()
+        #    self.inform_all()
             callback = key.data
-
             callback(key.fileobj, mask)
+
             self.receive_data_from_load_balancer()
     
     def update_game_state(self):

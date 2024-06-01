@@ -20,8 +20,8 @@ class Game:
         pygame.mixer.pre_init(44100, 16, 2, 4096)
         pygame.font.init()
 
-        #the_program_to_hide = win32gui.GetForegroundWindow()
-      #  win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
+        # the_program_to_hide = win32gui.GetForegroundWindow()
+        #  win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
 
         self.font = pygame.font.Font(FONT_PATH, 60)
         self.font_chat = pygame.font.Font(FONT_PATH, 30)
@@ -42,7 +42,7 @@ class Game:
         self.prev_loc = 0
 
         self.__previous_status = 0
-     #   self.player = CreePy()
+        #   self.player = CreePy()
 
         self.__message = ""
         self.items = {"A": 0, "B": 0, "S": 0, "HPF": 0, "EF": 0, "RHPF": 0, "BEF": 0}
@@ -156,40 +156,41 @@ class Game:
 
                         self.screen.blit(img, (0, 0))
 
-                     #   print("DId it really succeed?", ran)
+                        #   print("DId it really succeed?", ran)
                         if ran == 2:
-                          #  print("what is that new")
+                            #  print("what is that new")
                             self.__game_state = "start_menu"
 
                         elif ran == 1:
-                          #  print("really oh reaaaaally")
+                            #  print("really oh reaaaaally")
                             self.__game_state = "start_menu"
 
                         else:
                             self.__game_state = "continue"
                             pygame.display.set_caption("Cyber Offensive")
 
-                           # print("Thingy", ran)
+                            # print("Thingy", ran)
 
                             if len(ran) > 1:
                                 items = ran[1][1].split(', ')
 
                                 weapons = ran[1][2].split(', ')
-                             #   print("the stuff", int(items[0]), weapons, int(items[1]))
+                                #   print("the stuff", int(items[0]), weapons, int(items[1]))
                                 #  print(items)
                                 if int(weapons[0]) > 0:
                                     self.items["A"] = int(weapons[0])
 
                                     for item in range(0, self.items["A"]):
                                         self.level.player.inventory.hotbar.insert(Axe((0, 0),
-                                                                                        [self.level.visible_sprites]))
+                                                                                      [self.level.visible_sprites]))
 
                                 if int(weapons[1]) > 0:
                                     self.items["B"] = int(weapons[1])
 
                                     for item in range(0, self.items["B"]):
-                                        self.level.player.inventory.hotbar.insert(Bow((0, 0), self.level.visible_sprites,
-                                                                                        [self.level.visible_sprites, self.level.attack_sprites]))
+                                        self.level.player.inventory.hotbar.insert(
+                                            Bow((0, 0), self.level.visible_sprites,
+                                                [self.level.visible_sprites, self.level.attack_sprites]))
 
                                 if int(weapons[2]) > 0:
                                     self.items["S"] = int(weapons[2])
@@ -209,27 +210,30 @@ class Game:
                                     self.items["EF"] = int(items[1])
                                     for item in range(0, self.items["EF"]):
                                         self.level.player.inventory.hotbar.insert(EnergyFruit((0, 0),
-                                                                                              [self.level.visible_sprites]))
+                                                                                              [
+                                                                                                  self.level.visible_sprites]))
 
                                 if int(items[2]) > 0:
                                     self.items["RHPF"] = int(items[2])
 
                                     for item in range(0, self.items["RHPF"]):
                                         self.level.player.inventory.hotbar.insert(RedHPFruit((0, 0),
-                                                                                              [self.level.visible_sprites]))
+                                                                                             [
+                                                                                                 self.level.visible_sprites]))
 
                                 if int(items[3]) > 0:
                                     self.items["BEF"] = int(items[3])
 
                                     for item in range(0, self.items["BEF"]):
                                         self.level.player.inventory.hotbar.insert(BlueEnergyFruit((0, 0),
-                                                                                              [self.level.visible_sprites]))
+                                                                                                  [
+                                                                                                      self.level.visible_sprites]))
 
                     pygame.display.update()
                     self.clock.tick(FPS)
 
                 if self.__game_state == "continue":
-                #    self.network.i_am_alive()
+                    #    self.network.i_am_alive()
                     if self.__previous == 0:
                         self.__previous = time.time()
 
@@ -255,13 +259,13 @@ class Game:
                             self.__using_chat = False
                             self.__prev_length = 19
 
-                   # if self.__previous == 120:
-                   #     self.__timer = 1
-                   #    self.__previous = 0
+                    # if self.__previous == 120:
+                    #     self.__timer = 1
+                    #    self.__previous = 0
 
-                   # else:
-                   #     self.__previous += 1
-                   #     self.__timer = 0
+                    # else:
+                    #     self.__previous += 1
+                    #     self.__timer = 0
 
                     pygame.display.update()
                     self.clock.tick(FPS)
@@ -343,7 +347,6 @@ class Game:
     def divide_data(self, lock):
 
         with lock:
-
             data1 = self.network.receive_enemies()
             data2 = self.network.receive_items()
 
@@ -358,7 +361,7 @@ class Game:
         :param lock:
         """
 
-        with (lock):
+        with ((lock)):
             current_loc = self.level.player.get_location()
             current_status_index = int(self.level.player.frame_index)
             self.find()
@@ -373,11 +376,13 @@ class Game:
 
             id_numbers = [re.findall(r'\d+', i)[0] for i in [identity[0] for identity in self.__enemies]]
 
+            if not self.__the_e_id:
+                self.__the_e_id = id_numbers
 
             # If we received new locations of enemies from server see if we need to spawn them,
             # If they exist just update according to data in this message (enemies)
             if enemies:
-              #  print("w")
+                #  print("w")
                 [BlueSnowSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
                                 self.level.obstacles_sprites,
                                 self.level.damage_player, self.level, loc[0]) for loc in
@@ -418,38 +423,31 @@ class Game:
                         self.level.obstacles_sprites,
                         self.level.damage_player, self.level, loc[0]) for loc in
                  list(filter(lambda person: "FRE" in person[0], enemies)) if loc[0] not in self.__the_enemies]
-                print("e", enemies)
+                #  print("e", enemies)
 
                 for loc in enemies:
                     if loc[0] not in self.__the_enemies:
-
-                        new_id = re.findall(r'\d+', loc[0])
-
-                        if new_id[0] in self.__the_e_id:
-                            print("killing", self.__the_enemies[self.__the_e_id.index(new_id[0])])
-                            self.__the_enemies.pop(self.__the_e_id.index(new_id[0]))
-                            self.__the_e_id.remove(new_id[0]) #make sure order of ids is the same as order of id numbers
-
-                            self.__the_e_id.append(new_id[0])
-
-                        else:
-                            self.__the_e_id.append(new_id[0])
-
                         self.__the_enemies.append(loc[0])
                         self.__enemy_locs.append(loc[1])
+
+                        self.__the_e_id.append(re.findall(r'\d+', loc[0])[0])
 
                     else:
                         self.__enemy_locs[self.__the_enemies.index(loc[0])] = loc[1]
 
-                print("meow")
+                # print("meow", self.__the_enemies)
 
                 for enemie in self.level.attackable_sprites:
-                    if enemie.status == 'death' and enemie.id in self.__the_enemies:
-                        print(enemie.id, self.__the_enemies)
-                        self.__the_enemies.remove(enemie.id)
+                    if (enemie.status == 'death' and enemie.id in self.__the_enemies or
+                            self.__the_e_id.count(re.findall(r'\d+', enemie.id)[0]) > 1):
+                        print(self.__the_e_id, enemie.id, self.__the_enemies)
 
+                        self.__the_enemies.remove(enemie.id)
                         self.__enemy_locs.remove(enemie.hitbox.center)
+
                         self.network.kill_enemy(enemie.id)
+                        self.level.attackable_sprites.remove(enemie)
+                        self.__the_e_id.remove(re.findall(r'\d+', enemie.id)[0])
 
                     elif enemie.status == 'death' or enemie.id not in self.__the_enemies:
                         self.level.attackable_sprites.remove(enemie)
@@ -462,14 +460,14 @@ class Game:
             elif enemies and 'LEAVE' == enemies[0]:
                 self.__game_state = "start_menu"
 
-               #     if loc[0] in self.__enemy_locs:
-                   #     self.__enemy_locs[self.__enemy_locs.index(loc[0])]
+            #     if loc[0] in self.__enemy_locs:
+            #     self.__enemy_locs[self.__enemy_locs.index(loc[0])]
 
             weapons = self.__weapons
             # If we received new locations of weapons\items from server see if we need to spawn them,
             # If they exist just update according to data in this message (weapons)
             if weapons:
-                print("w", weapons)
+                # print("w", weapons)
                 [Axe(loc[1], [self.level.visible_sprites])
                  for loc in list(filter(lambda person: "A" in person, weapons)) if loc[1] not in self.__item_locs]
                 [Bow(loc[1], [self.level.visible_sprites], [self.level.visible_sprites, self.level.attack_sprites])
@@ -497,7 +495,7 @@ class Game:
 
             other_client = self.__other_client
 
-            if self.__previous_details != list_of_public_details: #or self.__timer >= 0.02:
+            if self.__previous_details != list_of_public_details:  # or self.__timer >= 0.02:
                 s = self.network.update_server(list_of_public_details, self.items)
                 self.__previous_details = list_of_public_details
 
@@ -578,8 +576,8 @@ class Game:
                                 self.__locs[i][0] != len(self.__previous_messages) - 1):
                             self.__locs[i][0] += 1
 
-         #   pygame.display.update()
-          #  self.clock.tick(FPS)
+        #   pygame.display.update()
+        #  self.clock.tick(FPS)
 
     def draw_start_menu(self):
         """
@@ -637,7 +635,7 @@ class Game:
                 weapons = d[1]
 
             else:
-                print("oth client", d)
+                # print("oth client", d)
                 other_client = d
 
         return enemies, weapons, other_client
@@ -697,7 +695,6 @@ class Game:
                 self.clock.tick(FPS)
 
                 if timer > 0.001:
-
                     return
 
     def update_users(self):
