@@ -16,7 +16,7 @@ zones = {
     'Zone4': {'min_x': 2188, 'max_x': 3648, 'min_y': 1920, 'max_y': 3200},
     'ZoneBuffer': {'min_x': 1458, 'max_x': 2187, 'min_y': 0, 'max_y': 3200}
 }
-LB_IP = "0.0.0.0"
+LB_IP = "127.0.0.1"
 LB_PORT = 1800
 NUMBER_OF_SERVERS = 3
 # Define the servers
@@ -68,6 +68,7 @@ class LoadBalancer:
             'Zone4': None,
             'Zone5': None
         }
+
         print("Load balancer setup complete. Listening for server connections...")
 
     def run(self):
@@ -75,8 +76,6 @@ class LoadBalancer:
 
         """
         print("NUMBER_OF_SERVERS")
-      #  while len(self.servers) != NUMBER_OF_SERVERS:
-        #    self.accept_new_connection(self.__load_balancer_socket)
         while True:
             self.accept_connections()
 
@@ -101,19 +100,34 @@ class LoadBalancer:
             if len(self.servers) != NUMBER_OF_SERVERS:
                 connection, addr = sock.accept()
 
-                print(f"Connected to {addr}")
-                connection.setblocking(False)
+                pass_c = GetPassword(460).run()
 
-                self.servers.append(connection)
-                assigned_zone = self.server_names[len(self.servers) % len(self.server_names)]
+            #    sock.settimeout(0.5)
+                data = pickle.loads(connection.recv(1024))
 
-                self.server_zone_map[assigned_zone] = connection  # Map server to its zone
-                print("la")
+                if pass_c != data[0]:
+                    print("Banned the hacker")
+                    connection.close()
 
-                self.send_server_configuration(connection, self.get_name())
-                data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
+                else:
+                    connection.send(pickle.dumps([Verifier(480).run()]))
 
-                self.selector.register(connection, selectors.EVENT_READ, self.service_connection)
+                    print(f"Connected to {addr}")
+                    connection.setblocking(False)
+
+                    self.servers.append(connection)
+                    assigned_zone = self.server_names[len(self.servers) % len(self.server_names)]
+
+                    self.server_zone_map[assigned_zone] = connection  # Map server to its zone
+                    print("la")
+
+                    self.send_server_configuration(connection, self.get_name())
+                    data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
+
+                    self.selector.register(connection, selectors.EVENT_READ, self.service_connection)
+
+        except socket.timeout as e:
+            print("No one tried to connect", e)
 
         except BlockingIOError as e:
             print(f"BlockingIOError: No incoming connections to accept yet. {e}")
@@ -233,8 +247,8 @@ class LoadBalancer:
             print("Connection closedn", e)
             print("Closing connection to", sock.getpeername())
 
-          #  self.selector.unregister(sock)
-         #   sock.close()
+            self.selector.unregister(sock)
+            sock.close()
 
     def determine_server(self, client_info):
         """
@@ -243,15 +257,17 @@ class LoadBalancer:
         :return:
         """
         x, y = client_info['x'], client_info['y']
-        buffer_zone_1 = self.zones[ZoneBuffer1]
-        buffer_zone_2 = self.zones[ZoneBuffer1]
+        buffer_zone_1 = self.zones['ZoneBuffer1']
+        buffer_zone_2 = self.zones['ZoneBuffer1']
 
         if (self.zones['min_x'] <= x <= buffer_zone_1['max_x'] and buffer_zone_1['min_y'] <= y <= buffer_zone_1[
             'max_y']) or \
                 (buffer_zone_2['min_x'] <= x <= buffer_zone_2['max_x'] and buffer_zone_2['min_y'] <= y <= buffer_zone_2[
                     'max_y']):
             print("Client assigned to buffer server based on buffer zone coordinates.")
-            return self.server_zone_map[self.__server_name]  # Return the buffer server
+
+            return self.server_zone_map['Zone5']  # Return the buffer server
+
         else:
             print("Client not within any buffer zones, routing to a regular server based on location.")
 

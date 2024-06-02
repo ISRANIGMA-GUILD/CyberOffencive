@@ -1,8 +1,10 @@
 import pygame
-from settings import *
-from map import MapRenderer
-from collisiongrid import CollisionGrid
-
+try:
+    from settings import *
+    from map import MapRenderer
+    from collisiongrid import CollisionGrid
+except AttributeError:
+    pass
 
 class EnemyManager:
     """

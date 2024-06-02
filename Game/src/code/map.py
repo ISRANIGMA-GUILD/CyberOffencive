@@ -3,8 +3,11 @@ import sys
 import os
 from pytmx.util_pygame import load_pygame
 import pytmx
-from settings import *
 
+try:
+    from settings import *
+except AttributeError:
+    pass
 
 class MapRenderer:
     def __init__(self, map_path=f"../new_map/cyber_map.tmx"):
