@@ -20,7 +20,7 @@ zones = {
 LB_IP = "0.0.0.0"
 LB_PORT = 1800
 
-NUMBER_OF_SERVERS = 2
+NUMBER_OF_SERVERS = 1
 
 # Define the servers
 servers = ['Server1', 'Server2', 'Server3', 'Server4', 'Server5']
@@ -171,7 +171,7 @@ class LoadBalancer:
                     callback = key.data
                     callback(key.fileobj, mask)
 
-    def update_client_database(self, username, password, status, items, weapons):
+    def update_client_database(self, username, password, status, items):
         """
         Insert or update client data in the database.
 
@@ -183,7 +183,7 @@ class LoadBalancer:
         """
         self.__login_data_base.insert_no_duplicates(values=[username, password], no_duplicate_params=["Username"])
 
-        values = [username, password, status, items, weapons]
+        values = [username, password, status, items]
         params = PARAMETERS["PlayerDetails"]
         self.__main_data_base.insert_no_duplicates(values=values, no_duplicate_params=["Username"])
 
@@ -204,20 +204,23 @@ class LoadBalancer:
             if recv_data is not None:
                 print("Data received:", recv_data)
                 client_info = pickle.loads(recv_data)
+                print("Data received:", client_info)
+                credentials = client_info.get('credentials')
+                username = credentials[0]
+                password = credentials[1]  # Default password if not provided
+                status = client_info.get('status')  # Default status if not provided
+                if status is None:
+                    status = 'idle'
+                items = client_info.get('items')  # Default items if not provided
 
-                username = client_info.get('username')
-                password = client_info.get('password', 'defaultPassword')  # Default password if not provided
-                status = client_info.get('status', 'Active')  # Default status if not provided
-                items = client_info.get('items', 'None')  # Default items if not provided
-                weapons = client_info.get('weapons', 'None')  # Default weapons if not provided
-                location = client_info.get('location', {'x': 0, 'y': 0})  # Default location if not provided
+                # weapons = client_info.get('weapons', 'None')  # Default weapons if not provided
+                location = client_info.get('location')  # Default location if not provided
 
                 self.__session_users.append(username)
                 self.__credentials.append({
-                    'username': username, 'password': password, 'status': status, 'items': items, 'weapons': weapons
-                })
+                    'username': username, 'password': password, 'status': status, 'items': items})
 
-                self.update_client_database(username, password, status, items, weapons)
+                self.update_client_database(username, password, status, items)
                 self.update_database()
                 target_server = self.determine_server(location)
                 if target_server:
@@ -258,7 +261,8 @@ class LoadBalancer:
         :param client_info:
         :return:
         """
-        x, y = client_info['x'], client_info['y']
+        x = client_info[0]
+        y = client_info[1]
         buffer_zone_1 = self.zones['ZoneBuffer1']
         buffer_zone_2 = self.zones['ZoneBuffer2']
 
@@ -308,15 +312,14 @@ class LoadBalancer:
                            self.__new_credentials[index][1]],
                    no_duplicate_params=PARAMETERS["NODUP"]))
 
-        for index in range(0, len(self.__session_users) - 1):
-            if self.__weapons[index] is not None:
-                weapons = (str(self.__weapons[index]["A"]) + ", " + str(self.__weapons[index]["B"]) +
-                           ", " + str(self.__weapons[index]["S"]))
-                items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) +
-                         ", " + str(self.__weapons[index]["RHPF"]) + ", " + str(self.__weapons[index]["BEF"]))
+        # for index in range(0, len(self.__session_users) - 1):
+            # if self.__weapons[index] is not None:
+                # weapons = (str(self.__weapons[index]["A"]) + ", " + str(self.__weapons[index]["B"]) +
+                # ", " + str(self.__weapons[index]["S"]))
+                # items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) +
+                # ", " + str(self.__weapons[index]["RHPF"]) + ", " + str(self.__weapons[index]["BEF"]))
 
-                print(self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons],
-                                                       ['Username'], [self.__session_users[index]]))
+                # print(self.__main_data_base.set_values(['Username'], [self.__session_users[index]]))
 
 
 def main():

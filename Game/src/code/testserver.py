@@ -293,14 +293,19 @@ class Server:
         except Exception as e:
             print(f"Failed to send message: {e}")
 
-    def handle_client_location(self, client_location, temp):
+    def handle_client_location(self, client_location, temp, index):
         """
         Check client location and notify load balancer if out of zone.
+        :param index:
+        :param temp:
         :param client_location:
         """
+        print(self.get_local_client_details)
         if temp:
+            print("hi")
             self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
-                                                'client_data': self.get_local_client_details})
+                                                'credentials': self.__credentials[index], 'status': self.__status[index]
+                                                , 'items': self.__weapons[index]})
         key = list(self.__zone.keys())[0]
         x, y = client_location
 
@@ -314,8 +319,8 @@ class Server:
                 print("Client location within buffer zone.")
             else:
                 print("Client location out of buffer zones.")
-                self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location, 'client_data':
-                                                        self.get_local_client_details})
+                self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
+                                                    'client_data': self.get_local_client_details})
 
         else:
             min_x, max_x, min_y, max_y = self.__zone['min_x'], self.__zone['max_x'], self.__zone['min_y'], self.__zone[
@@ -778,7 +783,7 @@ class Server:
 
                 self.__weapons[index] = data[2]
                 self.update_database()
-
+                self.__weapons[index]
                 current_socket.send(pickle.dumps(["OK"]))
 
                 self.eliminate_socket(index)
@@ -803,7 +808,8 @@ class Server:
 
                 self.__locations[index] = (self.__session_users[index], data[0])
                 temp = True
-                self.handle_client_location(self.__locations[index][1], temp)
+                print("hello")
+                self.handle_client_location(self.__locations[index][1], temp, index)
 
                 if data[1] is not None and len(data[1]) > 0:
                     self.__chat[index] = data[1]

@@ -108,7 +108,7 @@ class Login:
                 the_big_ugly_list = [self.__list_of_banned_users[i][0]
                                      for i in range(0, len(self.__list_of_banned_users))]
 
-                if tuple_of_credentials in self.__list_of_existing:
+                if tuple_of_credentials in self.__list_of_existing and self:
 
                     if (self.__list_of_existing_resources[self.__number][0] != "banned"
                        and tuple_of_credentials[0] not in the_big_ugly_list):
