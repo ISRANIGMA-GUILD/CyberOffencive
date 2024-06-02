@@ -17,6 +17,7 @@ import selectors
 import errno
 from random import *
 import time
+from dnssec_client import ServerDiscoveryClient
 
 THE_USUAL_IP = '0.0.0.0'
 MY_IP = socket.gethostbyname(socket.gethostname())
@@ -1076,8 +1077,10 @@ class Server:
         if ip_address:
             return ip_address
         else:
-            return socket.gethostbyname(socket.gethostname())
-
+            try:
+                return ServerDiscoveryClient().discover_server()
+            except Exception:
+                return socket.gethostbyname(socket.gethostname())
 
 def main():
     """
