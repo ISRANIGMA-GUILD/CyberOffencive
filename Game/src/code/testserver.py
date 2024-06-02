@@ -1,8 +1,9 @@
 import socket
 
 from DatabaseCreator import *
-from scapy.layers.inet import *
 from login import *
+from scapy.layers.inet import *
+from scapy.layers.l2 import *
 from wrapper_of_the_server_socks import *
 from wrapper_of_the_client_socks import *
 from clientpasswordgen import *
@@ -35,7 +36,6 @@ PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weap
 class Server:
 
     def __init__(self, main_data_base, login_data_base, ips_data_base, number):
-        self.__secure_socket = EncryptClient("Top_Secret", number + 1, "all.we.mightknow").run()
         self.__load_balance_socket = EncryptClient("Secret", number, "load_balancer").run()
 
         self.__load_balance_ip = self.get_load_balancer_ip()
@@ -65,13 +65,11 @@ class Server:
 
         self.__status = []
 
-        self.__weapon_status = []
-        self.__weapons = []
+        self.__items = []
 
         self.__hp = []
         self.__energy = []
 
-        self.__items = []
         self.__session_users = []
 
         self.__to_send = []
@@ -85,14 +83,14 @@ class Server:
 
         self.collision_grid = self.create_collision_grid()
         self.__enemy_locations = []
+
         self.__item_locations = []
-
         self.__e_possabilities = ["BSS", "BS", "CRS", "CS", "RGS", "RS", "GOB", "FRE"]
+
         self.__w_possabilities = ["A", "B", "S", "HPF", "EF", "RHPF", "BEF"]
-
         self.__server_name = "load_balancer"
-        self.__zone = {}
 
+        self.__zone = {}
         self.__id = []
 
     def run(self):
@@ -100,21 +98,16 @@ class Server:
 
         """
 
-        # """:TODO(Are they possible?): Check for session injection vulnerabilities """#
-        # """:TODO: Add as secret verification between l-> s, s->l, security->s, s->security
         # """:TODO(finished?): Use load balancer as the only user of the main database and servers with their local ones"""#
-        # """:TODO: Ban all processes that are not the game or server processes"""#
         # """:TODO(almost finished): Loading screen between menu and login screens """#
         # """:TODO(almost finished): Try-except on everything """#
-        # """:TODO(finished?): Make sure server isn't bogged down due to heavy packs"""#
-        # """:TODO: Show weapons when attacking"""#
-        # """:TODO: Lock the database with a long and strong password"""#
+        # """:TODO(almost finished): Show weapons when attacking"""#
         # """:TODO: Make sure clients move smoothly move between servers"""#
-        # """:TODO: Multiprocess security/server"""#
+        # """:TODO: Make a whitelist of processes NO MATTER CLIENT FRIENDLY or NOT"""#
         # """:TODO: Make sure data is saved even if there is a duplicate password"""#
         # """:TODO(almost finished): Erase items and enemies from client side to make sure they dont still appear if collected or killed"""#
         # """:TODO(almost finished): Database updates correctly even if server is closed"""#
-        # """:TODO(almost finished): Fix attribute error if server closes before clients"""#
+        # """:TODO(If there is time): Ban when ban is printed!"""#
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
@@ -135,7 +128,6 @@ class Server:
         print("The server will now wait for clients")
         print("Server is up and running")
 
-        # self.connect_to_security()
         self.connect_to_load_socket()
         self.handle_clients()
 
@@ -212,28 +204,6 @@ class Server:
             enemy_is = choice(self.__w_possabilities)
             self.__item_locations.append((enemy_is, (randint(1000, 10000), randint(1000, 10000))))
 
-    def connect_to_security(self):
-        """
-
-        """
-
-        while True:
-            try:
-                self.__secure_socket.connect((LOCAL_HOST, 443))
-                print("succ")
-
-                break
-
-            except ConnectionRefusedError as e:
-                print("what", e)
-
-            except ConnectionResetError as e:
-                print("huh", e)
-
-            except socket.error as e:
-                if e.errno == errno.EADDRINUSE:
-                    print("Port is already in use")
-
     def connect_to_load_socket(self):
         """
 
@@ -247,7 +217,7 @@ class Server:
                 their_pass = Verifier(480).run()
 
                 self.__load_balance_socket.send(pickle.dumps([GetPassword(460).run()]))
-              #  self.__load_balance_socket.settimeout(0.5)
+                self.__load_balance_socket.settimeout(0.5)
 
                 data = pickle.loads(self.__load_balance_socket.recv(1024))
 
@@ -326,7 +296,7 @@ class Server:
                 print(f"Client location {client_location} out of assigned zone.")
                 self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
                                                     'server': self.__server_name, 'client_data':
-                                                        self.get_local_client_details})
+                                                     self.get_local_client_details})
 
     def complete_connection(self):
         """
@@ -411,7 +381,8 @@ class Server:
         """
 
         print(client_address)
-        if client_address[0] in self.__banned_ips or getmacbyip(client_address[0]) in self.__banned_macs:
+        if (client_address[0] in self.__banned_ips or getmacbyip(client_address[0]) in self.__banned_macs
+                or Ether().src in self.__banned_macs):
             self.__all_details[number]["Connected"] = 1
 
         else:
@@ -483,7 +454,7 @@ class Server:
                     self.update_game_state()
 
                     if (current_time2 - last_update_time2 >= update_interval2 and
-                            (self.__enemy_locations != previous_enemy or self.__items != previous_item)):
+                            (self.__enemy_locations != previous_enemy or self.__item_locations != previous_item)):
                         self.inform_all()
 
                         previous_enemy = self.__enemy_locations
@@ -500,7 +471,6 @@ class Server:
                 self.__login_data_base.close_conn()
 
                 self.__main_data_base.close_conn()
-                # self.disconnect_from_security()
 
                 self.__ips_data_base.close_conn()
                 break
@@ -514,7 +484,6 @@ class Server:
 
                 self.__login_data_base.close_conn()
                 self.__main_data_base.close_conn()
-                # self.disconnect_from_security()
 
                 self.__ips_data_base.close_conn()
                 break
@@ -528,7 +497,6 @@ class Server:
 
                 self.__login_data_base.close_conn()
                 self.__main_data_base.close_conn()
-                # self.disconnect_from_security()
 
                 self.__ips_data_base.close_conn()
                 break
@@ -559,24 +527,8 @@ class Server:
         if self.__number_of_clients - 1 >= len(self.__items) or len(self.__items) == 0:
             self.__items.append(None)
 
-        if self.__number_of_clients - 1 >= len(self.__weapons) or len(self.__weapons) == 0:
-            self.__weapons.append(None)
-
         if self.__number_of_clients - 1 >= len(self.__session_users) or len(self.__session_users) == 0:
             self.__session_users.append(None)
-
-    def create_security_threads(self, lock):
-        """
-
-        :param lock:
-        :return:
-        """
-
-        threads = []
-        the_thread = threading.Thread(target=self.handle_security, args=(lock,))
-        threads.append(the_thread)
-
-        return threads
 
     def new_handling(self):
         """
@@ -650,7 +602,7 @@ class Server:
         connection, client_address = current_socket.accept()
 
         try:
-            connection.settimeout(1)
+            connection.settimeout(0.05)
             their_pass = pickle.loads(connection.recv(MAX_MSG_LENGTH))
 
             if their_pass[0] != passw:
@@ -707,7 +659,7 @@ class Server:
 
             if "EXIT" in data[0]:
                 self.__all_details[index]["Connected"] = 1
-                self.__weapons[index] = data[2]
+                self.__items[index] = data[2]
                 self.update_database()
 
                 current_socket.send(pickle.dumps(["OK"]))
@@ -758,6 +710,7 @@ class Server:
                              self.__all_details))[0]
         index = self.__all_details.index(target)
         data = ""
+
         try:
             print("meow")
 
@@ -775,7 +728,7 @@ class Server:
                 print("Connection closedg", data)
                 self.__all_details[index]["Connected"] = 1
 
-                self.__weapons[index] = data[2]
+                self.__items[index] = data[2]
                 self.update_database()
 
                 current_socket.send(pickle.dumps(["OK"]))
@@ -880,61 +833,6 @@ class Server:
 
                 return ("e", e_near), ("w", w_near)
 
-    def handle_security(self, lock):
-        """
-
-        :param lock:
-        :return:
-        """
-
-        with lock:
-
-            ban_users = self.security_server_report()
-
-            if not ban_users:
-                pass
-
-            else:
-                if not self.__banned_ips and not self.__banned_macs:
-                    self.__banned_ips, self.__banned_macs = ([ban_users[i][0] for i in range(0, len(ban_users))],
-                                                             [ban_users[i][1] for i in range(0, len(ban_users))])
-                else:
-                    for i in range(0, len(ban_users)):
-                        if ban_users[i][0] not in self.__banned_ips:
-                            self.__banned_ips.append(ban_users[i][0])
-
-                        if ban_users[i][1] not in self.__banned_ips:
-                            self.__banned_macs.append(ban_users[i][1])
-
-    def security_server_report(self):
-        """
-        Will be finished soon
-        """
-
-        try:
-            self.__secure_socket.settimeout(0.1)
-            data = pickle.loads(self.__secure_socket.recv(MAX_MSG_LENGTH))
-
-            if not data:
-                return
-
-            else:
-                decrypted_data = data
-
-                if decrypted_data == 1:
-                    self.__secure_socket.close()
-                    self.__secure_socket = EncryptClient("Server", 2, "all.we.mightknow")
-
-                    self.connect_to_security()
-                    return
-
-                unpacked_data = pickle.loads(decrypted_data)
-
-                return unpacked_data
-
-        except socket.timeout:
-            return
-
     def send_to_clients(self, number):
         """
 
@@ -1010,12 +908,12 @@ class Server:
         #                        [self.__new_credentials[index][0]]))
 
         for index in range(0, len(self.__session_users) - 1):
-            if self.__weapons[index] is not None:
+            if self.__items[index] is not None:
                 print("user is:", self.__session_users[index])
-                weapons = (str(self.__weapons[index]["A"]) + ", " + str(self.__weapons[index]["B"]) + ", "
-                           + str(self.__weapons[index]["S"]))
-                items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) + ", " +
-                         str(self.__weapons[index]["RHPF"]) + ", " + str(self.__weapons[index]["BEF"]))
+                weapons = (str(self.__items[index]["A"]) + ", " + str(self.__items[index]["B"]) + ", "
+                           + str(self.__items[index]["S"]))
+                items = (str(self.__items[index]["HPF"]) + ", " + str(self.__items[index]["EF"]) + ", " +
+                         str(self.__items[index]["RHPF"]) + ", " + str(self.__items[index]["BEF"]))
 
                 self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
                                                  [self.__session_users[index]])
@@ -1066,23 +964,20 @@ class Server:
         """
 
         for sock in self.__client_sockets:
-            sock.send(pickle.dumps(["LEAVE"]))
-            sock.close()
+            try:
+                sock.send(pickle.dumps(["LEAVE"]))
+                sock.settimeout(0.5)
 
-    def disconnect_from_security(self):
-        """
+                data = pickle.loads(sock.recv(1024))
+                self.__items[self.__client_sockets.index(sock)] = data
 
-        """
+                self.update_database()
 
-        try:
-            message = pickle.dumps(["EXIT"])
+                sock.close()
 
-            self.__secure_socket.send(message)
-            self.__secure_socket.close()
-
-        except ConnectionResetError as e:
-            print(e)
-            return
+            except socket.timeout as e:
+                print("To bad", e)
+                sock.close()
 
     def get_local_client_details(self):
         """

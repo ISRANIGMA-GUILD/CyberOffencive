@@ -353,7 +353,13 @@ class Game:
             data3 = self.network.receive_location()
             data = [data1, data2, data3]
 
-            self.__enemies, self.__weapons, self.__other_client = self.which_is_it(data)
+            success_data = self.which_is_it(data)
+
+            if success_data != 1:
+                self.__enemies, self.__weapons, self.__other_client = success_data[0], success_data[1], success_data[2]
+
+            else:
+                return
 
     def communication(self, lock):
         """
@@ -661,15 +667,22 @@ class Game:
             if not d:
                 pass
 
-            elif self.is_enemies(d):
-                enemies = d[1]
+            if type(d) is int:
+                self.__game_state = "start_menu"
+                list_of_details = ["EXIT", 1, self.items]
+                s = self.network.update_server(list_of_details, self.items)
+                return 1
 
-            elif self.is_weapons(d):
-                weapons = d[1]
+            if type(d) is list:
+                if self.is_enemies(d):
+                    enemies = d[1]
 
-            else:
-             #   print("oth client", d)
-                other_client = d
+                elif self.is_weapons(d):
+                    weapons = d[1]
+
+                else:
+                 #   print("oth client", d)
+                    other_client = d
 
         return enemies, weapons, other_client
 
@@ -820,6 +833,32 @@ class Game:
         self.items["RHPF"] = count_rf
         self.items["BEF"] = count_bef
 
+    def gurgle(self):
+        """
+
+        """
+        meow = [self.level, self.level.visible_sprites.copy(), self.level.attackable_sprites.copy(),
+                self.level.attack_sprites.copy(), self.level.obstacles_sprites.copy(), self.font,
+                self.level.player.copy(), self.level.player.inventory.copy()]
+
+        self.level.visible_sprites = None
+        self.level.attackable_sprites = None
+        self.level.attack_sprites = None
+        self.level.obstacles_sprites = None
+        self.level = None
+
+        self.ungurgle(meow)
+
+    def ungurgle(self, meow):
+        """
+
+        """
+
+        self.level = meow[0]
+        self.level.visible_sprites = meow[1]
+        self.level.attackable_sprites = meow[2]
+        self.level.attack_sprites = meow[3]
+        self.level.obstacles_sprites = meow[4]
 
 def main():
     abspath = os.path.abspath(__file__)

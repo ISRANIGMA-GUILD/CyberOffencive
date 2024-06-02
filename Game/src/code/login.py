@@ -2,8 +2,6 @@ import socket
 import time
 import pickle
 
-MAX_MSG_LENGTH = 1024
-
 
 class Login:
 
@@ -38,10 +36,10 @@ class Login:
             self.check_account()
             return
 
-     #   except TypeError:
-       #     print("Problematic")
-         #   self.__details["Connected"] = 1
-         #   return
+        except TypeError:
+            print("Problematic")
+            self.__details["Connected"] = 1
+            return
 
         except ConnectionResetError:
             print("Client", self.__number + 1, self.__details["Client"].getpeername(),
@@ -73,25 +71,12 @@ class Login:
             self.__details["Connected"] = 1
             return
 
-    def invalid_data(self, data_iv, data_c_t, data_tag):
-        """
-
-        :param data_iv:
-        :param data_c_t:
-        :param data_tag:
-        :return:
-        """
-
-        return data_iv == 0 and data_c_t == 1 and data_tag == 2
-
     def check_account(self):
         """
 
         """
         self.__details["Credentials"] = self.__sus
-      #  print("checking", self.__details["Credentials"], self.__details["Client"])
         if not self.__details["Credentials"]:
-        #    print("really", self.__details["Credentials"], self.__details.keys())
             pass
 
         else:
@@ -196,4 +181,3 @@ class Login:
         """
 
         return pickle.dumps(some_data)
-

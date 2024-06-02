@@ -9,13 +9,14 @@ import pickle
 import types
 
 # Define zones on the map with their boundary coordinates
-zones = {
-    'Zone1': {'min_x': 0, 'max_x': 1459, 'min_y': 0, 'max_y': 1280},
-    'Zone2': {'min_x': 2188, 'max_x': 3648, 'min_y': 0, 'max_y': 1280},
-    'Zone3': {'min_x': 0, 'max_x': 1459, 'min_y': 1920, 'max_y': 3200},
-    'Zone4': {'min_x': 2188, 'max_x': 3648, 'min_y': 1920, 'max_y': 3200},
-    'ZoneBuffer': {'min_x': 1458, 'max_x': 2187, 'min_y': 0, 'max_y': 3200}
+zones = {'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
+         'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680},
+         'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
+         'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
+         'ZoneBuffer1': {'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200},
+         'ZoneBuffer2': {'min_x2': 0, 'max_x2': 19680, 'min_y2': 19681, 'max_y2': 23519}
 }
+
 LB_IP = "127.0.0.1"
 LB_PORT = 1800
 NUMBER_OF_SERVERS = 3
@@ -53,13 +54,12 @@ class LoadBalancer:
         self.selector = selectors.DefaultSelector()
         self.selector.register(self.__load_balancer_socket, selectors.EVENT_READ, self.accept_new_connection)
 
-        self.zones = {
-            'Zone1': {'min_x': 0, 'max_x': 1459, 'min_y': 0, 'max_y': 1280},
-            'Zone2': {'min_x': 2188, 'max_x': 3648, 'min_y': 0, 'max_y': 1280},
-            'Zone3': {'min_x': 0, 'max_x': 1459, 'min_y': 1920, 'max_y': 3200},
-            'Zone4': {'min_x': 2188, 'max_x': 3648, 'min_y': 1920, 'max_y': 3200},
-            'ZoneBuffer1': {'min_x1': 1458, 'max_x1': 2187, 'min_y1': 0, 'max_y1': 3200},
-            'ZoneBuffer2': {'min_x2': 0, 'max_x2': 3648, 'min_y2': 1281, 'max_y2': 1919}
+        self.zones = {'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
+                      'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680},
+                      'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
+                      'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
+                      'ZoneBuffer1': {'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200},
+                      'ZoneBuffer2': {'min_x2': 0, 'max_x2': 19680, 'min_y2': 19681, 'max_y2': 23519}
         }
         self.server_zone_map = {
             'Zone1': None,  # These will hold actual server socket connections
@@ -102,7 +102,7 @@ class LoadBalancer:
 
                 pass_c = GetPassword(460).run()
 
-            #    sock.settimeout(0.5)
+                sock.settimeout(0.5)
                 data = pickle.loads(connection.recv(1024))
 
                 if pass_c != data[0]:
@@ -179,11 +179,13 @@ class LoadBalancer:
         :param items: Client's initial items
         :param weapons: Client's initial weapons
         """
-        self.__login_data_base.insert_no_duplicates(values=[username, password], no_duplicate_params=["Username"])
+        self.__login_data_base.insert_no_duplicates(values=[username, password],
+                                                    no_duplicate_params=["Username", "Password"])
 
-        values = [username, password, status, items, weapons]
+        values = [items, weapons]
         params = PARAMETERS["PlayerDetails"]
-        self.__main_data_base.insert_no_duplicates(values=values, no_duplicate_params=["Username"])
+
+        self.__main_data_base.set_values(['Items', 'Weapons'], values, ['Username'], [username])
 
         print(f"Updated database for client {username}")
 

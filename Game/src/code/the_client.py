@@ -204,6 +204,7 @@ class Client:
                 self.__the_client_socket.send(pickle.dumps([GetPassword(128).run()]))
 
                 the_real_pass = Verifier(256).run()
+
                 self.__the_client_socket.settimeout(0.5)
                 their_pass = pickle.loads(self.__the_client_socket.recv(MAX_MSG_LENGTH))
 
