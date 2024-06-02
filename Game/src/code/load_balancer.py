@@ -38,6 +38,7 @@ class LoadBalancer:
         self.servers = []
 
         self.__credentials = []
+        self.__new_credentials = []
 
         self.__session_users = []
 
@@ -217,7 +218,7 @@ class LoadBalancer:
                 })
 
                 self.update_client_database(username, password, status, items, weapons)
-
+                self.update_database()
                 target_server = self.determine_server(location)
                 if target_server:
                     target_server.send(pickle.dumps(client_info))
