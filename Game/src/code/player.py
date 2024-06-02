@@ -323,15 +323,13 @@ class Player(Entity):
         elif not keys[pygame.K_b]:
             self.b_key_pressed = False
 
+        smallest_distance = 1000000
         closest_enemy = None
         for enemy in self.enemies_group:
-            smallest_distance = 1000000
-            closest_enemy = None
-            for enemy in self.enemies_group:
-                distance = self.distance_to(enemy)
-                if distance < smallest_distance:
-                    smallest_distance = distance
-                    closest_enemy = enemy
+            distance = self.distance_to(enemy)
+            if distance < smallest_distance:
+                smallest_distance = distance
+                closest_enemy = enemy
 
         if closest_enemy:
             self.direction, _ = self.get_player_distance_and_direction(closest_enemy)
@@ -510,7 +508,7 @@ class Player(Entity):
             self.get_status()
             self.animate()
 
-            self.move()
+            self.move(collision_grid)
             self.inventory.update()
 
         self.am_i_dead()

@@ -115,6 +115,7 @@ class Game:
             #  v = self.player.get_volume()
             #  v.SetMute(1, None)
             #  v.SetMasterVolumeLevelScalar(1.0, None)
+            # self.gurgle()
 
             try:
                 for event in pygame.event.get():
@@ -801,6 +802,31 @@ class Game:
         self.items["RHPF"] = count_rf
         self.items["BEF"] = count_bef
 
+    def gurgle(self):
+        """
+
+        """
+        meow = [self.level, self.level.visible_sprites.copy(), self.level.attackable_sprites.copy(),
+                self.level.attack_sprites.copy(), self.level.obstacles_sprites.copy()]
+        
+        self.level.visible_sprites = None
+        self.level.attackable_sprites = None
+        self.level.attack_sprites = None
+        self.level.obstacles_sprites = None
+        self.level = None
+
+        self.ungurgle(meow)
+
+    def ungurgle(self, meow):
+        """
+
+        """
+
+        self.level = meow[0]
+        self.level.visible_sprites = meow[1]
+        self.level.attackable_sprites = meow[2]
+        self.level.attack_sprites = meow[3]
+        self.level.obstacles_sprites = meow[4]
 
 def main():
     abspath = os.path.abspath(__file__)
