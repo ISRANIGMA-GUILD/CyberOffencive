@@ -1073,14 +1073,14 @@ class Server:
         """
 
         ip_address = os.getenv("LOAD_BALANCER_IP")
+        s = ServerDiscoveryClient().discover_server()
 
         if ip_address:
             return ip_address
+        elif s:
+            return s
         else:
-            try:
-                return ServerDiscoveryClient().discover_server()
-            except Exception:
-                return socket.gethostbyname(socket.gethostname())
+            return socket.gethostbyname(socket.gethostname())
 
 def main():
     """
