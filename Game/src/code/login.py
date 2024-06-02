@@ -98,7 +98,7 @@ class Login:
 
             tuple_of_credentials = self.__details["Credentials"]
             print("print this man", tuple_of_credentials, self.__credentials, "\nyes", self.__list_of_existing,
-                  "\nyes1", self.__list_of_existing_resources)
+                  "\nyes1", self.__list_of_existing_resources, "\n", self.__credentials)
 
             if self.__credentials.count(self.__details["Credentials"]) <= 1:
 
@@ -136,7 +136,8 @@ class Login:
                     print("credes", self.__list_of_existing, "\n", tuple_of_credentials)
 
                     if (self.username_exists(list_of_existing_users, tuple_of_credentials) and
-                       not self.password_exists(list_of_existing_passes, tuple_of_credentials)):
+                       not self.password_exists(list_of_existing_passes, tuple_of_credentials) or
+                       tuple_of_credentials in self.__credentials):
 
                         print("Wrong username or password")
 

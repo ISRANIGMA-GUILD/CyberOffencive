@@ -130,7 +130,7 @@ class Server:
         print("The server will now wait for clients")
         print("Server is up and running")
 
-       # self.connect_to_security()
+        # self.connect_to_security()
         self.connect_to_load_socket()
         self.handle_clients()
 
@@ -221,8 +221,10 @@ class Server:
         # Convert the second list to a set for faster membership checks
 
         if self.__enemy_locations:
-            return list(filter(lambda x: x not in [identity[0][len(identity)-1:2:len(identity)-3] for identity in self.__enemy_locations]
-                                or x not in [identity[0][0:1] for identity in self.__enemy_locations], self.__id))
+            return list(filter(lambda x: x not in [identity[0][len(identity) - 1:2:len(identity) - 3] for identity in
+                                                   self.__enemy_locations]
+                                         or x not in [identity[0][0:1] for identity in self.__enemy_locations],
+                               self.__id))
 
         return self.__id
 
@@ -264,7 +266,7 @@ class Server:
 
                 self.__server_name = configuration['server_name']
                 self.__zone = configuration['zone']
-                
+
                 print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
                 break
 
@@ -305,7 +307,7 @@ class Server:
         if not (min_x <= x <= max_x and min_y <= y <= max_y):
             print(f"Client location {client_location} out of assigned zone.")
             self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location, 'server':
-                                                self.__server_name, 'client_data': self.get_local_client_details})
+                self.__server_name, 'client_data': self.get_local_client_details})
 
         else:
             print("Client location within assigned zone.")
@@ -444,10 +446,14 @@ class Server:
         self.__selector.register(self.__sockets[1], selectors.EVENT_READ, self.accept_client)
         self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
 
-        update_interval = 1/30  # Seconds (adjust as needed for responsiveness)
-        update_interval2 = 1/15  # Seconds (adjust as needed for responsiveness)
+        update_interval = 1 / 15  # Seconds (adjust as needed for responsiveness)
+        update_interval2 = 1 / 30  # Seconds (adjust as needed for responsiveness)
+
         last_update_time = time.time()
         last_update_time2 = time.time()
+
+        previous_item = self.__item_locations
+        previous_enemy = self.__enemy_locations
 
         while True:
             try:
@@ -456,10 +462,17 @@ class Server:
 
                 current_time = time.time()
                 current_time2 = time.time()
+
                 if current_time - last_update_time >= update_interval:
                     self.update_game_state()
-                    if current_time2 - last_update_time2 >= update_interval2:
+
+                    if (current_time2 - last_update_time2 >= update_interval2 and
+                            (self.__enemy_locations != previous_enemy or self.__items != previous_item)):
                         self.inform_all()
+
+                        previous_enemy = self.__enemy_locations
+                        previous_item = self.__item_locations
+
                     last_update_time = current_time
                     last_update_time2 = current_time2
 
@@ -471,7 +484,7 @@ class Server:
                 self.__login_data_base.close_conn()
 
                 self.__main_data_base.close_conn()
-                #self.disconnect_from_security()
+                # self.disconnect_from_security()
 
                 self.__ips_data_base.close_conn()
                 break
@@ -485,7 +498,7 @@ class Server:
 
                 self.__login_data_base.close_conn()
                 self.__main_data_base.close_conn()
-                #self.disconnect_from_security()
+                # self.disconnect_from_security()
 
                 self.__ips_data_base.close_conn()
                 break
@@ -499,7 +512,7 @@ class Server:
 
                 self.__login_data_base.close_conn()
                 self.__main_data_base.close_conn()
-                #self.disconnect_from_security()
+                # self.disconnect_from_security()
 
                 self.__ips_data_base.close_conn()
                 break
@@ -556,16 +569,14 @@ class Server:
         events = self.__selector.select(0)
 
         for key, mask in events:
-
             self.update_credential_list()
             self.update_database()
 
-            self.inform_all()
             callback = key.data
-
             callback(key.fileobj, mask)
+
             self.receive_data_from_load_balancer()
-    
+
     def update_game_state(self):
         print("Updating game state...")
 
@@ -675,7 +686,7 @@ class Server:
         index = self.__all_details.index(target)
 
         try:
-            current_socket.settimeout(0.5)
+            current_socket.settimeout(0.05)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
 
             if "EXIT" in data[0]:
@@ -734,11 +745,11 @@ class Server:
         try:
             print("meow")
 
-          #  nearby_sprites = self.nearby_them(index)
+            #  nearby_sprites = self.nearby_them(index)
 
-        #    if nearby_sprites:
-          #      for message in nearby_sprites:
-              #      self.__client_sockets[index].send(pickle.dumps(message))
+            #    if nearby_sprites:
+            #      for message in nearby_sprites:
+            #      self.__client_sockets[index].send(pickle.dumps(message))
 
             current_socket.settimeout(0.05)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
@@ -757,6 +768,9 @@ class Server:
                 self.print_client_sockets()
 
             # If client has logged in and there are clients update them
+
+            elif data == ['None']:
+                pass
 
             elif len(self.__credentials) <= len(self.__session_users) and type(data) is not tuple and len(data) != 2:
                 print("eeeeeeeeee")
@@ -833,10 +847,10 @@ class Server:
 
             if self.__locations[index] is not None:
                 e_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][1][0]) <= 1000
-                                     and 0 <= abs(m[1][1] - self.__locations[index][1][1]) <= 1000,
+                                               and 0 <= abs(m[1][1] - self.__locations[index][1][1]) <= 1000,
                                      self.__enemy_locations))
                 w_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][1][0]) <= 1000
-                                     and 0 <= abs(m[1][1] - self.__locations[index][1][1]) <= 1000,
+                                               and 0 <= abs(m[1][1] - self.__locations[index][1][1]) <= 1000,
                                      self.__item_locations))
 
                 return ("e", e_near), ("w", w_near)
@@ -916,7 +930,7 @@ class Server:
                 pass
 
             except ssl.SSLError as e:
-                print("not  good",  e)
+                print("not  good", e)
                 pass
 
     def print_client_sockets(self):
@@ -967,8 +981,8 @@ class Server:
             print(self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
                                                                       self.__new_credentials[index][1]],
                                                               no_duplicate_params=['Username', 'Password']))
-           # print(self.__login_data_base.set_values(['Password'], [self.__new_credentials[index][1]], ['Username'],
-                            #                        [self.__new_credentials[index][0]]))
+        # print(self.__login_data_base.set_values(['Password'], [self.__new_credentials[index][1]], ['Username'],
+        #                        [self.__new_credentials[index][0]]))
 
         for index in range(0, len(self.__session_users) - 1):
             if self.__weapons[index] is not None:
@@ -990,7 +1004,7 @@ class Server:
         """
 
         m = [loc for loc in self.__item_locations if loc[1] in self.__locations]
-        #print("the equal", m, self.__locations)
+        # print("the equal", m, self.__locations)
 
         if m:
             for collected in m:
@@ -1004,7 +1018,7 @@ class Server:
         """
 
         m = [loc for loc in self.__enemy_locations]
-        #print("the equal", m, self.__enemy_locations)
+        # print("the equal", m, self.__enemy_locations)
 
         if m:
             g = EnemyManager(self.collision_grid)
@@ -1014,7 +1028,7 @@ class Server:
         """Creates the collision grid for the server."""
         map_renderer = MapRenderer(TMX_MAP_PATH)  # Create MapRenderer instance
         collision_grid = CollisionGrid(map_renderer.tmx_data.width, map_renderer.tmx_data.height,
-                                        TILE_WIDTH, TILE_HEIGHT)
+                                       TILE_WIDTH, TILE_HEIGHT)
         for obj in map_renderer.get_objects():
             collision_grid.add_to_grid(obj)
         return collision_grid
@@ -1064,17 +1078,18 @@ class Server:
         else:
             return socket.gethostbyname(socket.gethostname())
 
+
 def main():
     """
     Main function
     """
 
-    pygame.init() 
+    pygame.init()
     pygame.mixer.pre_init(44100, 16, 2, 4096)
     pygame.font.init()
 
     # Create a dummy, invisible display (1x1 pixel)
-    screen = pygame.display.set_mode((1, 1), pygame.NOFRAME, BITS_PER_PIXEL) 
+    screen = pygame.display.set_mode((1, 1), pygame.NOFRAME, BITS_PER_PIXEL)
 
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
     ips_data_base = DatabaseManager("IPs", PARAMETERS["IPs"])
