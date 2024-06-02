@@ -689,7 +689,7 @@ class Client:
         :param enemy_id:
         """
 
-        full_msg = self.create_message(["kill", enemy_id])
+        full_msg = self.create_message(("kill", enemy_id))
         self.__the_client_socket.send(full_msg)
 
     def picked_up(self, item_id):

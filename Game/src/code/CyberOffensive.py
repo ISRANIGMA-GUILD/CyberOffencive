@@ -229,8 +229,11 @@ class Game:
                     pygame.display.update()
                     self.clock.tick(FPS)
 
+                    self.erase_prev()
+
                 if self.__game_state == "continue":
                 #    self.network.i_am_alive()
+                    #self.erase_prev()
                     if self.__previous == 0:
                         self.__previous = time.time()
 
@@ -267,7 +270,6 @@ class Game:
                     pygame.display.update()
                     self.clock.tick(FPS)
 
-                    self.erase_prev()
 
 
                #     if self.__previous != 0:
@@ -362,7 +364,7 @@ class Game:
         :param lock:
         """
 
-        with (lock):
+        with lock:
 
             current_loc = self.level.player.get_location()
             current_status_index = int(self.level.player.frame_index)
@@ -378,10 +380,11 @@ class Game:
 
             id_numbers = [re.findall(r'\d+', i)[0] for i in [identity[0] for identity in self.__enemies]]
 
-          #  if self.__the_e_id is None:
-          #      self.__the_e_id = id_numbers
+            if self.__the_e_id is None:
+                self.__the_e_id = id_numbers
             # If we received new locations of enemies from server see if we need to spawn them,
             # If they exist just update according to data in this message (enemies)
+          #  self.erase_prev()
             if enemies:
               #  print("w")
                 [BlueSnowSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
@@ -441,31 +444,32 @@ class Game:
                         self.__the_enemies.pop(self.__the_e_id.index(new_id[0]))
                         self.__the_e_id.remove(new_id[0])  # make sure order of ids is the same as order of id numbers
 
-                   #     self.__the_e_id.append(new_id[0])
+                        self.__the_e_id.append(new_id[0])
 
                     else:
                         self.__enemy_locs[self.__the_enemies.index(loc[0])] = loc[1]
 
-             #   print("meow")
+                print(self.__the_enemies)
 
                 for enemie in self.level.attackable_sprites:
-                    if enemie.status == 'death' and enemie.id in self.__the_enemies:
+                    if enemie.status == 'death':
                        # print(enemie.id, self.__the_enemies)
                         print("kill", enemie.id)
-                        self.__the_enemies.remove(enemie.id)
+                      #  self.__the_enemies.remove(enemie.id)
 
-                       # self.__enemy_locs.remove(enemie.hitbox.center)
+                      #  self.__enemy_locs.remove(enemie.hitbox.center)
                         self.network.kill_enemy(enemie.id)
 
-                        self.level.attackable_sprites.remove(enemie)
+                #        self.level.attackable_sprites.remove(enemie)
 
                     elif enemie.id not in self.__the_enemies:
                        # self.__enemy_locs.remove(enemie.hitbox.center)
-                        print("kill")
+                    #    print("kill")
                        # enemie.kill()
+                  #      print("kill")
                         self.level.visible_sprites.remove(enemie)
                         self.level.attackable_sprites.remove(enemie)
-                        #enemie.kill()
+                        enemie.kill()
 
                  #  else:
                   #      print(self.__the_enemies, self.__the_e_id, enemie.id)
@@ -765,11 +769,12 @@ class Game:
 
         if self.__the_enemies:
             for enemie in self.level.attackable_sprites:
+                #if enemie.id not in self.__the_enemies:
                 self.level.visible_sprites.remove(enemie)
                 self.level.attackable_sprites.remove(enemie)
+            #    enemie.kill()
 
             self.__the_enemies = []
-
             self.__the_e_id = []
 
     def find(self):
@@ -825,7 +830,7 @@ class Game:
         """
 
         """
-        meow = [self.level, self.level.visible_sprites.copy(), self.level.attackable_sprites.copy(),
+        meow = [self.level.visible_sprites.copy(), self.level.attackable_sprites.copy(),
                 self.level.attack_sprites.copy(), self.level.obstacles_sprites.copy()]
         
         self.level.visible_sprites = None
@@ -841,7 +846,6 @@ class Game:
 
         """
 
-        self.level = meow[0]
         self.level.visible_sprites = meow[1]
         self.level.attackable_sprites = meow[2]
         self.level.attack_sprites = meow[3]

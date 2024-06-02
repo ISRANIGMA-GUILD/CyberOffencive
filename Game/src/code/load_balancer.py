@@ -10,19 +10,18 @@ import types
 
 # Define zones on the map with their boundary coordinates
 zones = {
-    'Zone1': {'min_x': 0, 'max_x': 1459, 'min_y': 0, 'max_y': 1280},
-    'Zone2': {'min_x': 2188, 'max_x': 3648, 'min_y': 0, 'max_y': 1280},
-    'Zone3': {'min_x': 0, 'max_x': 1459, 'min_y': 1920, 'max_y': 3200},
-    'Zone4': {'min_x': 2188, 'max_x': 3648, 'min_y': 1920, 'max_y': 3200},
-    'ZoneBuffer': {'min_x': 1458, 'max_x': 2187, 'min_y': 0, 'max_y': 3200}
+            'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
+            'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680},
+            'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
+            'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
+            'ZoneBuffer1': {'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200},
+            'ZoneBuffer2': {'min_x2': 0, 'max_x2': 19680, 'min_y2': 19681, 'max_y2': 23519}
 }
 LB_IP = "0.0.0.0"
 LB_PORT = 1800
-<<<<<<< HEAD
+
 NUMBER_OF_SERVERS = 2
-=======
-NUMBER_OF_SERVERS = 3
->>>>>>> performance_opt
+
 # Define the servers
 servers = ['Server1', 'Server2', 'Server3', 'Server4', 'Server5']
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
@@ -58,19 +57,12 @@ class LoadBalancer:
         self.selector.register(self.__load_balancer_socket, selectors.EVENT_READ, self.accept_new_connection)
 
         self.zones = {
-<<<<<<< HEAD
             'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
             'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680},
             'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
             'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
-=======
-            'Zone1': {'min_x': 0, 'max_x': 1459, 'min_y': 0, 'max_y': 1280},
-            'Zone2': {'min_x': 2188, 'max_x': 3648, 'min_y': 0, 'max_y': 1280},
-            'Zone3': {'min_x': 0, 'max_x': 1459, 'min_y': 1920, 'max_y': 3200},
-            'Zone4': {'min_x': 2188, 'max_x': 3648, 'min_y': 1920, 'max_y': 3200},
->>>>>>> performance_opt
-            'ZoneBuffer1': {'min_x1': 1458, 'max_x1': 2187, 'min_y1': 0, 'max_y1': 3200},
-            'ZoneBuffer2': {'min_x2': 0, 'max_x2': 3648, 'min_y2': 1281, 'max_y2': 1919}
+            'ZoneBuffer1': {'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200},
+            'ZoneBuffer2': {'min_x2': 0, 'max_x2': 19680, 'min_y2': 19681, 'max_y2': 23519}
         }
         self.server_zone_map = {
             'Zone1': None,  # These will hold actual server socket connections
@@ -86,8 +78,8 @@ class LoadBalancer:
 
         """
         print("NUMBER_OF_SERVERS")
-      #  while len(self.servers) != NUMBER_OF_SERVERS:
-        #    self.accept_new_connection(self.__load_balancer_socket)
+        while len(self.servers) != NUMBER_OF_SERVERS:
+            self.accept_new_connection(self.__load_balancer_socket)
         while True:
             self.accept_connections()
 
@@ -100,7 +92,7 @@ class LoadBalancer:
             callback = key.data
             callback(key.fileobj, mask)
 
-    def accept_new_connection(self, sock, mask):
+    def accept_new_connection(self, sock):
         """
 
         :param sock:
@@ -155,7 +147,6 @@ class LoadBalancer:
     def get_zone(self, zone):
         if zone == 1:
             print("moo")
-<<<<<<< HEAD
             return {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680}
         if zone == 2:
             return {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680}
@@ -164,9 +155,8 @@ class LoadBalancer:
         if zone == 4:
             return {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200}
         if zone == 5:
-            return ({'min_x1': 1458, 'max_x1': 2187, 'min_y1': 0, 'max_y1': 3200},
-                    {'min_x2': 0, 'max_x2': 3648, 'min_y2': 1281, 'max_y2': 1919})
-
+            return ({'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200},
+                    {'min_x2': 0, 'max_x2': 19680, 'min_y2': 19681, 'max_y2': 23519})
 
     def relay_client_info(self):
         """
@@ -179,18 +169,6 @@ class LoadBalancer:
                 if key.data:
                     callback = key.data
                     callback(key.fileobj, mask)
-=======
-            return {'min_x': 0, 'max_x': 1459, 'min_y': 0, 'max_y': 1280}
-        if zone == 2:
-            return {'min_x': 2188, 'max_x': 3648, 'min_y': 0, 'max_y': 1280}
-        if zone == 3:
-            return {'min_x': 0, 'max_x': 1459, 'min_y': 1920, 'max_y': 3200}
-        if zone == 4:
-            return {'min_x': 2188, 'max_x': 3648, 'min_y': 1920, 'max_y': 3200}
-        if zone == 5:
-            return ({'min_x1': 1458, 'max_x1': 2187, 'min_y1': 0, 'max_y1': 3200},
-                    {'min_x2': 0, 'max_x2': 3648, 'min_y2': 1281, 'max_y2': 1919})
->>>>>>> performance_opt
 
     def update_client_database(self, username, password, status, items, weapons):
         """
@@ -282,16 +260,14 @@ class LoadBalancer:
         x, y = client_info['x'], client_info['y']
         buffer_zone_1 = self.zones[ZoneBuffer1]
         buffer_zone_2 = self.zones[ZoneBuffer1]
-<<<<<<< HEAD
-=======
 
->>>>>>> performance_opt
         if (self.zones['min_x'] <= x <= buffer_zone_1['max_x'] and buffer_zone_1['min_y'] <= y <= buffer_zone_1[
             'max_y']) or \
                 (buffer_zone_2['min_x'] <= x <= buffer_zone_2['max_x'] and buffer_zone_2['min_y'] <= y <= buffer_zone_2[
                     'max_y']):
             print("Client assigned to buffer server based on buffer zone coordinates.")
             return self.server_zone_map[self.__server_name]  # Return the buffer server
+
         else:
             print("Client not within any buffer zones, routing to a regular server based on location.")
 

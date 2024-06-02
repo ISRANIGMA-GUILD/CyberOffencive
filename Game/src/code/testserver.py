@@ -459,7 +459,6 @@ class Server:
         self.__selector.register(self.__sockets[1], selectors.EVENT_READ, self.accept_client)
         self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
 
-
         update_interval = 1 / 15  # Seconds (adjust as needed for responsiveness)
         update_interval2 = 1 / 30  # Seconds (adjust as needed for responsiveness)
         
@@ -783,8 +782,24 @@ class Server:
 
             # If client has logged in and there are clients update them
 
-            elif data == ['None']:
-                pass
+            elif len(data) == 2:
+
+                print("kill that enemy", data, self.__enemy_locations)
+
+                if data[0] == "kill":
+
+                    for stuff in self.__enemy_locations:
+
+                        if stuff[0] == data[1]:
+                            self.__enemy_locations.remove(stuff)
+                            print(stuff in self.__enemy_locations)
+
+                elif data[0] == "collected":
+
+                    for stuff in self.__item_locations:
+
+                        if stuff[0] == data[1]:
+                            self.__item_locations.remove(stuff)
 
             elif len(self.__credentials) <= len(self.__session_users) and type(data) is not tuple and len(data) != 2:
                 print("eeeeeeeeee")
@@ -812,18 +827,6 @@ class Server:
                 #  el
 
                 self.send_to_clients(index)
-
-            elif len(data) == 2:
-                print("kill that enemy", data)
-                if data[0] == "kill":
-                    for stuff in self.__enemy_locations:
-                        if stuff[0] == data[1]:
-                            self.__enemy_locations.remove(stuff)
-
-                elif data[0] == "collected":
-                    for stuff in self.__item_locations:
-                        if stuff[0] == data[1]:
-                            self.__item_locations.remove(stuff)
 
         except socket.timeout as e:
             print("meow", e)

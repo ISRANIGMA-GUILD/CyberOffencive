@@ -241,7 +241,7 @@
     <ROW Component="BasicCharakterActions.png" ComponentId="{3F7E3836-B776-4D95-82CC-CA00BC205ECB}" Directory_="Characters_Dir" Attributes="0" KeyPath="BasicCharakterActions.png" Type="0"/>
     <ROW Component="Basic_Furniture.png" ComponentId="{79CF1838-9925-439D-A803-00F83EE7520C}" Directory_="Objects_Dir" Attributes="0" KeyPath="Basic_Furniture.png" Type="0"/>
     <ROW Component="Bitmaskreferences1.png" ComponentId="{AE3721AC-82F4-426F-8BF4-F3964C187420}" Directory_="Tilesets_Dir" Attributes="0" KeyPath="Bitmaskreferences1.png" Type="0"/>
-    <ROW Component="CyberOffensive.exe" ComponentId="{A010F51D-EA5B-43AC-8D21-6F90F2AD8CD7}" Directory_="Game_Dir" Attributes="256" KeyPath="CyberOffensive.exe"/>
+    <ROW Component="CyberOffensive.exe" ComponentId="{538CCC61-1869-49AF-8FB0-0E50DA8DE5DA}" Directory_="Game_Dir" Attributes="256" KeyPath="CyberOffensive.exe"/>
     <ROW Component="Details.csv" ComponentId="{7AAC5433-2B9C-4735-BF8C-D95A3195F6B9}" Directory_="map_Dir" Attributes="0" KeyPath="Details.csv" Type="0"/>
     <ROW Component="ProductInformation" ComponentId="{E8E638F7-DF77-4AD6-BDE7-7DEE1097FF18}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
     <ROW Component="SproutLandsdefautltpalettesnip.PNG" ComponentId="{8884348F-D810-41AA-B4B5-D096695DB895}" Directory_="SproutLandscolorpallet_Dir" Attributes="0" KeyPath="SproutLandsdefautltpalettesnip.PNG" Type="0"/>
@@ -456,7 +456,6 @@
     <ROW File="tree_02.tsx" Component_="tsx" FileName="tree_02.tsx" Attributes="0" SourcePath="..\..\new_map\tree_02.tsx" SelfReg="false"/>
     <ROW File="tree_snow_01.tsx" Component_="tsx" FileName="TREE_S~1.TSX|tree_snow_01.tsx" Attributes="0" SourcePath="..\..\new_map\tree_snow_01.tsx" SelfReg="false"/>
     <ROW File="tree_snow_02.tsx" Component_="tsx" FileName="TREE_S~2.TSX|tree_snow_02.tsx" Attributes="0" SourcePath="..\..\new_map\tree_snow_02.tsx" SelfReg="false"/>
-    <ROW File="CyberOffensive.exe" Component_="CyberOffensive.exe" FileName="CYBERO~1.EXE|CyberOffensive.exe" Attributes="0" SourcePath="CyberOffensive.exe" SelfReg="false" DigSign="true"/>
     <ROW File="png" Component_="png" FileName="01.png" Attributes="0" SourcePath="..\..\graphics\autumn\objects\01.png" SelfReg="false"/>
     <ROW File="bow.zip" Component_="bow.zip" FileName="bow.zip" Attributes="0" SourcePath="..\..\graphics\bow\bow.zip" SelfReg="false"/>
     <ROW File="down.png" Component_="bow.zip" FileName="down.png" Attributes="0" SourcePath="..\..\graphics\bow\down.png" SelfReg="false"/>
@@ -1164,7 +1163,6 @@
     <ROW File="up_3.png_8" Component_="up_0.png_5" FileName="up_3.png" Attributes="0" SourcePath="..\..\graphics\player\up\up_3.png" SelfReg="false"/>
     <ROW File="up_attack_0.png_9" Component_="up_attack_0.png_5" FileName="UP_ATT~1.PNG|up_attack_0.png" Attributes="0" SourcePath="..\..\graphics\player\up_attack\up_attack_0.png" SelfReg="false"/>
     <ROW File="up_idle_0.png_9" Component_="up_idle_0.png_5" FileName="UP_IDL~1.PNG|up_idle_0.png" Attributes="0" SourcePath="..\..\graphics\player\up_idle\up_idle_0.png" SelfReg="false"/>
-    <ROW File="player.zip" Component_="brawn_idle.png" FileName="player.zip" Attributes="0" SourcePath="..\..\graphics\player.zip" SelfReg="false"/>
     <ROW File="down_0.png_10" Component_="down_0.png_10" FileName="down_0.png" Attributes="0" SourcePath="..\..\graphics\player_\down\down_0.png" SelfReg="false"/>
     <ROW File="down_1.png_10" Component_="down_0.png_10" FileName="down_1.png" Attributes="0" SourcePath="..\..\graphics\player_\down\down_1.png" SelfReg="false"/>
     <ROW File="down_2.png_10" Component_="down_0.png_10" FileName="down_2.png" Attributes="0" SourcePath="..\..\graphics\player_\down\down_2.png" SelfReg="false"/>
@@ -1340,6 +1338,7 @@
     <ROW File="up.png_7" Component_="arrow.png_1" FileName="up.png" Attributes="0" SourcePath="..\..\graphics\weapons_1\up.png" SelfReg="false"/>
     <ROW File="png_33" Component_="png_4" FileName="01.png" Attributes="0" SourcePath="..\..\graphics\winter\objects\01.png" SelfReg="false"/>
     <ROW File="winter_tile.png_1" Component_="winter_tile.png" FileName="WINTER~1.PNG|winter_tile.png" Attributes="0" SourcePath="..\..\graphics\winter\tiles\winter_tile.png" SelfReg="false"/>
+    <ROW File="CyberOffensive.exe" Component_="CyberOffensive.exe" FileName="CYBERO~1.EXE|CyberOffensive.exe" Attributes="0" SourcePath="CyberOffensive.exe" SelfReg="false" DigSign="true"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" Options="2"/>
@@ -1624,10 +1623,10 @@
     <ROW Feature_="MainFeature" Component_="down.png_4"/>
     <ROW Feature_="MainFeature" Component_="tsx"/>
     <ROW Feature_="MainFeature" Component_="down.png_5"/>
-    <ROW Feature_="MainFeature" Component_="CyberOffensive.exe"/>
     <ROW Feature_="MainFeature" Component_="arrow.png_1"/>
     <ROW Feature_="MainFeature" Component_="png_4"/>
     <ROW Feature_="MainFeature" Component_="winter_tile.png"/>
+    <ROW Feature_="MainFeature" Component_="CyberOffensive.exe"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
     <ROW Name="CyberOffensive.exe" SourcePath="..\..\graphics\text_logo.ico" Index="0"/>
