@@ -492,7 +492,7 @@ class Server:
 
             except ConnectionResetError as e:
                 print("Server will end service")
-                print(e)
+                print("e", e)
 
                 self.update_database()
                 self.__login_data_base.close_conn()
@@ -505,7 +505,7 @@ class Server:
 
             except KeyboardInterrupt as e:
                 print("Server will end service")
-                print(e)
+                print("e", e)
 
                 self.update_database()
                 self.kick_all()
@@ -838,6 +838,15 @@ class Server:
 
             self.eliminate_socket(index)
 
+        except ssl.SSLError as e:
+            print("Connection closedm", e)
+            self.__all_details[index]["Connected"] = 1
+
+            self.print_client_sockets()
+            self.update_database()
+
+            self.eliminate_socket(index)
+
         except EOFError as e:
             print("Connection closedn", e, data)
             self.__all_details[index]["Connected"] = 1
@@ -1040,11 +1049,13 @@ class Server:
 
     def create_collision_grid(self):
         """Creates the collision grid for the server."""
-        map_renderer = MapRenderer(TMX_MAP_PATH)  # Create MapRenderer instance
+        map_renderer = MapRenderer()  # Create MapRenderer instance
         collision_grid = CollisionGrid(map_renderer.tmx_data.width, map_renderer.tmx_data.height,
-                                       TILE_WIDTH, TILE_HEIGHT)
+                                       64, 64)
+
         for obj in map_renderer.get_objects():
             collision_grid.add_to_grid(obj)
+
         return collision_grid
 
     def kick_all(self):
@@ -1106,11 +1117,9 @@ def main():
 
     # Create a dummy, invisible display (1x1 pixel)
     screen = pygame.display.set_mode((1, 1), pygame.NOFRAME, BITS_PER_PIXEL)
-
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
     ips_data_base = DatabaseManager("IPs", PARAMETERS["IPs"])
 
-    login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
     login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
     numbers = TheNumbers().run()
 
