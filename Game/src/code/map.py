@@ -39,14 +39,14 @@ class MapRenderer:
             camera_y, self.tmx_data.height * TILE_HEIGHT - screen_size[1]
         )
 
-        start_x = max(0, camera_x // TILE_WIDTH)
-        start_y = max(0, camera_y // TILE_HEIGHT)
+        start_x = max(0, camera_x // TILE_WIDTH) - 1
+        start_y = max(0, camera_y // TILE_HEIGHT) - 1
         end_x = min(
             self.tmx_data.width, (camera_x + screen_size[0]) // TILE_WIDTH + 1
-        )
+        ) + 1
         end_y = min(
             self.tmx_data.height, (camera_y + screen_size[1]) // TILE_HEIGHT + 1
-        )
+        ) + 1
 
         # Render tiles
         for layer in self.tmx_data.visible_layers:

@@ -112,7 +112,7 @@ class Level:
             if not self.player.using_item and self.player.attacking:
                 self.visible_sprites.add(player_active_item[0])
 
-        self.map_renderer.render(self.display_surface, self.player.rect.center, (WIDTH, HEIGHT))
+        self.map_renderer.render(self.display_surface , self.player.rect.center, (WIDTH, HEIGHT))
 
         self.visible_sprites.custom_draw(self.player)
         self.visible_sprites.update(self.collision_grid)
