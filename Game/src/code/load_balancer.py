@@ -10,7 +10,7 @@ import types
 
 # Define zones on the map with their boundary coordinates
 zones = {
-    'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
+            'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
             'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680},
             'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
             'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
@@ -155,9 +155,8 @@ class LoadBalancer:
         if zone == 4:
             return {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200}
         if zone == 5:
-            return ({'min_x1': 1458, 'max_x1': 2187, 'min_y1': 0, 'max_y1': 3200},
-                    {'min_x2': 0, 'max_x2': 3648, 'min_y2': 1281, 'max_y2': 1919})
-
+            return ({'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200}, 
+                    {'min_x2': 0, 'max_x2': 19680, 'min_y2': 19681, 'max_y2': 23519})
 
     def relay_client_info(self):
         """
@@ -170,18 +169,6 @@ class LoadBalancer:
                 if key.data:
                     callback = key.data
                     callback(key.fileobj, mask)
-
-            return {'min_x': 0, 'max_x': 1459, 'min_y': 0, 'max_y': 1280}
-        if zone == 2:
-            return {'min_x': 2188, 'max_x': 3648, 'min_y': 0, 'max_y': 1280}
-        if zone == 3:
-            return {'min_x': 0, 'max_x': 1459, 'min_y': 1920, 'max_y': 3200}
-        if zone == 4:
-            return {'min_x': 2188, 'max_x': 3648, 'min_y': 1920, 'max_y': 3200}
-        if zone == 5:
-            return ({'min_x1': 1458, 'max_x1': 2187, 'min_y1': 0, 'max_y1': 3200},
-                    {'min_x2': 0, 'max_x2': 3648, 'min_y2': 1281, 'max_y2': 1919})
-
 
     def update_client_database(self, username, password, status, items, weapons):
         """
