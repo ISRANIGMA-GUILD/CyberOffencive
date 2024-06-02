@@ -10,15 +10,15 @@ import types
 
 # Define zones on the map with their boundary coordinates
 zones = {
-    'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
-    'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680},
-    'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
-    'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
-    'Zone5': {'min_x': 36481, 'max_x': 40320, 'min_y': 19680, 'max_y': 36480}
+    'Zone1': {'min_x': 0, 'max_x': 1459, 'min_y': 0, 'max_y': 1280},
+    'Zone2': {'min_x': 2188, 'max_x': 3648, 'min_y': 0, 'max_y': 1280},
+    'Zone3': {'min_x': 0, 'max_x': 1459, 'min_y': 1920, 'max_y': 3200},
+    'Zone4': {'min_x': 2188, 'max_x': 3648, 'min_y': 1920, 'max_y': 3200},
+    'ZoneBuffer': {'min_x': 1458, 'max_x': 2187, 'min_y': 0, 'max_y': 3200}
 }
-LB_IP = "127.0.0.1"
+LB_IP = "0.0.0.0"
 LB_PORT = 1800
-NUMBER_OF_SERVERS = 1
+NUMBER_OF_SERVERS = 3
 # Define the servers
 servers = ['Server1', 'Server2', 'Server3', 'Server4', 'Server5']
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
@@ -54,11 +54,12 @@ class LoadBalancer:
         self.selector.register(self.__load_balancer_socket, selectors.EVENT_READ, self.accept_new_connection)
 
         self.zones = {
-            'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
-            'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680},
-            'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
-            'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
-            'Zone5': {'min_x': 36481, 'max_x': 40320, 'min_y': 19680, 'max_y': 36480}
+            'Zone1': {'min_x': 0, 'max_x': 1459, 'min_y': 0, 'max_y': 1280},
+            'Zone2': {'min_x': 2188, 'max_x': 3648, 'min_y': 0, 'max_y': 1280},
+            'Zone3': {'min_x': 0, 'max_x': 1459, 'min_y': 1920, 'max_y': 3200},
+            'Zone4': {'min_x': 2188, 'max_x': 3648, 'min_y': 1920, 'max_y': 3200},
+            'ZoneBuffer1': {'min_x1': 1458, 'max_x1': 2187, 'min_y1': 0, 'max_y1': 3200},
+            'ZoneBuffer2': {'min_x2': 0, 'max_x2': 3648, 'min_y2': 1281, 'max_y2': 1919}
         }
         self.server_zone_map = {
             'Zone1': None,  # These will hold actual server socket connections
@@ -73,38 +74,47 @@ class LoadBalancer:
         """
 
         """
-        while len(self.servers) != NUMBER_OF_SERVERS:
-            self.accept_new_connection(self.__load_balancer_socket)
+        print("NUMBER_OF_SERVERS")
+      #  while len(self.servers) != NUMBER_OF_SERVERS:
+        #    self.accept_new_connection(self.__load_balancer_socket)
         while True:
             self.accept_connections()
-            self.relay_client_info()
 
     def accept_connections(self):
-        print("wip")
-        while True:
-            events = self.selector.select(0)
-            for key, mask in events:
-                callback = key.data
-                callback(key.fileobj, mask)
 
-    def accept_new_connection(self, sock):
+        print("wip")
+        events = self.selector.select(timeout=None)
+
+        for key, mask in events:
+            callback = key.data
+            callback(key.fileobj, mask)
+
+    def accept_new_connection(self, sock, mask):
+        """
+
+        :param sock:
+        :param mask:
+        """
+
         print("Attempting to accept a new connection...")
         try:
-            connection, addr = sock.accept()
+            if len(self.servers) != NUMBER_OF_SERVERS:
+                connection, addr = sock.accept()
 
-            print(f"Connected to {addr}")
-            connection.setblocking(False)
+                print(f"Connected to {addr}")
+                connection.setblocking(False)
 
-            self.servers.append(connection)
-            assigned_zone = self.server_names[len(self.servers) % len(self.server_names)]
+                self.servers.append(connection)
+                assigned_zone = self.server_names[len(self.servers) % len(self.server_names)]
 
-            self.server_zone_map[assigned_zone] = connection  # Map server to its zone
-            print("la")
+                self.server_zone_map[assigned_zone] = connection  # Map server to its zone
+                print("la")
 
-            self.send_server_configuration(connection, self.get_name())
-            data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
+                self.send_server_configuration(connection, self.get_name())
+                data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
 
-            self.selector.register(connection, selectors.EVENT_READ, self.service_connection)
+                self.selector.register(connection, selectors.EVENT_READ, self.service_connection)
+
         except BlockingIOError as e:
             print(f"BlockingIOError: No incoming connections to accept yet. {e}")
         except Exception as e:
@@ -131,31 +141,19 @@ class LoadBalancer:
         if len(self.servers) == 5:
             return "Server 5", 5
 
-    @staticmethod
-    def get_zone(zone):
+    def get_zone(self, zone):
         if zone == 1:
             print("moo")
-            return {'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680}}
+            return {'min_x': 0, 'max_x': 1459, 'min_y': 0, 'max_y': 1280}
         if zone == 2:
-            return {'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680}}
+            return {'min_x': 2188, 'max_x': 3648, 'min_y': 0, 'max_y': 1280}
         if zone == 3:
-            return {'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200}}
+            return {'min_x': 0, 'max_x': 1459, 'min_y': 1920, 'max_y': 3200}
         if zone == 4:
-            return {'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200}}
+            return {'min_x': 2188, 'max_x': 3648, 'min_y': 1920, 'max_y': 3200}
         if zone == 5:
-            return {'Zone5': {'min_x': 36481, 'max_x': 40320, 'min_y': 19680, 'max_y': 36480}}
-
-    def relay_client_info(self):
-        """
-
-        """
-
-        while True:
-            events = self.selector.select(timeout=None)
-            for key, mask in events:
-                if key.data:
-                    callback = key.data
-                    callback(key.fileobj, mask)
+            return ({'min_x1': 1458, 'max_x1': 2187, 'min_y1': 0, 'max_y1': 3200},
+                    {'min_x2': 0, 'max_x2': 3648, 'min_y2': 1281, 'max_y2': 1919})
 
     def update_client_database(self, username, password, status, items, weapons):
         """
@@ -181,44 +179,62 @@ class LoadBalancer:
         :param sock:
         :param mask:
         """
+
+      #  if mask & selectors.EVENT_READ:
         try:
-            if mask & selectors.EVENT_READ:
-                sock.settimeout(0.01)
-                recv_data = sock.recv(1024)
-                if recv_data:
-                    print("Data received:", recv_data)
-                    client_info = pickle.loads(recv_data)
+            sock.settimeout(0.05)
+            recv_data = sock.recv(1024)
 
-                    username = client_info.get('username')
-                    password = client_info.get('password', 'defaultPassword')  # Default password if not provided
-                    status = client_info.get('status', 'Active')  # Default status if not provided
-                    items = client_info.get('items', 'None')  # Default items if not provided
-                    weapons = client_info.get('weapons', 'None')  # Default weapons if not provided
-                    location = client_info.get('location', {'x': 0, 'y': 0})  # Default location if not provided
+            if recv_data is not None:
+                print("Data received:", recv_data)
+                client_info = pickle.loads(recv_data)
 
-                    self.__session_users.append(username)
-                    self.__credentials.append({
-                        'username': username, 'password': password, 'status': status, 'items': items, 'weapons': weapons
-                    })
+                username = client_info.get('username')
+                password = client_info.get('password', 'defaultPassword')  # Default password if not provided
+                status = client_info.get('status', 'Active')  # Default status if not provided
+                items = client_info.get('items', 'None')  # Default items if not provided
+                weapons = client_info.get('weapons', 'None')  # Default weapons if not provided
+                location = client_info.get('location', {'x': 0, 'y': 0})  # Default location if not provided
 
-                    self.update_client_database(username, password, status, items, weapons)
+                self.__session_users.append(username)
+                self.__credentials.append({
+                    'username': username, 'password': password, 'status': status, 'items': items, 'weapons': weapons
+                })
 
-                    target_server = self.determine_server(location)
-                    if target_server:
-                        target_server.send(pickle.dumps(client_info))
-                    else:
-                        print("No appropriate server found for the given location.")
+                self.update_client_database(username, password, status, items, weapons)
 
+                target_server = self.determine_server(location)
+                if target_server:
+                    target_server.send(pickle.dumps(client_info))
                 else:
-                    pass
-                    # print("Closing connection to", data.addr)
-                    # self.selector.unregister(sock)
-                    # sock.close()
+                    print("No appropriate server found for the given location.")
+
         except (pickle.PickleError, KeyError) as e:
             print("Failed to process received data:", str(e))
 
-        except socket.timeout:
-            pass
+        except socket.timeout as e:
+            print(e)
+
+        except ssl.SSLEOFError as e:
+            print("Connection closedm", e)
+            print("Closing connection to", sock.getpeername())
+
+            self.selector.unregister(sock)
+            sock.close()
+
+        except ssl.SSLError as e:
+            print("Connection closedm", e)
+            print("Closing connection to", sock.getpeername())
+
+            self.selector.unregister(sock)
+            sock.close()
+
+        except EOFError as e:
+            print("Connection closedn", e)
+            print("Closing connection to", sock.getpeername())
+
+          #  self.selector.unregister(sock)
+         #   sock.close()
 
     def determine_server(self, client_info):
         """
@@ -227,11 +243,23 @@ class LoadBalancer:
         :return:
         """
         x, y = client_info['x'], client_info['y']
+        buffer_zone_1 = self.zones[ZoneBuffer1]
+        buffer_zone_2 = self.zones[ZoneBuffer1]
+
+        if (self.zones['min_x'] <= x <= buffer_zone_1['max_x'] and buffer_zone_1['min_y'] <= y <= buffer_zone_1[
+            'max_y']) or \
+                (buffer_zone_2['min_x'] <= x <= buffer_zone_2['max_x'] and buffer_zone_2['min_y'] <= y <= buffer_zone_2[
+                    'max_y']):
+            print("Client assigned to buffer server based on buffer zone coordinates.")
+            return self.server_zone_map[self.__server_name]  # Return the buffer server
+        else:
+            print("Client not within any buffer zones, routing to a regular server based on location.")
+
         for zone_name, bounds in self.zones.items():
             if bounds['min_x'] <= x <= bounds['max_x'] and bounds['min_y'] <= y <= bounds['max_y']:
                 return self.server_zone_map[zone_name]
 
-    def send_server_configuration(self, server_socket, data):
+    def send_server_configuration(self, connection, data):
         print("ko")
         server_name, zone = data
         config_data = {
@@ -241,7 +269,7 @@ class LoadBalancer:
         print("po")
         serialized_data = pickle.dumps(config_data)
         print("op")
-        server_socket.send(serialized_data)
+        connection.send(serialized_data)
 
     def update_database(self):
         """
@@ -272,24 +300,6 @@ class LoadBalancer:
 
                 print(self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons],
                                                        ['Username'], [self.__session_users[index]]))
-
-    def insert_no_duplicates(self, values, no_duplicate_params):
-        """
-        Insert a record into the database ensuring there are no duplicates based on certain parameters.
-
-        :param values: List of values corresponding to the database schema
-        :param no_duplicate_params: List of parameters to check for duplication
-        """
-        try:
-            with self.connection.cursor() as cursor:
-                columns = ', '.join(PARAMETERS["PlayerDetails"])
-                placeholders = ', '.join(['%s'] * len(values))
-                query = (f"INSERT INTO PlayerDetails ({columns}) SELECT {placeholders}"
-                         f" WHERE NOT EXISTS (SELECT 1 FROM PlayerDetails WHERE Username=%s)")
-                cursor.execute(query, values + [values[PARAMETERS["PlayerDetails"].index("Username")]])
-                self.connection.commit()
-        except Exception as e:
-            print("Database error:", e)
 
 
 def main():

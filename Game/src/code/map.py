@@ -7,7 +7,7 @@ from settings import *
 
 
 class MapRenderer:
-    def __init__(self, map_path):
+    def __init__(self, map_path=f"../new_map/cyber_map.tmx"):
         self.tmx_data = load_pygame(map_path)
         self.tile_cache = TileCache()
         self.object_group = pygame.sprite.Group()  # Group for map objects

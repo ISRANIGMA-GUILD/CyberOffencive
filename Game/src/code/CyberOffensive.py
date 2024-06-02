@@ -266,6 +266,9 @@ class Game:
                     pygame.display.update()
                     self.clock.tick(FPS)
 
+                    self.erase_prev()
+
+
                #     if self.__previous != 0:
                 #        self.__timer = time.time() - self.__previous
 
@@ -358,7 +361,7 @@ class Game:
         :param lock:
         """
 
-        with lock:
+        with (lock):
 
             current_loc = self.level.player.get_location()
             current_status_index = int(self.level.player.frame_index)
@@ -374,8 +377,8 @@ class Game:
 
             id_numbers = [re.findall(r'\d+', i)[0] for i in [identity[0] for identity in self.__enemies]]
 
-            if self.__the_e_id is None:
-                self.__the_e_id = id_numbers
+          #  if self.__the_e_id is None:
+          #      self.__the_e_id = id_numbers
             # If we received new locations of enemies from server see if we need to spawn them,
             # If they exist just update according to data in this message (enemies)
             if enemies:
@@ -420,43 +423,51 @@ class Game:
                         self.level.obstacles_sprites,
                         self.level.damage_player, self.level, loc[0]) for loc in
                  list(filter(lambda person: "FRE" in person[0], enemies)) if loc[0] not in self.__the_enemies]
-                print("e", enemies)
+              #  print("e", enemies)
 
                 for loc in enemies:
+
+                    new_id = re.findall(r'\d+', loc[0])
+
                     if loc[0] not in self.__the_enemies:
 
-                        new_id = re.findall(r'\d+', loc[0])
-
-                        if new_id[0] in self.__the_e_id:
-                            #print("killing", self.__the_enemies[self.__the_e_id.index(new_id[0])])
-                        #    self.__the_enemies.pop(self.__the_e_id.index(new_id[0]))
-                            self.__the_e_id.remove(new_id[0]) #make sure order of ids is the same as order of id numbers
-
-                            self.__the_e_id.append(new_id[0])
-
-                        else:
-                            self.__the_e_id.append(new_id[0])
-
+                        self.__the_e_id.append(new_id[0])
                         self.__the_enemies.append(loc[0])
                         self.__enemy_locs.append(loc[1])
+
+                    elif loc[0] in self.__the_enemies and new_id[0] not in self.__the_e_id:
+
+                        self.__the_enemies.pop(self.__the_e_id.index(new_id[0]))
+                        self.__the_e_id.remove(new_id[0])  # make sure order of ids is the same as order of id numbers
+
+                   #     self.__the_e_id.append(new_id[0])
 
                     else:
                         self.__enemy_locs[self.__the_enemies.index(loc[0])] = loc[1]
 
-                print("meow")
+             #   print("meow")
 
                 for enemie in self.level.attackable_sprites:
                     if enemie.status == 'death' and enemie.id in self.__the_enemies:
-                        print(enemie.id, self.__the_enemies)
+                       # print(enemie.id, self.__the_enemies)
+                        print("kill", enemie.id)
                         self.__the_enemies.remove(enemie.id)
 
-                        self.__enemy_locs.remove(enemie.hitbox.center)
+                       # self.__enemy_locs.remove(enemie.hitbox.center)
                         self.network.kill_enemy(enemie.id)
 
                         self.level.attackable_sprites.remove(enemie)
 
-                    elif enemie.status == 'death' or enemie.id not in self.__the_enemies:
+                    elif enemie.id not in self.__the_enemies:
+                       # self.__enemy_locs.remove(enemie.hitbox.center)
+                        print("kill")
+                       # enemie.kill()
+                        self.level.visible_sprites.remove(enemie)
                         self.level.attackable_sprites.remove(enemie)
+                        #enemie.kill()
+
+                 #  else:
+                  #      print(self.__the_enemies, self.__the_e_id, enemie.id)
 
                 for loc in enemies:
                     for enemie in self.level.attackable_sprites:
@@ -473,7 +484,7 @@ class Game:
             # If we received new locations of weapons\items from server see if we need to spawn them,
             # If they exist just update according to data in this message (weapons)
             if weapons:
-                print("w", weapons)
+              #  print("w", weapons)
                 [Axe(loc[1], [self.level.visible_sprites])
                  for loc in list(filter(lambda person: "A" in person, weapons)) if loc[1] not in self.__item_locs]
                 [Bow(loc[1], [self.level.visible_sprites], [self.level.visible_sprites, self.level.attack_sprites])
@@ -509,8 +520,6 @@ class Game:
 
              #   self.__previous = time.time()
                # self.__timer = 0
-
-            self.__timer += 1
 
             other_client = self.__other_client
 
@@ -659,7 +668,7 @@ class Game:
                 weapons = d[1]
 
             else:
-                print("oth client", d)
+             #   print("oth client", d)
                 other_client = d
 
         return enemies, weapons, other_client
@@ -749,8 +758,18 @@ class Game:
             for i in range(0, len(self.__temp_p)):
                 self.level.visible_sprites.remove(self.__temp_p[i])
                 self.level.obstacles_sprites.remove(self.__temp_p[i])
-
                 self.__temp_p[i].kill()
+
+    def erase_prev(self):
+
+        if self.__the_enemies:
+            for enemie in self.level.attackable_sprites:
+                self.level.visible_sprites.remove(enemie)
+                self.level.attackable_sprites.remove(enemie)
+
+            self.__the_enemies = []
+
+            self.__the_e_id = []
 
     def find(self):
         """

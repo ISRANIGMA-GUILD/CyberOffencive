@@ -257,11 +257,11 @@ class Server:
 
         while True:
             try:
-                self.__load_balance_socket.connect((self.__load_balance_ip, 1800))
+                self.__load_balance_socket.connect((self.__load_balance_ip, self.__load_balance_port))
                 print("SSL connection established with Load Balancer.")
 
                 # Receive configuration data from the load balancer
-                data = self.__load_balance_socket.recv(1024)  # Adjust buffer size based on expected data
+                data = self.__load_balance_socket.recv(1024)
                 configuration = pickle.loads(data)
 
                 self.__server_name = configuration['server_name']
@@ -301,16 +301,28 @@ class Server:
         key = list(self.__zone.keys())[0]
         x, y = client_location
 
-        min_x, max_x, min_y, max_y = (self.__zone.get(key)['min_x'], self.__zone.get(key)['max_x'],
-                                      self.__zone.get(key)['min_y'], self.__zone.get(key)['max_y'])
-
-        if not (min_x <= x <= max_x and min_y <= y <= max_y):
-            print(f"Client location {client_location} out of assigned zone.")
-            self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location, 'server':
-                self.__server_name, 'client_data': self.get_local_client_details})
+        if self.__server_name == 'buffer_zone':
+            zone_1 = self.__zone['ZoneBuffer']['min_x1'], self.__zone['ZoneBuffer']['max_x1'], \
+                self.__zone['ZoneBuffer']['min_y1'], self.__zone['ZoneBuffer']['max_y1']
+            zone_2 = self.__zone['ZoneBuffer']['min_x2'], self.__zone['ZoneBuffer']['max_x2'], \
+                self.__zone['ZoneBuffer']['min_y2'], self.__zone['ZoneBuffer']['max_y2']
+            if (zone_1[0] <= x <= zone_1[1] and zone_1[2] <= y <= zone_1[3]) or (
+                    zone_2[0] <= x <= zone_2[1] and zone_2[2] <= y <= zone_2[3]):
+                print("Client location within buffer zone.")
+            else:
+                print("Client location out of buffer zones.")
+                self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location})
 
         else:
-            print("Client location within assigned zone.")
+            min_x, max_x, min_y, max_y = self.__zone['min_x'], self.__zone['max_x'], self.__zone['min_y'], self.__zone[
+                'max_y']
+            if min_x <= x <= max_x and min_y <= y <= max_y:
+                print("Client location within assigned zone.")
+            else:
+                print(f"Client location {client_location} out of assigned zone.")
+                self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
+                                                    'server': self.__server_name, 'client_data':
+                                                        self.get_local_client_details})
 
     def complete_connection(self):
         """
@@ -478,7 +490,7 @@ class Server:
 
             except ConnectionResetError as e:
                 print("Server will end service")
-                print(e)
+                print("e", e)
 
                 self.update_database()
                 self.__login_data_base.close_conn()
@@ -491,7 +503,7 @@ class Server:
 
             except KeyboardInterrupt as e:
                 print("Server will end service")
-                print(e)
+                print("e", e)
 
                 self.update_database()
                 self.kick_all()
@@ -824,6 +836,15 @@ class Server:
 
             self.eliminate_socket(index)
 
+        except ssl.SSLError as e:
+            print("Connection closedm", e)
+            self.__all_details[index]["Connected"] = 1
+
+            self.print_client_sockets()
+            self.update_database()
+
+            self.eliminate_socket(index)
+
         except EOFError as e:
             print("Connection closedn", e, data)
             self.__all_details[index]["Connected"] = 1
@@ -1026,11 +1047,13 @@ class Server:
 
     def create_collision_grid(self):
         """Creates the collision grid for the server."""
-        map_renderer = MapRenderer(TMX_MAP_PATH)  # Create MapRenderer instance
+        map_renderer = MapRenderer()  # Create MapRenderer instance
         collision_grid = CollisionGrid(map_renderer.tmx_data.width, map_renderer.tmx_data.height,
-                                       TILE_WIDTH, TILE_HEIGHT)
+                                       64, 64)
+
         for obj in map_renderer.get_objects():
             collision_grid.add_to_grid(obj)
+
         return collision_grid
 
     def kick_all(self):
@@ -1090,11 +1113,9 @@ def main():
 
     # Create a dummy, invisible display (1x1 pixel)
     screen = pygame.display.set_mode((1, 1), pygame.NOFRAME, BITS_PER_PIXEL)
-
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
     ips_data_base = DatabaseManager("IPs", PARAMETERS["IPs"])
 
-    login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
     login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
     numbers = TheNumbers().run()
 

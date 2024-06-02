@@ -32,7 +32,6 @@ from laser_beam import LaserBeam
 from map import MapRenderer
 from collisiongrid import CollisionGrid
 
-
 class Level:
     def __init__(self) -> None:
         self.display_surface = pygame.display.get_surface()
