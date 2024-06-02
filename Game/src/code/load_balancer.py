@@ -79,11 +79,6 @@ class LoadBalancer:
 
         """
         print("NUMBER_OF_SERVERS")
-<<<<<<< HEAD
-        while len(self.servers) != NUMBER_OF_SERVERS:
-            self.accept_new_connection(self.__load_balancer_socket)
-=======
->>>>>>> performance_opt
         while True:
             self.accept_connections()
 
@@ -285,12 +280,8 @@ class LoadBalancer:
                 (buffer_zone_2['min_x'] <= x <= buffer_zone_2['max_x'] and buffer_zone_2['min_y'] <= y <= buffer_zone_2[
                     'max_y']):
             print("Client assigned to buffer server based on buffer zone coordinates.")
-<<<<<<< HEAD
-            return self.server_zone_map[self.__server_name]  # Return the buffer server
-=======
 
             return self.server_zone_map['Zone5']  # Return the buffer server
->>>>>>> performance_opt
 
         else:
             print("Client not within any buffer zones, routing to a regular server based on location.")

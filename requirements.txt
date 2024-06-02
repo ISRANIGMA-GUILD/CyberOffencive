@@ -11,3 +11,4 @@ comtypes~=1.4.1
 pycaw
 scapy~=2.5.0.dev266
 docker
+pytmx
