@@ -4,7 +4,7 @@ import os
 exe_path = "dist\CyberOffensive.exe"
 
 # Number of times to run the exe
-num_runs = 3
+num_runs = 5
 
 for _ in range(num_runs):
   try:

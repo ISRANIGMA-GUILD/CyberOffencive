@@ -267,8 +267,8 @@ class Game:
                     pygame.display.update()
                     self.clock.tick(FPS)
 
-                    if self.__previous != 0:
-                        self.__timer = time.time() - self.__previous
+               #     if self.__previous != 0:
+                #        self.__timer = time.time() - self.__previous
 
             except KeyboardInterrupt as e:
                 print(e)
@@ -359,7 +359,8 @@ class Game:
         :param lock:
         """
 
-        with (lock):
+        with lock:
+
             current_loc = self.level.player.get_location()
             current_status_index = int(self.level.player.frame_index)
             self.find()
@@ -374,7 +375,8 @@ class Game:
 
             id_numbers = [re.findall(r'\d+', i)[0] for i in [identity[0] for identity in self.__enemies]]
 
-
+            if self.__the_e_id is None:
+                self.__the_e_id = id_numbers
             # If we received new locations of enemies from server see if we need to spawn them,
             # If they exist just update according to data in this message (enemies)
             if enemies:
@@ -427,8 +429,8 @@ class Game:
                         new_id = re.findall(r'\d+', loc[0])
 
                         if new_id[0] in self.__the_e_id:
-                            print("killing", self.__the_enemies[self.__the_e_id.index(new_id[0])])
-                            self.__the_enemies.pop(self.__the_e_id.index(new_id[0]))
+                            #print("killing", self.__the_enemies[self.__the_e_id.index(new_id[0])])
+                        #    self.__the_enemies.pop(self.__the_e_id.index(new_id[0]))
                             self.__the_e_id.remove(new_id[0]) #make sure order of ids is the same as order of id numbers
 
                             self.__the_e_id.append(new_id[0])
@@ -451,6 +453,8 @@ class Game:
 
                         self.__enemy_locs.remove(enemie.hitbox.center)
                         self.network.kill_enemy(enemie.id)
+
+                        self.level.attackable_sprites.remove(enemie)
 
                     elif enemie.status == 'death' or enemie.id not in self.__the_enemies:
                         self.level.attackable_sprites.remove(enemie)
@@ -496,6 +500,19 @@ class Game:
             elif weapons and "LEAVE" == weapons[0]:
                 self.__game_state = "start_menu"
 
+          #  elif self.__timer >= 2:
+            #    print(time.time() - self.__previous)
+             #   s = self.network.update_server(list_of_public_details, self.items)
+             #   self.__previous_details = list_of_public_details
+
+             #   if s == 1:
+             #      self.__game_state = "start_menu"
+
+             #   self.__previous = time.time()
+               # self.__timer = 0
+
+            self.__timer += 1
+
             other_client = self.__other_client
 
             if self.__previous_details != list_of_public_details: #or self.__timer >= 0.02:
@@ -505,10 +522,11 @@ class Game:
                 if s == 1:
                     self.__game_state = "start_menu"
 
-                self.__previous = 0
-                self.__timer = 0
+             #   self.__previous = 0
+               # self.__timer = 0
 
             if other_client is None or self.__game_state == "start_menu":
+           #     self.network.dummy()
                 pass
 
             elif other_client == 1:
@@ -535,6 +553,7 @@ class Game:
                                is not None]
 
                     if not p_image:
+                     #   self.network.dummy()
                         pass
 
                     else:
@@ -546,6 +565,9 @@ class Game:
                                                  sprite_type=PLAYER_OBJECT, surface=p_image[index])
                             self.__temp_p.append(player_remote)
                             index += 1
+                else:
+                    pass
+
 
             pygame.draw.rect(self.screen, (0, 0, 0), self.__output_box)
             pygame.draw.rect(self.screen, (0, 255, 0), self.__input_box)
