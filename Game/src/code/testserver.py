@@ -262,7 +262,7 @@ class Server:
                 print("SSL connection established with Load Balancer.")
 
                 # Receive configuration data from the load balancer
-                data = self.__load_balance_socket.recv(1024)  # Adjust buffer size based on expected data
+                data = self.__load_balance_socket.recv(1024)
                 configuration = pickle.loads(data)
 
                 self.__server_name = configuration['server_name']
@@ -302,16 +302,28 @@ class Server:
         key = list(self.__zone.keys())[0]
         x, y = client_location
 
-        min_x, max_x, min_y, max_y = (self.__zone.get(key)['min_x'], self.__zone.get(key)['max_x'],
-                                      self.__zone.get(key)['min_y'], self.__zone.get(key)['max_y'])
-
-        if not (min_x <= x <= max_x and min_y <= y <= max_y):
-            print(f"Client location {client_location} out of assigned zone.")
-            self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location, 'server':
-                self.__server_name, 'client_data': self.get_local_client_details})
+        if self.__server_name == 'buffer_zone':
+            zone_1 = self.__zone['ZoneBuffer']['min_x1'], self.__zone['ZoneBuffer']['max_x1'], \
+                self.__zone['ZoneBuffer']['min_y1'], self.__zone['ZoneBuffer']['max_y1']
+            zone_2 = self.__zone['ZoneBuffer']['min_x2'], self.__zone['ZoneBuffer']['max_x2'], \
+                self.__zone['ZoneBuffer']['min_y2'], self.__zone['ZoneBuffer']['max_y2']
+            if (zone_1[0] <= x <= zone_1[1] and zone_1[2] <= y <= zone_1[3]) or (
+                    zone_2[0] <= x <= zone_2[1] and zone_2[2] <= y <= zone_2[3]):
+                print("Client location within buffer zone.")
+            else:
+                print("Client location out of buffer zones.")
+                self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location})
 
         else:
-            print("Client location within assigned zone.")
+            min_x, max_x, min_y, max_y = self.__zone['min_x'], self.__zone['max_x'], self.__zone['min_y'], self.__zone[
+                'max_y']
+            if min_x <= x <= max_x and min_y <= y <= max_y:
+                print("Client location within assigned zone.")
+            else:
+                print(f"Client location {client_location} out of assigned zone.")
+                self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
+                                                    'server': self.__server_name, 'client_data':
+                                                        self.get_local_client_details})
 
     def complete_connection(self):
         """
