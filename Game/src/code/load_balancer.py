@@ -258,15 +258,15 @@ class LoadBalancer:
         :return:
         """
         x, y = client_info['x'], client_info['y']
-        buffer_zone_1 = self.zones[ZoneBuffer1]
-        buffer_zone_2 = self.zones[ZoneBuffer1]
+        buffer_zone_1 = self.zones['ZoneBuffer1']
+        buffer_zone_2 = self.zones['ZoneBuffer2']
 
-        if (self.zones['min_x'] <= x <= buffer_zone_1['max_x'] and buffer_zone_1['min_y'] <= y <= buffer_zone_1[
-            'max_y']) or \
-                (buffer_zone_2['min_x'] <= x <= buffer_zone_2['max_x'] and buffer_zone_2['min_y'] <= y <= buffer_zone_2[
-                    'max_y']):
+        if (self.zones['min_x1'] <= x <= buffer_zone_1['max_x1'] and buffer_zone_1['min_y1'] <= y <= buffer_zone_1[
+            'max_y1']) or \
+                (buffer_zone_2['min_x2'] <= x <= buffer_zone_2['max_x2'] and buffer_zone_2['min_y2'] <= y <=
+                 buffer_zone_2['max_y2']):
             print("Client assigned to buffer server based on buffer zone coordinates.")
-            return self.server_zone_map[self.__server_name]  # Return the buffer server
+            return self.server_zone_map['Zone5']  # Return the buffer server
 
         else:
             print("Client not within any buffer zones, routing to a regular server based on location.")
