@@ -91,7 +91,7 @@ class LoadBalancer:
             callback = key.data
             callback(key.fileobj, mask)
 
-    def accept_new_connection(self, sock):
+    def accept_new_connection(self, sock, mask):
         """
 
         :param sock:

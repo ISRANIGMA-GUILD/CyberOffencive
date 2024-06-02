@@ -1104,12 +1104,12 @@ class Server:
         """
 
         ip_address = os.getenv("LOAD_BALANCER_IP")
-        s = ServerDiscoveryClient().discover_server()
+        print(ip_address, "ip address")
 
         if ip_address:
             return ip_address
-        elif s:
-            return s
+        elif ServerDiscoveryClient().discover_server():
+            return ServerDiscoveryClient().discover_server()
         else:
             return socket.gethostbyname(socket.gethostname())
 
