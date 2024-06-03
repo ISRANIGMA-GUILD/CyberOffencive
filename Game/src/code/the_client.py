@@ -1,6 +1,5 @@
 import pickle
 import socket
-
 from creepy import *
 from dnssec_client import *
 import pygame
@@ -712,7 +711,7 @@ class Client:
         """
 
         try:
-            timer = 0.01
+            timer = 0.003
             data_recv = self.receive_data(timer, 200)
 
             if not data_recv:
@@ -731,41 +730,15 @@ class Client:
             print(e)
             return
 
-    def receive_items(self):
+    def receive_stuff(self):
         """
 
         :return:
         """
 
         try:
-            timer = 0.01
-            data_recv = self.receive_data(timer, 200)
-
-            if not data_recv:
-                pass
-
-            elif data_recv[0] == "LEAVE":
-                return 1
-
-            else:
-                return data_recv
-
-        except socket.timeout:
-            print("epic fail")
-            return
-        except Exception as e:
-            print(e)
-            return
-
-    def receive_enemies(self):
-        """
-
-        :return:
-        """
-
-        try:
-            timer = 0.01
-            data_recv = self.receive_data(timer, 2000)
+            timer = 0.003
+            data_recv = self.receive_data(timer, 1024)
 
             if not data_recv:
                 pass

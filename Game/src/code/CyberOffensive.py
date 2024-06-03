@@ -330,16 +330,14 @@ class Game:
         """
 
         with lock:
-
-            data1 = self.network.receive_enemies()
-            data2 = self.network.receive_items()
-
+            data1 = self.network.receive_stuff()
             data3 = self.network.receive_location()
-            data = [data1, data2, data3]
+            data = [data1, data3]
 
             success_data = self.which_is_it(data)
-            print(success_data)
-            self.__enemies, self.__weapons, self.__other_client = success_data
+            print("go fuck yourself python please", success_data[0][0], success_data[0][1])
+            self.__enemies, self.__weapons = success_data[0][0], success_data[0][1]
+            self.__other_client = success_data[1]
 
     def communication(self, lock):
         """
@@ -364,7 +362,7 @@ class Game:
             # If we received new locations of enemies from server see if we need to spawn them,
             # If they exist just update according to data in this message (enemies)
             if enemies:
-              #  print("w")
+                print("w", enemies)
                 [BlueSnowSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
                                 self.level.obstacles_sprites,
                                 self.level.damage_player, self.level, loc[0]) for loc in
@@ -408,7 +406,7 @@ class Game:
               #  print("e", enemies)
 
                 for loc in enemies:
-
+                    print("eeeeeee", loc)
                     new_id = re.findall(r'\d+', loc[0])
 
                     if loc[0] not in self.__the_enemies:
@@ -454,7 +452,7 @@ class Game:
             # If we received new locations of weapons\items from server see if we need to spawn them,
             # If they exist just update according to data in this message (weapons)
             if weapons:
-              #  print("w", weapons)
+                print("w", weapons)
                 [Axe(loc[1], [self.level.visible_sprites])
                  for loc in list(filter(lambda person: "A" in person, weapons)) if loc[1] not in self.__item_locs]
                 [Bow(loc[1], [self.level.visible_sprites], [self.level.visible_sprites, self.level.attack_sprites])
@@ -604,11 +602,11 @@ class Game:
         :return:
         """
 
-        enemies = []
-        weapons = []
+        stuff = [[], []]
         other_client = []
 
         for d in data:
+            print(d)
             if not d:
                 pass
 
@@ -619,24 +617,19 @@ class Game:
               #  return 1
 
             elif self.is_enemies(d):
-                enemies = d[1]
-
-            elif self.is_weapons(d):
-                weapons = d[1]
+                print(stuff)
+                stuff = [d[1], d[2]]
 
             else:
              #   print("oth client", d)
                 other_client = d
 
-        return enemies, weapons, other_client
+        return stuff, other_client
 
     def is_enemies(self, data):
 
-        return data[0] == 'e'
+        return data[0] == "eeee"
 
-    def is_weapons(self, data):
-
-        return data[0] == 'w'
 
     def start_chat(self):
         """

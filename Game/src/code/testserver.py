@@ -35,7 +35,7 @@ PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weap
 
 class Server:
 
-    def __init__(self, main_data_base, login_data_base, ips_data_base, number):
+    def __init__(self, main_data_base, login_data_base, ips_data_base, number, username_database):
         self.__load_balance_socket = EncryptClient("Secret", number, "load_balancer").run()
 
         self.__load_balance_ip = self.get_load_balancer_ip()
@@ -46,6 +46,7 @@ class Server:
         self.__login_data_base = login_data_base
 
         self.__ips_data_base = ips_data_base
+        self.__username_database = username_database
 
         self.__sockets = [EncryptServer("Servers", port).run() for port in [6921, 8843, 8820]]
         self.__number_of_clients = 1
@@ -572,8 +573,7 @@ class Server:
                     nearby_sprites = self.nearby_them(index)
 
                     if nearby_sprites:
-                        for message in nearby_sprites:
-                            self.__client_sockets[index].send(pickle.dumps(message))
+                        self.__client_sockets[index].send(pickle.dumps(nearby_sprites))
 
                 except ssl.SSLEOFError as e:
                     print("Connection closedh", e)
@@ -611,7 +611,7 @@ class Server:
         connection, client_address = current_socket.accept()
 
         try:
-            connection.settimeout(0.05)
+            connection.settimeout(0.003)
             their_pass = pickle.loads(connection.recv(MAX_MSG_LENGTH))
 
             if their_pass[0] != passw:
@@ -832,7 +832,7 @@ class Server:
                                                and 0 <= abs(m[1][1] - self.__locations[index][1][1]) <= 1000,
                                      self.__item_locations))
 
-                return ("e", e_near), ("w", w_near)
+                return ["eeee", e_near, w_near]
 
     def send_to_clients(self, number):
         """
@@ -925,11 +925,14 @@ class Server:
 
         """
         for index in range(0, len(self.__new_credentials)):
-            self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
-                                                                      self.__new_credentials[index][1]],
-                                                              no_duplicate_params=['Username', 'Password'])
-        # print(self.__login_data_base.set_values(['Password'], [self.__new_credentials[index][1]], ['Username'],
-        #                        [self.__new_credentials[index][0]]))
+            print("succ", self.__username_database.insert_no_duplicates(values=[self.__new_credentials[index][0]],
+                                                                no_duplicate_params=['Username']))
+         #   self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
+                                                                #      self.__new_credentials[index][1]],
+                                                              #no_duplicate_params=['Username', 'Password'])
+            print("sUCC", self.__main_data_base.set_values(['Password'],
+                                                            [self.__new_credentials[index][1]],
+                                                            ['Username'], [self.__new_credentials[index][0]]))
 
         for index in range(0, len(self.__session_users) - 1):
             if self.__items[index] is not None:
@@ -1040,9 +1043,10 @@ def main():
     ips_data_base = DatabaseManager("IPs", PARAMETERS["IPs"])
 
     login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
+    username_database = DatabaseManager("PlayerDetails", PARAMETERS["Users"])
     numbers = TheNumbers().run()
 
-    server = Server(main_data_base, login_data_base, ips_data_base, numbers)
+    server = Server(main_data_base, login_data_base, ips_data_base, numbers, username_database)
     server.run()
 
 
