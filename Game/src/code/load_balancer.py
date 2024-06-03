@@ -65,6 +65,14 @@ class LoadBalancer:
             'ZoneBuffer1': {'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200},
             'ZoneBuffer2': {'min_x2': 0, 'max_x2': 76800, 'min_y2': 19681, 'max_y2': 23519}
         }
+        self.server_to_zone = {
+            'Server 1': 'Zone1',
+            'Server 2': 'Zone2',
+            'Server 3': 'Zone3',
+            'Server 4': 'Zone4',
+            'Server 5': 'Zone5'
+        }
+
         self.server_zone_map = {
             'Zone1': None,  # These will hold actual server socket connections
             'Zone2': None,
@@ -109,10 +117,11 @@ class LoadBalancer:
                 connection.setblocking(False)
 
                 self.servers.append(connection)
-                assigned_zone = self.server_names[len(self.servers) % len(self.server_names)]
-                print(assigned_zone)
-                self.server_zone_map[assigned_zone] = connection  # Map server to its zone
-                print(f"Connection added to {assigned_zone}: {connection}")
+                assigned_server = self.server_names[len(self.servers) % len(self.server_names)]
+                assigned_zone = self.server_to_zone[assigned_server]  # Map server to its corresponding zone
+
+                self.server_zone_map[assigned_zone] = connection  # Assign connection to the mapped zone
+                print(f"Connection added to {assigned_server} mapped to {assigned_zone}: {connection}")
                 print("Current state of server_zone_map:", self.server_zone_map)
                 print(self.server_zone_map[assigned_zone])
                 print("lo")
