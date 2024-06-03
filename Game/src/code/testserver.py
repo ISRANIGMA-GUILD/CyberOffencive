@@ -1,3 +1,5 @@
+import socket
+
 from DatabaseCreator import *
 from scapy.layers.inet import *
 from login import *
@@ -7,8 +9,11 @@ from clientpasswordgen import *
 from serverpassword import *
 from interesting_numbers import *
 from movment_logic import *
-from map import MapRenderer
-from collisiongrid import CollisionGrid
+try:
+    from map import MapRenderer
+    from collisiongrid import CollisionGrid
+except AttributeError:
+    pass
 import os
 import re
 import threading
@@ -208,27 +213,6 @@ class Server:
             enemy_is = choice(self.__w_possabilities)
             self.__item_locations.append((enemy_is, (randint(1000, 10000), randint(1000, 10000))))
 
-    def difference(self):
-        """
-        This function creates a list of elements from list1 that are not in list2.
-
-        Args:
-            list1: The first list.
-            list2: The second list.
-
-        Returns:
-            A list containing elements from list1 that are not in list2.
-        """
-        # Convert the second list to a set for faster membership checks
-
-        if self.__enemy_locations:
-            return list(filter(lambda x: x not in [identity[0][len(identity) - 1:2:len(identity) - 3] for identity in
-                                                   self.__enemy_locations]
-                                         or x not in [identity[0][0:1] for identity in self.__enemy_locations],
-                               self.__id))
-
-        return self.__id
-
     def connect_to_security(self):
         """
 
@@ -256,29 +240,49 @@ class Server:
 
         """
 
+        g = 1
+
         while True:
             try:
                 self.__load_balance_socket.connect((self.__load_balance_ip, self.__load_balance_port))
-                print("SSL connection established with Load Balancer.")
+                their_pass = Verifier(480).run()
 
-                # Receive configuration data from the load balancer
-                data = self.__load_balance_socket.recv(1024)
-                configuration = pickle.loads(data)
+                self.__load_balance_socket.send(pickle.dumps([GetPassword(460).run()]))
+              #  self.__load_balance_socket.settimeout(0.5)
 
-                self.__server_name = configuration['server_name']
-                self.__zone = configuration['zone']
+                data = pickle.loads(self.__load_balance_socket.recv(1024))
 
-                print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
-                break
+                if data[0] != their_pass:
+                    self.__load_balance_socket.close()
+                    g = 0
 
-            except ConnectionRefusedError:
-                pass
+                else:
+                    print("SSL connection established with Load Balancer.")
+                    g = 0
 
-            except ConnectionResetError:
-                pass
+                    # Receive configuration data from the load balancer
+                    data = self.__load_balance_socket.recv(1024)
+                    configuration = pickle.loads(data)
 
-            except OSError:
-                pass
+                    self.__server_name = configuration['server_name']
+                    self.__zone = configuration['zone']
+
+                    print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
+
+                if g == 0:
+                    break
+
+            except socket.timeout as e:
+                print(e)
+
+            except ConnectionRefusedError as e:
+                print(e)
+
+            except ConnectionResetError as e:
+                print(e)
+
+            except OSError as e:
+                print(e)
 
         print("out")
 
@@ -458,7 +462,6 @@ class Server:
         self.__selector.register(self.__sockets[0], selectors.EVENT_READ, self.accept_client)
         self.__selector.register(self.__sockets[1], selectors.EVENT_READ, self.accept_client)
         self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
-
 
         update_interval = 1 / 15  # Seconds (adjust as needed for responsiveness)
         update_interval2 = 1 / 30  # Seconds (adjust as needed for responsiveness)
@@ -783,8 +786,24 @@ class Server:
 
             # If client has logged in and there are clients update them
 
-            elif data == ['None']:
-                pass
+            elif len(data) == 2:
+
+                print("kill that enemy", data, self.__enemy_locations)
+
+                if data[0] == "kill":
+
+                    for stuff in self.__enemy_locations:
+
+                        if stuff[0] == data[1]:
+                            self.__enemy_locations.remove(stuff)
+                            print(stuff in self.__enemy_locations)
+
+                elif data[0] == "collected":
+
+                    for stuff in self.__item_locations:
+
+                        if stuff[0] == data[1]:
+                            self.__item_locations.remove(stuff)
 
             elif len(self.__credentials) <= len(self.__session_users) and type(data) is not tuple and len(data) != 2:
                 print("eeeeeeeeee")
@@ -812,18 +831,6 @@ class Server:
                 #  el
 
                 self.send_to_clients(index)
-
-            elif len(data) == 2:
-                print("kill that enemy", data)
-                if data[0] == "kill":
-                    for stuff in self.__enemy_locations:
-                        if stuff[0] == data[1]:
-                            self.__enemy_locations.remove(stuff)
-
-                elif data[0] == "collected":
-                    for stuff in self.__item_locations:
-                        if stuff[0] == data[1]:
-                            self.__item_locations.remove(stuff)
 
         except socket.timeout as e:
             print("meow", e)
@@ -1097,12 +1104,12 @@ class Server:
         """
 
         ip_address = os.getenv("LOAD_BALANCER_IP")
-        s = ServerDiscoveryClient().discover_server()
+        print(ip_address, "ip address")
 
         if ip_address:
             return ip_address
-        elif s:
-            return s
+        elif ServerDiscoveryClient().discover_server():
+            return ServerDiscoveryClient().discover_server()
         else:
             return socket.gethostbyname(socket.gethostname())
 

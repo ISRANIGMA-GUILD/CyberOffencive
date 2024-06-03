@@ -1,4 +1,6 @@
 import pickle
+import socket
+
 from creepy import *
 from dnssec_client import *
 import pygame
@@ -202,6 +204,7 @@ class Client:
                 self.__the_client_socket.send(pickle.dumps([GetPassword(128).run()]))
 
                 the_real_pass = Verifier(256).run()
+                self.__the_client_socket.settimeout(0.5)
                 their_pass = pickle.loads(self.__the_client_socket.recv(MAX_MSG_LENGTH))
 
                 if their_pass[0] != the_real_pass:
@@ -218,7 +221,7 @@ class Client:
                 pygame.display.update()
                 clock.tick(FPS)
                 break
-            
+
             except ConnectionRefusedError as e:
                 print("Connection refused. Retrying...", e)
                 server_port = self.choose_port()
@@ -689,7 +692,7 @@ class Client:
         :param enemy_id:
         """
 
-        full_msg = self.create_message(["kill", enemy_id])
+        full_msg = self.create_message(("kill", enemy_id))
         self.__the_client_socket.send(full_msg)
 
     def picked_up(self, item_id):

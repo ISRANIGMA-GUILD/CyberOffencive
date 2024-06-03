@@ -34,6 +34,7 @@ class EncryptUniqueServer:
         load_balancer_socket.setblocking(False)
 
         load_balancer_socket.bind((DEFAULT_IP, self.__port))
+        load_balancer_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         load_balancer_socket.listen(1)
 
         return load_balancer_socket
