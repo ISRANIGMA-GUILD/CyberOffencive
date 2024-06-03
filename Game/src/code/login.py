@@ -2,8 +2,6 @@ import socket
 import time
 import pickle
 
-MAX_MSG_LENGTH = 1024
-
 
 class Login:
 
@@ -32,16 +30,15 @@ class Login:
 
     def handle_credentials(self):
 
-        print("reached")
         try:
 
             self.check_account()
             return
 
-     #   except TypeError:
-       #     print("Problematic")
-         #   self.__details["Connected"] = 1
-         #   return
+        except TypeError:
+            print("Problematic")
+            self.__details["Connected"] = 1
+            return
 
         except ConnectionResetError:
             print("Client", self.__number + 1, self.__details["Client"].getpeername(),
@@ -73,32 +70,17 @@ class Login:
             self.__details["Connected"] = 1
             return
 
-    def invalid_data(self, data_iv, data_c_t, data_tag):
-        """
-
-        :param data_iv:
-        :param data_c_t:
-        :param data_tag:
-        :return:
-        """
-
-        return data_iv == 0 and data_c_t == 1 and data_tag == 2
-
     def check_account(self):
         """
 
         """
         self.__details["Credentials"] = self.__sus
-      #  print("checking", self.__details["Credentials"], self.__details["Client"])
         if not self.__details["Credentials"]:
-        #    print("really", self.__details["Credentials"], self.__details.keys())
             pass
 
         else:
 
             tuple_of_credentials = self.__details["Credentials"]
-            print("print this man", tuple_of_credentials, self.__credentials, "\nyes", self.__list_of_existing,
-                  "\nyes1", self.__list_of_existing_resources, "\n", self.__credentials)
 
             if self.__credentials.count(self.__details["Credentials"]) <= 1:
 
@@ -133,7 +115,6 @@ class Login:
                         return False
 
                 else:
-                    print("credes", self.__list_of_existing, "\n", tuple_of_credentials)
 
                     if (self.username_exists(list_of_existing_users, tuple_of_credentials) and
                        not self.password_exists(list_of_existing_passes, tuple_of_credentials) or
@@ -196,4 +177,3 @@ class Login:
         """
 
         return pickle.dumps(some_data)
-
