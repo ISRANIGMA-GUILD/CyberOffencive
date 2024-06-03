@@ -31,6 +31,8 @@ class Game:
 
         pygame.display.set_caption('Cyber Offensive')
         self.clock = pygame.time.Clock()
+        self.tick = 0
+        self.fps = 0
 
         self.level = Level()
         self.network = Client()
@@ -103,6 +105,8 @@ class Game:
         self.__previous = 0
 
         self.__just_entered = 0
+
+        self.__divide_time = [0,0,0,0]
 
     def run(self) -> None:
         """
@@ -254,6 +258,9 @@ class Game:
                             self.__prev_length = 19
 
                     pygame.display.update()
+                    self.tick += 1
+                    if self.tick % 60 == 0:
+                        self.tick = 0
                     self.clock.tick(FPS)
 
             except KeyboardInterrupt as e:
@@ -320,12 +327,15 @@ class Game:
             self.screen.fill((0, 0, 0))
 
             self.level.run()
-            fps = 1.0 / (self.new_frame_time - self.prev_frame_time)
 
+            if self.tick % 59 == 0:
+                self.fps = 1.0 / (self.new_frame_time - self.prev_frame_time)
             self.prev_frame_time = self.new_frame_time
-            self.text_surface = self.font.render("FPS: " + str(int(fps)), True, (128, 0, 128))
 
+            self.text_surface = self.font.render("FPS: " + str(int(self.fps)), True, (128, 0, 128))
             self.screen.blit(self.text_surface, (350, 10))
+            
+            print ("the divide time", self.__divide_time)
 
     def divide_data(self, lock):
         """
@@ -334,16 +344,24 @@ class Game:
         """
 
         with lock:
+            stime = time.time()
 
+            sstime = time.time()
             data1 = self.network.receive_enemies()
+            self.__divide_time[1] = time.time() - sstime
+            sstime = time.time()
             data2 = self.network.receive_items()
-
+            self.__divide_time[2] = time.time() - sstime
+            sstime = time.time()
             data3 = self.network.receive_location()
+            self.__divide_time[3] = time.time() - sstime
+
             data = [data1, data2, data3]
 
             success_data = self.which_is_it(data)
             print(success_data)
             self.__enemies, self.__weapons, self.__other_client = success_data
+            self.__divide_time[0] = time.time() - stime
 
     def communication(self, lock):
         """
