@@ -122,7 +122,7 @@ class Game:
                     if pygame.QUIT == event.type:
                         if self.__game_state == "continue":
                             self.find()
-                            list_of_details = ["EXIT", 1, self.items]
+                            list_of_details = ["EXIT", 1, self.items, "q"]
 
                             while True:
                                 ack = self.network.receive_ack()

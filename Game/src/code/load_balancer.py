@@ -15,7 +15,7 @@ zones = {
             'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
             'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
             'ZoneBuffer1': {'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200},
-            'ZoneBuffer2': {'min_x2': 0, 'max_x2': 19680, 'min_y2': 19681, 'max_y2': 23519}
+            'ZoneBuffer2': {'min_x2': 0, 'max_x2': 76800, 'min_y2': 19681, 'max_y2': 23519}
 }
 LB_IP = "0.0.0.0"
 LB_PORT = 1800
@@ -63,7 +63,7 @@ class LoadBalancer:
             'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
             'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
             'ZoneBuffer1': {'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200},
-            'ZoneBuffer2': {'min_x2': 0, 'max_x2': 19680, 'min_y2': 19681, 'max_y2': 23519}
+            'ZoneBuffer2': {'min_x2': 0, 'max_x2': 76800, 'min_y2': 19681, 'max_y2': 23519}
         }
         self.server_zone_map = {
             'Zone1': None,  # These will hold actual server socket connections
@@ -110,9 +110,12 @@ class LoadBalancer:
 
                 self.servers.append(connection)
                 assigned_zone = self.server_names[len(self.servers) % len(self.server_names)]
-
+                print(assigned_zone)
                 self.server_zone_map[assigned_zone] = connection  # Map server to its zone
-                print("la")
+                print(f"Connection added to {assigned_zone}: {connection}")
+                print("Current state of server_zone_map:", self.server_zone_map)
+                print(self.server_zone_map[assigned_zone])
+                print("lo")
 
                 self.send_server_configuration(connection, self.get_name())
                 data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
@@ -157,7 +160,7 @@ class LoadBalancer:
             return {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200}
         if zone == 5:
             return ({'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200}, 
-                    {'min_x2': 0, 'max_x2': 19680, 'min_y2': 19681, 'max_y2': 23519})
+                    {'min_x2': 0, 'max_x2': 76800, 'min_y2': 19681, 'max_y2': 23519})
 
     def relay_client_info(self):
         """
@@ -223,7 +226,8 @@ class LoadBalancer:
                 self.update_client_database(username, password, status, items)
                 self.update_database()
                 target_server = self.determine_server(location)
-                if target_server:
+                if target_server is not None:
+                    print("sent to server")
                     target_server.send(pickle.dumps(client_info))
                 else:
                     print("No appropriate server found for the given location.")
@@ -266,7 +270,7 @@ class LoadBalancer:
         buffer_zone_1 = self.zones['ZoneBuffer1']
         buffer_zone_2 = self.zones['ZoneBuffer2']
 
-        if (self.zones['min_x1'] <= x <= buffer_zone_1['max_x1'] and buffer_zone_1['min_y1'] <= y <= buffer_zone_1[
+        if (buffer_zone_1['min_x1'] <= x <= buffer_zone_1['max_x1'] and buffer_zone_1['min_y1'] <= y <= buffer_zone_1[
             'max_y1']) or \
                 (buffer_zone_2['min_x2'] <= x <= buffer_zone_2['max_x2'] and buffer_zone_2['min_y2'] <= y <=
                  buffer_zone_2['max_y2']):
@@ -276,8 +280,13 @@ class LoadBalancer:
         else:
             print("Client not within any buffer zones, routing to a regular server based on location.")
 
+        print("no buffer")
+
         for zone_name, bounds in self.zones.items():
             if bounds['min_x'] <= x <= bounds['max_x'] and bounds['min_y'] <= y <= bounds['max_y']:
+                print(f"Checking zone: {zone_name}, Socket: {self.server_zone_map[zone_name]}")
+                print(zone_name)
+                print(self.server_zone_map[zone_name])
                 return self.server_zone_map[zone_name]
 
     def send_server_configuration(self, connection, data):
