@@ -19,9 +19,7 @@ zones = {'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
 
 LB_IP = "127.0.0.1"
 LB_PORT = 1800
-
-NUMBER_OF_SERVERS = 2
-
+NUMBER_OF_SERVERS = 3
 # Define the servers
 servers = ['Server1', 'Server2', 'Server3', 'Server4', 'Server5']
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
@@ -78,8 +76,6 @@ class LoadBalancer:
 
         """
         print("NUMBER_OF_SERVERS")
-        while len(self.servers) != NUMBER_OF_SERVERS:
-            self.accept_new_connection(self.__load_balancer_socket)
         while True:
             self.accept_connections()
 
@@ -92,7 +88,7 @@ class LoadBalancer:
             callback = key.data
             callback(key.fileobj, mask)
 
-    def accept_new_connection(self, sock):
+    def accept_new_connection(self, sock, mask):
         """
 
         :param sock:
