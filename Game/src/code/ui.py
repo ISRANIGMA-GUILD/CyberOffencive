@@ -31,11 +31,11 @@ class UI:
 
         pygame.draw.rect(self.__display_surface, UI_BORDER_COLOR, background_rect, 3)  # draw boundary for rect
 
-        text = text_title + " :    " + str(current_value) + " / " + str(max_value)
-        rendered_text = self.__font.render(text, True, BAR_FONT_COLOR)
-        rendered_text_rect = rendered_text.get_rect()
-        rendered_text_rect.center = (background_rect.centerx - 10 * ratio, background_rect.centery)
-        self.__display_surface.blit(rendered_text, rendered_text_rect)
+     #   text = text_title + " :    " + str(current_value) + " / " + str(max_value)
+      #  rendered_text = self.__font.render(text, True, BAR_FONT_COLOR)
+      #  rendered_text_rect = rendered_text.get_rect()
+       # rendered_text_rect.center = (background_rect.centerx - 10 * ratio, background_rect.centery)
+       # self.__display_surface.blit(rendered_text, rendered_text_rect)
 
     def display(self, player) -> None:
         self.show_bar(player.stats[HEALTH], player.max_stats[HEALTH], self.__health_bar_rect, (128, 0, 0), (255, 0, 0),
