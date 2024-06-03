@@ -99,7 +99,7 @@ class LoadBalancer:
 
         for key, mask in events:
             callback = key.data
-            callback(key.fileobj, mask)
+            callback(key.fileobj)
 
     def accept_new_connection(self, sock):
         """
@@ -116,12 +116,17 @@ class LoadBalancer:
                 print(f"Connected to {addr}")
                 connection.setblocking(False)
 
-                self.servers.append(connection)
-                assigned_server = self.server_names[len(self.servers) % len(self.server_names)]
-                assigned_zone = self.server_to_zone[assigned_server]  # Map server to its corresponding zone
+                if len(self.servers) < len(self.server_names):
+                    # Assign server based on its connection order
+                    assigned_zone = 'Zone' + str(len(self.servers) + 1)
+                else:
+                    print("All zones are occupied. No more connections are expected.")
+                    connection.close()
+                    return
 
-                self.server_zone_map[assigned_zone] = connection  # Assign connection to the mapped zone
-                print(f"Connection added to {assigned_server} mapped to {assigned_zone}: {connection}")
+                self.servers.append(connection)
+                self.server_zone_map[assigned_zone] = {'socket': connection, 'address': addr}
+                print(f"Connection added to {assigned_zone}: {connection}")
                 print("Current state of server_zone_map:", self.server_zone_map)
                 print(self.server_zone_map[assigned_zone])
                 print("lo")
@@ -201,7 +206,7 @@ class LoadBalancer:
 
         print(f"Updated database for client {username}")
 
-    def service_connection(self, sock, mask):
+    def service_connection(self, sock):
         """
         get the data
         :param sock:
@@ -293,10 +298,19 @@ class LoadBalancer:
 
         for zone_name, bounds in self.zones.items():
             if bounds['min_x'] <= x <= bounds['max_x'] and bounds['min_y'] <= y <= bounds['max_y']:
-                print(f"Checking zone: {zone_name}, Socket: {self.server_zone_map[zone_name]}")
+                zone_data = self.server_zone_map[zone_name]
+                print(f"Checking zone: {zone_name}, Socket: {zone_data['socket']}")
                 print(zone_name)
                 print(self.server_zone_map[zone_name])
-                return self.server_zone_map[zone_name]
+                if zone_data and 'socket' in zone_data:
+                    print(f"Client located in {zone_name}, routing to server.")
+                    return zone_data['socket']  # Return the socket connection to the server for this zone
+                else:
+                    print(f"Server for {zone_name} is not connected.")
+                    return None
+
+        print("No zone found for the client's location.")
+        return None
 
     def send_server_configuration(self, connection, data):
         print("ko")

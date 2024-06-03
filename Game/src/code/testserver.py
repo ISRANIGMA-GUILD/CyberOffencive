@@ -288,10 +288,29 @@ class Server:
         :param message:
         """
         try:
+            if self.__load_balance_socket is None or self.__load_balance_socket.fileno() == -1:
+                print("Socket is closed. Reinitializing socket.")
+                self.initialize_load_balance_socket()  # Method to reinitialize the socket
+                print("Socket reinitialized.")
             self.__load_balance_socket.send(pickle.dumps(message))
             print(f"Message sent to Load Balancer: {message}")
         except Exception as e:
             print(f"Failed to send message: {e}")
+            if isinstance(e, socket.error):
+                print("Attempting to reinitialize socket after send failure.")
+                self.initialize_load_balance_socket()
+
+    def initialize_load_balance_socket(self):
+        try:
+            if self.__load_balance_socket:
+                self.__load_balance_socket.close()
+            numbers = TheNumbers().run()
+            self.__load_balance_socket = EncryptClient("Secret", numbers, "load_balancer").run()
+            self.__load_balance_socket.connect((self.__load_balance_ip, self.__load_balance_port))
+            print("Load balancer socket reinitialized and connected.")
+        except Exception as e:
+            print(f"Failed to reinitialize and connect load balancer socket: {e}")
+            self.__load_balance_socket = None
 
     def handle_client_location(self, client_location, temp, index):
         """
@@ -300,7 +319,6 @@ class Server:
         :param temp:
         :param client_location:
         """
-        print(self.get_local_client_details)
         if temp:
             print("hi")
             self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
@@ -394,7 +412,7 @@ class Server:
 
         except Exception as e:
             print("Failed to receive data from load balancer:", e)
-            self.__load_balance_socket.close()
+            # self.__load_balance_socket.close()
 
     def add_new_client(self, client_info):
         """
