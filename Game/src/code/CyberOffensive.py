@@ -223,7 +223,7 @@ class Game:
                     pygame.display.update()
                     self.clock.tick(FPS)
 
-                    self.erase_prev()
+                    #self.erase_prev()
 
                 if self.__game_state == "continue":
                 #    self.network.i_am_alive()
