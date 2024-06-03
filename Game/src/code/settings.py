@@ -11,8 +11,8 @@ try:
 	WIDTH: int = user32.GetSystemMetrics(0) # 800
 	HEIGHT: int = user32.GetSystemMetrics(1) - 50 # 600
 except:
-	WIDTH: int = 1920
-	HEIGHT: int = 1080
+	WIDTH = 1920
+	HEIGHT = 1080
 HALF_WIDTH: int = WIDTH // 2 # 400
 HALF_HEIGHT: int = HEIGHT // 2 # 300
 # ==========================

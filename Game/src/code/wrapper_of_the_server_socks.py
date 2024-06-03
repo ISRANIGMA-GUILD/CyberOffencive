@@ -43,7 +43,6 @@ class EncryptServer:
 
         socket_serv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        print(socket_serv.getsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR))
         socket_serv.bind((DEFAULT_IP, self.__port))
         socket_serv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         socket_serv.listen()

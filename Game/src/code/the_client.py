@@ -207,6 +207,15 @@ class Client:
                 self.__the_client_socket.settimeout(0.5)
                 their_pass = pickle.loads(self.__the_client_socket.recv(MAX_MSG_LENGTH))
 
+                if their_pass[0] == "YOU ARE BANNED":
+                    print("QUIT TRYING")
+                    pygame.display.update()
+
+                    clock.tick(FPS)
+                    self.__the_client_socket.close()
+
+                    return 1
+
                 if their_pass[0] != the_real_pass:
                     print("its a fake quit!!!!!!!!!!")
                     pygame.display.update()

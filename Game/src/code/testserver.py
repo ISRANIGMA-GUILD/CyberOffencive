@@ -28,12 +28,13 @@ MAX_MSG_LENGTH = 16000
 LOCAL_HOST = '127.0.0.1'
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
               "NODUP": ['Username', 'Password'], "DUP": ['Status', 'Items', 'Weapons'],
-              "IPs": ["IP", "MAC", "Status"], "Users": ['Username']}
+              "IPs": ["IP", "MAC"], "Users": ['Username'], "STAT": ["Status"], "NET": ["IP", "MAC", "Status"]}
 
 
 class Server:
 
-    def __init__(self, main_data_base, login_data_base, ips_data_base, number, username_database):
+    def __init__(self, main_data_base, login_data_base, ips_data_base, number, username_database,
+                 stat_data_base, net_base):
         self.__load_balance_socket = EncryptClient("Secret", number, "load_balancer").run()
 
         self.__load_balance_ip = self.get_load_balancer_ip()
@@ -45,6 +46,9 @@ class Server:
 
         self.__ips_data_base = ips_data_base
         self.__username_database = username_database
+
+        self.__stat_database = stat_data_base
+        self.__net_base = net_base
 
         self.__sockets = [EncryptServer("Servers", port).run() for port in [6921, 8843, 8820]]
         self.__number_of_clients = 1
@@ -91,8 +95,6 @@ class Server:
         self.__id = []
         self.__data_storage = []
 
-        self.__data_storage = []
-
     def run(self):
         """
 
@@ -104,7 +106,6 @@ class Server:
         # """:TODO(almost finished): Show weapons when attacking"""#
         # """:TODO: Make sure clients move smoothly move between servers"""#
         # """:TODO: Make a whitelist of processes NO MATTER CLIENT FRIENDLY or NOT"""#
-        # """:TODO: Make sure data is saved even if there is a duplicate password"""#
         # """:TODO(almost finished): Erase items and enemies from client side to make sure they dont still appear if collected or killed"""#
         # """:TODO(almost finished): Database updates correctly even if server is closed"""#
         # """:TODO(If there is time): If banned you can't connect
@@ -123,9 +124,6 @@ class Server:
                                        for i in range(0, len(self.__list_of_existing_resources))
                                        if self.__list_of_existing_resources[i][0] == "banned"]
 
-        print(self.__banned_ips, self.__banned_macs, self.__list_of_existing_resources, self.__list_of_banned_users)
-
-        print("The server will now wait for clients")
         print("Server is up and running")
 
         self.connect_to_load_socket()
@@ -226,7 +224,7 @@ class Server:
                     g = 0
 
                 else:
-                    print("SSL connection established with Load Balancer.")
+                    print("Hi load balancer")
                     g = 0
 
                     # Receive configuration data from the load balancer
@@ -274,38 +272,40 @@ class Server:
         :param client_location:
         """
 
-        print(self.get_local_client_details)
         if temp:
             print("hi")
             self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
                                                 'credentials': self.__credentials[index], 'status': self.__status[index]
-                                                   ,'items': self.__items[index]})
+                                                ,'items': self.__items[index]})
         key = list(self.__zone.keys())[0]
         x, y = client_location
 
         if self.__server_name == 'buffer_zone':
             zone_1 = self.__zone['ZoneBuffer']['min_x1'], self.__zone['ZoneBuffer']['max_x1'], \
                 self.__zone['ZoneBuffer']['min_y1'], self.__zone['ZoneBuffer']['max_y1']
+
             zone_2 = self.__zone['ZoneBuffer']['min_x2'], self.__zone['ZoneBuffer']['max_x2'], \
                 self.__zone['ZoneBuffer']['min_y2'], self.__zone['ZoneBuffer']['max_y2']
+
             if (zone_1[0] <= x <= zone_1[1] and zone_1[2] <= y <= zone_1[3]) or (
                     zone_2[0] <= x <= zone_2[1] and zone_2[2] <= y <= zone_2[3]):
                 print("Client location within buffer zone.")
+
             else:
                 print("Client location out of buffer zones.")
                 self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
-                                                    'client_data': self.get_local_client_details})
+                                                    'client_data': []})
 
         else:
             min_x, max_x, min_y, max_y = self.__zone['min_x'], self.__zone['max_x'], self.__zone['min_y'], self.__zone[
                 'max_y']
             if min_x <= x <= max_x and min_y <= y <= max_y:
-                print("Client location within assigned zone.")
+                pass
+
             else:
                 print(f"Client location {client_location} out of assigned zone.")
                 self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
-                                                    'server': self.__server_name, 'client_data':
-                                                        self.get_local_client_details})
+                                                    'server': self.__server_name, 'client_data': []})
 
     def complete_connection(self):
         """
@@ -366,7 +366,7 @@ class Server:
                 self.add_new_client(new_client_info)
 
         except socket.timeout as e:
-            print("timeout load balancer", e)
+           # print("timeout load balancer", e)
             pass
 
         except Exception as e:
@@ -385,9 +385,10 @@ class Server:
         self.__all_details.append(client_details)
         print(f"Added new client {username} with details {client_details}")
 
-    def check_for_banned(self, client_address, number):
+    def check_for_banned(self, connection, client_address, number):
         """
 
+        :param connection:
         :param client_address:
         :param number:
         """
@@ -396,7 +397,7 @@ class Server:
         if (client_address[0] in self.__banned_ips or getmacbyip(client_address[0]) in self.__banned_macs
                 or Ether().src in self.__banned_macs):
             self.__all_details[number]["Connected"] = 1
-
+         #   connection.close()
         else:
             print("success")
 
@@ -615,13 +616,29 @@ class Server:
             their_pass = pickle.loads(connection.recv(MAX_MSG_LENGTH))
 
             if their_pass[0] != passw:
-                print("shut up")
-                self.__ips_data_base.insert_no_duplicates(values=[client_address[0], getmacbyip(client_address[0]), "BANNED"],
-                                                          no_duplicate_params=["IP", "MAC", "Status"])
-                self.__banned_ips.append(client_address[0])
-                self.__banned_macs.append(getmacbyip(client_address[0]))
-                connection.close()
+                print("shut up", Ether().src)
+                if getmacbyip(client_address[0]) == 'ff:ff:ff:ff:ff:ff':
+
+                    print("banned banned", self.__ips_data_base.insert_no_duplicates(values=[client_address[0], Ether().src],
+                                                              no_duplicate_params=["IP", "MAC"]))
+                    self.__net_base.set_values(["Status"], ["BANNED"], ["IP", "MAC"],
+                                                    [client_address[0], Ether().src])
+                    self.__banned_ips.append(client_address[0])
+                    self.__banned_macs.append(getmacbyip(client_address[0]))
+
+                else:
+                    self.__ips_data_base.insert_no_duplicates(
+                        values=[client_address[0], getmacbyip(client_address[0])],
+                        no_duplicate_params=["IP", "MAC"])
+
+                    self.__net_base.set_values(["Status"], ["BANNED"], PARAMETERS["IPs"],
+                                                [client_address[0], getmacbyip(client_address[0])])
+                    self.__banned_ips.append(client_address[0])
+                    self.__banned_macs.append(getmacbyip(client_address[0]))
+
                 return
+
+            self.check_for_banned(connection, client_address, index)
 
         except socket.timeout as e:
             print("Didn't receive this time a client connection", e)
@@ -629,12 +646,27 @@ class Server:
             return
 
         except pickle.UnpicklingError as e:
-            print("BAN!", e)
-            self.__ips_data_base.insert_no_duplicates(values=[client_address[0], getmacbyip(client_address[0]), "BANNED"],
-                                                      no_duplicate_params=["IP", "MAC", "Status"])
-            self.__banned_ips.append(client_address[0])
-            self.__banned_macs.append(getmacbyip(client_address[0]))
-            connection.close()
+            print("BAN!", e, Ether().src)
+
+            if getmacbyip(client_address[0]) == 'ff:ff:ff:ff:ff:ff':
+
+                print("banned banned", self.__ips_data_base.insert_no_duplicates(values=[client_address[0], Ether().src],
+                                                                                 no_duplicate_params=["IP", "MAC"]))
+                self.__net_base.set_values(["Status"], ["BANNED"], ["IP", "MAC"],
+                                                [client_address[0], Ether().src])
+                self.__banned_ips.append(client_address[0])
+                self.__banned_macs.append(getmacbyip(client_address[0]))
+
+            else:
+                self.__ips_data_base.insert_no_duplicates(
+                    values=[client_address[0], getmacbyip(client_address[0])],
+                    no_duplicate_params=["IP", "MAC"])
+
+                self.__net_base.set_values(["Status"], ["BANNED"], PARAMETERS["IPs"],
+                                                [client_address[0], getmacbyip(client_address[0])])
+                self.__banned_ips.append(client_address[0])
+                self.__banned_macs.append(getmacbyip(client_address[0]))
+
             return
 
         try:
@@ -642,7 +674,7 @@ class Server:
             print("New client joined!", client_address)
 
             self.__to_send.append((current_socket, "yay"))
-            self.check_for_banned(client_address, index)
+            self.check_for_banned(connection, client_address, index)
 
             self.__client_sockets.append(connection)
 
@@ -729,14 +761,12 @@ class Server:
         data = ""
 
         try:
-            print("meow")
-
             current_socket.settimeout(0.05)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
 
             # If client has quit save their data
             if "EXIT" in data[0]:
-                print("Connection closedg", data)
+                print("Connection closedg")
                 self.__all_details[index]["Connected"] = 1
 
                 self.__items[index] = data[2]
@@ -806,7 +836,7 @@ class Server:
             self.eliminate_socket(index)
 
         except EOFError as e:
-            print("Connection closedn", e, data)
+            print("Connection closedn", e)
             self.__all_details[index]["Connected"] = 1
 
             self.update_database()
@@ -927,18 +957,14 @@ class Server:
 
         """
         for index in range(0, len(self.__new_credentials)):
-            print("succ", self.__username_database.insert_no_duplicates(values=[self.__new_credentials[index][0]],
-                                                                no_duplicate_params=['Username']))
-         #   self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
-                                                                #      self.__new_credentials[index][1]],
-                                                              #no_duplicate_params=['Username', 'Password'])
-            print("sUCC", self.__main_data_base.set_values(['Password'],
-                                                            [self.__new_credentials[index][1]],
-                                                            ['Username'], [self.__new_credentials[index][0]]))
+            self.__username_database.insert_no_duplicates(values=[self.__new_credentials[index][0]],
+                                                                        no_duplicate_params=['Username'])
+
+            self.__main_data_base.set_values(['Password'], [self.__new_credentials[index][1]],
+                                             ['Username'], [self.__new_credentials[index][0]])
 
         for index in range(0, len(self.__session_users) - 1):
             if self.__items[index] is not None:
-              #  print("user is:", self.__session_users[index])
                 weapons = (str(self.__items[index]["A"]) + ", " + str(self.__items[index]["B"]) + ", "
                            + str(self.__items[index]["S"]))
                 items = (str(self.__items[index]["HPF"]) + ", " + str(self.__items[index]["EF"]) + ", " +
@@ -1048,9 +1074,11 @@ def main():
 
     login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
     username_database = DatabaseManager("PlayerDetails", PARAMETERS["Users"])
+    stat_data_base = DatabaseManager("IPs", PARAMETERS["STAT"])
+    net_base = DatabaseManager("IPs", PARAMETERS["NET"])
     numbers = TheNumbers().run()
 
-    server = Server(main_data_base, login_data_base, ips_data_base, numbers, username_database)
+    server = Server(main_data_base, login_data_base, ips_data_base, numbers, username_database, stat_data_base, net_base)
     server.run()
 
 

@@ -177,57 +177,7 @@ class Game:
                             self.__game_state = "continue"
                             pygame.display.set_caption("Cyber Offensive")
 
-                            if len(ran) > 1:
-                                items = ran[1][1].split(', ')
-                                weapons = ran[1][2].split(', ')
-
-                                if int(weapons[0]) > 0:
-                                    self.items["A"] = int(weapons[0])
-
-                                    for item in range(0, self.items["A"]):
-                                        self.level.player.inventory.hotbar.insert(Axe((0, 0),
-                                                                                        [self.level.visible_sprites]))
-
-                                if int(weapons[1]) > 0:
-                                    self.items["B"] = int(weapons[1])
-
-                                    for item in range(0, self.items["B"]):
-                                        self.level.player.inventory.hotbar.insert(Bow((0, 0), self.level.visible_sprites,
-                                                                                        [self.level.visible_sprites, self.level.attack_sprites]))
-
-                                if int(weapons[2]) > 0:
-                                    self.items["S"] = int(weapons[2])
-
-                                    for item in range(0, self.items["S"]):
-                                        self.level.player.inventory.hotbar.insert(Sword((0, 0),
-                                                                                        [self.level.visible_sprites]))
-
-                                if int(items[0]) > 0:
-                                    self.items["HPF"] = int(items[0])
-
-                                    for item in range(0, self.items["HPF"]):
-                                        self.level.player.inventory.hotbar.insert(HPFruit((0, 0),
-                                                                                          [self.level.visible_sprites]))
-
-                                if int(items[1]) > 0:
-                                    self.items["EF"] = int(items[1])
-                                    for item in range(0, self.items["EF"]):
-                                        self.level.player.inventory.hotbar.insert(EnergyFruit((0, 0),
-                                                                                              [self.level.visible_sprites]))
-
-                                if int(items[2]) > 0:
-                                    self.items["RHPF"] = int(items[2])
-
-                                    for item in range(0, self.items["RHPF"]):
-                                        self.level.player.inventory.hotbar.insert(RedHPFruit((0, 0),
-                                                                                              [self.level.visible_sprites]))
-
-                                if int(items[3]) > 0:
-                                    self.items["BEF"] = int(items[3])
-
-                                    for item in range(0, self.items["BEF"]):
-                                        self.level.player.inventory.hotbar.insert(BlueEnergyFruit((0, 0),
-                                                                                              [self.level.visible_sprites]))
+                            self.receive_the_many_goods(ran)
 
                     pygame.display.update()
                     self.clock.tick(FPS)
@@ -235,8 +185,6 @@ class Game:
                     #self.erase_prev()
 
                 if self.__game_state == "continue":
-                #    self.network.i_am_alive()
-                    #self.erase_prev()
                     if self.__previous == 0:
                         self.__previous = time.time()
 
@@ -297,6 +245,65 @@ class Game:
                 pygame.quit()
                 sys.exit()
 
+    def receive_the_many_goods(self, ran):
+        """
+
+        :param ran:
+        """
+
+        if len(ran) > 1:
+            items = ran[1][1].split(', ')
+            weapons = ran[1][2].split(', ')
+
+            if int(weapons[0]) > 0:
+                self.items["A"] = int(weapons[0])
+
+                for item in range(0, self.items["A"]):
+                    self.level.player.inventory.hotbar.insert(Axe((0, 0),
+                                                                  [self.level.visible_sprites]))
+
+            if int(weapons[1]) > 0:
+                self.items["B"] = int(weapons[1])
+
+                for item in range(0, self.items["B"]):
+                    self.level.player.inventory.hotbar.insert(Bow((0, 0), self.level.visible_sprites,
+                                                                  [self.level.visible_sprites,
+                                                                   self.level.attack_sprites]))
+
+            if int(weapons[2]) > 0:
+                self.items["S"] = int(weapons[2])
+
+                for item in range(0, self.items["S"]):
+                    self.level.player.inventory.hotbar.insert(Sword((0, 0),
+                                                                    [self.level.visible_sprites]))
+
+            if int(items[0]) > 0:
+                self.items["HPF"] = int(items[0])
+
+                for item in range(0, self.items["HPF"]):
+                    self.level.player.inventory.hotbar.insert(HPFruit((0, 0),
+                                                                      [self.level.visible_sprites]))
+
+            if int(items[1]) > 0:
+                self.items["EF"] = int(items[1])
+                for item in range(0, self.items["EF"]):
+                    self.level.player.inventory.hotbar.insert(EnergyFruit((0, 0),
+                                                                          [self.level.visible_sprites]))
+
+            if int(items[2]) > 0:
+                self.items["RHPF"] = int(items[2])
+
+                for item in range(0, self.items["RHPF"]):
+                    self.level.player.inventory.hotbar.insert(RedHPFruit((0, 0),
+                                                                         [self.level.visible_sprites]))
+
+            if int(items[3]) > 0:
+                self.items["BEF"] = int(items[3])
+
+                for item in range(0, self.items["BEF"]):
+                    self.level.player.inventory.hotbar.insert(BlueEnergyFruit((0, 0),
+                                                                              [self.level.visible_sprites]))
+
     def create_threads(self, game_lock, com_lock, div_lock):
         """
 
@@ -340,18 +347,17 @@ class Game:
         """
 
         with lock:
-            stime = time.time()
-
             data1 = self.network.receive_stuff()
             data3 = self.network.receive_location()
-            data = [data1, data3]
 
+            data = [data1, data3]
             success_data = self.which_is_it(data)
-            print("go fuck yourself python please", success_data[0][0], success_data[0][1])
+
+            if success_data == 1 or success_data == [[[], []], []]:
+                return
+
             self.__enemies, self.__weapons = success_data[0][0], success_data[0][1]
             self.__other_client = success_data[1]
-
-            self.__divide_time = time.time() - stime
 
     def communication(self, lock):
         """
@@ -363,218 +369,148 @@ class Game:
 
             current_loc = self.level.player.get_location()
             current_status_index = int(self.level.player.frame_index)
+
             self.find()
-
             status = f'{self.level.player.status}_{current_status_index}'
+
             list_of_public_details = [current_loc, self.__message, status, 0]
-
             self.__previous_status = self.level.player.status
+
             self.prev_loc = current_loc
-
-            enemies = self.__enemies
-
             # If we received new locations of enemies from server see if we need to spawn them,
             # If they exist just update according to data in this message (enemies)
-          #  self.erase_prev()
-            if enemies:
-                print("w", enemies)
-                [BlueSnowSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
-                                self.level.obstacles_sprites,
-                                self.level.damage_player, self.level, loc[0]) for loc in
-                 list(filter(lambda person: "BSS" in person[0], enemies))
-                 if loc[0] not in self.__the_enemies]
+            self.spawn_enemies()
 
-                [BlueSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
-                            self.level.obstacles_sprites,
-                            self.level.damage_player, self.level, loc[0]) for loc in
-                 list(filter(lambda person: "BS" in person[0], enemies)) if loc[0] not in self.__the_enemies]
-
-                [CyanRedSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
-                               self.level.obstacles_sprites,
-                               self.level.damage_player, self.level, loc[0]) for loc in
-                 list(filter(lambda person: "CRS" in person[0], enemies)) if loc[0] not in self.__the_enemies]
-
-                [CyanSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
-                            self.level.obstacles_sprites,
-                            self.level.damage_player, self.level, loc[0]) for loc in
-                 list(filter(lambda person: "CS" in person[0], enemies)) if loc[0] not in self.__the_enemies]
-
-                [RedGreenSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
-                                self.level.obstacles_sprites,
-                                self.level.damage_player, self.level, loc[0]) for loc in
-                 list(filter(lambda person: "RGS" in person[0], enemies)) if loc[0] not in self.__the_enemies]
-
-                [RedSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
-                           self.level.obstacles_sprites,
-                           self.level.damage_player, self.level, loc[0]) for loc in
-                 list(filter(lambda person: "RS" in person[0], enemies)) if loc[0] not in self.__the_enemies]
-
-                [Goblin(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
-                        self.level.obstacles_sprites,
-                        self.level.damage_player, self.level, loc[0]) for loc in
-                 list(filter(lambda person: "GOB" in person[0], enemies)) if loc[0] not in self.__the_enemies]
-
-                [Frenzy(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
-                        self.level.obstacles_sprites,
-                        self.level.damage_player, self.level, loc[0]) for loc in
-                 list(filter(lambda person: "FRE" in person[0], enemies)) if loc[0] not in self.__the_enemies]
-              #  print("e", enemies)
-
-                for loc in enemies:
-                    print("eeeeeee", loc)
-                    new_id = re.findall(r'\d+', loc[0])
-
-                    if loc[0] not in self.__the_enemies:
-
-                        self.__the_e_id.append(new_id[0])
-                        self.__the_enemies.append(loc[0])
-                        self.__enemy_locs.append(loc[1])
-
-                    elif loc[0] in self.__the_enemies and new_id[0] not in self.__the_e_id:
-
-                        self.__the_enemies.pop(self.__the_e_id.index(new_id[0]))
-                        self.__the_e_id.remove(new_id[0])  # make sure order of ids is the same as order of id numbers
-
-                    else:
-                        self.__enemy_locs[self.__the_enemies.index(loc[0])] = loc[1]
-
-                for enemie in self.level.attackable_sprites:
-                    if enemie.status == 'death' and enemie.id in self.__the_enemies:
-                        print("kill", enemie.id)
-                      #  self.__the_enemies.remove(enemie.id)
-
-                      #  self.__enemy_locs.remove(enemie.hitbox.center)
-                        self.network.kill_enemy(enemie.id)
-
-                #        self.level.attackable_sprites.remove(enemie)
-
-                    elif enemie.id not in self.__the_enemies:
-                       # self.__enemy_locs.remove(enemie.hitbox.center)
-                        print("kill")
-
-                        self.level.visible_sprites.remove(enemie)
-                        self.level.attackable_sprites.remove(enemie)
-
-                for loc in enemies:
-                    for enemie in self.level.attackable_sprites:
-                        if enemie.id == loc[0]:
-                            enemie.hitbox.center = loc[1]
-
-            elif enemies and 'LEAVE' == enemies[0]:
-                self.__game_state = "start_menu"
-
-            weapons = self.__weapons
-            # If we received new locations of weapons\items from server see if we need to spawn them,
-            # If they exist just update according to data in this message (weapons)
-            if weapons:
-                print("w", weapons)
-                [Axe(loc[1], [self.level.visible_sprites])
-                 for loc in list(filter(lambda person: "A" in person, weapons)) if loc[1] not in self.__item_locs]
-                [Bow(loc[1], [self.level.visible_sprites], [self.level.visible_sprites, self.level.attack_sprites])
-                 for loc in list(filter(lambda person: "B" in person, weapons)) if loc[1] not in self.__item_locs]
-
-                [Sword(loc[1], [self.level.visible_sprites])
-                 for loc in list(filter(lambda person: "S" in person, weapons)) if loc[1] not in self.__item_locs]
-                [HPFruit(loc[1], [self.level.visible_sprites])
-                 for loc in list(filter(lambda person: "HPF" in person, weapons)) if loc[1] not in self.__item_locs]
-
-                [EnergyFruit(loc[1], [self.level.visible_sprites])
-                 for loc in list(filter(lambda person: "EF" in person, weapons)) if loc[1] not in self.__item_locs]
-                [RedHPFruit(loc[1], [self.level.visible_sprites])
-                 for loc in list(filter(lambda person: "RHPF" in person, weapons)) if loc[1] not in self.__item_locs]
-
-                [BlueEnergyFruit(loc[1], [self.level.visible_sprites])
-                 for loc in list(filter(lambda person: "BEF" in person, weapons)) if loc[1] not in self.__item_locs]
-
-                for loc in weapons:
-                    if loc[1] not in self.__item_locs:
-                        self.__item_locs.append(loc[1])
-
-            elif weapons and "LEAVE" == weapons[0]:
-                self.__game_state = "start_menu"
-
+            self.spawn_weapons()
             other_client = self.__other_client
 
-            if self.__previous_details != list_of_public_details or self.__just_entered == 0: #or self.__timer >= 0.02:
-                s = self.network.update_server(list_of_public_details, self.items)
-                self.__previous_details = list_of_public_details
+            self.updates_many_updates(list_of_public_details, other_client)
+            self.draw_chat()
 
-                if s == 1:
-                    self.__game_state = "start_menu"
+    def spawn_enemies(self):
+        """
 
-                self.__just_entered = 1
+        """
 
-            if other_client is None or self.__game_state == "start_menu":
-                pass
+        enemies = self.__enemies
 
-            elif other_client == 1:
-                self.__game_state = "start_menu"
+        if enemies:
+            [BlueSnowSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
+                            self.level.obstacles_sprites,
+                            self.level.damage_player, self.level, loc[0]) for loc in
+             list(filter(lambda person: "BSS" in person[0], enemies))
+             if loc[0] not in self.__the_enemies]
 
-            else:
+            [BlueSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
+                        self.level.obstacles_sprites,
+                        self.level.damage_player, self.level, loc[0]) for loc in
+             list(filter(lambda person: "BS" in person[0], enemies)) if loc[0] not in self.__the_enemies]
 
-                if (type(other_client) is list or type(other_client) is tuple) and (len(other_client) == 4):
-                    self.update_users()
-                    self.__prev_info[other_client[3]] = other_client
+            [CyanRedSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
+                           self.level.obstacles_sprites,
+                           self.level.damage_player, self.level, loc[0]) for loc in
+             list(filter(lambda person: "CRS" in person[0], enemies)) if loc[0] not in self.__the_enemies]
 
-                    self.__other_messages = other_client[1]
+            [CyanSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
+                        self.level.obstacles_sprites,
+                        self.level.damage_player, self.level, loc[0]) for loc in
+             list(filter(lambda person: "CS" in person[0], enemies)) if loc[0] not in self.__the_enemies]
 
-                    if self.__other_messages is not None:
-                        self.__previous_messages.append(self.__other_messages)
+            [RedGreenSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
+                            self.level.obstacles_sprites,
+                            self.level.damage_player, self.level, loc[0]) for loc in
+             list(filter(lambda person: "RGS" in person[0], enemies)) if loc[0] not in self.__the_enemies]
 
-                    self.erase_previous()
-                    self.__temp_p = []
+            [RedSpider(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
+                       self.level.obstacles_sprites,
+                       self.level.damage_player, self.level, loc[0]) for loc in
+             list(filter(lambda person: "RS" in person[0], enemies)) if loc[0] not in self.__the_enemies]
 
-                    p_image = [pygame.image.load(
-                        f'{BASE_PATH}graphics\\player\\{self.__prev_info[user][2][0:len(self.__prev_info[user][2]) - 2]}\\{self.__prev_info[user][2]}.png')
-                               .convert_alpha() for user in self.__users if self.__prev_info[user][2]
-                               is not None]
+            [Goblin(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
+                    self.level.obstacles_sprites,
+                    self.level.damage_player, self.level, loc[0]) for loc in
+             list(filter(lambda person: "GOB" in person[0], enemies)) if loc[0] not in self.__the_enemies]
 
-                    if not p_image:
-                        pass
+            [Frenzy(loc[1], [self.level.visible_sprites, self.level.attackable_sprites],
+                    self.level.obstacles_sprites,
+                    self.level.damage_player, self.level, loc[0]) for loc in
+             list(filter(lambda person: "FRE" in person[0], enemies)) if loc[0] not in self.__the_enemies]
 
-                    else:
-                        index = 0
-                        for user in self.__users:
-                            player_remote = Tile(position=self.__prev_info[user][0],
-                                                 groups=[self.level.visible_sprites,
-                                                         self.level.obstacles_sprites],
-                                                 sprite_type=PLAYER_OBJECT, surface=p_image[index])
-                            self.__temp_p.append(player_remote)
-                            index += 1
+            for loc in enemies:
+                new_id = re.findall(r'\d+', loc[0])
+
+                if loc[0] not in self.__the_enemies:
+
+                    self.__the_e_id.append(new_id[0])
+                    self.__the_enemies.append(loc[0])
+                    self.__enemy_locs.append(loc[1])
+
+                elif loc[0] in self.__the_enemies and new_id[0] not in self.__the_e_id:
+
+                    self.__the_enemies.pop(self.__the_e_id.index(new_id[0]))
+                    self.__the_e_id.remove(new_id[0])  # make sure order of ids is the same as order of id numbers
+
                 else:
-                    pass
+                    self.__enemy_locs[self.__the_enemies.index(loc[0])] = loc[1]
 
-            pygame.draw.rect(self.screen, (0, 0, 0), self.__output_box)
-            pygame.draw.rect(self.screen, (0, 255, 0), self.__input_box)
+            for enemie in self.level.attackable_sprites:
+                if enemie.status == 'death' and enemie.id in self.__the_enemies:
+                    print("kill", enemie.id)
+                    self.__the_enemies.remove(enemie.id)
 
-            pygame.draw.rect(self.screen, (255, 215, 0), self.__output_o_box, 2)
-            pygame.draw.rect(self.screen, (255, 215, 0), self.__input_o_box, 10)
+                    # self.__enemy_locs.remove(enemie.hitbox.center)
+                    self.network.kill_enemy(enemie.id)
 
-            if self.__other_messages is not None:
+                    self.level.attackable_sprites.remove(enemie)
 
-                if 0 < len(self.__temp_message) <= self.__prev_length:
-                    self.draw_text(self.__temp_message, (255, 0, 0), self.screen, 10, 610)
-                else:
-                    self.__prev_length += 10
-                    self.draw_text(self.__temp_message[self.__prev_length - 2:], (255, 0, 0), self.screen, 10,
-                                   610)
+                elif enemie.id not in self.__the_enemies:
+                    # self.__enemy_locs.remove(enemie.hitbox.center)
+                    print("kill")
 
-            if self.__previous_messages is not None:
-                for i in range(0, len(self.__locs)):
-                    if len(self.__previous_messages) > 0:
-                        if len(self.__previous_messages) == 1:
-                            self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
-                                           (255, 0, 0), self.screen,
-                                           self.__locs[i][1][0], self.__locs[i][1][1])
-                            break
+                    self.level.visible_sprites.remove(enemie)
+                    self.level.attackable_sprites.remove(enemie)
 
-                        else:
-                            self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
-                                           (255, 0, 0), self.screen,
-                                           self.__locs[i][1][0], self.__locs[i][1][1])
-                        if (self.__locs[i][0] != len(self.__previous_messages) - 2 or
-                                self.__locs[i][0] != len(self.__previous_messages) - 1):
-                            self.__locs[i][0] += 1
+            for loc in enemies:
+                for enemie in self.level.attackable_sprites:
+                    if enemie.id == loc[0]:
+                        enemie.hitbox.center = loc[1]
+
+        elif enemies and 'LEAVE' == enemies[0]:
+            self.__game_state = "start_menu"
+
+    def spawn_weapons(self):
+        """
+
+        """
+
+        weapons = self.__weapons
+        # If we received new locations of weapons\items from server see if we need to spawn them,
+        # If they exist just update according to data in this message (weapons)
+        if weapons:
+            [Axe(loc[1], [self.level.visible_sprites])
+             for loc in list(filter(lambda person: "A" in person, weapons)) if loc[1] not in self.__item_locs]
+            [Bow(loc[1], [self.level.visible_sprites], [self.level.visible_sprites, self.level.attack_sprites])
+             for loc in list(filter(lambda person: "B" in person, weapons)) if loc[1] not in self.__item_locs]
+
+            [Sword(loc[1], [self.level.visible_sprites])
+             for loc in list(filter(lambda person: "S" in person, weapons)) if loc[1] not in self.__item_locs]
+            [HPFruit(loc[1], [self.level.visible_sprites])
+             for loc in list(filter(lambda person: "HPF" in person, weapons)) if loc[1] not in self.__item_locs]
+
+            [EnergyFruit(loc[1], [self.level.visible_sprites])
+             for loc in list(filter(lambda person: "EF" in person, weapons)) if loc[1] not in self.__item_locs]
+            [RedHPFruit(loc[1], [self.level.visible_sprites])
+             for loc in list(filter(lambda person: "RHPF" in person, weapons)) if loc[1] not in self.__item_locs]
+
+            [BlueEnergyFruit(loc[1], [self.level.visible_sprites])
+             for loc in list(filter(lambda person: "BEF" in person, weapons)) if loc[1] not in self.__item_locs]
+
+            for loc in weapons:
+                if loc[1] not in self.__item_locs:
+                    self.__item_locs.append(loc[1])
+
+        elif weapons and "LEAVE" == weapons[0]:
+            self.__game_state = "start_menu"
 
     def draw_start_menu(self):
         """
@@ -583,8 +519,8 @@ class Game:
 
         self.screen = pygame.display.set_mode((1920, 1080))
         start_button = self.font.render('START', True, (255, 255, 255))
-        img = pygame.image.load(IMAGE)
 
+        img = pygame.image.load(IMAGE)
         self.screen.blit(img, (0, 0))
 
         pygame.display.update()
@@ -593,6 +529,94 @@ class Game:
         pygame.draw.rect(self.screen, (0, 255, 0), input_box)
         self.screen.blit(start_button, (self.screen.get_width() / 2 - start_button.get_width() / 2,
                                         self.screen.get_height() / 2 + start_button.get_height() / 2))
+
+    def draw_chat(self):
+
+        pygame.draw.rect(self.screen, (0, 0, 0), self.__output_box)
+        pygame.draw.rect(self.screen, (0, 255, 0), self.__input_box)
+
+        pygame.draw.rect(self.screen, (255, 215, 0), self.__output_o_box, 2)
+        pygame.draw.rect(self.screen, (255, 215, 0), self.__input_o_box, 10)
+
+        if self.__other_messages is not None:
+
+            if 0 < len(self.__temp_message) <= self.__prev_length:
+                self.draw_text(self.__temp_message, (255, 0, 0), self.screen, 10, 610)
+            else:
+                self.__prev_length += 10
+                self.draw_text(self.__temp_message[self.__prev_length - 2:], (255, 0, 0), self.screen, 10,
+                               610)
+
+        if self.__previous_messages is not None:
+            for i in range(0, len(self.__locs)):
+                if len(self.__previous_messages) > 0:
+                    if len(self.__previous_messages) == 1:
+                        self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
+                                       (255, 0, 0), self.screen,
+                                       self.__locs[i][1][0], self.__locs[i][1][1])
+                        break
+
+                    else:
+                        self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
+                                       (255, 0, 0), self.screen,
+                                       self.__locs[i][1][0], self.__locs[i][1][1])
+                    if (self.__locs[i][0] != len(self.__previous_messages) - 2 or
+                            self.__locs[i][0] != len(self.__previous_messages) - 1):
+                        self.__locs[i][0] += 1
+
+    def updates_many_updates(self, list_of_public_details, other_client):
+        """
+
+        :param list_of_public_details:
+        :param other_client:
+        """
+
+        if self.__previous_details != list_of_public_details or self.__just_entered == 0:  # or self.__timer >= 0.02:
+            s = self.network.update_server(list_of_public_details, self.items)
+            self.__previous_details = list_of_public_details
+
+            if s == 1:
+                self.__game_state = "start_menu"
+
+            self.__just_entered = 1
+
+        if other_client is None or self.__game_state == "start_menu":
+            pass
+
+        elif other_client == 1:
+            self.__game_state = "start_menu"
+
+        else:
+
+            if (type(other_client) is list or type(other_client) is tuple) and (len(other_client) == 4):
+                self.update_users()
+                self.__prev_info[other_client[3]] = other_client
+
+                self.__other_messages = other_client[1]
+
+                if self.__other_messages is not None:
+                    self.__previous_messages.append(self.__other_messages)
+
+                self.erase_previous()
+                self.__temp_p = []
+
+                p_image = [pygame.image.load(
+                    f'{BASE_PATH}graphics\\player\\{self.__prev_info[user][2][0:len(self.__prev_info[user][2]) - 2]}\\{self.__prev_info[user][2]}.png')
+                           .convert_alpha() for user in self.__users if self.__prev_info[user][2]
+                           is not None]
+
+                if not p_image:
+                    pass
+
+                else:
+                    index = 0
+                    for user in self.__users:
+                        player_remote = Tile(position=self.__prev_info[user][0],
+                                             groups=[self.level.visible_sprites,
+                                                     self.level.obstacles_sprites],
+                                             sprite_type=PLAYER_OBJECT, surface=p_image[index])
+                        self.__temp_p.append(player_remote)
+                        index += 1
 
     def draw_text(self, text, color, surface, x, y):
         """
@@ -621,22 +645,19 @@ class Game:
         other_client = []
 
         for d in data:
-            print(d)
-            if not d:
+            if type(d) is int:
+                self.__game_state = "start_menu"
+                list_of_details = ["EXIT", 1, self.items]
+                s = self.network.update_server(list_of_details, self.items)
+                return 1
+
+            elif d is None:
                 pass
 
-            #if type(d) is int:
-            #   self.__game_state = "start_menu"
-             #   list_of_details = ["EXIT", 1, self.items]
-             #   s = self.network.update_server(list_of_details, self.items)
-              #  return 1
-
             elif self.is_enemies(d):
-                print(stuff)
                 stuff = [d[1], d[2]]
 
             else:
-             #   print("oth client", d)
                 other_client = d
 
         return stuff, other_client
@@ -792,7 +813,6 @@ class Game:
 
                 if issubclass(item_stack[i].__class__, Bow):
                     count_b += 1
-                #    self.__remove_item_loc.append(self.level.player.get_location())
 
                 if issubclass(item_stack[i].__class__, HPFruit):
                     count_h += 1
@@ -838,8 +858,10 @@ class Game:
 
         self.level = meow[0]
         self.level.visible_sprites = meow[1]
+
         self.level.attackable_sprites = meow[2]
         self.level.attack_sprites = meow[3]
+
         self.level.obstacles_sprites = meow[4]
 
 def main():
