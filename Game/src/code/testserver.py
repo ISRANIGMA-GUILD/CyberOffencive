@@ -10,11 +10,8 @@ from clientpasswordgen import *
 from serverpassword import *
 from interesting_numbers import *
 from movment_logic import *
-try:
-    from map import MapRenderer
-    from collisiongrid import CollisionGrid
-except AttributeError:
-    pass
+from map import MapRenderer
+from collisiongrid import CollisionGrid
 import os
 import re
 import threading
