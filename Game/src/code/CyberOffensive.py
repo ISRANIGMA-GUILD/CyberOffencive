@@ -31,6 +31,8 @@ class Game:
 
         pygame.display.set_caption('Cyber Offensive')
         self.clock = pygame.time.Clock()
+        self.tick = 0
+        self.fps = 0
 
         self.level = Level()
         self.network = Client()
@@ -103,6 +105,8 @@ class Game:
         self.__previous = 0
 
         self.__just_entered = 0
+
+        self.__divide_time = 0
 
     def run(self) -> None:
         """
@@ -254,6 +258,9 @@ class Game:
                             self.__prev_length = 19
 
                     pygame.display.update()
+                    self.tick += 1
+                    if self.tick % 60 == 0:
+                        self.tick = 0
                     self.clock.tick(FPS)
 
             except KeyboardInterrupt as e:
@@ -320,12 +327,15 @@ class Game:
             self.screen.fill((0, 0, 0))
 
             self.level.run()
-            fps = 1.0 / (self.new_frame_time - self.prev_frame_time)
 
+            if self.tick % 59 == 0:
+                self.fps = 1.0 / (self.new_frame_time - self.prev_frame_time)
             self.prev_frame_time = self.new_frame_time
-            self.text_surface = self.font.render("FPS: " + str(int(fps)), True, (128, 0, 128))
 
+            self.text_surface = self.font.render("FPS: " + str(int(self.fps)), True, (128, 0, 128))
             self.screen.blit(self.text_surface, (350, 10))
+            
+            print ("the divide time", self.__divide_time)
 
     def divide_data(self, lock):
         """
@@ -334,6 +344,8 @@ class Game:
         """
 
         with lock:
+            stime = time.time()
+
             data1 = self.network.receive_stuff()
             data3 = self.network.receive_location()
             data = [data1, data3]
@@ -342,6 +354,8 @@ class Game:
             print("go fuck yourself python please", success_data[0][0], success_data[0][1])
             self.__enemies, self.__weapons = success_data[0][0], success_data[0][1]
             self.__other_client = success_data[1]
+
+            self.__divide_time = time.time() - stime
 
     def communication(self, lock):
         """
