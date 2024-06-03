@@ -158,18 +158,30 @@ class LoadBalancer:
     def get_zone(self, zone):
         if zone == 1:
             print("moo")
-            return {'min_x': 0, 'max_x': 1459, 'min_y': 0, 'max_y': 1280}
+            return {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680}
         if zone == 2:
-            return {'min_x': 2188, 'max_x': 3648, 'min_y': 0, 'max_y': 1280}
+            return {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680}
         if zone == 3:
-            return {'min_x': 0, 'max_x': 1459, 'min_y': 1920, 'max_y': 3200}
+            return {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200}
         if zone == 4:
-            return {'min_x': 2188, 'max_x': 3648, 'min_y': 1920, 'max_y': 3200}
+            return {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200}
         if zone == 5:
-            return ({'min_x1': 1458, 'max_x1': 2187, 'min_y1': 0, 'max_y1': 3200},
-                    {'min_x2': 0, 'max_x2': 3648, 'min_y2': 1281, 'max_y2': 1919})
+            return ({'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200},
+                    {'min_x2': 0, 'max_x2': 19680, 'min_y2': 19681, 'max_y2': 23519})
 
-    def update_client_database(self, username, password, status, items, weapons):
+    def relay_client_info(self):
+        """
+
+        """
+
+        while True:
+            events = self.selector.select(timeout=None)
+            for key, mask in events:
+                if key.data:
+                    callback = key.data
+                    callback(key.fileobj, mask)
+
+    def update_client_database(self, username, password, status, items):
         """
         Insert or update client data in the database.
 
@@ -179,13 +191,11 @@ class LoadBalancer:
         :param items: Client's initial items
         :param weapons: Client's initial weapons
         """
-        self.__login_data_base.insert_no_duplicates(values=[username, password],
-                                                    no_duplicate_params=["Username", "Password"])
+        self.__login_data_base.insert_no_duplicates(values=[username, password], no_duplicate_params=["Username"])
 
-        values = [items, weapons]
+        values = [username, password, status, items]
         params = PARAMETERS["PlayerDetails"]
-
-        self.__main_data_base.set_values(['Items', 'Weapons'], values, ['Username'], [username])
+        self.__main_data_base.insert_no_duplicates(values=values, no_duplicate_params=["Username"])
 
         print(f"Updated database for client {username}")
 
@@ -196,7 +206,7 @@ class LoadBalancer:
         :param mask:
         """
 
-      #  if mask & selectors.EVENT_READ:
+        #  if mask & selectors.EVENT_READ:
         try:
             sock.settimeout(0.05)
             recv_data = sock.recv(1024)
@@ -204,21 +214,24 @@ class LoadBalancer:
             if recv_data is not None:
                 print("Data received:", recv_data)
                 client_info = pickle.loads(recv_data)
+                print("Data received:", client_info)
+                credentials = client_info.get('credentials')
+                username = credentials[0]
+                password = credentials[1]  # Default password if not provided
+                status = client_info.get('status')  # Default status if not provided
+                if status is None:
+                    status = 'idle'
+                items = client_info.get('items')  # Default items if not provided
 
-                username = client_info.get('username')
-                password = client_info.get('password', 'defaultPassword')  # Default password if not provided
-                status = client_info.get('status', 'Active')  # Default status if not provided
-                items = client_info.get('items', 'None')  # Default items if not provided
-                weapons = client_info.get('weapons', 'None')  # Default weapons if not provided
-                location = client_info.get('location', {'x': 0, 'y': 0})  # Default location if not provided
+                # weapons = client_info.get('weapons', 'None')  # Default weapons if not provided
+                location = client_info.get('location')  # Default location if not provided
 
                 self.__session_users.append(username)
                 self.__credentials.append({
-                    'username': username, 'password': password, 'status': status, 'items': items, 'weapons': weapons
-                })
+                    'username': username, 'password': password, 'status': status, 'items': items})
 
-                self.update_client_database(username, password, status, items, weapons)
-
+                self.update_client_database(username, password, status, items)
+                self.update_database()
                 target_server = self.determine_server(location)
                 if target_server:
                     target_server.send(pickle.dumps(client_info))
@@ -249,8 +262,8 @@ class LoadBalancer:
             print("Connection closedn", e)
             print("Closing connection to", sock.getpeername())
 
-            self.selector.unregister(sock)
-            sock.close()
+        #  self.selector.unregister(sock)
+        #   sock.close()
 
     def determine_server(self, client_info):
         """
@@ -258,16 +271,16 @@ class LoadBalancer:
         :param client_info:
         :return:
         """
-        x, y = client_info['x'], client_info['y']
+        x = client_info[0]
+        y = client_info[1]
         buffer_zone_1 = self.zones['ZoneBuffer1']
-        buffer_zone_2 = self.zones['ZoneBuffer1']
+        buffer_zone_2 = self.zones['ZoneBuffer2']
 
-        if (self.zones['min_x'] <= x <= buffer_zone_1['max_x'] and buffer_zone_1['min_y'] <= y <= buffer_zone_1[
-            'max_y']) or \
-                (buffer_zone_2['min_x'] <= x <= buffer_zone_2['max_x'] and buffer_zone_2['min_y'] <= y <= buffer_zone_2[
-                    'max_y']):
+        if (self.zones['min_x1'] <= x <= buffer_zone_1['max_x1'] and buffer_zone_1['min_y1'] <= y <= buffer_zone_1[
+            'max_y1']) or \
+                (buffer_zone_2['min_x2'] <= x <= buffer_zone_2['max_x2'] and buffer_zone_2['min_y2'] <= y <=
+                 buffer_zone_2['max_y2']):
             print("Client assigned to buffer server based on buffer zone coordinates.")
-
             return self.server_zone_map['Zone5']  # Return the buffer server
 
         else:
@@ -309,16 +322,14 @@ class LoadBalancer:
                            self.__new_credentials[index][1]],
                    no_duplicate_params=PARAMETERS["NODUP"]))
 
-        for index in range(0, len(self.__session_users) - 1):
-            if self.__weapons[index] is not None:
-                weapons = (str(self.__weapons[index]["A"]) + ", " + str(self.__weapons[index]["B"]) +
-                           ", " + str(self.__weapons[index]["S"]))
-                items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) +
-                         ", " + str(self.__weapons[index]["RHPF"]) + ", " + str(self.__weapons[index]["BEF"]))
+            # for index in range(0, len(self.__session_users) - 1):
+            # if self.__weapons[index] is not None:
+            # weapons = (str(self.__weapons[index]["A"]) + ", " + str(self.__weapons[index]["B"]) +
+            # ", " + str(self.__weapons[index]["S"]))
+            # items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) +
+            # ", " + str(self.__weapons[index]["RHPF"]) + ", " + str(self.__weapons[index]["BEF"]))
 
-                print(self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons],
-                                                       ['Username'], [self.__session_users[index]]))
-
+            # print(self.__main_data_base.set_values(['Username'], [self.__session_users[index]]))
 
 def main():
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
@@ -329,7 +340,6 @@ def main():
     lb = LoadBalancer(LB_IP, LB_PORT, main_data_base, login_data_base, ips_data_base)
     lb.run()
     # Start TLS server
-
 
 if __name__ == '__main__':
     abspath = os.path.abspath(__file__)
