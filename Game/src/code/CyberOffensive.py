@@ -49,9 +49,6 @@ class Game:
         self.__message = ""
         self.items = {"A": 0, "B": 0, "S": 0, "HPF": 0, "EF": 0, "RHPF": 0, "BEF": 0}
 
-        self.__using_chat = False
-        self.__temp_message = ""
-
         self.__other_messages = []
         self.__previous_messages = []
 
@@ -76,6 +73,14 @@ class Game:
         self.__output_o_box.w = self.__o_o_width
         self.__input_o_box.w = self.__o_i_width
         self.__prev_length = 19
+
+        self.__using_chat = False
+        self.__temp_message = ""
+        self.last_chat_update_time = 0
+        self.chat_surface = pygame.Surface((self.__output_box.w, self.__output_box.h))
+        self.chat_surface_rect = self.chat_surface.get_rect(topleft=self.__output_box.topleft)
+        self.enter_key_timer = 0
+        self.enter_key_delay = 0.01  # Delay in seconds for Enter key handling
 
         self.__remove_item_loc = []
         self.__prev_info = {}
@@ -243,19 +248,10 @@ class Game:
                     for thread in threads:
                         thread.join()
 
-                    self.__keys = pygame.key.get_pressed()
 
-                    if self.__keys[pygame.K_m] or self.__using_chat:
-                        self.__using_chat = True
-                        self.__message = self.start_chat()
-
-                        if self.__message is None:
-                            pass
-
-                        else:
-                            self.__temp_message = ""
-                            self.__using_chat = False
-                            self.__prev_length = 19
+                    # Handle chat input
+                    self.chat_handler() 
+                    
 
                     pygame.display.update()
                     self.tick += 1
@@ -649,56 +645,98 @@ class Game:
 
         return data[0] == "eeee"
 
+    def chat_handler(self):
+        """Handles chat input and updates the chat UI."""
 
-    def start_chat(self):
-        """
+        # Check if chat is active
+        self.__keys = pygame.key.get_pressed()
+        if self.__keys[pygame.K_m] or self.__using_chat:
+            self.__using_chat = True
+            self.level.using_chat = True
+            # Handle chat input (non-blocking)
+            self._handle_chat_input()  
+        else:
+            self.level.using_chat = False
 
-        :return:
-        """
+        # Update the chat UI periodically (in the main thread)
+        current_time = time.time()
+        if current_time - self.last_chat_update_time > 0.05:  # Update every 50ms
+            self.draw_chat_ui()  
+            self.last_chat_update_time = current_time
 
-        message = self.__temp_message
-        active = False
+    def _handle_chat_input(self):
+        """Handles chat input non-blocking."""
 
-        self.__done = False
-        start = time.time()
+        # Check for chat input events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
-        while not self.__done:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.__done = True
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.enter_key_timer = time.time()  # Start timer when Enter is pressed
+                elif event.key == pygame.K_BACKSPACE:
+                    if self.__temp_message:
+                        self.__temp_message = self.__temp_message[:-1]
+                else:
+                    self.__temp_message += event.unicode
 
-                if event.type == pygame.KEYDOWN or active:
-                    if event.key == pygame.K_RETURN:
-                        self.__temp_message = message
-                        self.__using_chat = False
+                # Update the chat surface
+                self.chat_surface.fill((0, 0, 0))  # Clear the surface
+                self.draw_chat_messages(self.chat_surface)  # Draw messages on the surface
 
-                        self.draw_text(self.__temp_message, (255, 0, 0), self.screen, 10, 510)
-                        assigned = f"YOU: {self.__temp_message}"
+        # Handle Enter key press with a timer
+        if self.enter_key_timer:
+            if time.time() - self.enter_key_timer >= self.enter_key_delay:
+                self.__temp_message = self.__temp_message.strip()
+                if self.__temp_message:
+                    self.__message = self.__temp_message
+                    self.__using_chat = False
+                    self.__temp_message = ""
+                    assigned = f"YOU: {self.__message}"
+                    self.__previous_messages.append(assigned)
+                    self.enter_key_timer = 0  # Reset timer
+                    self.draw_chat_ui()  # Update UI
 
-                        self.__previous_messages.append(assigned)
-                        return message
+    def draw_chat_ui(self):
+        """Draws the chat UI on the screen."""
+        
+        pygame.draw.rect(self.screen, (0, 255, 0), self.__input_box)  # Draw input box
 
-                    elif event.key == pygame.K_BACKSPACE:
-                        message = message[:-1]
-                        self.__temp_message = message
+        # Blit the chat surface to the screen
+        self.screen.blit(self.chat_surface, self.chat_surface_rect)  
 
-                        self.__done = True
+    def draw_chat_messages(self, surface):
+        """Draws chat messages on the specified surface."""
 
+        # Draw the chat message area
+        pygame.draw.rect(surface, (0, 0, 0), self.__output_box)  # Clear output box
+        pygame.draw.rect(surface, (255, 215, 0), self.__output_o_box, 2)  # Draw outline
+
+        # Draw messages in reverse order (newest at the bottom)
+        if self.__other_messages is not None:
+            if 0 < len(self.__temp_message) <= self.__prev_length:
+                self.draw_text(self.__temp_message, (255, 0, 0), surface, 10, 610)
+            else:
+                self.__prev_length += 10
+                self.draw_text(self.__temp_message[self.__prev_length - 2:], (255, 0, 0), surface, 10, 610)
+
+        if self.__previous_messages is not None:
+            for i in range(0, len(self.__locs)):
+                if len(self.__previous_messages) > 0:
+                    if len(self.__previous_messages) == 1:
+                        self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
+                                       (255, 0, 0), surface,
+                                       self.__locs[i][1][0], self.__locs[i][1][1])
+                        break
                     else:
-                        message += event.unicode
-                        self.__temp_message = message
-
-                        self.__done = True
-
-                end = time.time()
-                timer = start - end
-
-                pygame.display.update()
-                self.clock.tick(FPS)
-
-                if timer > 0.001:
-
-                    return
+                        self.draw_text(self.__previous_messages[len(self.__previous_messages) - i - 1],
+                                       (255, 0, 0), surface,
+                                       self.__locs[i][1][0], self.__locs[i][1][1])
+                    if (self.__locs[i][0] != len(self.__previous_messages) - 2 or
+                            self.__locs[i][0] != len(self.__previous_messages) - 1):
+                        self.__locs[i][0] += 1
 
     def update_users(self):
         """

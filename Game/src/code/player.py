@@ -3,7 +3,7 @@ from enemy import *
 
 
 class Player(Entity):
-    def __init__(self, position: tuple, groups, enemies_group, obstacle_sprites, create_attack, destroy_weapon,
+    def __init__(self, position: tuple, groups, enemies_group, obstacle_sprites, create_attack, destroy_weapon,level,
                  path=f'{BASE_PATH}/graphics/brawn_idle.png') -> None:
         self.max_stats: dict = {
             HEALTH: 100,
@@ -96,6 +96,8 @@ class Player(Entity):
         self.auto_play = False
         self.b_key_pressed = False
         self.enemies_group = enemies_group
+
+        self.level = level
 
     def import_player_assets(self, path: str = f'{BASE_PATH}/graphics/player/') -> None:
         self.animations = {
@@ -317,7 +319,7 @@ class Player(Entity):
 
     def auto_play_movement(self) -> None:
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_b] and not self.b_key_pressed:
+        if keys[pygame.K_b] and not self.b_key_pressed and not self.level.using_chat:
             self.auto_play = not self.auto_play
             self.b_key_pressed = True
         elif not keys[pygame.K_b]:
@@ -491,7 +493,7 @@ class Player(Entity):
 
     def update(self, collision_grid) -> None:
 
-        if not self.auto_play:
+        if not self.auto_play and not self.level.using_chat:
             self.input()
             self.cooldowns()
 
@@ -501,7 +503,7 @@ class Player(Entity):
             self.move(collision_grid)
             self.inventory.update()
 
-        else:
+        elif self.auto_play:
             self.auto_play_movement()
             self.cooldowns()
 

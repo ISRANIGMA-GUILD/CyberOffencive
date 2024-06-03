@@ -60,6 +60,9 @@ class Level:
             elif obj.obj.type == 'item':  # Example: add objects of type 'item' to visible_sprites
                 self.visible_sprites.add(obj)
 
+        
+        self.using_chat = False
+
     def create_map(self) -> None:
         # *** Using the MapRenderer for map loading and object placement ***
         self.obstacles_sprites = self.map_renderer.object_group
@@ -67,7 +70,7 @@ class Level:
             self.collision_grid.add_to_grid(obj)
 
         self.player = Player((6000, 6000), [self.visible_sprites], self.attackable_sprites,
-                             self.obstacles_sprites, self.create_attack, self.destroy_weapon,
+                             self.obstacles_sprites, self.create_attack, self.destroy_weapon,self,
                              f'{BASE_PATH}/graphics/player/up_idle/up_idle_0.png')
 
     def create_attack(self) -> None:
