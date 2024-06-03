@@ -30,7 +30,6 @@ class Login:
 
     def handle_credentials(self):
 
-        print("reached")
         try:
 
             self.check_account()
@@ -82,8 +81,6 @@ class Login:
         else:
 
             tuple_of_credentials = self.__details["Credentials"]
-            print("print this man", tuple_of_credentials, self.__credentials, "\nyes", self.__list_of_existing,
-                  "\nyes1", self.__list_of_existing_resources, "\n", self.__credentials)
 
             if self.__credentials.count(self.__details["Credentials"]) <= 1:
 
@@ -118,7 +115,6 @@ class Login:
                         return False
 
                 else:
-                    print("credes", self.__list_of_existing, "\n", tuple_of_credentials)
 
                     if (self.username_exists(list_of_existing_users, tuple_of_credentials) and
                        not self.password_exists(list_of_existing_passes, tuple_of_credentials) or

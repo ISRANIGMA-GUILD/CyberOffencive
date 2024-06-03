@@ -102,6 +102,8 @@ class Game:
         self.__timer = 0
         self.__previous = 0
 
+        self.__just_entered = 0
+
     def run(self) -> None:
         """
 
@@ -111,7 +113,7 @@ class Game:
         div_lock = threading.Lock()
         com_lock = threading.Lock()
 
-        while True:
+        while 1:
             #  v = self.player.get_volume()
             #  v.SetMute(1, None)
             #  v.SetMasterVolumeLevelScalar(1.0, None)
@@ -123,7 +125,7 @@ class Game:
                             self.find()
                             list_of_details = ["EXIT", 1, self.items]
 
-                            while True:
+                            while 1:
                                 ack = self.network.receive_ack()
                                 self.network.update_server(list_of_details, self.items)
 
@@ -137,7 +139,6 @@ class Game:
                         sys.exit()
 
                 if self.__game_state == "start_menu":
-                    # self.player.run()
 
                     self.draw_start_menu()
                     self.__game_state = "game"
@@ -156,27 +157,20 @@ class Game:
 
                         self.screen.blit(img, (0, 0))
 
-                     #   print("DId it really succeed?", ran)
                         if ran == 2:
-                          #  print("what is that new")
                             self.__game_state = "start_menu"
 
                         elif ran == 1:
-                          #  print("really oh reaaaaally")
                             self.__game_state = "start_menu"
 
                         else:
                             self.__game_state = "continue"
                             pygame.display.set_caption("Cyber Offensive")
 
-                           # print("Thingy", ran)
-
                             if len(ran) > 1:
                                 items = ran[1][1].split(', ')
-
                                 weapons = ran[1][2].split(', ')
-                             #   print("the stuff", int(items[0]), weapons, int(items[1]))
-                                #  print(items)
+
                                 if int(weapons[0]) > 0:
                                     self.items["A"] = int(weapons[0])
 
@@ -255,22 +249,8 @@ class Game:
                             self.__using_chat = False
                             self.__prev_length = 19
 
-                   # if self.__previous == 120:
-                   #     self.__timer = 1
-                   #    self.__previous = 0
-
-                   # else:
-                   #     self.__previous += 1
-                   #     self.__timer = 0
-
                     pygame.display.update()
                     self.clock.tick(FPS)
-#
-               #     self.erase_prev()
-
-
-               #     if self.__previous != 0:
-                #        self.__timer = time.time() - self.__previous
 
             except KeyboardInterrupt as e:
                 print(e)
@@ -278,7 +258,7 @@ class Game:
                     self.find()
                     list_of_details = ["EXIT", 1, self.items]
 
-                    while True:
+                    while 1:
                         ack = self.network.receive_ack()
                         self.network.update_server(list_of_details, self.items)
 
@@ -297,7 +277,7 @@ class Game:
                     self.find()
                     list_of_details = ["EXIT", 1, self.items]
 
-                    while True:
+                    while 1:
                         ack = self.network.receive_ack()
                         self.network.update_server(list_of_details, self.items)
 
@@ -320,7 +300,7 @@ class Game:
         """
 
         game_thread = threading.Thread(target=self.the_game, args=(game_lock,))
-        divide_thread = threading.Thread(target=self.divide_data, args=(com_lock,))
+        divide_thread = threading.Thread(target=self.divide_data, args=(div_lock,))
         com_thread = threading.Thread(target=self.communication, args=(com_lock,))
 
         return game_thread, divide_thread, com_thread
@@ -344,6 +324,10 @@ class Game:
             self.screen.blit(self.text_surface, (350, 10))
 
     def divide_data(self, lock):
+        """
+
+        :param lock:
+        """
 
         with lock:
 
@@ -363,7 +347,7 @@ class Game:
         :param lock:
         """
 
-        with (lock):
+        with lock:
 
             current_loc = self.level.player.get_location()
             current_status_index = int(self.level.player.frame_index)
@@ -377,10 +361,6 @@ class Game:
 
             enemies = self.__enemies
 
-            id_numbers = [re.findall(r'\d+', i)[0] for i in [identity[0] for identity in self.__enemies]]
-
-          #  if self.__the_e_id is None:
-          #      self.__the_e_id = id_numbers
             # If we received new locations of enemies from server see if we need to spawn them,
             # If they exist just update according to data in this message (enemies)
             if enemies:
@@ -442,16 +422,11 @@ class Game:
                         self.__the_enemies.pop(self.__the_e_id.index(new_id[0]))
                         self.__the_e_id.remove(new_id[0])  # make sure order of ids is the same as order of id numbers
 
-                   #     self.__the_e_id.append(new_id[0])
-
                     else:
                         self.__enemy_locs[self.__the_enemies.index(loc[0])] = loc[1]
 
-             #   print("meow")
-
                 for enemie in self.level.attackable_sprites:
                     if enemie.status == 'death' and enemie.id in self.__the_enemies:
-                       # print(enemie.id, self.__the_enemies)
                         print("kill", enemie.id)
                         self.__the_enemies.remove(enemie.id)
 
@@ -463,13 +438,9 @@ class Game:
                     elif enemie.id not in self.__the_enemies:
                        # self.__enemy_locs.remove(enemie.hitbox.center)
                         print("kill")
-                       # enemie.kill()
+
                         self.level.visible_sprites.remove(enemie)
                         self.level.attackable_sprites.remove(enemie)
-                        #enemie.kill()
-
-                 #  else:
-                  #      print(self.__the_enemies, self.__the_e_id, enemie.id)
 
                 for loc in enemies:
                     for enemie in self.level.attackable_sprites:
@@ -478,9 +449,6 @@ class Game:
 
             elif enemies and 'LEAVE' == enemies[0]:
                 self.__game_state = "start_menu"
-
-               #     if loc[0] in self.__enemy_locs:
-                   #     self.__enemy_locs[self.__enemy_locs.index(loc[0])]
 
             weapons = self.__weapons
             # If we received new locations of weapons\items from server see if we need to spawn them,
@@ -512,31 +480,18 @@ class Game:
             elif weapons and "LEAVE" == weapons[0]:
                 self.__game_state = "start_menu"
 
-          #  elif self.__timer >= 2:
-            #    print(time.time() - self.__previous)
-             #   s = self.network.update_server(list_of_public_details, self.items)
-             #   self.__previous_details = list_of_public_details
-
-             #   if s == 1:
-             #      self.__game_state = "start_menu"
-
-             #   self.__previous = time.time()
-               # self.__timer = 0
-
             other_client = self.__other_client
 
-            if self.__previous_details != list_of_public_details: #or self.__timer >= 0.02:
+            if self.__previous_details != list_of_public_details or self.__just_entered == 0: #or self.__timer >= 0.02:
                 s = self.network.update_server(list_of_public_details, self.items)
                 self.__previous_details = list_of_public_details
 
                 if s == 1:
                     self.__game_state = "start_menu"
 
-             #   self.__previous = 0
-               # self.__timer = 0
+                self.__just_entered = 1
 
             if other_client is None or self.__game_state == "start_menu":
-           #     self.network.dummy()
                 pass
 
             elif other_client == 1:
@@ -554,7 +509,6 @@ class Game:
                         self.__previous_messages.append(self.__other_messages)
 
                     self.erase_previous()
-
                     self.__temp_p = []
 
                     p_image = [pygame.image.load(
@@ -563,7 +517,6 @@ class Game:
                                is not None]
 
                     if not p_image:
-                     #   self.network.dummy()
                         pass
 
                     else:
@@ -577,7 +530,6 @@ class Game:
                             index += 1
                 else:
                     pass
-
 
             pygame.draw.rect(self.screen, (0, 0, 0), self.__output_box)
             pygame.draw.rect(self.screen, (0, 255, 0), self.__input_box)
@@ -610,9 +562,6 @@ class Game:
                         if (self.__locs[i][0] != len(self.__previous_messages) - 2 or
                                 self.__locs[i][0] != len(self.__previous_messages) - 1):
                             self.__locs[i][0] += 1
-
-         #   pygame.display.update()
-          #  self.clock.tick(FPS)
 
     def draw_start_menu(self):
         """
@@ -830,7 +779,6 @@ class Game:
         self.level.attack_sprites = None
         self.level.obstacles_sprites = None
         self.level = None
-
         self.ungurgle(meow)
 
     def ungurgle(self, meow):

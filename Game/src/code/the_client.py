@@ -71,7 +71,7 @@ class Client:
 
         self.__start_time = time.time()
 
-        while True:
+        while 1:
             try:
                 img = pygame.image.load(IMAGE)
                 screen.blit(img, (0, 0))
@@ -189,7 +189,7 @@ class Client:
         :return:
         """
 
-        while True:
+        while 1:
             img = pygame.image.load(IMAGE)
             screen.blit(img, (0, 0))
 
@@ -295,7 +295,7 @@ class Client:
         :return:
         """
 
-        while True:
+        while 1:
             #   self.good_music()
             server_discover = ServerDiscoveryClient()
             servers_ip = server_discover.discover_server()
@@ -377,7 +377,7 @@ class Client:
         :return: The full data message
         """
         print("one time only ok......")
-        while True:
+        while 1:
             #  self.good_music()
             try:
                 img = pygame.image.load(IMAGE)
@@ -449,7 +449,7 @@ class Client:
         pygame.display.set_caption("Login Screen")
         entering_username = True
 
-        while True:
+        while 1:
             # self.good_music()
             img = pygame.image.load(IMAGE)
             screen.blit(img, (0, 0))
@@ -542,7 +542,7 @@ class Client:
 
         #   self.good_music()
         print("details", details)
-        while True:
+        while 1:
             try:
                 print(details, "\n the check", self.__logged)
                 print("please")

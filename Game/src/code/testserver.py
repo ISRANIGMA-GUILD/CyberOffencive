@@ -93,6 +93,8 @@ class Server:
         self.__zone = {}
         self.__id = []
 
+        self.__data_storage = []
+
     def run(self):
         """
 
@@ -107,7 +109,7 @@ class Server:
         # """:TODO: Make sure data is saved even if there is a duplicate password"""#
         # """:TODO(almost finished): Erase items and enemies from client side to make sure they dont still appear if collected or killed"""#
         # """:TODO(almost finished): Database updates correctly even if server is closed"""#
-        # """:TODO(If there is time): Ban when ban is printed!"""#
+        # """:TODO(If there is time): If banned you cant connect
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
@@ -211,7 +213,7 @@ class Server:
 
         g = 1
 
-        while True:
+        while 1:
             try:
                 self.__load_balance_socket.connect((self.__load_balance_ip, self.__load_balance_port))
                 their_pass = Verifier(480).run()
@@ -278,7 +280,7 @@ class Server:
             print("hi")
             self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
                                                 'credentials': self.__credentials[index], 'status': self.__status[index]
-                                                   , 'items': self.__items[index]})
+                                                   ,'items': self.__items[index]})
         key = list(self.__zone.keys())[0]
         x, y = client_location
 
@@ -450,7 +452,7 @@ class Server:
         previous_item = self.__item_locations
         previous_enemy = self.__enemy_locations
 
-        while True:
+        while 1:
             try:
 
                 self.new_handling()
@@ -460,10 +462,8 @@ class Server:
 
                 if current_time - last_update_time >= update_interval:
                     self.update_game_state()
-                    print("pls brorororoog")
                     if (current_time2 - last_update_time2 >= update_interval2 and
                             (self.__enemy_locations != previous_enemy or self.__item_locations != previous_item)):
-                        print("send somethtimng")
                         self.inform_all()
 
                         previous_enemy = self.__enemy_locations
@@ -555,7 +555,6 @@ class Server:
             self.receive_data_from_load_balancer()
 
     def update_game_state(self):
-        print("Updating game state...")
 
         self.update_items()
         self.update_enemies()
@@ -616,6 +615,8 @@ class Server:
 
             if their_pass[0] != passw:
                 print("shut up")
+                self.__ips_data_base.insert_no_duplicates(values=[client_address[0], getmacbyip(client_address[0]), "BANNED"],
+                                                          no_duplicate_params=["IP", "MAC", "Status"])
                 connection.close()
                 return
 
@@ -626,6 +627,8 @@ class Server:
 
         except pickle.UnpicklingError as e:
             print("BAN!", e)
+            self.__ips_data_base.insert_no_duplicates(values=[client_address[0], getmacbyip(client_address[0])],
+                                                      no_duplicate_params=["IP", "MAC"])
             connection.close()
             return
 
@@ -723,15 +726,9 @@ class Server:
         try:
             print("meow")
 
-            #  nearby_sprites = self.nearby_them(index)
-
-            #    if nearby_sprites:
-            #      for message in nearby_sprites:
-            #      self.__client_sockets[index].send(pickle.dumps(message))
-
             current_socket.settimeout(0.05)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
-            print("I should see you", data)
+
             # If client has quit save their data
             if "EXIT" in data[0]:
                 print("Connection closedg", data)
@@ -747,11 +744,7 @@ class Server:
 
             # If client has logged in and there are clients update them
 
-            elif data == ['None']:
-                pass
-
             elif len(self.__credentials) <= len(self.__session_users) and type(data) is not tuple and len(data) != 2:
-                print("eeeeeeeeee")
 
                 self.__to_send.append((current_socket, data))
 
@@ -769,12 +762,6 @@ class Server:
                     self.__chat[index] = data[1]
 
                 self.__status[index] = data[2]
-
-                # if 'attack' in self.__status[index]:
-                #     self.__attack[index] = 0
-
-                #  el
-
                 self.send_to_clients(index)
 
             elif len(data) == 2:
@@ -865,6 +852,30 @@ class Server:
                 print("not  good", e)
                 pass
 
+    def send_from_clients(self, number):
+        """
+        on connection update every client
+        :param number:
+        """
+
+        eligables = list(filter(lambda person: person["Client"] is not None and person["Credentials"] is not None
+                                and person != self.__all_details[number], self.__all_details))
+
+        for socks in eligables:
+            chat_message = f'{self.__session_users[number]}: {self.__chat[number]}'
+            message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number]]
+
+            try:
+                socks["Client"].send(pickle.dumps(message))
+
+            except ConnectionResetError as e:
+                print("not  good", e)
+                pass
+
+            except ssl.SSLError as e:
+                print("not  good", e)
+                pass
+
     def print_client_sockets(self):
         """
 
@@ -909,16 +920,15 @@ class Server:
 
         """
         for index in range(0, len(self.__new_credentials)):
-            print("creds are", self.__new_credentials[index][0], self.__new_credentials[index][1])
-            print(self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
+            self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0],
                                                                       self.__new_credentials[index][1]],
-                                                              no_duplicate_params=['Username', 'Password']))
+                                                              no_duplicate_params=['Username', 'Password'])
         # print(self.__login_data_base.set_values(['Password'], [self.__new_credentials[index][1]], ['Username'],
         #                        [self.__new_credentials[index][0]]))
 
         for index in range(0, len(self.__session_users) - 1):
             if self.__items[index] is not None:
-                print("user is:", self.__session_users[index])
+              #  print("user is:", self.__session_users[index])
                 weapons = (str(self.__items[index]["A"]) + ", " + str(self.__items[index]["B"]) + ", "
                            + str(self.__items[index]["S"]))
                 items = (str(self.__items[index]["HPF"]) + ", " + str(self.__items[index]["EF"]) + ", " +
