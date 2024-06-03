@@ -102,7 +102,7 @@ class LoadBalancer:
 
                 pass_c = GetPassword(460).run()
 
-                sock.settimeout(0.5)
+            #    sock.settimeout(0.5)
                 data = pickle.loads(connection.recv(1024))
 
                 if pass_c != data[0]:

@@ -730,7 +730,7 @@ class Server:
 
                 self.__items[index] = data[2]
                 self.update_database()
-
+                
                 current_socket.send(pickle.dumps(["OK"]))
 
                 self.eliminate_socket(index)
