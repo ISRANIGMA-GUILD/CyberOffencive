@@ -1,5 +1,5 @@
 import socket
-
+from settings import *
 from DatabaseCreator import *
 from login import *
 from scapy.layers.inet import *
@@ -278,7 +278,7 @@ class Server:
             print("hi")
             self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
                                                 'credentials': self.__credentials[index], 'status': self.__status[index]
-                                                   , 'items': self.__weapons[index]})
+                                                   , 'items': self.__items[index]})
         key = list(self.__zone.keys())[0]
         x, y = client_location
 
@@ -460,9 +460,10 @@ class Server:
 
                 if current_time - last_update_time >= update_interval:
                     self.update_game_state()
-
+                    print("pls brorororoog")
                     if (current_time2 - last_update_time2 >= update_interval2 and
                             (self.__enemy_locations != previous_enemy or self.__item_locations != previous_item)):
+                        print("send somethtimng")
                         self.inform_all()
 
                         previous_enemy = self.__enemy_locations
@@ -762,7 +763,7 @@ class Server:
                         self.__data_to_send[index] = data
 
                 self.__locations[index] = (self.__session_users[index], data[0])
-                self.handle_client_location(self.__locations[index][1])
+                self.handle_client_location(self.__locations[index][1], [], index)
 
                 if data[1] is not None and len(data[1]) > 0:
                     self.__chat[index] = data[1]

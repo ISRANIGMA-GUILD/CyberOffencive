@@ -265,8 +265,8 @@ class Game:
 
                     pygame.display.update()
                     self.clock.tick(FPS)
-
-                    self.erase_prev()
+#
+               #     self.erase_prev()
 
 
                #     if self.__previous != 0:
@@ -354,12 +354,8 @@ class Game:
             data = [data1, data2, data3]
 
             success_data = self.which_is_it(data)
-
-            if success_data != 1:
-                self.__enemies, self.__weapons, self.__other_client = success_data[0], success_data[1], success_data[2]
-
-            else:
-                return
+            print(success_data)
+            self.__enemies, self.__weapons, self.__other_client = success_data
 
     def communication(self, lock):
         """
@@ -667,22 +663,21 @@ class Game:
             if not d:
                 pass
 
-            if type(d) is int:
-                self.__game_state = "start_menu"
-                list_of_details = ["EXIT", 1, self.items]
-                s = self.network.update_server(list_of_details, self.items)
-                return 1
+            #if type(d) is int:
+            #   self.__game_state = "start_menu"
+             #   list_of_details = ["EXIT", 1, self.items]
+             #   s = self.network.update_server(list_of_details, self.items)
+              #  return 1
 
-            if type(d) is list:
-                if self.is_enemies(d):
-                    enemies = d[1]
+            elif self.is_enemies(d):
+                enemies = d[1]
 
-                elif self.is_weapons(d):
-                    weapons = d[1]
+            elif self.is_weapons(d):
+                weapons = d[1]
 
-                else:
-                 #   print("oth client", d)
-                    other_client = d
+            else:
+             #   print("oth client", d)
+                other_client = d
 
         return enemies, weapons, other_client
 
@@ -772,17 +767,6 @@ class Game:
                 self.level.visible_sprites.remove(self.__temp_p[i])
                 self.level.obstacles_sprites.remove(self.__temp_p[i])
                 self.__temp_p[i].kill()
-
-    def erase_prev(self):
-
-        if self.__the_enemies:
-            for enemie in self.level.attackable_sprites:
-                self.level.visible_sprites.remove(enemie)
-                self.level.attackable_sprites.remove(enemie)
-
-            self.__the_enemies = []
-
-            self.__the_e_id = []
 
     def find(self):
         """
