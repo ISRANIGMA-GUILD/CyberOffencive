@@ -84,14 +84,14 @@ class Server:
         self.collision_grid = self.create_collision_grid()
 
         self.__enemy_locations = []
-
         self.__item_locations = []
+
         self.__e_possabilities = ["BSS", "BS", "CRS", "CS", "RGS", "RS", "GOB", "FRE"]
-
         self.__w_possabilities = ["A", "B", "S", "HPF", "EF", "RHPF", "BEF"]
-        self.__server_name = "load_balancer"
 
+        self.__server_name = "load_balancer"
         self.__zone = {}
+
         self.__id = []
         self.__data_storage = []
 
@@ -468,6 +468,7 @@ class Server:
                     if (current_time2 - last_update_time2 >= update_interval2 and
                             (self.__enemy_locations != previous_enemy or self.__item_locations != previous_item)):
                         self.inform_all()
+                        self.send_from_clients()
 
                         previous_enemy = self.__enemy_locations
                         previous_item = self.__item_locations
@@ -541,6 +542,9 @@ class Server:
 
         if self.__number_of_clients - 1 >= len(self.__session_users) or len(self.__session_users) == 0:
             self.__session_users.append(None)
+
+        if self.__number_of_clients - 1 >= len(self.__data_storage) or len(self.__data_storage) == 0:
+            self.__data_storage.append(None)
 
     def new_handling(self):
         """
@@ -799,7 +803,7 @@ class Server:
                 self.__status[index] = data[2]
                 self.send_to_clients(index)
             
-            elif len(data) == 2:
+            elif len(self.__credentials) <= len(self.__session_users) and len(data) == 2:
                 print("kill that enemy", data)
                 if data[0] == "kill":
                     for stuff in self.__enemy_locations:
@@ -810,8 +814,6 @@ class Server:
                     for stuff in self.__item_locations:
                         if stuff[0] == data[1]:
                             self.__item_locations.remove(stuff)
-            
-            
 
         except socket.timeout as e:
             print("meow", e)
@@ -877,6 +879,8 @@ class Server:
         chat_message = f'{self.__session_users[number]}: {self.__chat[number]}'
         message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number]]
 
+        self.__data_storage[number] = (self.__session_users[number], message)
+
         for socks in eligables:
             try:
                 socks["Client"].send(pickle.dumps(message))
@@ -889,29 +893,25 @@ class Server:
                 print("not  good", e)
                 pass
 
-    def send_from_clients(self, number):
+    def send_from_clients(self):
         """
-        on connection update every client
-        :param number:
+         on connection update every client
         """
 
-        eligables = list(filter(lambda person: person["Client"] is not None and person["Credentials"] is not None
-                                and person != self.__all_details[number], self.__all_details))
+        try:
+            for socks in self.__client_sockets:
+                if socks is not None:
+                    for message in self.__data_storage:
+                        if message is not None:
+                            socks.send(pickle.dumps(message[1]))
 
-        for socks in eligables:
-            chat_message = f'{self.__session_users[number]}: {self.__chat[number]}'
-            message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number]]
+        except ConnectionResetError as e:
+            print("not  good", e)
+            pass
 
-            try:
-                socks["Client"].send(pickle.dumps(message))
-
-            except ConnectionResetError as e:
-                print("not  good", e)
-                pass
-
-            except ssl.SSLError as e:
-                print("not  good", e)
-                pass
+        except ssl.SSLError as e:
+            print("not  good", e)
+            pass
 
     def print_client_sockets(self):
         """

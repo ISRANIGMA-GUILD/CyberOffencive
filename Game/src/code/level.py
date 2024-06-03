@@ -132,20 +132,24 @@ class Level:
             self.visible_sprites.remove(player_active_item[0])
 
         for visible_sprite in self.visible_sprites:
-            if self.player.hitbox.colliderect(visible_sprite.rect) and (
-                    issubclass(visible_sprite.__class__, Fruit) or issubclass(visible_sprite.__class__, Weapon)):
-                could_pickup_item = self.player.inventory.hotbar.insert(visible_sprite)
+            try:
+                if self.player.hitbox.colliderect(visible_sprite.rect) and (
+                        issubclass(visible_sprite.__class__, Fruit) or issubclass(visible_sprite.__class__, Weapon)):
+                    could_pickup_item = self.player.inventory.hotbar.insert(visible_sprite)
 
-                if could_pickup_item:
-                    self.visible_sprites.remove(visible_sprite)
+                    if could_pickup_item:
+                        self.visible_sprites.remove(visible_sprite)
 
-            if issubclass(visible_sprite.__class__, LaserBeam):
-                for obstacle_sprite in self.obstacles_sprites:
-                    if visible_sprite.rect.colliderect(obstacle_sprite.rect):
-                        visible_sprite.kill()
-                    if visible_sprite.rect.colliderect(self.player.hitbox):
-                        self.damage_player(self.player, visible_sprite.damage, '')
-                        visible_sprite.kill()
+                if issubclass(visible_sprite.__class__, LaserBeam):
+                    for obstacle_sprite in self.obstacles_sprites:
+                        if visible_sprite.rect.colliderect(obstacle_sprite.rect):
+                            visible_sprite.kill()
+                        if visible_sprite.rect.colliderect(self.player.hitbox):
+                            self.damage_player(self.player, visible_sprite.damage, '')
+                            visible_sprite.kill()
+
+            except AttributeError as e:
+                print("FUCK YOU PYTHON", e)
 
         check = self.player.inventory.hotbar.content[self.player.inventory.hotbar.active_item_index]
 
@@ -158,9 +162,18 @@ class Level:
             if issubclass(attack_sprite.__class__, Arrow):
 
                 for attackable_sprite in self.attackable_sprites:
-                    if attack_sprite.rect.colliderect(attackable_sprite.rect):
-                        attack_sprite.kill()
+                    try:
+                        if attack_sprite.rect.colliderect(attackable_sprite.rect):
+                            attack_sprite.kill()
+
+                    except AttributeError as e:
+                        print("FUCK YOU PYTHON1", e)
 
                 for obstacle_sprite in self.obstacles_sprites:
-                    if attack_sprite.rect.colliderect(obstacle_sprite.rect):
-                        attack_sprite.kill()
+                    try:
+                        if attack_sprite.rect.colliderect(obstacle_sprite.rect):
+                            attack_sprite.kill()
+
+                    except AttributeError as e:
+                        print("FUCK YOU PYTHON2", e)
+

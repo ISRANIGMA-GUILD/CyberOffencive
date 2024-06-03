@@ -337,8 +337,6 @@ class Game:
 
             self.text_surface = self.font.render("FPS: " + str(int(self.fps)), True, (128, 0, 128))
             self.screen.blit(self.text_surface, (350, 10))
-            
-            print ("the divide time", self.__divide_time)
 
     def divide_data(self, lock):
         """
@@ -461,7 +459,9 @@ class Game:
                     # self.__enemy_locs.remove(enemie.hitbox.center)
                     self.network.kill_enemy(enemie.id)
 
+                    self.level.visible_sprites.remove(enemie)
                     self.level.attackable_sprites.remove(enemie)
+                    enemie.kill()
 
                 elif enemie.id not in self.__the_enemies:
                     # self.__enemy_locs.remove(enemie.hitbox.center)
@@ -469,6 +469,7 @@ class Game:
 
                     self.level.visible_sprites.remove(enemie)
                     self.level.attackable_sprites.remove(enemie)
+                    enemie.kill()
 
             for loc in enemies:
                 for enemie in self.level.attackable_sprites:
