@@ -104,7 +104,6 @@ class Server:
         # """:TODO(almost finished): Show weapons when attacking"""#
         # """:TODO: Make sure clients move smoothly move between servers"""#
         # """:TODO: Make a whitelist of processes NO MATTER CLIENT FRIENDLY or NOT"""#
-        # """:TODO: Make sure data is saved even if there is a duplicate password"""#
         # """:TODO(almost finished): Erase items and enemies from client side to make sure they dont still appear if collected or killed"""#
         # """:TODO(almost finished): Database updates correctly even if server is closed"""#
         # """:TODO(If there is time): If banned you can't connect
