@@ -46,7 +46,6 @@ class Server:
         self.__login_data_base = login_data_base
 
         self.__ips_data_base = ips_data_base
-        self.__default_port = 443
 
         self.__sockets = [EncryptServer("Servers", port).run() for port in [6921, 8843, 8820]]
         self.__number_of_clients = 1
@@ -64,35 +63,33 @@ class Server:
         self.__chat = []
 
         self.__status = []
-
         self.__items = []
 
         self.__hp = []
         self.__energy = []
 
         self.__session_users = []
-
         self.__to_send = []
+
         self.__data_to_send = []
-
         self.__client_sockets = []
+
         self.__selector = selectors.DefaultSelector()
-
         self.__list_of_existing_resources = []
+
         self.__list_of_existing_existing_credentials = []
-
         self.collision_grid = self.create_collision_grid()
+
         self.__enemy_locations = []
-
         self.__item_locations = []
+
         self.__e_possabilities = ["BSS", "BS", "CRS", "CS", "RGS", "RS", "GOB", "FRE"]
-
         self.__w_possabilities = ["A", "B", "S", "HPF", "EF", "RHPF", "BEF"]
+
         self.__server_name = "load_balancer"
-
         self.__zone = {}
-        self.__id = []
 
+        self.__id = []
         self.__data_storage = []
 
     def run(self):
