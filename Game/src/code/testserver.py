@@ -100,7 +100,7 @@ class Server:
 
         """
 
-        # """:TODO(finished?): Use load balancer as the only user of the main database and servers with their local ones"""#
+        # """:TODO(finished?): Use load balancer with a main database and servers with their local ones"""#
         # """:TODO(almost finished): Loading screen between menu and login screens """#
         # """:TODO(almost finished): Try-except on everything """#
         # """:TODO(almost finished): Show weapons when attacking"""#
@@ -109,7 +109,7 @@ class Server:
         # """:TODO: Make sure data is saved even if there is a duplicate password"""#
         # """:TODO(almost finished): Erase items and enemies from client side to make sure they dont still appear if collected or killed"""#
         # """:TODO(almost finished): Database updates correctly even if server is closed"""#
-        # """:TODO(If there is time): If banned you cant connect
+        # """:TODO(If there is time): If banned you can't connect
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
@@ -275,6 +275,7 @@ class Server:
         :param temp:
         :param client_location:
         """
+
         print(self.get_local_client_details)
         if temp:
             print("hi")
@@ -332,11 +333,14 @@ class Server:
         try:
             self.__load_balance_socket.settimeout(0.01)
             data = self.__load_balance_socket.recv(1024)
+
             if data:
                 configuration = pickle.loads(data)
                 self.__server_name = configuration['server_name']
+
                 self.__zone = configuration['zone']
                 print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
+
             else:
                 print("Load balancer closed the connection.")
                 self.__load_balance_socket.close()
@@ -617,6 +621,8 @@ class Server:
                 print("shut up")
                 self.__ips_data_base.insert_no_duplicates(values=[client_address[0], getmacbyip(client_address[0]), "BANNED"],
                                                           no_duplicate_params=["IP", "MAC", "Status"])
+                self.__banned_ips.append(client_address[0])
+                self.__banned_macs.append(getmacbyip(client_address[0]))
                 connection.close()
                 return
 
@@ -627,8 +633,10 @@ class Server:
 
         except pickle.UnpicklingError as e:
             print("BAN!", e)
-            self.__ips_data_base.insert_no_duplicates(values=[client_address[0], getmacbyip(client_address[0])],
-                                                      no_duplicate_params=["IP", "MAC"])
+            self.__ips_data_base.insert_no_duplicates(values=[client_address[0], getmacbyip(client_address[0]), "BANNED"],
+                                                      no_duplicate_params=["IP", "MAC", "Status"])
+            self.__banned_ips.append(client_address[0])
+            self.__banned_macs.append(getmacbyip(client_address[0]))
             connection.close()
             return
 
