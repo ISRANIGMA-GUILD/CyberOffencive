@@ -827,13 +827,12 @@ class Server:
                 #  el
                 
                 if len(data) == 5:
-                    # TODO: render weapons
                     weapon = data[4]
-                    
-                    if 'A' == data[4]:
-                        pass
-                           
                     self.send_to_clients(index, weapon)
+                elif len(data) == 6:
+                    weapon = data[4]
+                    projectile_angle = data[5]
+                    self.send_to_clients(index, weapon=weapon, projectile_angle=projectile_angle)
                 else:
                     self.send_to_clients(index)
                 
@@ -945,7 +944,7 @@ class Server:
         except socket.timeout:
             return
 
-    def send_to_clients(self, number, weapon=''):
+    def send_to_clients(self, number, weapon='', projectile_angle: float = 0.0):
         """
 
         :param number:

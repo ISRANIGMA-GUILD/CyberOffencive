@@ -378,12 +378,18 @@ class Game:
                 if player_active_item and len(player_active_item):
                     if issubclass(player_active_item[0].__class__, Sword):
                         weapon_type_to_append = 'S'
+                        list_of_public_details = [current_loc, self.__message, status, 0, weapon_type_to_append]
                     elif issubclass(player_active_item[0].__class__, Axe):
                         weapon_type_to_append = 'A'
+                        list_of_public_details = [current_loc, self.__message, status, 0, weapon_type_to_append]
                     elif issubclass(player_active_item[0].__class__, Bow):
                         weapon_type_to_append = 'B'
-                    print('Appended', weapon_type_to_append, ' To Message!')
-                    list_of_public_details = [current_loc, self.__message, status, 0, weapon_type_to_append]
+                        if self.level.player.attacking and player_active_item[0].can_shoot():
+                            print('SEND ALSO ARROW')
+                            list_of_public_details = [current_loc, self.__message, status, 0, weapon_type_to_append, player_active_item[0].get_angle()]
+                        else:
+                            print('DO NOT SEND ALSO ARROW')
+                            list_of_public_details = [current_loc, self.__message, status, 0, weapon_type_to_append]
                 else:
                     list_of_public_details = [current_loc, self.__message, status, 0]
             else:
@@ -574,6 +580,10 @@ class Game:
                         Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/bow/right.png', Bow.BOW_WIDTH, Bow.BOW_HEIGHT)
                     elif 'left' in other_client[2]:
                         Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/bow/left.png', Bow.BOW_WIDTH, Bow.BOW_HEIGHT)
+                    
+                    if len(other_client) == 6:
+                        # TODO: use Blittables but for Arrows or Laser Beams
+                        pass
 
             if self.__previous_details != list_of_public_details: #or self.__timer >= 0.02:
                 s = self.network.update_server(list_of_public_details, self.items)
@@ -594,7 +604,7 @@ class Game:
 
             else:
 
-                if (type(other_client) is list or type(other_client) is tuple) and (4 <= len(other_client) <= 5):
+                if (type(other_client) is list or type(other_client) is tuple) and (4 <= len(other_client) <= 6):
                     self.update_users()
                     self.__prev_info[other_client[3]] = other_client
 
