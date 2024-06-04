@@ -446,8 +446,8 @@ class Server:
         self.__selector.register(self.__sockets[1], selectors.EVENT_READ, self.accept_client)
         self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
 
-        update_interval = 1 / 30  # Seconds (adjust as needed for responsiveness)
-        update_interval2 = 1 / 60  # Seconds (adjust as needed for responsiveness)
+        update_interval = 1 / 60  # Seconds (adjust as needed for responsiveness)
+        update_interval2 = 1 / 30  # Seconds (adjust as needed for responsiveness)
         
         last_update_time = time.time()
         last_update_time2 = time.time()
@@ -469,8 +469,10 @@ class Server:
 
                     if ((current_time2 - last_update_time2 >= update_interval2) or
                         (self.__enemy_locations != previous_enemy or self.__item_locations != previous_item
-                         or prev_store != self.__data_storage)):
+                         or len(prev_store) != len(self.__data_storage))):
+
                         self.inform_all()
+                        self.send_from_clients()
 
                         previous_enemy = self.__enemy_locations
                         previous_item = self.__item_locations
@@ -880,7 +882,7 @@ class Server:
 
         eligables = list(filter(lambda person: person["Client"] is not None and person["Credentials"] is not None
                                                and person != self.__all_details[number], self.__all_details))
-        chat_message = f'{self.__session_users[number]}: {self.__chat[number]}'
+        chat_message = f'{self.__chat[number]}'
         message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number]]
 
         self.__data_storage[number] = (self.__session_users[number], message)
