@@ -67,7 +67,7 @@ class Level:
         for obj in self.map_renderer.get_objects():
             self.collision_grid.add_to_grid(obj)
 
-        self.player = Player((6000, 6000), [self.visible_sprites], self.attackable_sprites,
+        self.player = Player((41000, 30000), [self.visible_sprites], self.attackable_sprites,
                              self.obstacles_sprites, self.create_attack, self.destroy_weapon,
                              f'{BASE_PATH}/graphics/player/up_idle/up_idle_0.png')
 
