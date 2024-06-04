@@ -7,6 +7,7 @@ from socks import *
 from settings import *
 from clientpasswordgen import *
 from serverpassword import *
+import ipaddress
 
 MY_IP = socket.gethostbyname(socket.gethostname())
 MAX_MSG_LENGTH = 1024
@@ -177,19 +178,21 @@ class Client:
             pygame.display.update()
             clock.tick(FPS)
 
-    def connect_to_socket(self, server_ip, server_port, screen, clock):
+    def connect_to_socket(self, server_ip, server_port, screen, clock, in_game=0):
         """
 
         :param screen:
         :param clock:
         :param server_ip:
         :param server_port:
+        :param in_game:
         :return:
         """
 
         while True:
-            img = pygame.image.load(IMAGE)
-            screen.blit(img, (0, 0))
+            if in_game == 0:
+                img = pygame.image.load(IMAGE)
+                screen.blit(img, (0, 0))
 
             pygame.display.update()
             print(f'ip:port = {server_ip}:{server_port}')
@@ -372,7 +375,7 @@ class Client:
          Turn the data into a proper message
         :return: The full data message
         """
-        print("one time only ok......")
+
         while True:
             #  self.good_music()
             try:
@@ -380,7 +383,6 @@ class Client:
                 screen.blit(img, (0, 0))
 
                 user, password = self.login(screen)
-                print("Credes", user, password)
 
                 if user == 1 and password == 1:
 
@@ -540,9 +542,6 @@ class Client:
         print("details", details)
         while True:
             try:
-                print(details, "\n the check", self.__logged)
-                print("please")
-
                 self.__the_client_socket.send(details)
                 print("details1", details)
 
@@ -576,7 +575,6 @@ class Client:
             except ssl.SSLEOFError as e:
                 print("stop", e)
                 return 1
-              #  clock.tick(FPS)
 
     def malicious_message(self, message):
         """
@@ -620,12 +618,7 @@ class Client:
             else:
 
                 full_msg = self.create_message(public_data)
-           #     print("the full message", full_msg)
                 self.__the_client_socket.send(full_msg)
-
-            # if message == 'EXIT':
-            # self.__the_client_socket.close()
-            # return
 
         except TypeError as e:
             print(e)
@@ -664,13 +657,12 @@ class Client:
 
         except ssl.SSLEOFError as e:
             print("Server is shutting down", e)
-           # message = ["EXIT", 1, private_data]
+            message = ["EXIT", 1, private_data]
 
-           # full_msg = self.create_message(message)
-           # self.__the_client_socket.send(full_msg)
+            full_msg = self.create_message(message)
+            self.__the_client_socket.send(full_msg)
 
-           # self.__the_client_socket.close()
-           # time.sleep(0.002)
+            self.__the_client_socket.close()
             return 1
 
         except KeyboardInterrupt as e:
@@ -717,6 +709,11 @@ class Client:
             elif data_recv[0] == "LEAVE":
                 return 1
 
+            elif data_recv[0] == "EXIT" and len(data_recv) == 3:  # if the client need to move to another server
+                if self.is_ip(data_recv[1]):
+                    print("please work")
+                    return (3, data_recv)
+
             else:
                 return data_recv
 
@@ -742,6 +739,11 @@ class Client:
 
             elif data_recv[0] == "LEAVE":
                 return 1
+
+            elif data_recv[0] == "EXIT" and len(data_recv) == 3:  # if the client need to move to another server
+                if self.is_ip(data_recv[1]):
+                    print("Please WOrk")
+                    return (3, data_recv)
 
             else:
                 return data_recv
@@ -802,10 +804,6 @@ class Client:
             print("epic fail")
             return
 
-    #def i_am_alive(self):
-
-    #    self.__the_client_socket.send(pickle.dumps(['None']))
-
     def good_music(self):
         """
 
@@ -813,6 +811,33 @@ class Client:
 
         self.v.SetMute(1, None)
         self.v.SetMasterVolumeLevelScalar(1.0, None)
+
+    def close_connection(self):
+        self.__the_client_socket.close()
+
+   # def create_client_sock(self):
+       # self.__the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def is_ip(self, addr):
+        """
+        Check if a string is a valid IP address.
+
+        Args:
+            addr: The string to check.
+
+        Returns:
+            True if the string is a valid IP address, False otherwise.
+        """
+        try:
+            ipaddress.ip_interface(addr)
+            return True
+
+        except ValueError:
+            return False
+
+    def migrate(self):
+        pass
+
 
 def main():
     """

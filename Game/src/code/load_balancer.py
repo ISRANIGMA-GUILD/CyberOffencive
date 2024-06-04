@@ -62,9 +62,10 @@ class LoadBalancer:
             'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680},
             'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
             'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
-            'ZoneBuffer1': {'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200},
-            'ZoneBuffer2': {'min_x2': 0, 'max_x2': 76800, 'min_y2': 19681, 'max_y2': 23519}
         }
+
+        self.zone_buffer = {'ZoneBuffer1': {'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200},
+                            'ZoneBuffer2': {'min_x2': 0, 'max_x2': 76800, 'min_y2': 19681, 'max_y2': 23519}}
         self.server_to_zone = {
             'Server 1': 'Zone1',
             'Server 2': 'Zone2',
@@ -74,7 +75,7 @@ class LoadBalancer:
         }
 
         self.server_zone_map = {
-            'Zone1': None,  # These will hold actual server socket connections
+            'Zone1': None,  # These will hold actual server address connections
             'Zone2': None,
             'Zone3': None,
             'Zone4': None,
@@ -87,10 +88,11 @@ class LoadBalancer:
 
         """
         print("NUMBER_OF_SERVERS")
-        while len(self.servers) != NUMBER_OF_SERVERS:
-            self.accept_new_connection(self.__load_balancer_socket)
         while True:
-            self.accept_connections()
+            try:
+                self.accept_connections()
+            except KeyboardInterrupt:
+                self.__load_balancer_socket.close()
 
     def accept_connections(self):
 
@@ -99,9 +101,9 @@ class LoadBalancer:
 
         for key, mask in events:
             callback = key.data
-            callback(key.fileobj)
+            callback(key.fileobj, mask)
 
-    def accept_new_connection(self, sock):
+    def accept_new_connection(self, sock, mask):
         """
 
         :param sock:
@@ -125,7 +127,7 @@ class LoadBalancer:
                     return
 
                 self.servers.append(connection)
-                self.server_zone_map[assigned_zone] = {'socket': connection, 'address': addr}
+                self.server_zone_map[assigned_zone] = {'address': addr}
                 print(f"Connection added to {assigned_zone}: {connection}")
                 print("Current state of server_zone_map:", self.server_zone_map)
                 print(self.server_zone_map[assigned_zone])
@@ -176,18 +178,6 @@ class LoadBalancer:
             return ({'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200}, 
                     {'min_x2': 0, 'max_x2': 76800, 'min_y2': 19681, 'max_y2': 23519})
 
-    def relay_client_info(self):
-        """
-
-        """
-
-        while True:
-            events = self.selector.select(timeout=None)
-            for key, mask in events:
-                if key.data:
-                    callback = key.data
-                    callback(key.fileobj, mask)
-
     def update_client_database(self, username, password, status, items):
         """
         Insert or update client data in the database.
@@ -206,7 +196,7 @@ class LoadBalancer:
 
         print(f"Updated database for client {username}")
 
-    def service_connection(self, sock):
+    def service_connection(self, sock, mask):
         """
         get the data
         :param sock:
@@ -216,7 +206,7 @@ class LoadBalancer:
       #  if mask & selectors.EVENT_READ:
         try:
             sock.settimeout(0.05)
-            recv_data = sock.recv(1024)
+            recv_data = sock.recv(16000)
 
             if recv_data is not None:
                 print("Data received:", recv_data)
@@ -239,15 +229,19 @@ class LoadBalancer:
 
                 self.update_client_database(username, password, status, items)
                 self.update_database()
-                target_server = self.determine_server(location)
-                if target_server is not None:
-                    print("sent to server")
-                    target_server.send(pickle.dumps(client_info))
-                else:
-                    print("No appropriate server found for the given location.")
 
-        except (pickle.PickleError, KeyError) as e:
-            print("Failed to process received data:", str(e))
+                target_server = self.determine_server(location)
+                if target_server:
+                    message = {'message_status': 'move', 'ip': target_server['address'], 'credential': credentials}
+
+                    if target_server is not None:
+                        print("sent to server")
+                        sock.send(pickle.dumps(message))
+                    else:
+                        print("No appropriate server found for the given location.")
+
+   #     except (pickle.PickleError, KeyError) as e:
+            #print("Failed to process received data:", str(e))
 
         except socket.timeout as e:
             print(e)
@@ -270,6 +264,10 @@ class LoadBalancer:
             print("Connection closedn", e)
             print("Closing connection to", sock.getpeername())
 
+        except KeyboardInterrupt as e:
+            print("Server will end service")
+            print("e", e)
+
           #  self.selector.unregister(sock)
          #   sock.close()
 
@@ -281,8 +279,9 @@ class LoadBalancer:
         """
         x = client_info[0]
         y = client_info[1]
-        buffer_zone_1 = self.zones['ZoneBuffer1']
-        buffer_zone_2 = self.zones['ZoneBuffer2']
+        print(f"x is {x} y is {y} ")
+        buffer_zone_1 = self.zone_buffer['ZoneBuffer1']
+        buffer_zone_2 = self.zone_buffer['ZoneBuffer2']
 
         if (buffer_zone_1['min_x1'] <= x <= buffer_zone_1['max_x1'] and buffer_zone_1['min_y1'] <= y <= buffer_zone_1[
             'max_y1']) or \
@@ -297,20 +296,25 @@ class LoadBalancer:
         print("no buffer")
 
         for zone_name, bounds in self.zones.items():
-            if bounds['min_x'] <= x <= bounds['max_x'] and bounds['min_y'] <= y <= bounds['max_y']:
+            print("value???", bounds)
+            if (bounds[list(bounds.keys())[0]] <= x <= bounds[list(bounds.keys())[1]] and
+                    bounds[list(bounds.keys())[2]] <= y <= bounds[list(bounds.keys())[3]]):
+                print("yay :)")
                 zone_data = self.server_zone_map[zone_name]
-                print(f"Checking zone: {zone_name}, Socket: {zone_data['socket']}")
-                print(zone_name)
-                print(self.server_zone_map[zone_name])
-                if zone_data and 'socket' in zone_data:
-                    print(f"Client located in {zone_name}, routing to server.")
-                    return zone_data['socket']  # Return the socket connection to the server for this zone
-                else:
-                    print(f"Server for {zone_name} is not connected.")
-                    return None
+                if zone_data:
+                    print(f"Checking zone: {zone_name}, address: {zone_data['address']}")
+                    print(zone_name)
+                    print(self.server_zone_map[zone_name])
+                    if 'address' in list(zone_data.keys()):
+                        print(f"Client located in {zone_name}, routing to server.")
+                        return zone_data  # Return the socket connection to the server for this zone
+
+                    else:
+                        print(f"Server for {zone_name} is not connected.")
+                        return
 
         print("No zone found for the client's location.")
-        return None
+        return
 
     def send_server_configuration(self, connection, data):
         print("ko")

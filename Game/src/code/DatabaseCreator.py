@@ -83,7 +83,6 @@ class DatabaseManager:
         """
 
         if len(values) != len(self.__list_of_params):
-            print("fuck you", self.__list_of_params)
             return False
 
         dict_param_val = dict(map(lambda k, v: (k, v), self.__list_of_params, values))

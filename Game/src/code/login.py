@@ -8,7 +8,7 @@ MAX_MSG_LENGTH = 1024
 class Login:
 
     def __init__(self, details, list_of_existing, list_of_existing_resources,
-                 credentials, number, new_credentials, number_of_clients, banned_users, data):
+                 credentials, number, new_credentials, number_of_clients, banned_users, data, zone):
         self.__details = details
         self.__list_of_existing = list_of_existing
 
@@ -22,6 +22,7 @@ class Login:
         self.__list_of_banned_users = banned_users
 
         self.__sus = data
+        self.__zone = zone
 
     def run(self):
 
@@ -115,7 +116,7 @@ class Login:
                         print("Successful")
                         detail = self.__list_of_existing_resources[self.__list_of_existing.index(tuple_of_credentials)]
 
-                        success = ["Success", detail]
+                        success = ["Success", detail, self.__zone]
 
                         success_pack = self.create_message(success)
                         m = self.__details["Client"].send(success_pack)
@@ -153,7 +154,7 @@ class Login:
                         self.__list_of_existing.append(tuple_of_credentials)
                         print("NEW ACCOUNT YAY :)")
 
-                        success_pack = self.create_message(["Success"])
+                        success_pack = self.create_message(["Success", self.__zone])
 
                         self.__details["Client"].send(success_pack)
                         self.__credentials[self.__number] = self.__details["Credentials"]
