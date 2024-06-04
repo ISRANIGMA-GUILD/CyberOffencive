@@ -107,11 +107,12 @@ class Game:
 
         self.__other_client = []
         self.__timer = 0
-        self.__previous = 0
 
+        self.__previous = 0
         self.__just_entered = 0
 
         self.__divide_time = 0
+        self.__previously = []
 
     def run(self) -> None:
         """
@@ -196,13 +197,12 @@ class Game:
                     for thread in threads:
                         thread.join()
 
-
                     # Handle chat input
                     self.chat_handler() 
-                    
 
                     pygame.display.update()
                     self.tick += 1
+
                     if self.tick % 60 == 0:
                         self.tick = 0
                     self.clock.tick(FPS)
@@ -350,12 +350,29 @@ class Game:
 
             data = [data1, data3]
             success_data = self.which_is_it(data)
+            print("Wait python where is the client?", success_data)
 
             if success_data == 1 or success_data == [[[], []], []]:
                 return
 
             self.__enemies, self.__weapons = success_data[0][0], success_data[0][1]
             self.__other_client = success_data[1]
+
+            if self.__other_client:
+                list_of_something = list(filter(lambda x: x[0], self.__previously))
+
+                if not self.__previously:
+                    self.__previously.append((self.__other_client[3], self.__other_client))
+                    self.__users.append(self.__other_client[3])
+
+                elif self.__other_client[3] not in list_of_something:
+                    self.__previously.append((self.__other_client[3], self.__other_client))
+                    self.__users.append(self.__other_client[3])
+
+                else:
+                    index = self.__previously.index(list_of_something.index(self.__other_client[3]))
+                    self.__previously[index] = (self.__other_client[3], self.__other_client)
+                    self.__users[index] = self.__other_client[3]
 
     def communication(self, lock):
         """
@@ -582,15 +599,36 @@ class Game:
             self.__just_entered = 1
 
         if other_client is None or self.__game_state == "start_menu":
-            pass
+            if self.__users:
+               #self.update_users()
+
+                self.erase_previous()
+                self.__temp_p = []
+
+                p_image = [pygame.image.load(
+                    f'{BASE_PATH}graphics\\player\\{self.__prev_info[user][2][0:len(self.__prev_info[user][2]) - 2]}\\{self.__prev_info[user][2]}.png')
+                           .convert_alpha() for user in self.__users if self.__prev_info[user][2]
+                           is not None]
+
+                if not p_image:
+                    pass
+
+                else:
+                    index = 0
+                    for user in self.__users:
+                        player_remote = Tile(position=self.__prev_info[user][0],
+                                             groups=[self.level.visible_sprites,
+                                                     self.level.obstacles_sprites],
+                                             sprite_type=PLAYER_OBJECT, surface=p_image[index])
+                        self.__temp_p.append(player_remote)
+                        index += 1
 
         elif other_client == 1:
             self.__game_state = "start_menu"
 
         else:
-
             if (type(other_client) is list or type(other_client) is tuple) and (len(other_client) == 4):
-                self.update_users()
+                #self.update_users()
                 self.__prev_info[other_client[3]] = other_client
 
                 self.__other_messages = other_client[1]
@@ -618,6 +656,30 @@ class Game:
                                              sprite_type=PLAYER_OBJECT, surface=p_image[index])
                         self.__temp_p.append(player_remote)
                         index += 1
+            else:
+                if self.__users:
+                #    self.update_users()
+
+                    self.erase_previous()
+                    self.__temp_p = []
+
+                    p_image = [pygame.image.load(
+                        f'{BASE_PATH}graphics\\player\\{self.__prev_info[user][2][0:len(self.__prev_info[user][2]) - 2]}\\{self.__prev_info[user][2]}.png')
+                               .convert_alpha() for user in self.__users if self.__previously[self.__users.index(user)]
+                               is not None]
+
+                    if not p_image:
+                        pass
+
+                    else:
+                        index = 0
+                        for user in self.__users:
+                            player_remote = Tile(position=self.__prev_info[user][0],
+                                                 groups=[self.level.visible_sprites,
+                                                         self.level.obstacles_sprites],
+                                                 sprite_type=PLAYER_OBJECT, surface=p_image[index])
+                            self.__temp_p.append(player_remote)
+                            index += 1
 
     def draw_text(self, text, color, surface, x, y):
         """

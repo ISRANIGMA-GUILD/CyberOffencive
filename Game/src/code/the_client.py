@@ -559,7 +559,7 @@ class Client:
                 print("details1", details)
 
                 timer = 5
-                success = self.receive_data(timer, 200)
+                success = self.receive_data(timer, 1024)
                 print("Did succeed?", success)
 
                 if success is None:
@@ -721,7 +721,7 @@ class Client:
 
         try:
             timer = 0.003
-            data_recv = self.receive_data(timer, 200)
+            data_recv = self.receive_data(timer, 1024)
 
             if not data_recv:
                 pass
@@ -773,7 +773,7 @@ class Client:
 
         try:
             timer = 0.05
-            data_recv = self.receive_data(timer, 200)
+            data_recv = self.receive_data(timer, 1024)
 
             if not data_recv:
                 pass

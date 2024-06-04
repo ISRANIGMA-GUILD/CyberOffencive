@@ -446,14 +446,15 @@ class Server:
         self.__selector.register(self.__sockets[1], selectors.EVENT_READ, self.accept_client)
         self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
 
-        update_interval = 1 / 15  # Seconds (adjust as needed for responsiveness)
-        update_interval2 = 1 / 30  # Seconds (adjust as needed for responsiveness)
+        update_interval = 1 / 30  # Seconds (adjust as needed for responsiveness)
+        update_interval2 = 1 / 60  # Seconds (adjust as needed for responsiveness)
         
         last_update_time = time.time()
         last_update_time2 = time.time()
 
         previous_item = self.__item_locations
         previous_enemy = self.__enemy_locations
+        prev_store = self.__data_storage
 
         while 1:
             try:
@@ -465,13 +466,15 @@ class Server:
 
                 if current_time - last_update_time >= update_interval:
                     self.update_game_state()
-                    if (current_time2 - last_update_time2 >= update_interval2 and
-                            (self.__enemy_locations != previous_enemy or self.__item_locations != previous_item)):
+
+                    if ((current_time2 - last_update_time2 >= update_interval2) or
+                        (self.__enemy_locations != previous_enemy or self.__item_locations != previous_item
+                         or prev_store != self.__data_storage)):
                         self.inform_all()
-                        self.send_from_clients()
 
                         previous_enemy = self.__enemy_locations
                         previous_item = self.__item_locations
+                        prev_store = self.__data_storage
 
                     last_update_time = current_time
                     last_update_time2 = current_time2
@@ -767,7 +770,7 @@ class Server:
         try:
             current_socket.settimeout(0.05)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
-
+            print(data)
             # If client has quit save their data
             if "EXIT" in data[0]:
                 print("Connection closedg")
@@ -803,7 +806,8 @@ class Server:
                 self.__status[index] = data[2]
                 self.send_to_clients(index)
             
-            elif len(self.__credentials) <= len(self.__session_users) and len(data) == 2:
+            elif (len(self.__credentials) <= len(self.__session_users) and
+                  self.__client_sockets.index(current_socket) <= len(self.__credentials) - 1):
                 print("kill that enemy", data)
                 if data[0] == "kill":
                     for stuff in self.__enemy_locations:
@@ -887,11 +891,9 @@ class Server:
 
             except ConnectionResetError as e:
                 print("not  good", e)
-                pass
 
             except ssl.SSLError as e:
                 print("not  good", e)
-                pass
 
     def send_from_clients(self):
         """
@@ -899,11 +901,14 @@ class Server:
         """
 
         try:
-            for socks in self.__client_sockets:
-                if socks is not None:
+            eligables = list(filter(lambda person: person["Client"] is not None and person["Credentials"] is not None
+                                    ,self.__all_details))
+            for socks in eligables:
+                if socks["Client"] is not None:
                     for message in self.__data_storage:
-                        if message is not None:
-                            socks.send(pickle.dumps(message[1]))
+                        if (message is not None and
+                                self.__client_sockets.index(socks["Client"]) != self.__session_users.index(message[0])):
+                            socks["Client"].send(pickle.dumps(message[1]))
 
         except ConnectionResetError as e:
             print("not  good", e)
@@ -941,6 +946,8 @@ class Server:
 
                 self.__credentials.pop(number)
                 self.__locations.pop(number)
+
+                self.__data_storage.pop(number)
 
                 self.__number_of_clients -= 1
 
