@@ -75,6 +75,12 @@ class Client:
                 img = pygame.image.load(IMAGE)
                 screen.blit(img, (0, 0))
 
+                loding_screen = self.font.render('loding...', True, (255, 215, 0))
+                screen.blit(loding_screen, (WIDTH//2, HEIGHT//2))
+                pygame.display.update()
+
+                time.sleep(2)
+
                 pygame.draw.rect(screen, (0, 0, 255), self.__login_thingy)
                 pygame.draw.rect(screen, (255, 255, 255), self.__user_box)
                 pygame.draw.rect(screen, (255, 255, 255), self.__pass_box)
