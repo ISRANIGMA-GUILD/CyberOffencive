@@ -3,6 +3,10 @@ from melee_weapon import MeleeWeapon
 
 
 class Sword(MeleeWeapon):
+    # when down or up
+    SWORD_WIDTH: int = 22
+    SWORD_HEIGHT: int = 60
+    
     def __init__(self, position, groups) -> None:
         super().__init__(position, groups, 100, 15, 'metal_sword')
         self.image_paths[ON_MAP] = f'{BASE_PATH}/graphics/weapons/metal_sword/on_map.png'

@@ -825,9 +825,18 @@ class Server:
                 #     self.__attack[index] = 0
 
                 #  el
-
-                self.send_to_clients(index)
-
+                
+                if len(data) == 5:
+                    # TODO: render weapons
+                    weapon = data[4]
+                    
+                    if 'A' == data[4]:
+                        pass
+                           
+                    self.send_to_clients(index, weapon)
+                else:
+                    self.send_to_clients(index)
+                
         except socket.timeout as e:
             print("meow", e)
             pass
@@ -936,7 +945,7 @@ class Server:
         except socket.timeout:
             return
 
-    def send_to_clients(self, number):
+    def send_to_clients(self, number, weapon=''):
         """
 
         :param number:
@@ -945,8 +954,12 @@ class Server:
         eligables = list(filter(lambda person: person["Client"] is not None and person["Credentials"] is not None
                                                and person != self.__all_details[number], self.__all_details))
         chat_message = f'{self.__session_users[number]}: {self.__chat[number]}'
-        message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number]]
-
+        
+        if 'attack' in self.__status[number] and weapon != '':
+            message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number], weapon]
+        else:
+            message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number]]
+        
         for socks in eligables:
             try:
                 socks["Client"].send(pickle.dumps(message))

@@ -1,13 +1,15 @@
 from pygame.locals import *
 import ctypes
-
-user32 = ctypes.windll.user32
-BASE_PATH: str = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive'
+try:
+	user32 = ctypes.windll.user32
+	BASE_PATH: str = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive'
 # ==== Window Settings =====
-WIDTH: int = user32.GetSystemMetrics(0) # 800
-HEIGHT: int = user32.GetSystemMetrics(1) - 50 # 600
-HALF_WIDTH: int = WIDTH // 2 # 400
-HALF_HEIGHT: int = HEIGHT // 2 # 300
+	WIDTH: int = user32.GetSystemMetrics(0) # 800
+	HEIGHT: int = user32.GetSystemMetrics(1) - 50 # 600
+	HALF_WIDTH: int = WIDTH // 2 # 400
+	HALF_HEIGHT: int = HEIGHT // 2 # 300
+except AttributeError:
+	pass
 # ==========================
 
 
