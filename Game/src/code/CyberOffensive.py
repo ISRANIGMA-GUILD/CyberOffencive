@@ -182,8 +182,6 @@ class Game:
                     pygame.display.update()
                     self.clock.tick(FPS)
 
-                    # self.erase_prev()
-
                 if self.__game_state == "continue":
                     if self.__previous == 0:
                         self.__previous = time.time()
@@ -469,21 +467,21 @@ class Game:
             for enemie in self.level.attackable_sprites:
                 if enemie.status == 'death' and enemie.id in self.__the_enemies:
                     print("kill", enemie.id)
-                    self.__the_enemies.remove(enemie.id)
 
-                    # self.__enemy_locs.remove(enemie.hitbox.center)
+                    self.__the_enemies.remove(enemie.id)
                     self.network.kill_enemy(enemie.id)
 
                     self.level.visible_sprites.remove(enemie)
                     self.level.attackable_sprites.remove(enemie)
+
                     enemie.kill()
 
                 elif enemie.id not in self.__the_enemies:
-                    # self.__enemy_locs.remove(enemie.hitbox.center)
                     print("kill")
 
                     self.level.visible_sprites.remove(enemie)
                     self.level.attackable_sprites.remove(enemie)
+
                     enemie.kill()
 
             for loc in enemies:

@@ -103,12 +103,12 @@ class Server:
         # """:TODO(finished?): Use load balancer with a main database and servers with their local ones"""#
         # """:TODO(almost finished): Loading screen between menu and login screens """#
         # """:TODO(almost finished): Try-except on everything """#
-        # """:TODO(almost finished): Show weapons when attacking"""#
         # """:TODO: Make sure clients move smoothly move between servers"""#
         # """:TODO: Make a whitelist of processes NO MATTER CLIENT FRIENDLY or NOT"""#
-        # """:TODO(almost finished): Erase items and enemies from client side to make sure they dont still appear if collected or killed"""#
+        # """:TODO(almost finished): Erase items and from client side to make sure they dont still appear if collected"""#
         # """:TODO(almost finished): Database updates correctly even if server is closed"""#
-        # """:TODO(If there is time): If banned you can't connect
+        # """:TODO(??finished????): If banned you can't connect
+        # """:TODO(??finished????): Do the big merge, finish everything today
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
@@ -448,9 +448,11 @@ class Server:
 
         update_interval = 1 / 60  # Seconds (adjust as needed for responsiveness)
         update_interval2 = 1 / 30  # Seconds (adjust as needed for responsiveness)
-        
+        update_interval4 = 1 / 10
+
         last_update_time = time.time()
         last_update_time2 = time.time()
+        last_update_time4 = time.time()
 
         previous_item = self.__item_locations
         previous_enemy = self.__enemy_locations
@@ -463,35 +465,32 @@ class Server:
 
                 current_time = time.time()
                 current_time2 = time.time()
+                current_time4 = time.time()
 
                 if current_time - last_update_time >= update_interval:
                     self.update_game_state()
 
                     if ((current_time2 - last_update_time2 >= update_interval2) or
-                        (self.__enemy_locations != previous_enemy or self.__item_locations != previous_item
-                         or len(prev_store) != len(self.__data_storage))):
-
+                        (self.__enemy_locations != previous_enemy or self.__item_locations != previous_item)):
                         self.inform_all()
-                        self.send_from_clients()
 
-                        previous_enemy = self.__enemy_locations
-                        previous_item = self.__item_locations
-                        prev_store = self.__data_storage
+                        if ((current_time4 - last_update_time4 >= update_interval4) or
+                                (len(prev_store) != len(self.__data_storage))):
+                            self.send_from_clients()
+                            last_update_time4 = current_time4
+
+                    previous_enemy = self.__enemy_locations
+                    previous_item = self.__item_locations
+                    prev_store = self.__data_storage
 
                     last_update_time = current_time
                     last_update_time2 = current_time2
 
+
             except ConnectionResetError as e:
                 print("Server will end service")
                 print("e", e)
-
                 self.update_database()
-                self.__login_data_base.close_conn()
-
-                self.__main_data_base.close_conn()
-
-                self.__ips_data_base.close_conn()
-                break
 
             except KeyboardInterrupt as e:
                 print("Server will end service")
@@ -507,17 +506,9 @@ class Server:
                 break
 
             except Exception as e:
-                print("Server will end service")
-                print(e)
-
+                print("The general error", e)
                 self.update_database()
-                self.kick_all()
-
-                self.__login_data_base.close_conn()
-                self.__main_data_base.close_conn()
-
-                self.__ips_data_base.close_conn()
-                break
+                pass
 
         print("FINISH")
 
@@ -665,6 +656,7 @@ class Server:
                                                 [client_address[0], Ether().src])
                 self.__banned_ips.append(client_address[0])
                 self.__banned_macs.append(getmacbyip(client_address[0]))
+                connection.close()
 
             else:
                 self.__ips_data_base.insert_no_duplicates(
@@ -675,6 +667,7 @@ class Server:
                                                 [client_address[0], getmacbyip(client_address[0])])
                 self.__banned_ips.append(client_address[0])
                 self.__banned_macs.append(getmacbyip(client_address[0]))
+                connection.close()
 
             return
 
@@ -904,7 +897,7 @@ class Server:
 
         try:
             eligables = list(filter(lambda person: person["Client"] is not None and person["Credentials"] is not None
-                                    ,self.__all_details))
+                                    , self.__all_details))
             for socks in eligables:
                 if socks["Client"] is not None:
                     for message in self.__data_storage:

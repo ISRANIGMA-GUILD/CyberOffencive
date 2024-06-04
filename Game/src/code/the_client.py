@@ -10,7 +10,7 @@ from clientpasswordgen import *
 from serverpassword import *
 
 MY_IP = socket.gethostbyname(socket.gethostname())
-MAX_MSG_LENGTH = 1024
+MAX_MSG_LENGTH = 16000
 THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6": "SELECT", "7": "/", "8": "#",
                 "9": "SQL", "10": "FROM", "11": "(", "12": ")", "13": "+", "14": "UNION", "15": "ALL", "16": ">",
                 "17": "<", "18": "–dbs", "19": "-D", "20": "-T", "21": "-", "22": ".php", "23": "SLEEP", "24": "@",
@@ -245,9 +245,10 @@ class Client:
 
             except ssl.SSLEOFError as e:
                 print("stop", e)
-                time.sleep(0.02)
+              #  time.sleep(0.02)
                 pygame.display.update()
                 clock.tick(FPS)
+                return 1
 
             except ValueError as ve:
                 # Print the specific ValueError message for debugging
@@ -360,8 +361,9 @@ class Client:
 
         except ssl.SSLEOFError as e:
             print("stop", e)
-            time.sleep(0.02)
+           # time.sleep(0.02)
             pygame.display.update()
+            return 1
 
         except socket.timeout:
             return
@@ -424,10 +426,11 @@ class Client:
 
             except ssl.SSLEOFError as e:
                 print("stop", e)
-                time.sleep(0.02)
+               # time.sleep(0.02)
 
                 pygame.display.update()
                 clock.tick(FPS)
+                return 1
 
             except KeyboardInterrupt as e:
                 message = pickle.dumps(["EXIT"])

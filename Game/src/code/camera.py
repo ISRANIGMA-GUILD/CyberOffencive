@@ -17,8 +17,12 @@ class YSortCameraGroup(pygame.sprite.Group):
 
         # Only draw the other sprites, not the tilemap
         for sprite in sorted(self.sprites(), key=lambda sprite: sprite.rect.centery):
-            offset_position = sprite.rect.topleft - self.offset
-            self.display_surface.blit(sprite.image, offset_position)
+            try:
+                offset_position = sprite.rect.topleft - self.offset
+                self.display_surface.blit(sprite.image, offset_position)
+
+            except AttributeError:
+                pass
 
     def enemy_update(self, player, projectiles_group) -> None:
         enemy_sprites = [sprite for sprite in self.sprites() if
