@@ -420,11 +420,14 @@ class Server:
         :param client_info:
         """
 
-        username, client_details = client_info['username'], client_info['details']
-        self.__session_users.append(username)
+        location, credentials, status, items = (client_info['location'], client_info['credentials']
+                                                , client_info['status'], client_info['items'])
+        self.__credentials.append(credentials)
+        self.__status.append(status)
+        self.__weapons.append(items)
+        self.__locations.append(location)
 
-        self.__all_details.append(client_details)
-        print(f"Added new client {username} with details {client_details}")
+        print(f"Added new client {credentials[0]}")
 
     def check_for_banned(self, client_address, number):
         """
