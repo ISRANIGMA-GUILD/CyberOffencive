@@ -547,33 +547,33 @@ class Game:
             if len(other_client) == 5:
                 if 'S' == other_client[4]:
                     if 'down' in other_client[2]:
-                        Blittable(other_client[0], [self.level.visible_sprites], f'../graphics/weapons/metal_sword/down.png', Sword.SWORD_WIDTH, Sword.SWORD_HEIGHT)
+                        Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/metal_sword/down.png', Sword.SWORD_WIDTH, Sword.SWORD_HEIGHT)
                     elif 'up' in other_client[2]:    
-                        Blittable(other_client[0], [self.level.visible_sprites], f'../graphics/weapons/metal_sword/up.png', Sword.SWORD_WIDTH, Sword.SWORD_HEIGHT)
+                        Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/metal_sword/up.png', Sword.SWORD_WIDTH, Sword.SWORD_HEIGHT)
                     elif 'right' in other_client[2]:
-                        Blittable(other_client[0], [self.level.visible_sprites], f'../graphics/weapons/metal_sword/right.png', Sword.SWORD_WIDTH, Sword.SWORD_HEIGHT)
+                        Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/metal_sword/right.png', Sword.SWORD_WIDTH, Sword.SWORD_HEIGHT)
                     elif 'left' in other_client[2]:
-                        Blittable(other_client[0], [self.level.visible_sprites], f'../graphics/weapons/metal_sword/left.png', Sword.SWORD_WIDTH, Sword.SWORD_HEIGHT)
+                        Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/metal_sword/left.png', Sword.SWORD_WIDTH, Sword.SWORD_HEIGHT)
                     
                 elif 'A' == other_client[4]:
                     if 'down' in other_client[2]:
-                        Blittable(other_client[0], [self.level.visible_sprites], f'../graphics/weapons/axe/down.png', Axe.AXE_WIDTH, Axe.AXE_HEIGHT)
+                        Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/axe/down.png', Axe.AXE_WIDTH, Axe.AXE_HEIGHT)
                     elif 'up' in other_client[2]:    
-                        Blittable(other_client[0], [self.level.visible_sprites], f'../graphics/weapons/axe/up.png', Axe.AXE_WIDTH, Axe.AXE_HEIGHT)
+                        Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/axe/up.png', Axe.AXE_WIDTH, Axe.AXE_HEIGHT)
                     elif 'right' in other_client[2]:
-                        Blittable(other_client[0], [self.level.visible_sprites], f'../graphics/weapons/axe/right.png', Axe.AXE_WIDTH, Axe.AXE_HEIGHT)
+                        Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/axe/right.png', Axe.AXE_WIDTH, Axe.AXE_HEIGHT)
                     elif 'left' in other_client[2]:
-                        Blittable(other_client[0], [self.level.visible_sprites], f'../graphics/weapons/axe/left.png', Axe.AXE_WIDTH, Axe.AXE_HEIGHT)
+                        Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/axe/left.png', Axe.AXE_WIDTH, Axe.AXE_HEIGHT)
                     
                 elif 'B' == other_client[4]:
                     if 'down' in other_client[2]:
-                        Blittable(other_client[0], [self.level.visible_sprites], f'../graphics/weapons/bow/down.png', Bow.BOW_WIDTH, Bow.BOW_HEIGHT)
+                        Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/bow/down.png', Bow.BOW_WIDTH, Bow.BOW_HEIGHT)
                     elif 'up' in other_client[2]:    
-                        Blittable(other_client[0], [self.level.visible_sprites], f'../graphics/weapons/bow/up.png', Bow.BOW_WIDTH, Bow.BOW_HEIGHT)
+                        Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/bow/up.png', Bow.BOW_WIDTH, Bow.BOW_HEIGHT)
                     elif 'right' in other_client[2]:
-                        Blittable(other_client[0], [self.level.visible_sprites], f'../graphics/weapons/bow/right.png', Bow.BOW_WIDTH, Bow.BOW_HEIGHT)
+                        Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/bow/right.png', Bow.BOW_WIDTH, Bow.BOW_HEIGHT)
                     elif 'left' in other_client[2]:
-                        Blittable(other_client[0], [self.level.visible_sprites], f'../graphics/weapons/bow/left.png', Bow.BOW_WIDTH, Bow.BOW_HEIGHT)
+                        Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/bow/left.png', Bow.BOW_WIDTH, Bow.BOW_HEIGHT)
 
             if self.__previous_details != list_of_public_details: #or self.__timer >= 0.02:
                 s = self.network.update_server(list_of_public_details, self.items)

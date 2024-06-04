@@ -39,6 +39,7 @@ class Level:
         self.visible_sprites = YSortCameraGroup()
         self.obstacles_sprites = pygame.sprite.Group()
         self.attack_sprites = pygame.sprite.Group()
+        self.blittable_sprites = YSortCameraGroup(400)
         self.attackable_sprites = pygame.sprite.Group()
         self.enemies_projectiles = pygame.sprite.Group()
 
@@ -116,6 +117,8 @@ class Level:
 
         self.visible_sprites.custom_draw(self.player)
         self.visible_sprites.update(self.collision_grid)
+        
+        self.blittable_sprites.custom_draw(self.player)
 
         self.visible_sprites.enemy_update(self.player, [self.visible_sprites, self.enemies_projectiles])
         self.player_attack_logic()
@@ -161,3 +164,5 @@ class Level:
                 for obstacle_sprite in self.obstacles_sprites:
                     if attack_sprite.rect.colliderect(obstacle_sprite.rect):
                         attack_sprite.kill()
+
+        self.blittable_sprites.custom_empty()
