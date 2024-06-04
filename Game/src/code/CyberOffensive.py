@@ -594,7 +594,7 @@ class Game:
 
             else:
 
-                if (type(other_client) is list or type(other_client) is tuple) and (len(other_client) == 4):
+                if (type(other_client) is list or type(other_client) is tuple) and (4 <= len(other_client) <= 5):
                     self.update_users()
                     self.__prev_info[other_client[3]] = other_client
 

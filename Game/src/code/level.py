@@ -115,10 +115,11 @@ class Level:
 
         self.map_renderer.render(self.display_surface, self.player.rect.center, (WIDTH, HEIGHT))
 
+        self.blittable_sprites.custom_draw(self.player)
+        self.blittable_sprites.update(self.collision_grid)
+
         self.visible_sprites.custom_draw(self.player)
         self.visible_sprites.update(self.collision_grid)
-        
-        self.blittable_sprites.custom_draw(self.player)
 
         self.visible_sprites.enemy_update(self.player, [self.visible_sprites, self.enemies_projectiles])
         self.player_attack_logic()
