@@ -68,3 +68,10 @@ class HotBar:
                 rendered_amount_text_rect.topleft = (64 + i * 50 + i * 20, 474)
 
                 surface.blit(rendered_amount_text, rendered_amount_text_rect)
+
+    def get_ids(self):
+        ids = []
+        for i in range(self.capacity):
+            if len(self.content[i]):
+                ids.append(self.content[i][0].id)
+        return ids

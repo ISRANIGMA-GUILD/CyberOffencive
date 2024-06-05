@@ -24,6 +24,7 @@ class Enemy(Entity):
         }
 
         self.level = level
+        self.rect = pygame.Rect(0,0,0,0)
         super().__init__(groups)
 
         self.sprite_type = ENEMY

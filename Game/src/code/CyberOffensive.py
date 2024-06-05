@@ -97,7 +97,11 @@ class Game:
         self.__enemy_locs = []
 
         self.__the_enemies = []
+        self.__killed_enemies = []
         self.__the_e_id = []
+        self.__collected_items_ids_server = []
+        self.__collected_items_ids = []
+
 
         self.__sample_w = ["A", "B", "S", "HPF", "EF", "RHPF", "BEF"]
         self.__sample_e = ["BSS", "BS", "CRS", "CS", "RGS", "RS", "GOB"]
@@ -254,13 +258,14 @@ class Game:
         if len(ran) > 1:
             items = ran[1][1].split(', ')
             weapons = ran[1][2].split(', ')
+            print (weapons[0])
 
             if int(weapons[0]) > 0:
                 self.items["A"] = int(weapons[0])
 
                 for item in range(0, self.items["A"]):
                     self.level.player.inventory.hotbar.insert(Axe((0, 0),
-                                                                  [self.level.visible_sprites]))
+                                                                  [self.level.visible_sprites],"99999"))
 
             if int(weapons[1]) > 0:
                 self.items["B"] = int(weapons[1])
@@ -268,41 +273,41 @@ class Game:
                 for item in range(0, self.items["B"]):
                     self.level.player.inventory.hotbar.insert(Bow((0, 0), self.level.visible_sprites,
                                                                   [self.level.visible_sprites,
-                                                                   self.level.attack_sprites]))
+                                                                   self.level.attack_sprites],"99999"))
 
             if int(weapons[2]) > 0:
                 self.items["S"] = int(weapons[2])
 
                 for item in range(0, self.items["S"]):
                     self.level.player.inventory.hotbar.insert(Sword((0, 0),
-                                                                    [self.level.visible_sprites]))
+                                                                    [self.level.visible_sprites],"99999"))
 
             if int(items[0]) > 0:
                 self.items["HPF"] = int(items[0])
 
                 for item in range(0, self.items["HPF"]):
                     self.level.player.inventory.hotbar.insert(HPFruit((0, 0),
-                                                                      [self.level.visible_sprites]))
+                                                                      [self.level.visible_sprites],"99999"))
 
             if int(items[1]) > 0:
                 self.items["EF"] = int(items[1])
                 for item in range(0, self.items["EF"]):
                     self.level.player.inventory.hotbar.insert(EnergyFruit((0, 0),
-                                                                          [self.level.visible_sprites]))
+                                                                          [self.level.visible_sprites],"99999"))
 
             if int(items[2]) > 0:
                 self.items["RHPF"] = int(items[2])
 
                 for item in range(0, self.items["RHPF"]):
                     self.level.player.inventory.hotbar.insert(RedHPFruit((0, 0),
-                                                                         [self.level.visible_sprites]))
+                                                                         [self.level.visible_sprites],"99999"))
 
             if int(items[3]) > 0:
                 self.items["BEF"] = int(items[3])
 
                 for item in range(0, self.items["BEF"]):
                     self.level.player.inventory.hotbar.insert(BlueEnergyFruit((0, 0),
-                                                                              [self.level.visible_sprites]))
+                                                                              [self.level.visible_sprites],"99999"))
 
     def create_threads(self, game_lock, com_lock, div_lock):
         """
@@ -338,7 +343,7 @@ class Game:
             self.text_surface = self.font.render("FPS: " + str(int(self.fps)), True, (128, 0, 128))
             self.screen.blit(self.text_surface, (350, 10))
             
-            print ("the divide time", self.__divide_time)
+            #print ("the divide time", self.__divide_time)
 
     def divide_data(self, lock):
         """
@@ -353,10 +358,10 @@ class Game:
             data = [data1, data3]
             success_data = self.which_is_it(data)
 
-            if success_data == 1 or success_data == [[[], []], []]:
+            if success_data == 1 or success_data == [[[], [], [], []], []]:
                 return
 
-            self.__enemies, self.__weapons = success_data[0][0], success_data[0][1]
+            self.__enemies, self.__weapons,self.__killed_enemies,self.__collected_items_ids_server = success_data[0][0], success_data[0][1],success_data[0][2],success_data[0][3]
             self.__other_client = success_data[1]
 
     def communication(self, lock):
@@ -449,26 +454,36 @@ class Game:
 
                     self.__the_enemies.pop(self.__the_e_id.index(new_id[0]))
                     self.__the_e_id.remove(new_id[0])  # make sure order of ids is the same as order of id numbers
-
+                
                 else:
                     self.__enemy_locs[self.__the_enemies.index(loc[0])] = loc[1]
 
             for enemie in self.level.attackable_sprites:
                 if enemie.status == 'death' and enemie.id in self.__the_enemies:
-                    print("kill", enemie.id)
                     self.__the_enemies.remove(enemie.id)
+                    print("kill", enemie.id)
 
-                    # self.__enemy_locs.remove(enemie.hitbox.center)
                     self.network.kill_enemy(enemie.id)
-
+                    
+                    self.level.visible_sprites.remove(enemie)
                     self.level.attackable_sprites.remove(enemie)
 
                 elif enemie.id not in self.__the_enemies:
-                    # self.__enemy_locs.remove(enemie.hitbox.center)
+                    #fuck u python
                     print("kill")
+                    self.network.kill_enemy(enemie.id)
 
                     self.level.visible_sprites.remove(enemie)
                     self.level.attackable_sprites.remove(enemie)
+
+
+            for enemie in self.level.attackable_sprites:
+                if enemie.id in self.__killed_enemies: 
+                    # Remove from game state and network
+                    self.__the_enemies.remove(enemie.id)
+                    self.level.visible_sprites.remove(enemie)
+                    self.level.attackable_sprites.remove(enemie)
+                    enemie.status = "death"
 
             for loc in enemies:
                 for enemie in self.level.attackable_sprites:
@@ -484,30 +499,49 @@ class Game:
         """
 
         weapons = self.__weapons
-        # If we received new locations of weapons\items from server see if we need to spawn them,
-        # If they exist just update according to data in this message (weapons)
+        #print (weapons)
+        item_ids_server = [item[0] for item in weapons]
+
+        hotbar_item_ids = [item for item in self.level.player.inventory.hotbar.get_ids()]
+
+        whitelist = [Axe, Bow, Sword, HPFruit, EnergyFruit, RedHPFruit, BlueEnergyFruit]
+        
+        items_ = [item for item in self.level.visible_sprites if type(item) in whitelist and item not in self.level.picked_up and item.id not in hotbar_item_ids]
+        items_ids = [item.id for item in self.level.visible_sprites if type(item) in whitelist and item not in self.level.picked_up and item.id not in hotbar_item_ids]
+        #print (items_)
+
         if weapons:
-            [Axe(loc[1], [self.level.visible_sprites])
-             for loc in list(filter(lambda person: "A" in person, weapons)) if loc[1] not in self.__item_locs]
-            [Bow(loc[1], [self.level.visible_sprites], [self.level.visible_sprites, self.level.attack_sprites])
-             for loc in list(filter(lambda person: "B" in person, weapons)) if loc[1] not in self.__item_locs]
+            [Axe(loc[1], [self.level.visible_sprites],loc[0])
+             for loc in list(filter(lambda person: "A" in person[0], weapons)) if loc[0] not in [item.id for item in self.level.picked_up] and loc[0] not in items_ids]
+            
+            [Bow(loc[1], [self.level.visible_sprites], [self.level.visible_sprites, self.level.attack_sprites],loc[0])
+             for loc in list(filter(lambda person: "B" in person[0], weapons)) if loc[0] not in [item.id for item in self.level.picked_up] and loc[0] not in items_ids]
 
-            [Sword(loc[1], [self.level.visible_sprites])
-             for loc in list(filter(lambda person: "S" in person, weapons)) if loc[1] not in self.__item_locs]
-            [HPFruit(loc[1], [self.level.visible_sprites])
-             for loc in list(filter(lambda person: "HPF" in person, weapons)) if loc[1] not in self.__item_locs]
+            [Sword(loc[1], [self.level.visible_sprites],loc[0])
+             for loc in list(filter(lambda person: "S" in person[0], weapons)) if loc[0] not in [item.id for item in self.level.picked_up] and loc[0] not in items_ids]
+            [HPFruit(loc[1], [self.level.visible_sprites],loc[0])
+             for loc in list(filter(lambda person: "HPF" in person[0], weapons)) if loc[0] not in [item.id for item in self.level.picked_up] and loc[0] not in items_ids]
 
-            [EnergyFruit(loc[1], [self.level.visible_sprites])
-             for loc in list(filter(lambda person: "EF" in person, weapons)) if loc[1] not in self.__item_locs]
-            [RedHPFruit(loc[1], [self.level.visible_sprites])
-             for loc in list(filter(lambda person: "RHPF" in person, weapons)) if loc[1] not in self.__item_locs]
+            [EnergyFruit(loc[1], [self.level.visible_sprites],loc[0])
+             for loc in list(filter(lambda person: "EF" in person[0], weapons)) if loc[0] not in [item.id for item in self.level.picked_up] and loc[0] not in items_ids]
+            [RedHPFruit(loc[1], [self.level.visible_sprites],loc[0])
+             for loc in list(filter(lambda person: "RHPF" in person[0], weapons)) if loc[0] not in [item.id for item in self.level.picked_up] and loc[0] not in items_ids]
 
-            [BlueEnergyFruit(loc[1], [self.level.visible_sprites])
-             for loc in list(filter(lambda person: "BEF" in person, weapons)) if loc[1] not in self.__item_locs]
+            [BlueEnergyFruit(loc[1], [self.level.visible_sprites],loc[0])
+             for loc in list(filter(lambda person: "BEF" in person[0], weapons)) if loc[0] not in [item.id for item in self.level.picked_up] and loc[0] not in items_ids]
 
-            for loc in weapons:
-                if loc[1] not in self.__item_locs:
-                    self.__item_locs.append(loc[1])
+
+            for item in items_:
+                if item.id in self.__collected_items_ids_server:
+                    self.level.visible_sprites.remove(item)
+
+            for item in self.level.picked_up:
+                self.__collected_items_ids.append(item.id)
+                self.level.picked_up.remove(item)
+                print ("picked up item", item.id)
+                self.network.picked_up(item.id)
+                item.id = "99999"
+
 
         elif weapons and "LEAVE" == weapons[0]:
             self.__game_state = "start_menu"
@@ -641,7 +675,7 @@ class Game:
         :return:
         """
 
-        stuff = [[], []]
+        stuff = [[], [],[],[]]
         other_client = []
 
         for d in data:
@@ -655,7 +689,7 @@ class Game:
                 pass
 
             elif self.is_enemies(d):
-                stuff = [d[1], d[2]]
+                stuff = [d[1], d[2], d[3],d[4]]
 
             else:
                 other_client = d

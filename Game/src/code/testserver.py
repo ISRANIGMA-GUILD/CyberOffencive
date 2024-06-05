@@ -84,7 +84,9 @@ class Server:
         self.collision_grid = self.create_collision_grid()
 
         self.__enemy_locations = []
+        self.__killed_enemies = []
 
+        self.__collected_items = []
         self.__item_locations = []
         self.__e_possabilities = ["BSS", "BS", "CRS", "CS", "RGS", "RS", "GOB", "FRE"]
 
@@ -93,6 +95,7 @@ class Server:
 
         self.__zone = {}
         self.__id = []
+        self.__items_ids = []
         self.__data_storage = []
 
     def run(self):
@@ -174,6 +177,10 @@ class Server:
         for i in range(0, 101):
             enemy_is = f'{i}'
             self.__id.append(enemy_is)
+        
+        for i in range(0, 101):
+            item_is = f'{i}'
+            self.__items_ids.append(item_is)
 
     def set_locations(self):
         """
@@ -198,9 +205,18 @@ class Server:
         Updates list of item locations, adds enemies if there are less than 100 enemies in total
         """
 
+        if self.__item_locations:
+            used = [re.findall(r'\d+', i[0])[0] for i in self.__item_locations]
+            unused = list(filter(lambda x: x not in used, self.__items_ids))
+        
+        else:
+            unused = self.__items_ids
+        
+
         while len(self.__item_locations) < 101:
-            enemy_is = choice(self.__w_possabilities)
-            self.__item_locations.append((enemy_is, (randint(1000, 10000), randint(1000, 10000))))
+            for identity in unused:
+                item_is = f'{choice(self.__w_possabilities)}{identity}'
+                self.__item_locations.append((item_is, (randint(1000, 10000), randint(1000, 10000))))
 
     def connect_to_load_socket(self):
         """
@@ -446,11 +462,13 @@ class Server:
         self.__selector.register(self.__sockets[1], selectors.EVENT_READ, self.accept_client)
         self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
 
-        update_interval = 1 / 15  # Seconds (adjust as needed for responsiveness)
+        update_interval = 1 / 60  # Seconds (adjust as needed for responsiveness)
         update_interval2 = 1 / 30  # Seconds (adjust as needed for responsiveness)
+        update_interval3 = 1 / 2  # Seconds (adjust as needed for responsiveness)
         
         last_update_time = time.time()
         last_update_time2 = time.time()
+        last_update_time3 = time.time()
 
         previous_item = self.__item_locations
         previous_enemy = self.__enemy_locations
@@ -462,18 +480,24 @@ class Server:
 
                 current_time = time.time()
                 current_time2 = time.time()
+                current_time3 = time.time()
 
                 if current_time - last_update_time >= update_interval:
                     self.update_game_state()
                     if (current_time2 - last_update_time2 >= update_interval2 and
                             (self.__enemy_locations != previous_enemy or self.__item_locations != previous_item)):
                         self.inform_all()
+                        if current_time3 - last_update_time3 >= update_interval3:
+                            self.__killed_enemies = []
+                            self.__collected_items = []
+                            last_update_time3 = current_time3
 
                         previous_enemy = self.__enemy_locations
                         previous_item = self.__item_locations
-
+                        last_update_time2 = current_time2
                     last_update_time = current_time
-                    last_update_time2 = current_time2
+
+                
 
             except ConnectionResetError as e:
                 print("Server will end service")
@@ -576,7 +600,7 @@ class Server:
                     if nearby_sprites:
                         self.__client_sockets[index].send(pickle.dumps(nearby_sprites))
 
-                except ssl.SSLEOFError as e:
+                except Exception as e:
                     print("Connection closedh", e)
                     self.__all_details[index]["Connected"] = 1
 
@@ -585,14 +609,6 @@ class Server:
 
                     self.eliminate_socket(index)
 
-                except EOFError as e:
-                    print("Connection closede", e)
-                    self.__all_details[index]["Connected"] = 1
-
-                    self.update_database()
-                    self.print_client_sockets()
-
-                    self.eliminate_socket(index)
 
     def accept_client(self, current_socket, mask):
         """
@@ -761,7 +777,7 @@ class Server:
         data = ""
 
         try:
-            current_socket.settimeout(0.05)
+            current_socket.settimeout(0.03)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
 
             # If client has quit save their data
@@ -800,16 +816,20 @@ class Server:
                 self.send_to_clients(index)
             
             elif len(data) == 2:
-                print("kill that enemy", data)
+                print("meow",data)
                 if data[0] == "kill":
                     for stuff in self.__enemy_locations:
                         if stuff[0] == data[1]:
+                            print("kill him")
                             self.__enemy_locations.remove(stuff)
+                            self.__killed_enemies.append(data[1])
 
                 elif data[0] == "collected":
                     for stuff in self.__item_locations:
                         if stuff[0] == data[1]:
+                            print("collected")
                             self.__item_locations.remove(stuff)
+                            self.__collected_items.append(data[1])
             
             
 
@@ -863,8 +883,10 @@ class Server:
                 w_near = list(filter(lambda m: 0 <= abs(m[1][0] - self.__locations[index][1][0]) <= 1000
                                                and 0 <= abs(m[1][1] - self.__locations[index][1][1]) <= 1000,
                                      self.__item_locations))
+                e_killed = self.__killed_enemies
+                i_collected = self.__collected_items
 
-                return ["eeee", e_near, w_near]
+                return ["eeee", e_near, w_near, e_killed, i_collected]
 
     def send_to_clients(self, number):
         """

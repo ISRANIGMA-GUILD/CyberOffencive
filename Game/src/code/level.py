@@ -62,6 +62,7 @@ class Level:
 
         
         self.using_chat = False
+        self.picked_up = []
 
     def create_map(self) -> None:
         # *** Using the MapRenderer for map loading and object placement ***
@@ -137,6 +138,7 @@ class Level:
                 could_pickup_item = self.player.inventory.hotbar.insert(visible_sprite)
 
                 if could_pickup_item:
+                    self.picked_up.append(visible_sprite)
                     self.visible_sprites.remove(visible_sprite)
 
             if issubclass(visible_sprite.__class__, LaserBeam):

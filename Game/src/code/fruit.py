@@ -3,8 +3,9 @@ from item import *
 from settings import *
 
 class Fruit(Item):
-    def __init__(self, position: tuple, groups, path: str, hp_boost: int, energy_boost: int) -> None:
-        super().__init__(position, groups, path)
+    def __init__(self, position: tuple, groups, path: str, hp_boost: int, energy_boost: int,id) -> None:
+        self.rect = pygame.Rect(0,0,0,0)
+        super().__init__(position, groups, path,id)
         self.hp_boost = hp_boost
         self.energy_boost = energy_boost
         self.sprite_type = 'Fruit'

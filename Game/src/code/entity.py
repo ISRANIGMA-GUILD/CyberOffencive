@@ -6,6 +6,7 @@ from math import sin
 class Entity(pygame.sprite.Sprite):
     def __init__(self, groups):
         self.stats = self.stats
+        self.rect = pygame.Rect(0,0,0,0)
         super().__init__(groups)
         self.frame_index = 0
         self.animation_speed = 0.15

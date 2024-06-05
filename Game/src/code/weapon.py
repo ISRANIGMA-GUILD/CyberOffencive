@@ -4,11 +4,11 @@ from item import *
 from player import *
 
 class Weapon(Item):
-    def __init__(self, position, groups, cooldown: int, damage: int, weapon_name: str) -> None:
+    def __init__(self, position, groups, cooldown: int, damage: int, weapon_name: str,id) -> None:
         self.weapon_name = weapon_name
         self.sprite_type = WEAPON
 
-        super().__init__(position, groups, f'{BASE_PATH}/graphics/weapons/{weapon_name}/on_map.png')
+        super().__init__(position, groups, f'{BASE_PATH}/graphics/weapons/{weapon_name}/on_map.png',id)
 
         self.stats : dict  = {
             COOLDOWN: cooldown,

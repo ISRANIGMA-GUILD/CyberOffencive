@@ -5,8 +5,8 @@ from arrow import Arrow
 
 
 class RangedWeapon(Weapon):
-    def __init__(self, position, groups, groups_for_arrow, cooldown: int, damage: int, weapon_name: str) -> None:
-        super().__init__(position, groups, cooldown, damage, weapon_name)
+    def __init__(self, position, groups, groups_for_arrow, cooldown: int, damage: int, weapon_name: str,id) -> None:
+        super().__init__(position, groups, cooldown, damage, weapon_name,id)
         self.image_paths[ON_MAP] = f'{BASE_PATH}/graphics/weapons/{weapon_name}/on_map.png'
         self.image_paths[ON_HOTBAR] = f'{BASE_PATH}/graphics/weapons/{weapon_name}/on_hotbar.png'
         self.damage = damage
