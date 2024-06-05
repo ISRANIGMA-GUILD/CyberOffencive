@@ -40,6 +40,13 @@ class LoadBalancer:
         self.__credentials = []
         self.__new_credentials = []
 
+        self.__credentials_server1 = []
+        self.__credentials_server2 = []
+        self.__credentials_server3 = []
+        self.__credentials_server4 = []
+        self.__credentials_server5 = []
+
+
         self.__session_users = []
 
         self.__weapons = []
@@ -95,13 +102,15 @@ class LoadBalancer:
                 self.__load_balancer_socket.close()
 
     def accept_connections(self):
-
-        print("wip")
-        events = self.selector.select(timeout=None)
-
-        for key, mask in events:
-            callback = key.data
-            callback(key.fileobj, mask)
+        try:
+            print("wip")
+            events = self.selector.select(timeout=None)
+            for key, mask in events:
+                callback = key.data
+                callback(key.fileobj, mask)
+        except KeyboardInterrupt as e:
+            print("Server will end service")
+            print("e", e)
 
     def accept_new_connection(self, sock, mask):
         """
@@ -212,33 +221,47 @@ class LoadBalancer:
                 print("Data received:", recv_data)
                 client_info = pickle.loads(recv_data)
                 print("Data received:", client_info)
-                credentials = client_info.get('credentials')
-                username = credentials[0]
-                password = credentials[1]  # Default password if not provided
-                status = client_info.get('status')  # Default status if not provided
-                if status is None:
-                    status = 'idle'
-                items = client_info.get('items')  # Default items if not provided
+                if client_info['message_status']:
+                    if client_info['message_status'] == 'move':
+                        credentials = client_info['credentials']
+                        username = credentials[0]
+                        password = credentials[1]  # Default password if not provided
+                        status = client_info['status']  # Default status if not provided
+                        if status is None:
+                            status = 'idle'
+                        items = client_info['items']  # Default items if not provided
 
-                # weapons = client_info.get('weapons', 'None')  # Default weapons if not provided
-                location = client_info.get('location')  # Default location if not provided
+                        # weapons = client_info.get('weapons', 'None')  # Default weapons if not provided
+                        location = client_info['location']  # Default location if not provided
 
-                self.__session_users.append(username)
-                self.__credentials.append({
-                    'username': username, 'password': password, 'status': status, 'items': items})
+                        self.__session_users.append(username)
+                        self.__credentials.append({
+                            'username': username, 'password': password, 'status': status, 'items': items})
 
-                self.update_client_database(username, password, status, items)
-                self.update_database()
+                        self.update_client_database(username, password, status, items)
+                        self.update_database()
 
-                target_server = self.determine_server(location)
-                if target_server:
-                    message = {'message_status': 'move', 'ip': target_server['address'], 'credential': credentials}
+                        target_server = self.determine_server(location)
+                        if target_server:
+                            message = {'message_status': 'move', 'ip': target_server['address'],
+                                       'credential': credentials}
 
-                    if target_server is not None:
-                        print("sent to server")
-                        sock.send(pickle.dumps(message))
-                    else:
-                        print("No appropriate server found for the given location.")
+                            if target_server is not None:
+                                print("sent to server")
+                                sock.send(pickle.dumps(message))
+                            else:
+                                print("No appropriate server found for the given location.")
+                    elif client_info['message_status'] == 'add':
+                        if not self.check_if_exist_on_another_server(client_info):
+                            self.add_client_credentials(client_info)
+                            message = {'message_status': 'do_add'}
+                            print(f"sent to server{message}")
+                            sock.send(pickle.dumps(message))
+                        else:
+                            message = {'message_status': 'dont'}
+                            print(f"sent to server{message}")
+                            sock.send(pickle.dumps(message))
+
 
    #     except (pickle.PickleError, KeyError) as e:
             #print("Failed to process received data:", str(e))
@@ -270,6 +293,58 @@ class LoadBalancer:
 
           #  self.selector.unregister(sock)
          #   sock.close()
+
+    def check_if_exist_on_another_server(self, message):
+        if message:
+            if message['server_name'] and message['credential']:
+                for cred in self.__credentials_server1:
+                    if cred == message['credential']:
+                        if message['server_name'] == 'Server 1':
+                            return False
+                        else:
+                            return True
+
+                for cred in self.__credentials_server2:
+                    if cred == message['credential']:
+                        if message['server_name'] == 'Server 2':
+                            return False
+                        else:
+                            return True
+
+                for cred in self.__credentials_server3:
+                    if cred == message['credential']:
+                        if message['server_name'] == 'Server 3':
+                            return False
+                        else:
+                            return True
+
+                for cred in self.__credentials_server4:
+                    if cred == message['credential']:
+                        if message['server_name'] == 'Server 4':
+                            return False
+                        else:
+                            return True
+
+                for cred in self.__credentials_server5:
+                    if cred == message['credential']:
+                        if message['server_name'] == 'Server 5':
+                            return False
+                        else:
+                            return True
+
+    def add_client_credentials(self, message):
+        if message:
+            if message['server_name'] == 'Server 1' and message['credential']:
+                self.__credentials_server1.append(message['credential'])
+            if message['server_name'] == 'Server 2' and message['credential']:
+                self.__credentials_server2.append(message['credential'])
+            if message['server_name'] == 'Server 3' and message['credential']:
+                self.__credentials_server3.append(message['credential'])
+            if message['server_name'] == 'Server 4' and message['credential']:
+                self.__credentials_server4.append(message['credential'])
+            if message['server_name'] == 'Server 5' and message['credential']:
+                self.__credentials_server5.append(message['credential'])
+
 
     def determine_server(self, client_info):
         """

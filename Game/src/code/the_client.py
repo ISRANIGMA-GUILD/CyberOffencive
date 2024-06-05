@@ -712,7 +712,9 @@ class Client:
             elif data_recv[0] == "EXIT" and len(data_recv) == 3:  # if the client need to move to another server
                 if self.is_ip(data_recv[1]):
                     print("please work")
-                    return (3, data_recv)
+                    t = [3, data_recv]
+                    print(type(t))
+                    return t
 
             else:
                 return data_recv
@@ -740,10 +742,12 @@ class Client:
             elif data_recv[0] == "LEAVE":
                 return 1
 
-            elif data_recv[0] == "EXIT" and len(data_recv) == 3:  # if the client need to move to another server
+            elif data_recv[0] == "EXIT" and len(data_recv) >= 3:  # if the client need to move to another server
                 if self.is_ip(data_recv[1]):
-                    print("Please WOrk")
-                    return (3, data_recv)
+                    print("please work")
+                    t = [3, data_recv]
+                    print(type(t))
+                    return t
 
             else:
                 return data_recv

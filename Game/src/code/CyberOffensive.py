@@ -344,14 +344,22 @@ class Game:
         with lock:
 
             data1 = self.network.receive_enemies()
+            if not data1:
+                data1 = [999]
             data2 = self.network.receive_items()
-
+            if not data2:
+                data2 = [999]
             data3 = self.network.receive_location()
+            if not data3:
+                data3 = [999]
             data = [data1, data2, data3]
 
             print("the data", data)
-
-            if type(data1) is list and type(data2) is list and type(data3) is list:
+            print(type(data1))
+            print(type(data2))
+            print(type(data3))
+            if (type(data1) is list or tuple) and (type(data2) is list or tuple) and (type(data3) is list or tuple):
+                print("do ! ")
                 if data1[0] == 3 or data2[0] == 3 or data3[0] == 3:
                     print("hi")
                     self.__ip = list(filter(lambda x: x[0] == 3, data))[0][1]

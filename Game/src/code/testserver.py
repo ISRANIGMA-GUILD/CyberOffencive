@@ -324,13 +324,14 @@ class Server:
         """
         if temp:
             print("hi")
-            self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
+            self.send_message_to_load_balancer({'message_status': 'move', 'type': 'out_of_zone',
+                                                'location': client_location,
                                                 'credentials': self.__credentials[index], 'status': self.__status[index]
                                                 , 'items': self.__weapons[index]})
         key = list(self.__zone.keys())[0]
         x, y = client_location
 
-        if self.__server_name == 'buffer_zone':
+        if self.__server_name == 'Server 5':
             zone_1 = self.__zone['ZoneBuffer']['min_x1'], self.__zone['ZoneBuffer']['max_x1'], \
                 self.__zone['ZoneBuffer']['min_y1'], self.__zone['ZoneBuffer']['max_y1']
             zone_2 = self.__zone['ZoneBuffer']['min_x2'], self.__zone['ZoneBuffer']['max_x2'], \
@@ -340,9 +341,11 @@ class Server:
                 print("Client location within buffer zone.")
             else:
                 print("Client location out of buffer zones.")
-                self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
+                self.send_message_to_load_balancer({'message_status': 'move', 'type': 'out_of_zone',
+                                                    'location': client_location,
                                                     'credentials': self.__credentials[index],
-                                                    'status': self.__status[index], 'items': self.__weapons[index]})
+                                                    'status': self.__status[index]
+                                                    , 'items': self.__weapons[index]})
 
         else:
             min_x, max_x, min_y, max_y = self.__zone['min_x'], self.__zone['max_x'], self.__zone['min_y'], self.__zone[
@@ -351,9 +354,11 @@ class Server:
                 print("Client location within assigned zone.")
             else:
                 print(f"Client location {client_location} out of assigned zone.")
-                self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
+                self.send_message_to_load_balancer({'message_status': 'move', 'type': 'out_of_zone',
+                                                    'location': client_location,
                                                     'credentials': self.__credentials[index],
-                                                    'status': self.__status[index], 'items': self.__weapons[index]})
+                                                    'status': self.__status[index]
+                                                    , 'items': self.__weapons[index]})
 
     def receive_data_from_load_balancer(self, sock):
         """
@@ -373,6 +378,10 @@ class Server:
                     print("wait.................")
                     new_client_info = pickle.loads(data)
                     self.send_client_to_other_server(new_client_info, sock)
+                if pickle.loads(data)['message_status'] == 'do_add':
+                    return True
+                else:
+                    return False
 
         except socket.timeout as e:
             print("timeout load balancer", e)
@@ -398,9 +407,19 @@ class Server:
         sock.send(pickle.dumps(message))
         print(f"send message to client to leave the server and to go to{client_info['ip']}")
 
-    #def send_credential_to_load_balencer(self, credential):
-        #message = {'message_status': 'add', 'credential': credential}
-        #self.__load_balance_socket.send(pickle.loads(credential))
+    def send_credential_to_load_balencer(self, credential, sock):
+        """
+        check if the client exsist in anothe server and if he do he wont add and connect him
+        Args:
+            credential:
+        """
+        message = {'message_status': 'add', 'credential': credential, 'server_name': self.__server_name}
+        self.__load_balance_socket.send(pickle.dumps(message))
+        if self.receive_data_from_load_balancer(sock):
+            return True
+        else:
+            return False
+
 
     def check_for_banned(self, client_address, number):
         """
@@ -709,9 +728,21 @@ class Server:
                     self.__to_send.append((current_socket, data))
 
                     if self.__all_details[index].get("Credentials") is not None:
-                        self.__session_users[index] = self.__all_details[index].get("Credentials")[0]
-                        # self.send_credential_to_load_balencer(self.__session_users[index])
-                        self.__selector.modify(current_socket, selectors.EVENT_READ, self.update_clients)
+                        if self.send_credential_to_load_balencer(self.__all_details[index].get("Credentials"),
+                                                                 current_socket):
+                            self.__session_users[index] = self.__all_details[index].get("Credentials")[0]
+                            self.__selector.modify(current_socket, selectors.EVENT_READ, self.update_clients)
+                        else:
+                            print("Connection closedg", data)
+                            self.__all_details[index]["Connected"] = 1
+                            if len(data) >= 3:
+                                self.__weapons[index] = data[2]
+                            self.update_database()
+                            #     self.__weapons[index]
+                            current_socket.send(pickle.dumps(["OK"]))
+
+                            self.eliminate_socket(index)
+                            self.print_client_sockets()
 
         except socket.timeout as e:
             print("Still waiting for login from client", index, e)
