@@ -825,14 +825,13 @@ class Server:
                 #     self.__attack[index] = 0
 
                 #  el
-                
                 if len(data) == 5:
                     weapon = data[4]
                     self.send_to_clients(index, weapon)
                 elif len(data) == 6:
                     weapon = data[4]
                     projectile_angle = data[5]
-                    self.send_to_clients(index, weapon=weapon, projectile_angle=projectile_angle)
+                    self.send_to_clients(index, weapon=weapon, contains_projectile=True, projectile_angle=projectile_angle)
                 else:
                     self.send_to_clients(index)
                 
@@ -944,7 +943,7 @@ class Server:
         except socket.timeout:
             return
 
-    def send_to_clients(self, number, weapon='', projectile_angle: float = 0.0):
+    def send_to_clients(self, number, weapon='', contains_projectile: bool = False, projectile_angle: float = 0.0):
         """
 
         :param number:
@@ -955,7 +954,10 @@ class Server:
         chat_message = f'{self.__session_users[number]}: {self.__chat[number]}'
         
         if 'attack' in self.__status[number] and weapon != '':
-            message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number], weapon]
+            if contains_projectile:
+                message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number], weapon, projectile_angle]
+            else:
+                message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number], weapon]
         else:
             message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number]]
         

@@ -15,7 +15,8 @@ class YSortCameraGroup(pygame.sprite.Group):
         self.current_time = None
         self.empty_time = None
         self.can_empty = True
-
+        
+        
     def custom_draw(self, player):
         self.offset.x = player.rect.centerx - self.half_width
         self.offset.y = player.rect.centery - self.half_height
@@ -25,6 +26,7 @@ class YSortCameraGroup(pygame.sprite.Group):
             offset_position = sprite.rect.topleft - self.offset
             self.display_surface.blit(sprite.image, offset_position)
 
+
     def enemy_update(self, player, projectiles_group) -> None:
         enemy_sprites = [sprite for sprite in self.sprites() if
                          hasattr(sprite, 'sprite_type') and (ENEMY == sprite.sprite_type)]
@@ -33,7 +35,7 @@ class YSortCameraGroup(pygame.sprite.Group):
                 enemy.enemy_update(player, projectiles_group)
             else:
                 enemy.enemy_update(player)
-    
+                
     
     def custom_empty(self) -> None:
         if self.can_empty:

@@ -9,6 +9,7 @@ import re
 import win32gui
 import win32con
 from blittable import Blittable
+from projectile import Projectile
 
 IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\LoginScreen\\menuscreen.png'
 BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\'
@@ -385,10 +386,8 @@ class Game:
                     elif issubclass(player_active_item[0].__class__, Bow):
                         weapon_type_to_append = 'B'
                         if self.level.player.attacking and player_active_item[0].can_shoot():
-                            print('SEND ALSO ARROW')
                             list_of_public_details = [current_loc, self.__message, status, 0, weapon_type_to_append, player_active_item[0].get_angle()]
                         else:
-                            print('DO NOT SEND ALSO ARROW')
                             list_of_public_details = [current_loc, self.__message, status, 0, weapon_type_to_append]
                 else:
                     list_of_public_details = [current_loc, self.__message, status, 0]
@@ -550,7 +549,7 @@ class Game:
 
             other_client = self.__other_client            
             print(other_client)
-            if len(other_client) == 5:
+            if 5 <= len(other_client) <= 6:
                 if 'S' == other_client[4]:
                     if 'down' in other_client[2]:
                         Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/metal_sword/down.png', Sword.SWORD_WIDTH, Sword.SWORD_HEIGHT)
@@ -583,7 +582,7 @@ class Game:
                     
                     if len(other_client) == 6:
                         # TODO: use Blittables but for Arrows or Laser Beams
-                        pass
+                        Blittable(other_client[0], [self.level.blittable_projectiles_sprites], f'../graphics/weapons/bow/arrow.png', Projectile.PROJECTILE_WIDTH, Projectile.PROJECTILE_HEIGHT, True, other_client[5])
 
             if self.__previous_details != list_of_public_details: #or self.__timer >= 0.02:
                 s = self.network.update_server(list_of_public_details, self.items)
