@@ -470,8 +470,6 @@ class Server:
         last_update_time2 = time.time()
         last_update_time3 = time.time()
 
-        previous_item = self.__item_locations
-        previous_enemy = self.__enemy_locations
 
         while 1:
             try:
@@ -484,16 +482,13 @@ class Server:
 
                 if current_time - last_update_time >= update_interval:
                     self.update_game_state()
-                    if (current_time2 - last_update_time2 >= update_interval2 and
-                            (self.__enemy_locations != previous_enemy or self.__item_locations != previous_item)):
+                    if (current_time2 - last_update_time2 >= update_interval2):
                         self.inform_all()
                         if current_time3 - last_update_time3 >= update_interval3:
                             self.__killed_enemies = []
                             self.__collected_items = []
                             last_update_time3 = current_time3
 
-                        previous_enemy = self.__enemy_locations
-                        previous_item = self.__item_locations
                         last_update_time2 = current_time2
                     last_update_time = current_time
 
@@ -578,6 +573,8 @@ class Server:
 
             callback = key.data
             callback(key.fileobj, mask)
+
+            self.inform_all()
 
             self.receive_data_from_load_balancer()
 

@@ -408,7 +408,8 @@ class Player(Entity):
 
         if self.stats[HEALTH] <= 0:
             # print(self.status)
-            self.position = (2500, 1500)
+            spawn_points = [(6000, 6000),(15000, 16500),(15000, 6500),(25000, 8500),(30000, 18500),(30000, 34500),(41000, 30000)]
+            self.position = choice(spawn_points)
 
             self.rect = self.image.get_rect(topleft=self.position)
             self.hitbox = self.rect.inflate(-18, -26)

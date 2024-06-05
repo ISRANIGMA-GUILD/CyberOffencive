@@ -174,11 +174,11 @@ class Enemy(Entity):
                 if (GOBLIN == self.monster_name):
                     choices_list.append(Sword)
 
-                first_drop = choice(choices_list)
-                first_drop = first_drop(first_coord, [self.level.visible_sprites])
+                #first_drop = choice(choices_list)
+                #first_drop = first_drop(first_coord, [self.level.visible_sprites], "99999")
 
-                second_drop = choice([HPFruit, EnergyFruit, RedHPFruit, BlueEnergyFruit])
-                second_drop = second_drop(second_coord, [self.level.visible_sprites])
+                #second_drop = choice(choices_list)
+                #second_drop = second_drop(second_coord, [self.level.visible_sprites], "99999")
 
                 self.status = 'up_idle'
                 self.hitbox.center = (randint(900, 2000), randint(900, 3000))
