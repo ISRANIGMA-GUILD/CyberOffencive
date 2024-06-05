@@ -1,5 +1,6 @@
 from inventory import *
 from enemy import *
+from weapon import Weapon
 
 
 class Player(Entity):
@@ -20,8 +21,8 @@ class Player(Entity):
         }
 
         self.stats: dict = {
-            HEALTH: 85,  # 100,
-            ENERGY: 60,
+            HEALTH: 100,  # 100,
+            ENERGY: 100,
             DAMAGE: 10,
             SPEED: 5.0,
         }
@@ -186,10 +187,8 @@ class Player(Entity):
         if keys[pygame.K_1] and not self.skills[ATTACK_BOOST_SKILL_INDEX][SKILL_APPLIED]:
             self.skills[ATTACK_BOOST_SKILL_INDEX][SKILL_APPLY_FUNC]()
 
-
         elif keys[pygame.K_2] and not self.skills[SPEED_BOOST_SKILL_INDEX][SKILL_APPLIED]:
             self.skills[SPEED_BOOST_SKILL_INDEX][SKILL_APPLY_FUNC]()
-
 
         elif keys[pygame.K_3] and not self.skills[REGENERATION_SKILL_INDEX][SKILL_APPLIED]:
             self.skills[REGENERATION_SKILL_INDEX][SKILL_APPLY_FUNC]()
@@ -423,7 +422,7 @@ class Player(Entity):
         self.frame_index = 0
 
         self.animation_speed = 0.15
-        self.stats = {HEALTH: 85, ENERGY: 60, DAMAGE: 10, SPEED: 5.0}
+        self.stats = {HEALTH: 100, ENERGY: 100, DAMAGE: 10, SPEED: 5.0}
 
         self.direction = pygame.math.Vector2(0, 0)
         self.attacking = False

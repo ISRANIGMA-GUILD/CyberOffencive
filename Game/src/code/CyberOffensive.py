@@ -20,8 +20,8 @@ class Game:
         pygame.mixer.pre_init(44100, 16, 2, 4096)
         pygame.font.init()
 
-        #the_program_to_hide = win32gui.GetForegroundWindow()
-      #  win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
+        # the_program_to_hide = win32gui.GetForegroundWindow()
+        #  win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
 
         self.font = pygame.font.Font(FONT_PATH, 60)
         self.font_chat = pygame.font.Font(FONT_PATH, 30)
@@ -44,7 +44,7 @@ class Game:
         self.prev_loc = 0
 
         self.__previous_status = 0
-     #   self.player = CreePy()
+        #   self.player = CreePy()
 
         self.__message = ""
         self.items = {"A": 0, "B": 0, "S": 0, "HPF": 0, "EF": 0, "RHPF": 0, "BEF": 0}
@@ -111,11 +111,12 @@ class Game:
 
         self.__other_client = []
         self.__timer = 0
-        self.__previous = 0
 
+        self.__previous = 0
         self.__just_entered = 0
 
         self.__divide_time = 0
+        self.__previously = []
 
     def run(self) -> None:
         """
@@ -153,7 +154,6 @@ class Game:
                         sys.exit()
 
                 if self.__game_state == "start_menu":
-
                     self.draw_start_menu()
                     self.__game_state = "game"
 
@@ -186,8 +186,6 @@ class Game:
                     pygame.display.update()
                     self.clock.tick(FPS)
 
-                    #self.erase_prev()
-
                 if self.__game_state == "continue":
                     if self.__previous == 0:
                         self.__previous = time.time()
@@ -200,13 +198,12 @@ class Game:
                     for thread in threads:
                         thread.join()
 
-
                     # Handle chat input
-                    self.chat_handler() 
-                    
+                    self.chat_handler()
 
                     pygame.display.update()
                     self.tick += 1
+
                     if self.tick % 60 == 0:
                         self.tick = 0
                     self.clock.tick(FPS)
@@ -342,8 +339,6 @@ class Game:
 
             self.text_surface = self.font.render("FPS: " + str(int(self.fps)), True, (128, 0, 128))
             self.screen.blit(self.text_surface, (350, 10))
-            
-            #print ("the divide time", self.__divide_time)
 
     def divide_data(self, lock):
         """
@@ -357,12 +352,29 @@ class Game:
 
             data = [data1, data3]
             success_data = self.which_is_it(data)
+            print("Wait python where is the client?", success_data)
 
             if success_data == 1 or success_data == [[[], [], [], []], []]:
                 return
 
             self.__enemies, self.__weapons,self.__killed_enemies,self.__collected_items_ids_server = success_data[0][0], success_data[0][1],success_data[0][2],success_data[0][3]
             self.__other_client = success_data[1]
+
+            if self.__other_client:
+                list_of_something = list(filter(lambda x: x[0], self.__previously))
+
+                if not list(self.__prev_info.keys()):
+                    self.__prev_info[self.__other_client[3]] = self.__other_client
+                    self.__users.append(self.__other_client[3])
+
+                elif self.__other_client[3] not in list_of_something:
+                    self.__prev_info[self.__other_client[3]] = self.__other_client
+                    self.__users.append(self.__other_client[3])
+
+                else:
+                    index = self.__previously.index(list_of_something.index(self.__other_client[3]))
+                    self.__prev_info[self.__other_client[3]] = self.__other_client
+                    self.__users[index] = self.__other_client[3]
 
     def communication(self, lock):
         """
@@ -371,7 +383,6 @@ class Game:
         """
 
         with lock:
-
             current_loc = self.level.player.get_location()
             current_status_index = int(self.level.player.frame_index)
 
@@ -467,6 +478,8 @@ class Game:
                     
                     self.level.visible_sprites.remove(enemie)
                     self.level.attackable_sprites.remove(enemie)
+
+                    enemie.kill()
 
                 elif enemie.id not in self.__the_enemies:
                     #fuck u python
@@ -615,13 +628,33 @@ class Game:
             self.__just_entered = 1
 
         if other_client is None or self.__game_state == "start_menu":
-            pass
+            if self.__users:
+                self.update_users()
+                self.erase_previous()
+                self.__temp_p = []
+
+                p_image = [pygame.image.load(
+                    f'{BASE_PATH}graphics\\player\\{self.__prev_info[user][2][0:len(self.__prev_info[user][2]) - 2]}\\{self.__prev_info[user][2]}.png')
+                           .convert_alpha() for user in self.__users if self.__prev_info[user][2]
+                           is not None]
+
+                if not p_image:
+                    pass
+
+                else:
+                    index = 0
+                    for user in self.__users:
+                        player_remote = Tile(position=self.__prev_info[user][0],
+                                             groups=[self.level.visible_sprites,
+                                                     self.level.obstacles_sprites],
+                                             sprite_type=PLAYER_OBJECT, surface=p_image[index])
+                        self.__temp_p.append(player_remote)
+                        index += 1
 
         elif other_client == 1:
             self.__game_state = "start_menu"
 
         else:
-
             if (type(other_client) is list or type(other_client) is tuple) and (len(other_client) == 4):
                 self.update_users()
                 self.__prev_info[other_client[3]] = other_client
@@ -629,7 +662,7 @@ class Game:
                 self.__other_messages = other_client[1]
 
                 if self.__other_messages is not None:
-                    self.__previous_messages.append(self.__other_messages)
+                    self.__previous_messages.append(f'{other_client[3]}: {self.__other_messages}')
 
                 self.erase_previous()
                 self.__temp_p = []
@@ -709,14 +742,14 @@ class Game:
             self.__using_chat = True
             self.level.using_chat = True
             # Handle chat input (non-blocking)
-            self._handle_chat_input()  
+            self._handle_chat_input()
         else:
             self.level.using_chat = False
 
         # Update the chat UI periodically (in the main thread)
         current_time = time.time()
         if current_time - self.last_chat_update_time > 0.05:  # Update every 50ms
-            self.draw_chat_ui()  
+            self.draw_chat_ui()
             self.last_chat_update_time = current_time
 
     def _handle_chat_input(self):
@@ -756,11 +789,11 @@ class Game:
 
     def draw_chat_ui(self):
         """Draws the chat UI on the screen."""
-        
+
         pygame.draw.rect(self.screen, (0, 255, 0), self.__input_box)  # Draw input box
 
         # Blit the chat surface to the screen
-        self.screen.blit(self.chat_surface, self.chat_surface_rect)  
+        self.screen.blit(self.chat_surface, self.chat_surface_rect)
 
     def draw_chat_messages(self, surface):
         """Draws chat messages on the specified surface."""
@@ -800,8 +833,8 @@ class Game:
 
         if self.__users:
             for user in self.__users:
-                if user not in list(self.__prev_info.keys()):
-                    self.__users.pop(user)
+                if user not in list(self.__prev_info.keys()) or user not in list(filter(lambda x: x[0], self.__previously)):
+                    self.__users.remove(user)
 
         for user in list(self.__prev_info.keys()):
             if user not in self.__users:
@@ -897,6 +930,7 @@ class Game:
         self.level.attack_sprites = meow[3]
 
         self.level.obstacles_sprites = meow[4]
+
 
 def main():
     abspath = os.path.abspath(__file__)

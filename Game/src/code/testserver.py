@@ -88,12 +88,13 @@ class Server:
 
         self.__collected_items = []
         self.__item_locations = []
+
         self.__e_possabilities = ["BSS", "BS", "CRS", "CS", "RGS", "RS", "GOB", "FRE"]
-
         self.__w_possabilities = ["A", "B", "S", "HPF", "EF", "RHPF", "BEF"]
-        self.__server_name = "load_balancer"
 
+        self.__server_name = "load_balancer"
         self.__zone = {}
+
         self.__id = []
         self.__items_ids = []
         self.__data_storage = []
@@ -106,12 +107,12 @@ class Server:
         # """:TODO(finished?): Use load balancer with a main database and servers with their local ones"""#
         # """:TODO(almost finished): Loading screen between menu and login screens """#
         # """:TODO(almost finished): Try-except on everything """#
-        # """:TODO(almost finished): Show weapons when attacking"""#
         # """:TODO: Make sure clients move smoothly move between servers"""#
         # """:TODO: Make a whitelist of processes NO MATTER CLIENT FRIENDLY or NOT"""#
-        # """:TODO(almost finished): Erase items and enemies from client side to make sure they dont still appear if collected or killed"""#
+        # """:TODO(almost finished): Erase items and from client side to make sure they dont still appear if collected"""#
         # """:TODO(almost finished): Database updates correctly even if server is closed"""#
-        # """:TODO(If there is time): If banned you can't connect
+        # """:TODO(??finished????): If banned you can't connect
+        # """:TODO(??finished????): Do the big merge, finish everything today
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
@@ -465,11 +466,15 @@ class Server:
         update_interval = 1 / 60  # Seconds (adjust as needed for responsiveness)
         update_interval2 = 1 / 30  # Seconds (adjust as needed for responsiveness)
         update_interval3 = 1 / 2  # Seconds (adjust as needed for responsiveness)
+        update_interval4 = 1 / 10
         
         last_update_time = time.time()
         last_update_time2 = time.time()
         last_update_time3 = time.time()
-
+        last_update_time4 = time.time()
+        previous_item = self.__item_locations
+        previous_enemy = self.__enemy_locations
+        prev_store = self.__data_storage
 
         while 1:
             try:
@@ -479,10 +484,13 @@ class Server:
                 current_time = time.time()
                 current_time2 = time.time()
                 current_time3 = time.time()
+                current_time4 = time.time()
 
                 if current_time - last_update_time >= update_interval:
                     self.update_game_state()
-                    if (current_time2 - last_update_time2 >= update_interval2):
+
+                    if ((current_time2 - last_update_time2 >= update_interval2) or
+                        (self.__enemy_locations != previous_enemy or self.__item_locations != previous_item)):
                         self.inform_all()
                         if current_time3 - last_update_time3 >= update_interval3:
                             self.__killed_enemies = []
@@ -490,21 +498,24 @@ class Server:
                             last_update_time3 = current_time3
 
                         last_update_time2 = current_time2
+                        if ((current_time4 - last_update_time4 >= update_interval4) or
+                                (len(prev_store) != len(self.__data_storage))):
+                            self.send_from_clients()
+                            last_update_time4 = current_time4
+
+                    previous_enemy = self.__enemy_locations
+                    previous_item = self.__item_locations
+                    prev_store = self.__data_storage
+
                     last_update_time = current_time
 
                 
 
+
             except ConnectionResetError as e:
                 print("Server will end service")
                 print("e", e)
-
                 self.update_database()
-                self.__login_data_base.close_conn()
-
-                self.__main_data_base.close_conn()
-
-                self.__ips_data_base.close_conn()
-                break
 
             except KeyboardInterrupt as e:
                 print("Server will end service")
@@ -520,17 +531,9 @@ class Server:
                 break
 
             except Exception as e:
-                print("Server will end service")
-                print(e)
-
+                print("The general error", e)
                 self.update_database()
-                self.kick_all()
-
-                self.__login_data_base.close_conn()
-                self.__main_data_base.close_conn()
-
-                self.__ips_data_base.close_conn()
-                break
+                pass
 
         print("FINISH")
 
@@ -560,6 +563,9 @@ class Server:
 
         if self.__number_of_clients - 1 >= len(self.__session_users) or len(self.__session_users) == 0:
             self.__session_users.append(None)
+
+        if self.__number_of_clients - 1 >= len(self.__data_storage) or len(self.__data_storage) == 0:
+            self.__data_storage.append(None)
 
     def new_handling(self):
         """
@@ -669,6 +675,7 @@ class Server:
                                                 [client_address[0], Ether().src])
                 self.__banned_ips.append(client_address[0])
                 self.__banned_macs.append(getmacbyip(client_address[0]))
+                connection.close()
 
             else:
                 self.__ips_data_base.insert_no_duplicates(
@@ -679,6 +686,7 @@ class Server:
                                                 [client_address[0], getmacbyip(client_address[0])])
                 self.__banned_ips.append(client_address[0])
                 self.__banned_macs.append(getmacbyip(client_address[0]))
+                connection.close()
 
             return
 
@@ -776,7 +784,7 @@ class Server:
         try:
             current_socket.settimeout(0.03)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
-
+            print(data)
             # If client has quit save their data
             if "EXIT" in data[0]:
                 print("Connection closedg")
@@ -893,44 +901,43 @@ class Server:
 
         eligables = list(filter(lambda person: person["Client"] is not None and person["Credentials"] is not None
                                                and person != self.__all_details[number], self.__all_details))
-        chat_message = f'{self.__session_users[number]}: {self.__chat[number]}'
+        chat_message = f'{self.__chat[number]}'
         message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number]]
 
+        self.__data_storage[number] = (self.__session_users[number], message)
+
         for socks in eligables:
             try:
                 socks["Client"].send(pickle.dumps(message))
 
             except ConnectionResetError as e:
                 print("not  good", e)
-                pass
 
             except ssl.SSLError as e:
                 print("not  good", e)
-                pass
 
-    def send_from_clients(self, number):
+    def send_from_clients(self):
         """
-        on connection update every client
-        :param number:
+         on connection update every client
         """
 
-        eligables = list(filter(lambda person: person["Client"] is not None and person["Credentials"] is not None
-                                and person != self.__all_details[number], self.__all_details))
+        try:
+            eligables = list(filter(lambda person: person["Client"] is not None and person["Credentials"] is not None
+                                    , self.__all_details))
+            for socks in eligables:
+                if socks["Client"] is not None:
+                    for message in self.__data_storage:
+                        if (message is not None and
+                                self.__client_sockets.index(socks["Client"]) != self.__session_users.index(message[0])):
+                            socks["Client"].send(pickle.dumps(message[1]))
 
-        for socks in eligables:
-            chat_message = f'{self.__session_users[number]}: {self.__chat[number]}'
-            message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number]]
+        except ConnectionResetError as e:
+            print("not  good", e)
+            pass
 
-            try:
-                socks["Client"].send(pickle.dumps(message))
-
-            except ConnectionResetError as e:
-                print("not  good", e)
-                pass
-
-            except ssl.SSLError as e:
-                print("not  good", e)
-                pass
+        except ssl.SSLError as e:
+            print("not  good", e)
+            pass
 
     def print_client_sockets(self):
         """
@@ -960,6 +967,8 @@ class Server:
 
                 self.__credentials.pop(number)
                 self.__locations.pop(number)
+
+                self.__data_storage.pop(number)
 
                 self.__number_of_clients -= 1
 
