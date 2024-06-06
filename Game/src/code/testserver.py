@@ -104,12 +104,8 @@ class Server:
 
         """
 
-        # """:TODO(finished?): Use load balancer with a main database and servers with their local ones"""#
-        # """:TODO(almost finished): Loading screen between menu and login screens """#
         # """:TODO(almost finished): Try-except on everything """#
-        # """:TODO: Make sure clients move smoothly move between servers"""#
         # """:TODO: Make a whitelist of processes NO MATTER CLIENT FRIENDLY or NOT"""#
-        # """:TODO(almost finished): Erase items and from client side to make sure they dont still appear if collected"""#
         # """:TODO(almost finished): Database updates correctly even if server is closed"""#
         # """:TODO(??finished????): If banned you can't connect
         # """:TODO(??finished????): Do the big merge, finish everything today
@@ -758,15 +754,24 @@ class Server:
                     self.__to_send.append((current_socket, data))
 
                     if self.__all_details[index].get("Credentials") is not None:
-                        if self.send_credential_to_load_balencer(self.__all_details[index].get("Credentials"),
-                                                                 current_socket):
+                        if self.__all_details[index].get("Credentials") in self.__list_of_existing_existing_credentials:
+
                             self.__session_users[index] = self.__all_details[index].get("Credentials")[0]
                             self.__selector.modify(current_socket, selectors.EVENT_READ, self.update_clients)
+
+                        elif (self.__all_details[index].get("Credentials") not in
+                              self.__list_of_existing_existing_credentials and
+                              self.send_credential_to_load_balencer(self.__all_details[index].get("Credentials"),
+                                                                    current_socket)):
+
+                            self.__session_users[index] = self.__all_details[index].get("Credentials")[0]
+                            self.__selector.modify(current_socket, selectors.EVENT_READ, self.update_clients)
+
                         else:
                             print("Connection closedg", data)
                             self.__all_details[index]["Connected"] = 1
                             if len(data) >= 3:
-                                self.__weapons[index] = data[2]
+                                self.__items[index] = data[2]
                             self.update_database()
                             #     self.__weapons[index]
                             current_socket.send(pickle.dumps(["OK"]))

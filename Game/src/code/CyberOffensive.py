@@ -1,4 +1,3 @@
-import ssl
 import threading
 import pygame.display
 from level import *
@@ -21,8 +20,8 @@ class Game:
         pygame.mixer.pre_init(44100, 16, 2, 4096)
         pygame.font.init()
 
-        # the_program_to_hide = win32gui.GetForegroundWindow()
-        #  win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
+        #the_program_to_hide = win32gui.GetForegroundWindow()
+       # win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
 
         self.font = pygame.font.Font(FONT_PATH, 60)
         self.font_chat = pygame.font.Font(FONT_PATH, 30)
@@ -99,30 +98,31 @@ class Game:
 
         self.__the_enemies = []
         self.__killed_enemies = []
+
         self.__the_e_id = []
         self.__collected_items_ids_server = []
+
         self.__collected_items_ids = []
-
-
         self.__sample_w = ["A", "B", "S", "HPF", "EF", "RHPF", "BEF"]
+
         self.__sample_e = ["BSS", "BS", "CRS", "CS", "RGS", "RS", "GOB"]
-
         self.__enemies = []
+
         self.__weapons = []
-
         self.__other_client = []
+
         self.__timer = 0
-
         self.__previous = 0
+
         self.__just_entered = 0
-
         self.__divide_time = 0
+
         self.__previously = []
-
         self.__migrate = 1
-        self.__ip = ""
 
+        self.__ip = ""
         self.__zone = []
+
         self.__possible_spawns = [(6000, 6000), (15000, 16500), (25000, 8500), (30000, 18500), (30000, 34500),
                                   (41000, 30000)]
 
@@ -231,59 +231,69 @@ class Game:
         :param ran:
         """
 
-        if len(ran) > 1:
-            items = ran[1][1].split(', ')
-            weapons = ran[1][2].split(', ')
-            print (weapons[0])
+        if len(ran) > 1 and type(ran[1]) is not dict:
+            if ran[1][1] is not None:
+                items = ran[1][1].split(', ')
 
-            if int(weapons[0]) > 0:
-                self.items["A"] = int(weapons[0])
+                if int(items[0]) > 0:
+                    self.items["HPF"] = int(items[0])
 
-                for item in range(0, self.items["A"]):
-                    self.level.player.inventory.hotbar.insert(Axe((0, 0),
-                                                                  [self.level.visible_sprites],"99999"))
+                    for item in range(0, self.items["HPF"]):
+                        self.level.player.inventory.hotbar.insert(HPFruit((0, 0),
+                                                                          [self.level.visible_sprites], "99999"))
 
-            if int(weapons[1]) > 0:
-                self.items["B"] = int(weapons[1])
+                if int(items[1]) > 0:
+                    self.items["EF"] = int(items[1])
+                    for item in range(0, self.items["EF"]):
+                        self.level.player.inventory.hotbar.insert(EnergyFruit((0, 0),
+                                                                              [self.level.visible_sprites], "99999"))
 
-                for item in range(0, self.items["B"]):
-                    self.level.player.inventory.hotbar.insert(Bow((0, 0), self.level.visible_sprites,
-                                                                  [self.level.visible_sprites,
-                                                                   self.level.attack_sprites],"99999"))
+                if int(items[2]) > 0:
+                    self.items["RHPF"] = int(items[2])
 
-            if int(weapons[2]) > 0:
-                self.items["S"] = int(weapons[2])
+                    for item in range(0, self.items["RHPF"]):
+                        self.level.player.inventory.hotbar.insert(RedHPFruit((0, 0),
+                                                                             [self.level.visible_sprites], "99999"))
 
-                for item in range(0, self.items["S"]):
-                    self.level.player.inventory.hotbar.insert(Sword((0, 0),
-                                                                    [self.level.visible_sprites],"99999"))
+                if int(items[3]) > 0:
+                    self.items["BEF"] = int(items[3])
 
-            if int(items[0]) > 0:
-                self.items["HPF"] = int(items[0])
+                    for item in range(0, self.items["BEF"]):
+                        self.level.player.inventory.hotbar.insert(BlueEnergyFruit((0, 0),
+                                                                                  [self.level.visible_sprites],
+                                                                                  "99999"))
 
-                for item in range(0, self.items["HPF"]):
-                    self.level.player.inventory.hotbar.insert(HPFruit((0, 0),
+            if ran[1][2] is not None:
+                weapons = ran[1][2].split(', ')
+                print (weapons[0])
+
+                if int(weapons[0]) > 0:
+                    self.items["A"] = int(weapons[0])
+
+                    for item in range(0, self.items["A"]):
+                        self.level.player.inventory.hotbar.insert(Axe((0, 0),
                                                                       [self.level.visible_sprites],"99999"))
 
-            if int(items[1]) > 0:
-                self.items["EF"] = int(items[1])
-                for item in range(0, self.items["EF"]):
-                    self.level.player.inventory.hotbar.insert(EnergyFruit((0, 0),
-                                                                          [self.level.visible_sprites],"99999"))
+                if int(weapons[1]) > 0:
+                    self.items["B"] = int(weapons[1])
 
-            if int(items[2]) > 0:
-                self.items["RHPF"] = int(items[2])
+                    for item in range(0, self.items["B"]):
+                        self.level.player.inventory.hotbar.insert(Bow((0, 0), self.level.visible_sprites,
+                                                                      [self.level.visible_sprites,
+                                                                       self.level.attack_sprites],"99999"))
 
-                for item in range(0, self.items["RHPF"]):
-                    self.level.player.inventory.hotbar.insert(RedHPFruit((0, 0),
-                                                                         [self.level.visible_sprites],"99999"))
+                if int(weapons[2]) > 0:
+                    self.items["S"] = int(weapons[2])
 
-            if int(items[3]) > 0:
-                self.items["BEF"] = int(items[3])
+                    for item in range(0, self.items["S"]):
+                        self.level.player.inventory.hotbar.insert(Sword((0, 0),
+                                                                        [self.level.visible_sprites],"99999"))
+            self.__zone = ran[2]
+            print("The zone", self.__zone)
 
-                for item in range(0, self.items["BEF"]):
-                    self.level.player.inventory.hotbar.insert(BlueEnergyFruit((0, 0),
-                                                                              [self.level.visible_sprites],"99999"))
+        else:
+            self.__zone = ran[1]
+            print("The zone", self.__zone)
 
     def create_threads(self, game_lock, com_lock, div_lock):
         """
@@ -331,6 +341,31 @@ class Game:
 
             data = [data1, data3]
             print("the data", data)
+            success_data = self.which_is_it(data)
+
+            if success_data == 1 or success_data == [[[], [], [], []], []]:
+                return
+
+            self.__enemies, self.__weapons, self.__killed_enemies, self.__collected_items_ids_server = success_data[0][
+                0], success_data[0][1], success_data[0][2], success_data[0][3]
+            self.__other_client = success_data[1]
+
+            if self.__other_client:
+                list_of_something = list(filter(lambda x: x[0], self.__previously))
+
+                if not list(self.__prev_info.keys()):
+                    self.__prev_info[self.__other_client[3]] = self.__other_client
+                    self.__users.append(self.__other_client[3])
+
+                elif self.__other_client[3] not in list_of_something:
+                    self.__prev_info[self.__other_client[3]] = self.__other_client
+                    self.__users.append(self.__other_client[3])
+
+                else:
+                    index = self.__previously.index(list_of_something.index(self.__other_client[3]))
+                    self.__prev_info[self.__other_client[3]] = self.__other_client
+                    self.__users[index] = self.__other_client[3]
+
             if data:
                 existing_data = list(filter(lambda x: x is not None, data))
                 print(existing_data)
@@ -359,38 +394,10 @@ class Game:
                             creds = self.network.create_message(do_i_migrate[0][1][2])
                             res = self.network.check_success(creds)
 
-                            if res:
-                                if res[0] == "Success":
-                                    print("What???????")
-                                    break
+                            if res[0] == "Success":
+                                print("What???????")
+                                break
                         return
-                    
-############################################################################################################
-
-            success_data = self.which_is_it(data)
-            #print("Wait python where is the client?", success_data)
-
-            if success_data == 1 or success_data == [[[], [], [], []], []]:
-                return
-
-            self.__enemies, self.__weapons,self.__killed_enemies,self.__collected_items_ids_server = success_data[0][0], success_data[0][1],success_data[0][2],success_data[0][3]
-            self.__other_client = success_data[1]
-
-            if self.__other_client:
-                list_of_something = list(filter(lambda x: x[0], self.__previously))
-
-                if not list(self.__prev_info.keys()):
-                    self.__prev_info[self.__other_client[3]] = self.__other_client
-                    self.__users.append(self.__other_client[3])
-
-                elif self.__other_client[3] not in list_of_something:
-                    self.__prev_info[self.__other_client[3]] = self.__other_client
-                    self.__users.append(self.__other_client[3])
-
-                else:
-                    index = self.__previously.index(list_of_something.index(self.__other_client[3]))
-                    self.__prev_info[self.__other_client[3]] = self.__other_client
-                    self.__users[index] = self.__other_client[3]
 
     def communication(self, lock):
         """
@@ -729,9 +736,10 @@ class Game:
 
         for d in data:
             if type(d) is int:
+                print("what the fuck")
                 self.__game_state = "start_menu"
                 list_of_details = ["EXIT", 1, self.items]
-                s = self.network.update_server(list_of_details, self.items)
+                self.network.update_server(list_of_details, self.items)
                 return 1
 
             elif d is None:
