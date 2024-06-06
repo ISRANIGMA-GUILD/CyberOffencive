@@ -6,7 +6,7 @@ import pickle
 class Login:
 
     def __init__(self, details, list_of_existing, list_of_existing_resources,
-                 credentials, number, new_credentials, number_of_clients, banned_users, data):
+                 credentials, number, new_credentials, number_of_clients, banned_users, data, zone):
         self.__details = details
         self.__list_of_existing = list_of_existing
 
@@ -20,6 +20,7 @@ class Login:
         self.__list_of_banned_users = banned_users
 
         self.__sus = data
+        self.__zone = zone
 
     def run(self):
 
@@ -90,14 +91,14 @@ class Login:
                 the_big_ugly_list = [self.__list_of_banned_users[i][0]
                                      for i in range(0, len(self.__list_of_banned_users))]
 
-                if tuple_of_credentials in self.__list_of_existing:
+                if tuple_of_credentials in self.__list_of_existing and self:
 
                     if (self.__list_of_existing_resources[self.__number][0] != "banned"
                        and tuple_of_credentials[0] not in the_big_ugly_list):
                         print("Successful")
                         detail = self.__list_of_existing_resources[self.__list_of_existing.index(tuple_of_credentials)]
 
-                        success = ["Success", detail]
+                        success = ["Success", detail, self.__zone]
 
                         success_pack = self.create_message(success)
                         m = self.__details["Client"].send(success_pack)
@@ -134,7 +135,7 @@ class Login:
                         self.__list_of_existing.append(tuple_of_credentials)
                         print("NEW ACCOUNT YAY :)")
 
-                        success_pack = self.create_message(["Success"])
+                        success_pack = self.create_message(["Success", self.__zone])
 
                         self.__details["Client"].send(success_pack)
                         self.__credentials[self.__number] = self.__details["Credentials"]

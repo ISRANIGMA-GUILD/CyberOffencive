@@ -1,3 +1,4 @@
+import ssl
 import threading
 import pygame.display
 from level import *
@@ -118,6 +119,13 @@ class Game:
         self.__divide_time = 0
         self.__previously = []
 
+        self.__migrate = 1
+        self.__ip = ""
+
+        self.__zone = []
+        self.__possible_spawns = [(6000, 6000), (15000, 16500), (25000, 8500), (30000, 18500), (30000, 34500),
+                                  (41000, 30000)]
+
     def run(self) -> None:
         """
 
@@ -137,18 +145,9 @@ class Game:
                 for event in pygame.event.get():
                     if pygame.QUIT == event.type:
                         if self.__game_state == "continue":
-                            self.find()
                             list_of_details = ["EXIT", 1, self.items]
-
-                            while 1:
-                                ack = self.network.receive_ack()
-                                self.network.update_server(list_of_details, self.items)
-
-                                print(ack)
-
-                                if ack:
-                                    if "OK" in ack:
-                                        break
+                            print("no")
+                            self.disconnect_from_server(list_of_details)
 
                         pygame.quit()
                         sys.exit()
@@ -211,18 +210,8 @@ class Game:
             except KeyboardInterrupt as e:
                 print(e)
                 if self.__game_state == "continue":
-                    self.find()
                     list_of_details = ["EXIT", 1, self.items]
-
-                    while 1:
-                        ack = self.network.receive_ack()
-                        self.network.update_server(list_of_details, self.items)
-
-                        print(ack)
-
-                        if ack:
-                            if "OK" in ack:
-                                break
+                    self.disconnect_from_server(list_of_details)
 
                 pygame.quit()
                 sys.exit()
@@ -230,18 +219,8 @@ class Game:
             except Exception as e:
                 print(e)
                 if self.__game_state == "continue":
-                    self.find()
                     list_of_details = ["EXIT", 1, self.items]
-
-                    while 1:
-                        ack = self.network.receive_ack()
-                        self.network.update_server(list_of_details, self.items)
-
-                        print(ack)
-
-                        if ack:
-                            if "OK" in ack:
-                                break
+                    self.disconnect_from_server(list_of_details)
 
                 pygame.quit()
                 sys.exit()
@@ -351,6 +330,43 @@ class Game:
             data3 = self.network.receive_location()
 
             data = [data1, data3]
+            print("the data", data)
+            if data:
+                existing_data = list(filter(lambda x: x is not None, data))
+                print(existing_data)
+
+                if existing_data:
+                    do_i_migrate = list(filter(lambda x: x[0] == 3, existing_data))
+                    print("migrate", do_i_migrate)
+                    if 3 in do_i_migrate:
+                        print("do i move anyware?", do_i_migrate)
+
+                    if do_i_migrate:
+                        print("do ! ")
+                        self.__ip = do_i_migrate[0][1][1]
+                        print(self.__ip)
+
+                        print("hi")
+                        port = self.network.choose_port()
+
+                        list_of_details = ["EXIT", 1, self.items, "q"]
+                        self.disconnect_from_server(list_of_details)
+
+                        self.network = Client()
+
+                        while 1:
+                            self.network.connect_to_socket(self.__ip, port, self.screen, self.clock, 1)
+                            creds = self.network.create_message(do_i_migrate[0][1][2])
+                            res = self.network.check_success(creds)
+
+                            if res:
+                                if res[0] == "Success":
+                                    print("What???????")
+                                    break
+                        return
+                    
+############################################################################################################
+
             success_data = self.which_is_it(data)
             print("Wait python where is the client?", success_data)
 
@@ -902,6 +918,25 @@ class Game:
         self.items["EF"] = count_f
         self.items["RHPF"] = count_rf
         self.items["BEF"] = count_bef
+
+    def disconnect_from_server(self, list_of_details):
+        """
+
+        """
+
+        while True:
+            try:
+                ack = self.network.receive_ack()
+                self.network.update_server(list_of_details, self.items)
+
+                if ack:
+                    if "OK" in ack:
+                        self.network.close_connection()
+                        break
+
+            except ssl.SSLError as e:
+                print("EXITED BECAUSE?", e)
+                break
 
     def gurgle(self):
         """
