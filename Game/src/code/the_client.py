@@ -117,7 +117,7 @@ class Client:
                     self.__logged = checker
 
                     if self.__logged[0] == 'Success':
-                        print("Nice")
+                        print("Nice", checker)
                         pygame.display.update()
 
                         clock.tick(FPS)
@@ -152,12 +152,12 @@ class Client:
                 clock.tick(FPS)
                 return 1
 
-          #  except ssl.SSLEOFError as e:
-             #   print(e)
-             #   pygame.display.update()
+            except ssl.SSLEOFError as e:
+                print(e)
+                pygame.display.update()
 
-               # clock.tick(FPS)
-              #  return 1
+                clock.tick(FPS)
+                return 1
 
             except ConnectionResetError as e:
                 print(e)
@@ -576,10 +576,10 @@ class Client:
 
                 else:
                     decrypt = success
-                    print(decrypt)
+                    print(decrypt, "Srsly")
 
                     if "Success" == decrypt[0]:
-                        print("success")
+                        print("success", decrypt[0])
                         return decrypt
 
                     elif "Failure" == decrypt[0]:
@@ -589,13 +589,12 @@ class Client:
                     elif "LEAVE" == decrypt[0]:
                         return 1
 
-            except socket.timeout:
-                print("exception is")
-                pass
+            except socket.timeout as e:
+                print("exception is", e)
 
-         #   except ssl.SSLEOFError as e:
-          #      print("stop", e)
-           #     return 1
+            except ssl.SSLEOFError as e:
+                print("stop", e)
+                return 1
 
     def malicious_message(self, message):
         """
@@ -629,7 +628,7 @@ class Client:
 
         try:
             if public_data[0] == "EXIT":
-                print("leaving")
+                print("leaving", public_data)
                 data = ["EXIT", 1, private_data]
 
                 full_msg = self.create_message(data)
@@ -673,18 +672,19 @@ class Client:
             print(e)
             return
 
-        except socket.timeout:
+        except socket.timeout as e:
+            print("timedout", e)
             return
 
-      #  except ssl.SSLEOFError as e:
-         #   print("Server is shutting down", e)
-       #     message = ["EXIT", 1, private_data]
+        except ssl.SSLEOFError as e:
+            print("Server is shutting down", e)
+            message = ["EXIT", 1, private_data]
 
-        #    full_msg = self.create_message(message)
-         #   self.__the_client_socket.send(full_msg)
+            full_msg = self.create_message(message)
+            self.__the_client_socket.send(full_msg)
 
-          #  self.__the_client_socket.close()
-          #  return 1
+            self.__the_client_socket.close()
+            return 1
 
         except KeyboardInterrupt as e:
             print("Server is shutting down", e)
@@ -765,9 +765,8 @@ class Client:
 
             elif data_recv[0] == "EXIT" and len(data_recv) >= 3:  # if the client need to move to another server
                 if self.is_ip(data_recv[1]):
-                    print("please work")
+                    print("please work", data_recv)
                     t = [3, data_recv]
-                    print(type(t))
                     return t
 
             else:
