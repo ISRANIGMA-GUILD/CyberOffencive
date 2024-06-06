@@ -321,6 +321,8 @@ class LoadBalancer:
 
           #  self.selector.unregister(sock)
          #   sock.close()
+        except Exception as e:
+            print(f"Exception in service_connection: {e}")
 
     def check_if_exist_on_another_server(self, message):
         if message:

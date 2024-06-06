@@ -368,7 +368,7 @@ class Game:
 ############################################################################################################
 
             success_data = self.which_is_it(data)
-            print("Wait python where is the client?", success_data)
+            #print("Wait python where is the client?", success_data)
 
             if success_data == 1 or success_data == [[[], [], [], []], []]:
                 return

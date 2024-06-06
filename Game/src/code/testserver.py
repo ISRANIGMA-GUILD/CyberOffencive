@@ -313,7 +313,7 @@ class Server:
 
         if temp:
             print("hi")
-            self.send_message_to_load_balancer({'type': 'out_of_zone', 'location': client_location,
+            self.send_message_to_load_balancer({'message_status': 'move','type': 'out_of_zone', 'location': client_location,
                                                 'credentials': self.__credentials[index], 'status': self.__status[index]
                                                 ,'items': self.__items[index]})
         key = list(self.__zone.keys())[0]
@@ -352,7 +352,7 @@ class Server:
                                                     'status': self.__status[index]
                                                     , 'items': self.__items[index]})
 
-    def receive_data_from_load_balancer(self, sock):
+    def receive_data_from_load_balancer(self,sock):
         """
 
         """
@@ -593,8 +593,6 @@ class Server:
             callback(key.fileobj, mask)
 
             self.inform_all()
-
-            self.receive_data_from_load_balancer()
 
     def update_game_state(self):
 
