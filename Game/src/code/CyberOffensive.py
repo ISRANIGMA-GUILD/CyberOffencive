@@ -283,8 +283,6 @@ class Game:
                     self.clock.tick(FPS)
 
                     self.erase_prev()
-
-
                #     if self.__previous != 0:
                 #        self.__timer = time.time() - self.__previous
 
@@ -344,39 +342,50 @@ class Game:
         with lock:
 
             data1 = self.network.receive_enemies()
-            if not data1:
-                data1 = [999]
+
             data2 = self.network.receive_items()
-            if not data2:
-                data2 = [999]
+
             data3 = self.network.receive_location()
-            if not data3:
-                data3 = [999]
+
             data = [data1, data2, data3]
 
             print("the data", data)
-            print(type(data1))
-            print(type(data2))
-            print(type(data3))
-            if (type(data1) is list or tuple) and (type(data2) is list or tuple) and (type(data3) is list or tuple):
-                print("do ! ")
-                if data1[0] == 3 or data2[0] == 3 or data3[0] == 3:
-                    print("hi")
-                    self.__ip = list(filter(lambda x: x[0] == 3, data))[0][1]
-                    port = self.network.choose_port()
+            if data:
+                existing_data = list(filter(lambda x: x is not None, data))
+                print(existing_data)
 
-                    list_of_details = ["EXIT", 1, self.items, "q"]
-                    self.disconnect_from_server(list_of_details)
+                if existing_data:
+                    do_i_migrate = list(filter(lambda x: x[0] == 3, existing_data))
+                    print("migrate", do_i_migrate)
+                    if 3 in do_i_migrate:
+                        print("do i move anyware?", do_i_migrate)
 
-                    self.network = Client()
+                    if do_i_migrate:
+                        print("do ! ")
+                        self.__ip = do_i_migrate[0][1][1]
+                        print(self.__ip)
 
-                    self.network.connect_to_socket(self.__ip, port, self.screen, self.clock, 1)
-                    res = self.network.check_success(data[2])
+                        print("hi")
+                        port = self.network.choose_port()
 
-                    print(res)
-                    return
-            else:
-                self.__enemies, self.__weapons, self.__other_client = self.which_is_it(data)
+                        list_of_details = ["EXIT", 1, self.items, "q"]
+                        self.disconnect_from_server(list_of_details)
+
+                        self.network = Client()
+
+                        while 1:
+                            self.network.connect_to_socket(self.__ip, port, self.screen, self.clock, 1)
+                            creds = self.network.create_message(do_i_migrate[0][1][2])
+                            res = self.network.check_success(creds)
+
+                            if res:
+                                if res[0] == "Success":
+                                    print("What???????")
+                                    break
+                        return
+
+                else:
+                    self.__enemies, self.__weapons, self.__other_client = self.which_is_it(data)
 
     def communication(self, lock):
         """
@@ -821,7 +830,8 @@ class Game:
                         break
 
             except ssl.SSLError as e:
-                print(e)
+                print("EXITED BECAUSE?", e)
+                break
 
     def gurgle(self):
         """

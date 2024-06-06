@@ -145,12 +145,12 @@ class Client:
                 clock.tick(FPS)
                 return 1
 
-            except ssl.SSLEOFError as e:
-                print(e)
-                pygame.display.update()
+          #  except ssl.SSLEOFError as e:
+             #   print(e)
+             #   pygame.display.update()
 
-                clock.tick(FPS)
-                return 1
+               # clock.tick(FPS)
+              #  return 1
 
             except ConnectionResetError as e:
                 print(e)
@@ -234,11 +234,11 @@ class Client:
                 print("Connection timeout. Retrying...", e)
                 server_port = self.choose_port()
 
-            except ssl.SSLEOFError as e:
-                print("stop", e)
-                time.sleep(0.02)
-                pygame.display.update()
-                clock.tick(FPS)
+           # except ssl.SSLEOFError as e:
+            #    print("stop", e)
+            #    time.sleep(0.02)
+            #    pygame.display.update()
+             #   clock.tick(FPS)
 
             except ValueError as ve:
                 # Print the specific ValueError message for debugging
@@ -252,12 +252,12 @@ class Client:
 
                 server_port = self.choose_port()
 
-            except Exception as e:
+      #      except Exception as e:
                 # Catch any other exceptions for debugging
-                print(f"Unexpected error: {e}")
-                print("Retrying...")
+             #   print(f"Unexpected error: {e}")
+             #   print("Retrying...")
 
-                server_port = self.choose_port()
+             #   server_port = self.choose_port()
 
             pygame.display.update()
             clock.tick(FPS)
@@ -349,10 +349,10 @@ class Client:
             print(e)
             return
 
-        except ssl.SSLEOFError as e:
-            print("stop", e)
-            time.sleep(0.02)
-            pygame.display.update()
+      #  except ssl.SSLEOFError as e:
+       #     print("stop", e)
+         #   time.sleep(0.02)
+        #    pygame.display.update()
 
         except socket.timeout:
             return
@@ -412,12 +412,12 @@ class Client:
                     clock.tick(FPS)
                     return pack
 
-            except ssl.SSLEOFError as e:
-                print("stop", e)
-                time.sleep(0.02)
+           # except ssl.SSLEOFError as e:
+             #   print("stop", e)
+             #   time.sleep(0.02)
 
-                pygame.display.update()
-                clock.tick(FPS)
+             #   pygame.display.update()
+             #   clock.tick(FPS)
 
             except KeyboardInterrupt as e:
                 message = pickle.dumps(["EXIT"])
@@ -572,9 +572,9 @@ class Client:
                 print("exception is")
                 pass
 
-            except ssl.SSLEOFError as e:
-                print("stop", e)
-                return 1
+         #   except ssl.SSLEOFError as e:
+          #      print("stop", e)
+           #     return 1
 
     def malicious_message(self, message):
         """
@@ -655,15 +655,15 @@ class Client:
         except socket.timeout:
             return
 
-        except ssl.SSLEOFError as e:
-            print("Server is shutting down", e)
-            message = ["EXIT", 1, private_data]
+      #  except ssl.SSLEOFError as e:
+         #   print("Server is shutting down", e)
+       #     message = ["EXIT", 1, private_data]
 
-            full_msg = self.create_message(message)
-            self.__the_client_socket.send(full_msg)
+        #    full_msg = self.create_message(message)
+         #   self.__the_client_socket.send(full_msg)
 
-            self.__the_client_socket.close()
-            return 1
+          #  self.__the_client_socket.close()
+          #  return 1
 
         except KeyboardInterrupt as e:
             print("Server is shutting down", e)

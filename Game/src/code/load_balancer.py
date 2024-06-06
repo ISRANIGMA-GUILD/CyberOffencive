@@ -26,11 +26,12 @@ NUMBER_OF_SERVERS = 1
 servers = ['Server1', 'Server2', 'Server3', 'Server4', 'Server5']
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
               "NODUP": ['Username', 'Password'], "DUP": ['Status', 'Items', 'Weapons'],
-              "IPs": ["IP", "MAC", "Status"]}
+              "IPs": ["IP", "MAC"], "Users": ['Username'], "STAT": ["Status"],
+              "NET": ["IP", "MAC", "Status"]}
 
 
 class LoadBalancer:
-    def __init__(self, ip, port, main_data_base, login_data_base, ips_data_base):
+    def __init__(self, ip, port, main_data_base, login_data_base, ips_data_base, username_database, stat_data_base, net_base):
         self.load_balancer_ip = ip
         self.load_balancer_port = port
 
@@ -46,9 +47,7 @@ class LoadBalancer:
         self.__credentials_server4 = []
         self.__credentials_server5 = []
 
-
         self.__session_users = []
-
         self.__weapons = []
 
         self.__temp_socket = EncryptUniqueServer("Secret", self.load_balancer_port, verifiers=Verifier(384).run(),
@@ -59,6 +58,11 @@ class LoadBalancer:
         self.__login_data_base = login_data_base
 
         self.__ips_data_base = ips_data_base
+        self.__username_database = username_database
+
+        self.__stat_database = stat_data_base
+        self.__net_base = net_base
+
         self.__default_port = 443
 
         self.selector = selectors.DefaultSelector()
@@ -195,13 +199,13 @@ class LoadBalancer:
         :param password: Client's password
         :param status: Client's status
         :param items: Client's initial items
-        :param weapons: Client's initial weapons
         """
-        self.__login_data_base.insert_no_duplicates(values=[username, password], no_duplicate_params=["Username"])
+        self.__username_database.insert_no_duplicates(values=[username], no_duplicate_params=["Username"])
+        self.__main_data_base.set_values(['Password'], [password],
+                                         ['Username'], [username])
 
         values = [username, password, status, items]
         params = PARAMETERS["PlayerDetails"]
-        self.__main_data_base.insert_no_duplicates(values=values, no_duplicate_params=["Username"])
 
         print(f"Updated database for client {username}")
 
@@ -345,7 +349,6 @@ class LoadBalancer:
             if message['server_name'] == 'Server 5' and message['credential']:
                 self.__credentials_server5.append(message['credential'])
 
-
     def determine_server(self, client_info):
         """
         return a socket for a certain server according to the location and zone
@@ -408,29 +411,23 @@ class LoadBalancer:
 
         """
         for index in range(0, len(self.__new_credentials)):
-            print(self.__login_data_base.insert_no_duplicates(values=[self.__new_credentials[index][0]],
-                                                              no_duplicate_params=['Username']))
-            print(self.__login_data_base.set_values(['Password'], [self.__new_credentials[index][1]], ['Username'],
-                                                    [self.__new_credentials[index][0]]))
+            self.__username_database.insert_no_duplicates(values=[self.__new_credentials[index][0]],
+                                                          no_duplicate_params=['Username'])
 
-        print(self.__new_credentials)
-        if len(self.__new_credentials) > 0:
-            print(self.__new_credentials[0])
+            self.__main_data_base.set_values(['Password'], [self.__new_credentials[index][1]],
+                                             ['Username'], [self.__new_credentials[index][0]])
 
-        for index in range(0, len(self.__new_credentials)):
-            print(self.__login_data_base.insert_no_duplicates
-                  (values=[self.__new_credentials[index][0],
-                           self.__new_credentials[index][1]],
-                   no_duplicate_params=PARAMETERS["NODUP"]))
+        print(self.__session_users, self.__weapons)
+        for index in range(0, len(self.__session_users) - 1):
+            if self.__weapons:
+                if self.__weapons[index] is not None:
+                    weapons = (str(self.__weapons[index]["A"]) + ", " + str(self.__weapons[index]["B"]) + ", "
+                               + str(self.__weapons[index]["S"]))
+                    items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) + ", " +
+                             str(self.__weapons[index]["RHPF"]) + ", " + str(self.__weapons[index]["BEF"]))
 
-        # for index in range(0, len(self.__session_users) - 1):
-            # if self.__weapons[index] is not None:
-                # weapons = (str(self.__weapons[index]["A"]) + ", " + str(self.__weapons[index]["B"]) +
-                # ", " + str(self.__weapons[index]["S"]))
-                # items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) +
-                # ", " + str(self.__weapons[index]["RHPF"]) + ", " + str(self.__weapons[index]["BEF"]))
-
-                # print(self.__main_data_base.set_values(['Username'], [self.__session_users[index]]))
+                    self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
+                                                     [self.__session_users[index]])
 
 
 def main():
@@ -438,8 +435,12 @@ def main():
     ips_data_base = DatabaseManager("IPs", PARAMETERS["IPs"])
 
     login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
+    username_database = DatabaseManager("PlayerDetails", PARAMETERS["Users"])
+    stat_data_base = DatabaseManager("IPs", PARAMETERS["STAT"])
+    net_base = DatabaseManager("IPs", PARAMETERS["NET"])
 
-    lb = LoadBalancer(LB_IP, LB_PORT, main_data_base, login_data_base, ips_data_base)
+    lb = LoadBalancer(LB_IP, LB_PORT, main_data_base, login_data_base, ips_data_base, username_database, stat_data_base,
+                      net_base)
     lb.run()
     # Start TLS server
 
