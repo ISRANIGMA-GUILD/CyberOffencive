@@ -23,6 +23,7 @@ class Game:
         self.new_frame_time = 0
 
     def run(self) -> None:
+        i = 0
         while 1:
 
             for event in pygame.event.get():
@@ -37,6 +38,12 @@ class Game:
             self.prev_frame_time = self.new_frame_time
             self.text_surface = self.font.render("FPS: " + str(int(fps)), True, (128, 0, 128))
             self.screen.blit(self.text_surface, (350, 10))
+
+            if i == 0:
+                self.level.player.rect.x = 60000
+                self.level.player.rect.y = 50000
+                i = 1
+
             pygame.display.update()
             self.clock.tick(FPS)
 

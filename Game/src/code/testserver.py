@@ -22,10 +22,8 @@ from random import *
 import time
 from dnssec_client import ServerDiscoveryClient
 
-THE_USUAL_IP = '0.0.0.0'
 MY_IP = socket.gethostbyname(socket.gethostname())
 MAX_MSG_LENGTH = 16000
-LOCAL_HOST = '127.0.0.1'
 PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weapons'],
               "NODUP": ['Username', 'Password'], "DUP": ['Status', 'Items', 'Weapons'],
               "IPs": ["IP", "MAC"], "Users": ['Username'], "STAT": ["Status"], "NET": ["IP", "MAC", "Status"]}
@@ -100,15 +98,12 @@ class Server:
 
         """
 
-        # """:TODO(finished?): Use load balancer with a main database and servers with their local ones"""#
-        # """:TODO(almost finished): Loading screen between menu and login screens """#
         # """:TODO(almost finished): Try-except on everything """#
-        # """:TODO: Make sure clients move smoothly move between servers"""#
+        # """:TODO(almost finished): Make sure clients move smoothly move between servers"""#
         # """:TODO: Make a whitelist of processes NO MATTER CLIENT FRIENDLY or NOT"""#
-        # """:TODO(almost finished): Erase items and from client side to make sure they dont still appear if collected"""#
         # """:TODO(almost finished): Database updates correctly even if server is closed"""#
         # """:TODO(??finished????): If banned you can't connect
-        # """:TODO(??finished????): Do the big merge, finish everything today
+        # """:TODO("JUST DO IT!"): Do the big merge, finish everything today
 
         info, resource_info, ip_info = self.receive_info()
         self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = self.organize_info(info,
@@ -372,6 +367,7 @@ class Server:
         except Exception as e:
             print("Failed to receive data from load balancer:", e)
             self.__load_balance_socket.close()
+            self.connect_to_load_socket()
 
     def add_new_client(self, client_info):
         """
@@ -397,7 +393,7 @@ class Server:
         if (client_address[0] in self.__banned_ips or getmacbyip(client_address[0]) in self.__banned_macs
                 or Ether().src in self.__banned_macs):
             self.__all_details[number]["Connected"] = 1
-         #   connection.close()
+
         else:
             print("success")
 

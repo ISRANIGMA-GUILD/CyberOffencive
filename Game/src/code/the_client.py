@@ -724,7 +724,7 @@ class Client:
 
         try:
             timer = 0.003
-            data_recv = self.receive_data(timer, 1024)
+            data_recv = self.receive_data(timer, 16000)
 
             if not data_recv:
                 pass
@@ -750,7 +750,7 @@ class Client:
 
         try:
             timer = 0.003
-            data_recv = self.receive_data(timer, 1024)
+            data_recv = self.receive_data(timer, 16000)
 
             if not data_recv:
                 pass
@@ -776,7 +776,7 @@ class Client:
 
         try:
             timer = 0.05
-            data_recv = self.receive_data(timer, 1024)
+            data_recv = self.receive_data(timer, 16000)
 
             if not data_recv:
                 pass
@@ -791,10 +791,6 @@ class Client:
             print("epic fail")
             return
 
-    #def i_am_alive(self):
-
-    #    self.__the_client_socket.send(pickle.dumps(['None']))
-
     def good_music(self):
         """
 
@@ -802,6 +798,7 @@ class Client:
 
         self.v.SetMute(1, None)
         self.v.SetMasterVolumeLevelScalar(1.0, None)
+
 
 def main():
     """

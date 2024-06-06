@@ -50,7 +50,7 @@ class Level:
         self.collision_grid = CollisionGrid(self.map_renderer.tmx_data.width, self.map_renderer.tmx_data.height,
                                             TILE_WIDTH, TILE_HEIGHT)
         self.create_map()
-        print(self.collision_grid.grid)
+        print(self.map_renderer.tmx_data.width)
 
         self.ui = UI()
         # Add TMX objects to the appropriate sprite groups
