@@ -52,14 +52,14 @@ class Game:
         self.__other_messages = []
         self.__previous_messages = []
 
-        self.__locs = [[0, (10, 500)], [1, (10, 450)]]
+        self.__locs = [[0, (10, 300)], [1, (10, 350)]]
         self.__previous_details = []
 
-        self.__output_box = pygame.Rect(0, 500, 500, 100)
-        self.__input_box = pygame.Rect(0, 600, 200, 50)
+        self.__output_box = pygame.Rect(0, 200, 500, 200)
+        self.__input_box = pygame.Rect(0, 400, 200, 50)
 
-        self.__output_o_box = pygame.Rect(0, 500, 500, 100)
-        self.__input_o_box = pygame.Rect(0, 600, 200, 50)
+        self.__output_o_box = pygame.Rect(0, 200, 500, 200)
+        self.__input_o_box = pygame.Rect(0, 400, 200, 50)
 
         self.__o_width = max(500, 50 + 10)
         self.__i_width = max(500, 50 + 10)
@@ -294,6 +294,12 @@ class Game:
         else:
             self.__zone = ran[1]
             print("The zone", self.__zone)
+
+        x = choice([self.__zone[list(self.__zone.keys())[0]], self.__zone[list(self.__zone.keys())[1]]])
+        y = choice([self.__zone[list(self.__zone.keys())[2]], self.__zone[list(self.__zone.keys())[3]]])
+
+        loc = (x, y)
+        self.level.spawn_the_p(loc)
 
     def create_threads(self, game_lock, com_lock, div_lock):
         """

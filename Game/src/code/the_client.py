@@ -677,7 +677,7 @@ class Client:
             return
 
         except ssl.SSLEOFError as e:
-            print("Server is shutting down", e)
+            print("Oh", e)
             message = ["EXIT", 1, private_data]
 
             full_msg = self.create_message(message)

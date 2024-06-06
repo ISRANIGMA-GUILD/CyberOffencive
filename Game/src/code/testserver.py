@@ -354,7 +354,7 @@ class Server:
         """
 
         try:
-            self.__load_balance_socket.settimeout(0.01)
+            self.__load_balance_socket.settimeout(0.003)
             data = self.__load_balance_socket.recv(1024)
 
             if data:
@@ -618,7 +618,6 @@ class Server:
 
                     self.eliminate_socket(index)
 
-
     def accept_client(self, current_socket, mask):
         """
 
@@ -754,15 +753,8 @@ class Server:
                     self.__to_send.append((current_socket, data))
 
                     if self.__all_details[index].get("Credentials") is not None:
-                        if self.__all_details[index].get("Credentials") in self.__list_of_existing_existing_credentials:
-
-                            self.__session_users[index] = self.__all_details[index].get("Credentials")[0]
-                            self.__selector.modify(current_socket, selectors.EVENT_READ, self.update_clients)
-
-                        elif (self.__all_details[index].get("Credentials") not in
-                              self.__list_of_existing_existing_credentials and
-                              self.send_credential_to_load_balencer(self.__all_details[index].get("Credentials"),
-                                                                    current_socket)):
+                        if self.send_credential_to_load_balencer(self.__all_details[index].get("Credentials"),
+                                                                    current_socket):
 
                             self.__session_users[index] = self.__all_details[index].get("Credentials")[0]
                             self.__selector.modify(current_socket, selectors.EVENT_READ, self.update_clients)
@@ -811,7 +803,7 @@ class Server:
         self.receive_data_from_load_balancer(self.__client_sockets[index])
 
         try:
-            current_socket.settimeout(0.03)
+            current_socket.settimeout(0.003)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
             print(data)
             # If client has quit save their data
@@ -1000,7 +992,6 @@ class Server:
                 self.__locations.pop(number)
 
                 self.__data_storage.pop(number)
-
                 self.__number_of_clients -= 1
 
         except Exception as e:
@@ -1080,7 +1071,7 @@ class Server:
         for sock in self.__client_sockets:
             try:
                 sock.send(pickle.dumps(["LEAVE"]))
-                sock.settimeout(0.5)
+                sock.settimeout(0.003)
 
                 data = pickle.loads(sock.recv(1024))
                 self.__items[self.__client_sockets.index(sock)] = data

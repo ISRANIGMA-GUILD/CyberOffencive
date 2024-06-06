@@ -6,7 +6,8 @@ import pickle
 class Login:
 
     def __init__(self, details, list_of_existing, list_of_existing_resources,
-                 credentials, number, new_credentials, number_of_clients, banned_users, data, zone):
+                 credentials, number, new_credentials, number_of_clients, banned_users, data,
+                 zone):
         self.__details = details
         self.__list_of_existing = list_of_existing
 

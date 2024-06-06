@@ -59,7 +59,6 @@ class Level:
                 self.obstacles_sprites.add(obj)
             elif obj.obj.type == 'item':  # Example: add objects of type 'item' to visible_sprites
                 self.visible_sprites.add(obj)
-
         
         self.using_chat = False
         self.picked_up = []
@@ -70,7 +69,12 @@ class Level:
         for obj in self.map_renderer.get_objects():
             self.collision_grid.add_to_grid(obj)
 
-        self.player = Player((6000, 6000), [self.visible_sprites], self.attackable_sprites,
+    def spawn_the_p(self, loc):
+        """
+        :param loc:
+        """
+
+        self.player = Player(loc, [self.visible_sprites], self.attackable_sprites,
                              self.obstacles_sprites, self.create_attack, self.destroy_weapon,self,
                              f'{BASE_PATH}/graphics/player/up_idle/up_idle_0.png')
 

@@ -3,6 +3,7 @@ from DatabaseCreator import *
 from Cert_creators import *
 from interesting_numbers import *
 from clientpasswordgen import *
+from login_scanner_lb import *
 import os
 import selectors
 import pickle
@@ -10,15 +11,15 @@ import types
 
 # Define zones on the map with their boundary coordinates
 zones = {
-            'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
-            'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680},
-            'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
-            'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
-            'ZoneBuffer1': {'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200},
-            'ZoneBuffer2': {'min_x2': 0, 'max_x2': 76800, 'min_y2': 19681, 'max_y2': 23519}
+    'Zone1': {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680},
+    'Zone2': {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680},
+    'Zone3': {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200},
+    'Zone4': {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200},
+    'ZoneBuffer1': {'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200},
+    'ZoneBuffer2': {'min_x2': 0, 'max_x2': 76800, 'min_y2': 19681, 'max_y2': 23519}
 }
 
-LB_IP = "127.0.0.1"
+LB_IP = "0.0.0.0"
 LB_PORT = 1800
 
 NUMBER_OF_SERVERS = 1
@@ -32,7 +33,8 @@ PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weap
 
 
 class LoadBalancer:
-    def __init__(self, ip, port, main_data_base, login_data_base, ips_data_base, username_database, stat_data_base, net_base):
+    def __init__(self, ip, port, main_data_base, login_data_base, ips_data_base, username_database, stat_data_base,
+                 net_base):
         self.load_balancer_ip = ip
         self.load_balancer_port = port
 
@@ -44,8 +46,10 @@ class LoadBalancer:
 
         self.__credentials_server1 = []
         self.__credentials_server2 = []
+
         self.__credentials_server3 = []
         self.__credentials_server4 = []
+
         self.__credentials_server5 = []
 
         self.__session_users = []
@@ -64,7 +68,8 @@ class LoadBalancer:
         self.__stat_database = stat_data_base
         self.__net_base = net_base
 
-        self.__default_port = 443
+        self.__banned_ips = []
+        self.__banned_macs = []
 
         self.selector = selectors.DefaultSelector()
         self.selector.register(self.__load_balancer_socket, selectors.EVENT_READ, self.accept_new_connection)
@@ -101,19 +106,65 @@ class LoadBalancer:
 
         """
         print("NUMBER_OF_SERVERS")
+
         while True:
             try:
                 self.accept_connections()
+
             except KeyboardInterrupt:
                 self.__load_balancer_socket.close()
 
+    def receive_info(self):
+        """
+
+        :return:
+        """
+
+        main_cursor = self.__main_data_base.get_cursor()
+        main_cursor.execute("SELECT Username, Password FROM PlayerDetails")
+
+        info = main_cursor.fetchall()
+        main_resource_cursor = self.__main_data_base.get_cursor()
+
+        main_resource_cursor.execute("SELECT Status, Items, Weapons FROM PlayerDetails")
+        resource_info = main_resource_cursor.fetchall()
+
+        main_ip_cursor = self.__ips_data_base.get_cursor()
+        main_ip_cursor.execute("SELECT IP, MAC FROM IPs")
+
+        ip_info = main_ip_cursor.fetchall()
+        return info, resource_info, ip_info
+
+    def organize_info(self, info, resource_info, ip_info):
+        """
+
+        :param info:
+        :param resource_info:
+        :param ip_info:
+        """
+
+        list_of_existing_credentials = [vital_info for vital_info in info]
+        list_of_existing_resources = [vital_resources for vital_resources in resource_info]
+
+        self.__banned_ips = [vital_info[0] for vital_info in ip_info]
+        self.__banned_macs = [vital_info[1] for vital_info in ip_info]
+
+        return list_of_existing_credentials, list_of_existing_resources
+
     def accept_connections(self):
+        """
+
+        """
+
         try:
             print("wip")
-            events = self.selector.select(timeout=None)
+
+            events = self.selector.select(0)
+
             for key, mask in events:
                 callback = key.data
                 callback(key.fileobj, mask)
+
         except KeyboardInterrupt as e:
             print("Server will end service")
             print("e", e)
@@ -129,10 +180,11 @@ class LoadBalancer:
         try:
             if len(self.servers) != NUMBER_OF_SERVERS:
                 connection, addr = sock.accept()
+                print("the", addr)
 
                 pass_c = GetPassword(460).run()
 
-            #    sock.settimeout(0.5)
+                sock.settimeout(0.003)
                 data = pickle.loads(connection.recv(1024))
 
                 if pass_c != data[0]:
@@ -153,9 +205,6 @@ class LoadBalancer:
                     self.send_server_configuration(connection, self.get_name())
                     data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
 
-                    self.selector.register(connection, selectors.EVENT_READ, self.service_connection)
-
-                    
                     if len(self.servers) < len(self.server_names):
                         # Assign server based on its connection order
                         assigned_zone = 'Zone' + str(len(self.servers) + 1)
@@ -163,14 +212,14 @@ class LoadBalancer:
                         print("All zones are occupied. No more connections are expected.")
                         connection.close()
                         return
-    
-                    self.servers.append(connection)
+
                     self.server_zone_map[assigned_zone] = {'address': addr}
                     print(f"Connection added to {assigned_zone}: {connection}")
                     print("Current state of server_zone_map:", self.server_zone_map)
                     print(self.server_zone_map[assigned_zone])
                     print("lo")
 
+                    self.selector.register(connection, selectors.EVENT_READ, self.service_connection)
 
         except socket.timeout as e:
             print("No one tried to connect", e)
@@ -182,11 +231,11 @@ class LoadBalancer:
 
     # def accept(self, sock, mask):
 
-        # conn, addr = sock.accept()  # Should be ready
+    # conn, addr = sock.accept()  # Should be ready
 
-        # print('accepted', conn, 'from', addr)
-        # conn.setblocking(False)
-        # self.selector.register(conn, selectors.EVENT_READ, read)
+    # print('accepted', conn, 'from', addr)
+    # conn.setblocking(False)
+    # self.selector.register(conn, selectors.EVENT_READ, read)
 
     def get_name(self):
         if len(self.servers) == 1:
@@ -212,7 +261,7 @@ class LoadBalancer:
         if zone == 4:
             return {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200}
         if zone == 5:
-            return ({'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200}, 
+            return ({'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200},
                     {'min_x2': 0, 'max_x2': 76800, 'min_y2': 19681, 'max_y2': 23519})
 
     def update_client_database(self, username, password, status, items):
@@ -242,7 +291,7 @@ class LoadBalancer:
 
         #  if mask & selectors.EVENT_READ:
         try:
-            sock.settimeout(0.05)
+            sock.settimeout(0.003)
             recv_data = sock.recv(16000)
 
             if recv_data is not None:
@@ -257,16 +306,16 @@ class LoadBalancer:
                         status = client_info['status']  # Default status if not provided
                         if status is None:
                             status = 'idle'
-                        items = client_info['items']  # Default items if not provided
+                        weapon = client_info['weapon']  # Default items if not provided
 
                         # weapons = client_info.get('weapons', 'None')  # Default weapons if not provided
                         location = client_info['location']  # Default location if not provided
+                        if username in self.__session_users:
+                            self.__session_users.append(username)
+                            self.__credentials.append({
+                                'username': username, 'password': password, 'status': status, 'weapon': weapon})
 
-                        self.__session_users.append(username)
-                        self.__credentials.append({
-                            'username': username, 'password': password, 'status': status, 'items': items})
-
-                        self.update_client_database(username, password, status, items)
+                        self.update_client_database(username, password, status, weapon)
                         self.update_database()
 
                         target_server = self.determine_server(location)
@@ -279,6 +328,8 @@ class LoadBalancer:
                                 sock.send(pickle.dumps(message))
                             else:
                                 print("No appropriate server found for the given location.")
+                    elif client_info['message_status'] == 'wrong_password':
+                        self.check_the_password()
                     elif client_info['message_status'] == 'add':
                         if not self.check_if_exist_on_another_server(client_info):
                             self.add_client_credentials(client_info)
@@ -289,10 +340,8 @@ class LoadBalancer:
                             message = {'message_status': 'dont'}
                             print(f"sent to server{message}")
                             sock.send(pickle.dumps(message))
-
-
-   #     except (pickle.PickleError, KeyError) as e:
-            #print("Failed to process received data:", str(e))
+        # except (pickle.PickleError, KeyError) as e:
+        # print("Failed to process received data:", str(e))
 
         except socket.timeout as e:
             print(e)
@@ -319,10 +368,14 @@ class LoadBalancer:
             print("Server will end service")
             print("e", e)
 
-          #  self.selector.unregister(sock)
-         #   sock.close()
+        #  self.selector.unregister(sock)
+        #   sock.close()
         except Exception as e:
             print(f"Exception in service_connection: {e}")
+
+    def check_the_password(self):
+
+        pass
 
     def check_if_exist_on_another_server(self, message):
         if message:
@@ -457,6 +510,7 @@ class LoadBalancer:
 
             # print(self.__main_data_base.set_values(['Username'], [self.__session_users[index]]))
 
+
 def main():
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
     ips_data_base = DatabaseManager("IPs", PARAMETERS["IPs"])
@@ -470,6 +524,7 @@ def main():
                       net_base)
     lb.run()
     # Start TLS server
+
 
 if __name__ == '__main__':
     abspath = os.path.abspath(__file__)
