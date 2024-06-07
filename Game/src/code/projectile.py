@@ -3,6 +3,9 @@ from settings import *
 import math
 
 class Projectile(pygame.sprite.Sprite):
+    PROJECTILE_WIDTH: int = 30
+    PROJECTILE_HEIGHT: int = 10
+    
     def __init__(self, projectile_path: str, angle: float, position: tuple, groups, damage: int) -> None:
         super().__init__(groups)
         

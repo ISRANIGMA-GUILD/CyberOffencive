@@ -17,7 +17,7 @@ HALF_WIDTH: int = WIDTH // 2 # 400
 HALF_HEIGHT: int = HEIGHT // 2 # 300
 # ==========================
 
-
+TIMEOUT_TIME = 0.003
 # ==== Game Settings =====
 FPS: float = 60
 FLAGS: int = DOUBLEBUF

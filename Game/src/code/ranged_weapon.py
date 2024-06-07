@@ -43,7 +43,7 @@ class RangedWeapon(Weapon):
         angle = self.get_angle()
         Arrow(angle, self.rect.center, groups, arrow_damage)
 
-    def get_angle(self) -> None:
+    def get_angle(self) -> float:
         mouse_position = pygame.mouse.get_pos()
         adjusted_mouse_position = pygame.Vector2(mouse_position[0] - (HALF_WIDTH - 50),
                                                  mouse_position[1] - (HALF_HEIGHT - 50))
