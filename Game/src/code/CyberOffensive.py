@@ -342,7 +342,7 @@ class Game:
             data3 = self.network.receive_location()
 
             data = [data1, data3]
-            print("the data", data)
+            #print("the data", data)
             success_data = self.which_is_it(data)
 
             if success_data == 1 or success_data == [[[], [], [], []], []]:
@@ -370,11 +370,11 @@ class Game:
 
             if data:
                 existing_data = list(filter(lambda x: x is not None, data))
-                print(existing_data)
+                #print(existing_data)
 
                 if existing_data:
                     do_i_migrate = list(filter(lambda x: x[0] == 3, existing_data))
-                    print("migrate", do_i_migrate)
+                    #print("migrate", do_i_migrate)
                     if 3 in do_i_migrate:
                         print("do i move anyware?", do_i_migrate)
 
@@ -452,7 +452,7 @@ class Game:
             self.draw_chat()
 
     def direction_weapon(self, other_client):
-        print(other_client)
+        #print(other_client)
         if 5 <= len(other_client) <= 6:
             if 'S' == other_client[4]:
                 if 'down' in other_client[2]:

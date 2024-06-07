@@ -23,7 +23,6 @@ BLACK = (0, 0, 0)
 GRAY = (200, 200, 200)
 IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\Graphics\\LoginScreen\\login.png'
 
-
 class Client:
 
     def __init__(self):
@@ -345,14 +344,14 @@ class Client:
         return (ip_address.count('.') == 3 and ''.join(ip_address.split('.')).isnumeric() and
                 len(''.join(ip_address.split('.'))) <= 12)
 
-    def receive_data(self, timer, sized):
+    def receive_data(self, sized):
         """
          Dissect the data received from the server
         :return: The data iv, data and tag
         """
 
         try:
-            self.__the_client_socket.settimeout(timer)
+            self.__the_client_socket.settimeout(TIMEOUT_TIME)
             data_pack = self.__the_client_socket.recv(sized)
         #    print("data pack", data_pack)
 
@@ -566,8 +565,7 @@ class Client:
                 self.__the_client_socket.send(details)
                 print("details1", details)
 
-                timer = 5
-                success = self.receive_data(timer, 1024)
+                success = self.receive_data(1024)
                 print("Did succeed?", success)
 
                 if success is None:
@@ -721,8 +719,7 @@ class Client:
         """
 
         try:
-            timer = 0.003
-            data_recv = self.receive_data(timer, 1024)
+            data_recv = self.receive_data(1024)
 
             if not data_recv:
                 pass
@@ -754,8 +751,7 @@ class Client:
         """
 
         try:
-            timer = 0.003
-            data_recv = self.receive_data(timer, 16000)
+            data_recv = self.receive_data(16000)
 
             if not data_recv:
                 pass
@@ -786,8 +782,7 @@ class Client:
         """
 
         try:
-            timer = 0.05
-            data_recv = self.receive_data(timer, 1024)
+            data_recv = self.receive_data(16000)
 
             if not data_recv:
                 pass

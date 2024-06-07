@@ -21,6 +21,7 @@ import errno
 from random import *
 import time
 from dnssec_client import ServerDiscoveryClient
+from settings import *
 
 THE_USUAL_IP = '0.0.0.0'
 MY_IP = socket.gethostbyname(socket.gethostname())
@@ -354,7 +355,7 @@ class Server:
         """
 
         try:
-            self.__load_balance_socket.settimeout(0.01)
+            self.__load_balance_socket.settimeout(TIMEOUT_TIME)
             data = self.__load_balance_socket.recv(1024)
 
             if data:
@@ -637,7 +638,7 @@ class Server:
         connection, client_address = current_socket.accept()
 
         try:
-            connection.settimeout(0.003)
+            connection.settimeout(TIMEOUT_TIME)
             their_pass = pickle.loads(connection.recv(MAX_MSG_LENGTH))
 
             if their_pass[0] != passw:
@@ -811,7 +812,7 @@ class Server:
         self.receive_data_from_load_balancer(self.__client_sockets[index])
 
         try:
-            current_socket.settimeout(0.03)
+            current_socket.settimeout(TIMEOUT_TIME)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
             print(data)
             # If client has quit save their data
@@ -865,10 +866,9 @@ class Server:
                         if stuff[0] == data[1]:
                             print("collected")
                             self.__item_locations.remove(stuff)
-                            self.__collected_items.append(data[1])
-            
+                            self.__collected_items.append(data[1])      
 
-            elif len(data) == 5:
+            if len(data) == 5:
                 weapon = data[4]
                 self.send_to_clients(index, weapon)
             elif len(data) == 6:
@@ -1094,7 +1094,7 @@ class Server:
         for sock in self.__client_sockets:
             try:
                 sock.send(pickle.dumps(["LEAVE"]))
-                sock.settimeout(0.5)
+                sock.settimeout(TIMEOUT_TIME)
 
                 data = pickle.loads(sock.recv(1024))
                 self.__items[self.__client_sockets.index(sock)] = data

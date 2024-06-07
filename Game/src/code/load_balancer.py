@@ -7,6 +7,7 @@ import os
 import selectors
 import pickle
 import types
+from settings import *
 
 # Define zones on the map with their boundary coordinates
 zones = {
@@ -242,7 +243,7 @@ class LoadBalancer:
 
         #  if mask & selectors.EVENT_READ:
         try:
-            sock.settimeout(0.05)
+            sock.settimeout(TIMEOUT_TIME)
             recv_data = sock.recv(16000)
 
             if recv_data is not None:
