@@ -39,6 +39,8 @@ class Level:
         self.visible_sprites = YSortCameraGroup()
         self.obstacles_sprites = pygame.sprite.Group()
         self.attack_sprites = pygame.sprite.Group()
+        self.blittable_sprites = YSortCameraGroup(400)
+        self.blittable_projectiles_sprites = YSortCameraGroup(5000)
         self.attackable_sprites = pygame.sprite.Group()
         self.enemies_projectiles = pygame.sprite.Group()
 
@@ -70,7 +72,7 @@ class Level:
         for obj in self.map_renderer.get_objects():
             self.collision_grid.add_to_grid(obj)
 
-        self.player = Player((6000, 6000), [self.visible_sprites], self.attackable_sprites,
+        self.player = Player((41000, 30000), [self.visible_sprites], self.attackable_sprites,
                              self.obstacles_sprites, self.create_attack, self.destroy_weapon,self,
                              f'{BASE_PATH}/graphics/player/up_idle/up_idle_0.png')
 
@@ -117,6 +119,13 @@ class Level:
                 self.visible_sprites.add(player_active_item[0])
 
         self.map_renderer.render(self.display_surface, self.player.rect.center, (WIDTH, HEIGHT))
+
+        self.blittable_sprites.custom_draw(self.player)
+        self.blittable_sprites.update(self.collision_grid)
+        self.blittable_projectiles_sprites.custom_draw(self.player)
+        self.blittable_projectiles_sprites.update(self.collision_grid)
+        for projectile in self.blittable_projectiles_sprites:
+            projectile.custom_move()
 
         self.visible_sprites.custom_draw(self.player)
         self.visible_sprites.update(self.collision_grid)
@@ -179,3 +188,8 @@ class Level:
                     except AttributeError as e:
                         print("FUCK YOU PYTHON2", e)
 
+                    if attack_sprite.rect.colliderect(obstacle_sprite.rect):
+                        attack_sprite.kill()
+
+        self.blittable_sprites.custom_empty()
+        self.blittable_projectiles_sprites.custom_empty()

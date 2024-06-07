@@ -8,6 +8,8 @@ import os
 import re
 import win32gui
 import win32con
+from blittable import Blittable
+from projectile import Projectile
 
 IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\LoginScreen\\menuscreen.png'
 BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\'
@@ -413,6 +415,27 @@ class Game:
             status = f'{self.level.player.status}_{current_status_index}'
 
             list_of_public_details = [current_loc, self.__message, status, 0]
+            if 'attack' in status:
+                weapon_type_to_append = ''
+                player_active_item = self.level.player.inventory.hotbar.content[self.level.player.inventory.hotbar.active_item_index]
+                if player_active_item and len(player_active_item):
+                    if issubclass(player_active_item[0].__class__, Sword):
+                        weapon_type_to_append = 'S'
+                        list_of_public_details = [current_loc, self.__message, status, 0, weapon_type_to_append]
+                    elif issubclass(player_active_item[0].__class__, Axe):
+                        weapon_type_to_append = 'A'
+                        list_of_public_details = [current_loc, self.__message, status, 0, weapon_type_to_append]
+                    elif issubclass(player_active_item[0].__class__, Bow):
+                        weapon_type_to_append = 'B'
+                        if self.level.player.attacking and player_active_item[0].can_shoot():
+                            list_of_public_details = [current_loc, self.__message, status, 0, weapon_type_to_append, player_active_item[0].get_angle()]
+                        else:
+                            list_of_public_details = [current_loc, self.__message, status, 0, weapon_type_to_append]
+                else:
+                    list_of_public_details = [current_loc, self.__message, status, 0]
+            else:
+                list_of_public_details = [current_loc, self.__message, status, 0]
+
             self.__previous_status = self.level.player.status
 
             self.prev_loc = current_loc
@@ -421,10 +444,50 @@ class Game:
             self.spawn_enemies()
 
             self.spawn_weapons()
-            other_client = self.__other_client
+            other_client = self.__other_client        
+            self.direction_weapon(other_client)
 
+    
             self.updates_many_updates(list_of_public_details, other_client)
             self.draw_chat()
+
+    def direction_weapon(self, other_client):
+        print(other_client)
+        if 5 <= len(other_client) <= 6:
+            if 'S' == other_client[4]:
+                if 'down' in other_client[2]:
+                    Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/metal_sword/down.png', Sword.SWORD_WIDTH, Sword.SWORD_HEIGHT)
+                elif 'up' in other_client[2]:    
+                    Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/metal_sword/up.png', Sword.SWORD_WIDTH, Sword.SWORD_HEIGHT)
+                elif 'right' in other_client[2]:
+                    Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/metal_sword/right.png', Sword.SWORD_WIDTH, Sword.SWORD_HEIGHT)
+                elif 'left' in other_client[2]:
+                    Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/metal_sword/left.png', Sword.SWORD_WIDTH, Sword.SWORD_HEIGHT)
+                
+            elif 'A' == other_client[4]:
+                if 'down' in other_client[2]:
+                    Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/axe/down.png', Axe.AXE_WIDTH, Axe.AXE_HEIGHT)
+                elif 'up' in other_client[2]:    
+                    Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/axe/up.png', Axe.AXE_WIDTH, Axe.AXE_HEIGHT)
+                elif 'right' in other_client[2]:
+                    Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/axe/right.png', Axe.AXE_WIDTH, Axe.AXE_HEIGHT)
+                elif 'left' in other_client[2]:
+                    Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/axe/left.png', Axe.AXE_WIDTH, Axe.AXE_HEIGHT)
+                
+            elif 'B' == other_client[4]:
+                if 'down' in other_client[2]:
+                    Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/bow/down.png', Bow.BOW_WIDTH, Bow.BOW_HEIGHT)
+                elif 'up' in other_client[2]:    
+                    Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/bow/up.png', Bow.BOW_WIDTH, Bow.BOW_HEIGHT)
+                elif 'right' in other_client[2]:
+                    Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/bow/right.png', Bow.BOW_WIDTH, Bow.BOW_HEIGHT)
+                elif 'left' in other_client[2]:
+                    Blittable(other_client[0], [self.level.blittable_sprites], f'../graphics/weapons/bow/left.png', Bow.BOW_WIDTH, Bow.BOW_HEIGHT)
+                
+                if len(other_client) == 6:
+                    # TODO: use Blittables but for Arrows or Laser Beams
+                    Blittable(other_client[0], [self.level.blittable_projectiles_sprites], f'../graphics/weapons/bow/arrow.png', Projectile.PROJECTILE_WIDTH, Projectile.PROJECTILE_HEIGHT, True, other_client[5])
+
 
     def spawn_enemies(self):
         """

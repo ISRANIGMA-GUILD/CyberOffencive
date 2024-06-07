@@ -867,8 +867,17 @@ class Server:
                             self.__item_locations.remove(stuff)
                             self.__collected_items.append(data[1])
             
-            
 
+            elif len(data) == 5:
+                weapon = data[4]
+                self.send_to_clients(index, weapon)
+            elif len(data) == 6:
+                weapon = data[4]
+                projectile_angle = data[5]
+                self.send_to_clients(index, weapon=weapon, contains_projectile=True, projectile_angle=projectile_angle)
+            else:
+                self.send_to_clients(index)
+                
         except socket.timeout as e:
             print("meow", e)
             pass
@@ -924,7 +933,7 @@ class Server:
 
                 return ["eeee", e_near, w_near, e_killed, i_collected]
 
-    def send_to_clients(self, number):
+    def send_to_clients(self, number, weapon='', contains_projectile: bool = False, projectile_angle: float = 0.0):
         """
 
         :param number:
@@ -932,19 +941,24 @@ class Server:
 
         eligables = list(filter(lambda person: person["Client"] is not None and person["Credentials"] is not None
                                                and person != self.__all_details[number], self.__all_details))
-        chat_message = f'{self.__chat[number]}'
-        message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number]]
 
+        chat_message = f'{self.__session_users[number]}: {self.__chat[number]}'
+        
+        if 'attack' in self.__status[number] and weapon != '':
+            if contains_projectile:
+                message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number], weapon, projectile_angle]
+            else:
+                message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number], weapon]
+        else:
+            message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number]]
+        
         self.__data_storage[number] = (self.__session_users[number], message)
 
         for socks in eligables:
             try:
                 socks["Client"].send(pickle.dumps(message))
 
-            except ConnectionResetError as e:
-                print("not  good", e)
-
-            except ssl.SSLError as e:
+            except Exception as e:
                 print("not  good", e)
 
     def send_from_clients(self):
