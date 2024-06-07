@@ -198,6 +198,10 @@ class Game:
 
                     for thread in threads:
                         thread.join()
+                    
+                    original = self.gurgle()
+                    self.ungurgle(original)
+
 
                     # Handle chat input
                     self.chat_handler()
@@ -1011,32 +1015,20 @@ class Game:
 
     def gurgle(self):
         """
-
+        makes all values random
         """
-        meow = [self.level, self.level.visible_sprites.copy(), self.level.attackable_sprites.copy(),
-                self.level.attack_sprites.copy(), self.level.obstacles_sprites.copy(), self.font,
-                self.level.player.copy(), self.level.player.inventory.copy()]
+        original_player = self.level.player.gurgle()
 
-        self.level.visible_sprites = None
-        self.level.attackable_sprites = None
-        self.level.attack_sprites = None
-        self.level.obstacles_sprites = None
-        self.level = None
-        self.ungurgle(meow)
 
-    def ungurgle(self, meow):
+        return original_player
+
+    def ungurgle(self, original_player):
         """
 
         """
+        self.level.player.ungurgle(original_player)
 
-        self.level = meow[0]
-        self.level.visible_sprites = meow[1]
-
-        self.level.attackable_sprites = meow[2]
-        self.level.attack_sprites = meow[3]
-
-        self.level.obstacles_sprites = meow[4]
-
+        
 
 def main():
     abspath = os.path.abspath(__file__)

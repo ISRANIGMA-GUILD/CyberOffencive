@@ -1,6 +1,9 @@
 from inventory import *
 from enemy import *
 from weapon import Weapon
+from bow import Bow
+from axe import Axe
+from random import randint
 
 
 class Player(Entity):
@@ -490,6 +493,70 @@ class Player(Entity):
         """
 
         return self.frame_index
+    
+    def gurgle(self):
+        """
+        Randomly changes player stats and inventory, making it difficult to cheat.
+        """
+        # Create a copy of the player's data
+        gurgled_data = {
+            'stats': self.stats.copy(),
+            'inventory': [],  # Create an empty list for the gurgled inventory
+            'position': (self.rect.center, self.hitbox.center)
+        }
+
+        original_data = {
+            'stats': self.stats.copy(),
+            'inventory': self.inventory.hotbar.content.copy(),
+            'position': (self.rect.center, self.hitbox.center)
+        }
+
+        # Randomly change player stats in the copied data
+        for stat in gurgled_data['stats']:
+            gurgled_data['stats'][stat] = randint(self.min_stats[stat], self.max_stats[stat])
+
+        # Randomly change inventory in the copied data, creating new instances
+        for i in range(self.inventory.hotbar.capacity):
+            if len(self.inventory.hotbar.content[i]):
+                if issubclass(self.inventory.hotbar.content[i][0].__class__, Weapon):
+                    # Replace weapons with a random weapon
+                    weapon_types = [Axe, Bow, Sword]  # Add other weapon types if needed
+                    new_weapon_type = choice(weapon_types)
+                    if new_weapon_type == Bow:
+                        gurgled_data['inventory'].append([new_weapon_type((0, 0), [self.level.visible_sprites], [self.level.visible_sprites,self.level.attack_sprites], "99999")])
+                    else:
+                        gurgled_data['inventory'].append([new_weapon_type((0, 0), [self.level.visible_sprites], "99999")])
+                elif issubclass(self.inventory.hotbar.content[i][0].__class__, Fruit):
+                    # Replace fruits with random fruits
+                    fruit_types = [HPFruit, EnergyFruit, RedHPFruit, BlueEnergyFruit]  # Add other fruit types if needed
+                    new_fruit_type = choice(fruit_types)
+                    gurgled_data['inventory'].append([new_fruit_type((0, 0), [self.level.visible_sprites], "99999")])
+
+        # Restore player stats from the gurgled data
+        self.stats = gurgled_data['stats'].copy()
+
+        # Replace the player's hotbar with new instances from the gurgled data
+        self.inventory.hotbar.content = gurgled_data['inventory'].copy()
+
+        # Restore player position from the gurgled data
+        self.rect.center = gurgled_data['position'][0]
+        self.hitbox.center = gurgled_data['position'][1]
+
+        return original_data
+
+    def ungurgle(self, original_data):
+        """
+        Restores the player's stats and inventory to their original values.
+        """
+        # Restore player stats from the gurgled data
+        self.stats = original_data['stats'].copy()
+
+        # Replace the player's hotbar with new instances from the gurgled data
+        self.inventory.hotbar.content = original_data['inventory'].copy()
+
+        # Restore player position from the gurgled data
+        self.rect.center = original_data['position'][0]
+        self.hitbox.center = original_data['position'][1]
 
     def update(self, collision_grid) -> None:
 
