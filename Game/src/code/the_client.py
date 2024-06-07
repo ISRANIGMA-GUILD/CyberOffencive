@@ -786,7 +786,7 @@ class Client:
         """
 
         try:
-            timer = 0.05
+            timer = 0.003
             data_recv = self.receive_data(timer, 1024)
 
             if not data_recv:
@@ -832,10 +832,6 @@ class Client:
 
         except ValueError:
             return False
-
-    def migrate(self):
-        pass
-
 
 def main():
     """

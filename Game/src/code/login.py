@@ -3,11 +3,15 @@ import time
 import pickle
 
 
+#TODO: Make sure that if load balancer says login is ok distinguish between exists not exists has not existed####
+#TODO: ###
+
+
 class Login:
 
     def __init__(self, details, list_of_existing, list_of_existing_resources,
-                 credentials, number, new_credentials, number_of_clients, banned_users, data,
-                 zone):
+                 credentials, number, new_credentials, banned_users, data,
+                 zone, load_balance_socket):
         self.__details = details
         self.__list_of_existing = list_of_existing
 
@@ -17,18 +21,20 @@ class Login:
         self.__number = number
         self.__new_credentials = new_credentials
 
-        self.__number_of_clients = number_of_clients
         self.__list_of_banned_users = banned_users
-
         self.__sus = data
+
         self.__zone = zone
+        self.__load_balance_socket = load_balance_socket
+
+        self.__load_validation = ""
 
     def run(self):
 
         self.handle_credentials()
 
         return (self.__details, self.__credentials, self.__list_of_existing, self.__list_of_existing_resources,
-                self.__new_credentials, self.__number_of_clients)
+                self.__new_credentials)
 
     def handle_credentials(self):
 
@@ -72,6 +78,42 @@ class Login:
             self.__details["Connected"] = 1
             return
 
+    def send_credential_to_load_balencer(self, credential, sock):
+        """
+        check if the client exsist in anothe server and if he do he wont add and connect him
+        Args:
+            credential:
+        """
+        message = {'message_status': 'add', 'credential': credential, 'server_name': self.__server_name}
+        self.__load_balance_socket.send(pickle.dumps(message))
+        if self.receive_data_from_load_balancer(sock):
+            return True
+        else:
+            return False
+
+    def receive_data_from_load_balancer(self, sock):
+        """
+
+        """
+
+        try:
+            self.__load_balance_socket.settimeout(0.003)
+            data = self.__load_balance_socket.recv(1024)
+
+            if data:
+                self.__load_validation = pickle.loads(data)
+
+                if self.__load_validation['message_status'] == 'do_add':
+                    return True
+
+                elif self.__load_validation['message_status'] == 'dont':
+                    return False
+            else:
+                pass
+        except socket.timeout as e:
+           # print("timeout load balancer", e)
+            pass
+
     def check_account(self):
         """
 
@@ -83,6 +125,20 @@ class Login:
         else:
 
             tuple_of_credentials = self.__details["Credentials"]
+            if self.send_credential_to_load_balencer(tuple_of_credentials, self.__load_balance_socket):
+                success = self.__load_validation
+                m = self.__details["Client"].send(success)
+                print("the", m)
+                self.__credentials[self.__number] = self.__details["Credentials"]
+
+            else:
+                success_pack = self.create_message(["Failure"])
+                m = self.__details["Client"].send(success_pack)
+
+                print("the", m)
+                self.__details["Credentials"] = None
+
+                return
 
             if self.__credentials.count(self.__details["Credentials"]) <= 1:
 

@@ -5,7 +5,7 @@ import pickle
 class Login:
 
     def __init__(self, sock, list_of_existing, list_of_existing_resources,
-                 credentials, new_credentials, number_of_clients, banned_users, data, number=0):
+                 credentials, new_credentials, banned_users, data, number=0):
         self.__list_of_existing = list_of_existing
         self.__sock = sock
 
@@ -15,9 +15,7 @@ class Login:
         self.__number = number
         self.__new_credentials = new_credentials
 
-        self.__number_of_clients = number_of_clients
         self.__list_of_banned_users = banned_users
-
         self.__data = data
 
     def run(self):
@@ -25,7 +23,7 @@ class Login:
         self.handle_credentials()
 
         return (self.__data, self.__credentials, self.__list_of_existing, self.__list_of_existing_resources,
-                self.__new_credentials, self.__number_of_clients)
+                self.__new_credentials)
 
     def handle_credentials(self):
 

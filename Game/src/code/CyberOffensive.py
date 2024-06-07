@@ -123,8 +123,10 @@ class Game:
         self.__ip = ""
         self.__zone = []
 
-        self.__possible_spawns = [(6000, 6000), (15000, 16500), (25000, 8500), (30000, 18500), (30000, 34500),
-                                  (41000, 30000)]
+        self.__possible_spawns = {'Zone1': [(6000, 6000), (15000, 16500), (25000, 8500), (30000, 18500)],
+                                  'Zone2': [(41000, 18000)],
+                                  'Zone3': [(30000, 34500)],
+                                  'Zone4': [(41000, 30000)]}
 
     def run(self) -> None:
         """
@@ -295,7 +297,7 @@ class Game:
             self.__zone = ran[1]
             print("The zone", self.__zone)
 
-        x = choice([self.__zone[list(self.__zone.keys())[0]], self.__zone[list(self.__zone.keys())[1]]])
+        x = choice([self.__possible_spawns[list(self.__zone.keys())[0]], self.__zone[list(self.__zone.keys())[1]]])
         y = choice([self.__zone[list(self.__zone.keys())[2]], self.__zone[list(self.__zone.keys())[3]]])
 
         loc = (x, y)

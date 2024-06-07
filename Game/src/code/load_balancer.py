@@ -22,7 +22,7 @@ zones = {
 LB_IP = "0.0.0.0"
 LB_PORT = 1800
 
-NUMBER_OF_SERVERS = 1
+NUMBER_OF_SERVERS = 2
 
 # Define the servers
 servers = ['Server1', 'Server2', 'Server3', 'Server4', 'Server5']
@@ -99,6 +99,19 @@ class LoadBalancer:
             'Zone5': None
         }
 
+        self.__number_of_clients_in_all = {
+            'Server 1': 0,
+            'Server 2': 0,
+            'Server 3': 0,
+            'Server 4': 0,
+            'Server 5': 0
+        }
+        self.__total = 0
+
+        self.__list_of_banned_users = []
+        self.__list_of_existing_credentials = []
+
+        self.__list_of_existing_resources = []
         print("Load balancer setup complete. Listening for server connections...")
 
     def run(self):
@@ -112,6 +125,7 @@ class LoadBalancer:
                 self.accept_connections()
 
             except KeyboardInterrupt:
+                self.update_database()
                 self.__load_balancer_socket.close()
 
     def receive_info(self):
@@ -157,8 +171,6 @@ class LoadBalancer:
         """
 
         try:
-            print("wip")
-
             events = self.selector.select(0)
 
             for key, mask in events:
@@ -168,6 +180,11 @@ class LoadBalancer:
         except KeyboardInterrupt as e:
             print("Server will end service")
             print("e", e)
+            self.update_database()
+
+        except Exception as e:
+            print("The general error", e)
+            self.update_database()
 
     def accept_new_connection(self, sock, mask):
         """
@@ -178,18 +195,19 @@ class LoadBalancer:
 
         print("Attempting to accept a new connection...")
         try:
-            if len(self.servers) != NUMBER_OF_SERVERS:
+            if len(self.servers) < NUMBER_OF_SERVERS:
                 connection, addr = sock.accept()
                 print("the", addr)
 
                 pass_c = GetPassword(460).run()
 
-                sock.settimeout(0.003)
+                connection.settimeout(0.003)
                 data = pickle.loads(connection.recv(1024))
 
                 if pass_c != data[0]:
                     print("Banned the hacker")
                     connection.close()
+
                 else:
                     connection.send(pickle.dumps([Verifier(480).run()]))
 
@@ -226,40 +244,52 @@ class LoadBalancer:
 
         except BlockingIOError as e:
             print(f"BlockingIOError: No incoming connections to accept yet. {e}")
+
         except Exception as e:
             print(f"Exception in accept_new_connection: {e}")
 
-    # def accept(self, sock, mask):
-
-    # conn, addr = sock.accept()  # Should be ready
-
-    # print('accepted', conn, 'from', addr)
-    # conn.setblocking(False)
-    # self.selector.register(conn, selectors.EVENT_READ, read)
-
     def get_name(self):
+        """
+
+        :return:
+        """
+
         if len(self.servers) == 1:
             print("moo")
             return "Server 1", 1
+
         if len(self.servers) == 2:
             return "Server 2", 2
+
         if len(self.servers) == 3:
             return "Server 3", 3
+
         if len(self.servers) == 4:
             return "Server 4", 4
+
         if len(self.servers) == 5:
             return "Server 5", 5
 
     def get_zone(self, zone):
+        """
+
+        :param zone:
+        :return:
+        """
+
         if zone == 1:
             print("moo")
             return {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680}
+
         if zone == 2:
             return {'min_x': 40320, 'max_x': 76800, 'min_y': 0, 'max_y': 19680}
+
         if zone == 3:
             return {'min_x': 0, 'max_x': 36480, 'min_y': 23520, 'max_y': 43200}
+
         if zone == 4:
             return {'min_x': 40320, 'max_x': 76800, 'min_y': 23520, 'max_y': 43200}
+
         if zone == 5:
             return ({'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200},
                     {'min_x2': 0, 'max_x2': 76800, 'min_y2': 19681, 'max_y2': 23519})
@@ -297,8 +327,26 @@ class LoadBalancer:
             if recv_data is not None:
                 print("Data received:", recv_data)
                 client_info = pickle.loads(recv_data)
+
                 print("Data received:", client_info)
-                if client_info['message_status']:
+                if client_info['message_status'] == 'wrong_password':
+                    if client_info['server_name'] and client_info['credentials']:
+                        creds = client_info['credentials']
+                        server_name = client_info['server_name']
+                        self.check_the_password(sock, server_name, creds)
+
+                elif client_info['message_status'] == 'add':
+                    if not self.check_if_exist_on_another_server(client_info):
+                        self.add_client_credentials(client_info)
+                        message = {'message_status': 'do_add'}
+                        print(f"sent to server{message}")
+                        sock.send(pickle.dumps(message))
+                    else:
+                        message = {'message_status': 'dont'}
+                        print(f"sent to server{message}")
+                        sock.send(pickle.dumps(message))
+
+                elif client_info['message_status']:
                     if client_info['message_status'] == 'move':
                         credentials = client_info['credentials']
                         username = credentials[0]
@@ -306,16 +354,16 @@ class LoadBalancer:
                         status = client_info['status']  # Default status if not provided
                         if status is None:
                             status = 'idle'
-                        weapon = client_info['weapon']  # Default items if not provided
+                        items = client_info['items']  # Default items if not provided
 
                         # weapons = client_info.get('weapons', 'None')  # Default weapons if not provided
                         location = client_info['location']  # Default location if not provided
                         if username in self.__session_users:
                             self.__session_users.append(username)
                             self.__credentials.append({
-                                'username': username, 'password': password, 'status': status, 'weapon': weapon})
+                                'username': username, 'password': password, 'status': status, 'items': items})
 
-                        self.update_client_database(username, password, status, weapon)
+                        self.update_client_database(username, password, status, items)
                         self.update_database()
 
                         target_server = self.determine_server(location)
@@ -328,18 +376,11 @@ class LoadBalancer:
                                 sock.send(pickle.dumps(message))
                             else:
                                 print("No appropriate server found for the given location.")
-                    elif client_info['message_status'] == 'wrong_password':
-                        self.check_the_password()
-                    elif client_info['message_status'] == 'add':
-                        if not self.check_if_exist_on_another_server(client_info):
-                            self.add_client_credentials(client_info)
-                            message = {'message_status': 'do_add'}
-                            print(f"sent to server{message}")
-                            sock.send(pickle.dumps(message))
-                        else:
-                            message = {'message_status': 'dont'}
-                            print(f"sent to server{message}")
-                            sock.send(pickle.dumps(message))
+
+                    elif client_info['message_status'] == 'total':
+                        self.__number_of_clients_in_all[client_info.get("server_name")] = client_info.get("number_total")
+                        self.__total = sum(list(self.__number_of_clients_in_all.values()))
+                        print(self.__total)
         # except (pickle.PickleError, KeyError) as e:
         # print("Failed to process received data:", str(e))
 
@@ -350,70 +391,94 @@ class LoadBalancer:
             print("Connection closedm", e)
             print("Closing connection to", sock.getpeername())
 
+            self.update_database()
             self.selector.unregister(sock)
+
             sock.close()
 
         except ssl.SSLError as e:
             print("Connection closedm", e)
             print("Closing connection to", sock.getpeername())
 
+            self.update_database()
             self.selector.unregister(sock)
+
             sock.close()
 
         except EOFError as e:
             print("Connection closedn", e)
             print("Closing connection to", sock.getpeername())
 
+            self.update_database()
+            self.selector.unregister(sock)
+
+            sock.close()
+
         except KeyboardInterrupt as e:
             print("Server will end service")
             print("e", e)
 
-        #  self.selector.unregister(sock)
-        #   sock.close()
+            self.update_database()
+            self.selector.unregister(sock)
+
+            sock.close()
+
         except Exception as e:
             print(f"Exception in service_connection: {e}")
+            self.update_database()
 
-    def check_the_password(self):
+    def check_the_password(self, sock, server_name, creds):
+        """
 
+        :param sock:
+        :param server_name:
+        """
+
+        self.__list_of_existing_credentials, self.__list_of_existing_resources = self.organize_info(self.receive_info()[0], self.receive_info()[1], self.receive_info()[2])
+        self.__list_of_banned_users = [[self.__list_of_existing_credentials[i][0],
+                                        self.__list_of_existing_credentials[i][1],
+                                        self.__list_of_existing_credentials[i][0]]
+                                       for i in range(0, len(self.__list_of_existing_resources))
+                                       if self.__list_of_existing_resources[i][0] == "banned"]
+        cred = self.get_server_credentials(server_name)
+        login = Login(sock, self.__list_of_existing_credentials, self.__list_of_existing_resources, cred,
+                      self.__new_credentials, len(cred)
+                      , self.__list_of_banned_users, creds)
+
+        temp, self.__credentials, self.__list_of_existing_credentials, self.__list_of_existing_resources, self.__new_credentials = (
+            login.run())
         pass
 
+    def get_server_credentials(self, server_name):
+        if server_name == "Server 1":
+            return self.__credentials_server1
+        if server_name == "Server 2":
+            return self.__credentials_server2
+        if server_name == "Server 3":
+            return self.__credentials_server3
+        if server_name == "Server 4":
+            return self.__credentials_server4
+        if server_name == "Server 4":
+            return self.__credentials_server5
+
     def check_if_exist_on_another_server(self, message):
+        """
+
+        :param message:
+        :return:
+        """
+
         if message:
             if message['server_name'] and message['credential']:
-                for cred in self.__credentials_server1:
-                    if cred == message['credential']:
-                        if message['server_name'] == 'Server 1':
-                            return False
-                        else:
-                            return True
+                if (message['credential'] not in self.__credentials_server1 and
+                    message['credential'] not in self.__credentials_server2 and
+                    message['credential'] not in self.__credentials_server3 and
+                    message['credential'] not in self.__credentials_server4 and
+                    message['credential'] not in self.__credentials_server5):
 
-                for cred in self.__credentials_server2:
-                    if cred == message['credential']:
-                        if message['server_name'] == 'Server 2':
-                            return False
-                        else:
-                            return True
-
-                for cred in self.__credentials_server3:
-                    if cred == message['credential']:
-                        if message['server_name'] == 'Server 3':
-                            return False
-                        else:
-                            return True
-
-                for cred in self.__credentials_server4:
-                    if cred == message['credential']:
-                        if message['server_name'] == 'Server 4':
-                            return False
-                        else:
-                            return True
-
-                for cred in self.__credentials_server5:
-                    if cred == message['credential']:
-                        if message['server_name'] == 'Server 5':
-                            return False
-                        else:
-                            return True
+                    return True
+                else:
+                    return False
 
     def add_client_credentials(self, message):
         if message:
