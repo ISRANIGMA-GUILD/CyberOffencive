@@ -336,11 +336,13 @@ class LoadBalancer:
                         self.check_the_password(sock, server_name, creds)
 
                 elif client_info['message_status'] == 'add':
-                    if not self.check_if_exist_on_another_server(client_info):
+                    if self.uncloned(client_info):
                         self.add_client_credentials(client_info)
                         message = {'message_status': 'do_add'}
+
                         print(f"sent to server{message}")
                         sock.send(pickle.dumps(message))
+
                     else:
                         message = {'message_status': 'dont'}
                         print(f"sent to server{message}")
@@ -350,8 +352,10 @@ class LoadBalancer:
                     if client_info['message_status'] == 'move':
                         credentials = client_info['credentials']
                         username = credentials[0]
+
                         password = credentials[1]  # Default password if not provided
                         status = client_info['status']  # Default status if not provided
+
                         if status is None:
                             status = 'idle'
                         items = client_info['items']  # Default items if not provided
@@ -461,7 +465,7 @@ class LoadBalancer:
         if server_name == "Server 4":
             return self.__credentials_server5
 
-    def check_if_exist_on_another_server(self, message):
+    def uncloned(self, message):
         """
 
         :param message:
@@ -475,8 +479,8 @@ class LoadBalancer:
                     message['credential'] not in self.__credentials_server3 and
                     message['credential'] not in self.__credentials_server4 and
                     message['credential'] not in self.__credentials_server5):
-
                     return True
+
                 else:
                     return False
 
@@ -580,10 +584,11 @@ def main():
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
     ips_data_base = DatabaseManager("IPs", PARAMETERS["IPs"])
 
+    net_base = DatabaseManager("IPs", PARAMETERS["NET"])
     login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
+
     username_database = DatabaseManager("PlayerDetails", PARAMETERS["Users"])
     stat_data_base = DatabaseManager("IPs", PARAMETERS["STAT"])
-    net_base = DatabaseManager("IPs", PARAMETERS["NET"])
 
     lb = LoadBalancer(LB_IP, LB_PORT, main_data_base, login_data_base, ips_data_base, username_database, stat_data_base,
                       net_base)

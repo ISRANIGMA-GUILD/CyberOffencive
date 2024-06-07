@@ -121,7 +121,7 @@ class Game:
         self.__migrate = 1
 
         self.__ip = ""
-        self.__zone = []
+        self.__zone = {}
 
         self.__possible_spawns = {'Zone1': [(6000, 6000), (15000, 16500), (25000, 8500), (30000, 18500)],
                                   'Zone2': [(41000, 18000)],
@@ -218,7 +218,7 @@ class Game:
                 pygame.quit()
                 sys.exit()
 
-            except Exception as e:
+            except (Exception, KeyError) as e:
                 print(e)
                 if self.__game_state == "continue":
                     list_of_details = ["EXIT", 1, self.items]
@@ -232,7 +232,7 @@ class Game:
 
         :param ran:
         """
-
+        print("stupid pleased work", ran)
         if len(ran) > 1 and type(ran[1]) is not dict:
             if ran[1][1] is not None:
                 items = ran[1][1].split(', ')
@@ -267,7 +267,7 @@ class Game:
 
             if ran[1][2] is not None:
                 weapons = ran[1][2].split(', ')
-                print (weapons[0])
+                print("hmmmmmmmmmm", weapons[0])
 
                 if int(weapons[0]) > 0:
                     self.items["A"] = int(weapons[0])
@@ -297,11 +297,21 @@ class Game:
             self.__zone = ran[1]
             print("The zone", self.__zone)
 
-        x = choice([self.__possible_spawns[list(self.__zone.keys())[0]], self.__zone[list(self.__zone.keys())[1]]])
-        y = choice([self.__zone[list(self.__zone.keys())[2]], self.__zone[list(self.__zone.keys())[3]]])
-
-        loc = (x, y)
+      #  x = choice([self.__possible_spawns[list(self.__zone.keys())[0]], self.__zone[list(self.__zone.keys())[1]]])
+       # y = choice([self.__zone[list(self.__zone.keys())[2]], self.__zone[list(self.__zone.keys())[3]]])
+        self.find_zone_spawn()
+        loc = self.__possible_spawns["Zone1"][0]
         self.level.spawn_the_p(loc)
+
+    def find_zone_spawn(self):
+
+        print(list(self.__possible_spawns.values()))
+        spawner = list(filter(lambda x: self.__zone.get(list(self.__zone.keys())[0]) <= choice(x)[0] <=
+                                        self.__zone.get(list(self.__zone.keys())[1]) and
+                                        self.__zone.get(list(self.__zone.keys())[2]) <= choice(x)[1] <=
+                                        self.__zone.get(list(self.__zone.keys())[3]),
+                                        list(self.__possible_spawns.values())))
+        print(spawner)
 
     def create_threads(self, game_lock, com_lock, div_lock):
         """
@@ -376,7 +386,7 @@ class Game:
 
             if data:
                 existing_data = list(filter(lambda x: x is not None, data))
-                print(existing_data)
+                print("wwww", existing_data)
 
                 if existing_data:
                     do_i_migrate = list(filter(lambda x: x[0] == 3, existing_data))
@@ -387,7 +397,7 @@ class Game:
                     if do_i_migrate:
                         print("do ! ")
                         self.__ip = do_i_migrate[0][1][1]
-                        print(self.__ip)
+                        print("stupid stupid absoloute stupid", self.__ip)
 
                         print("hi")
                         port = self.network.choose_port()
@@ -513,13 +523,11 @@ class Game:
                     enemie.kill()
 
                 elif enemie.id not in self.__the_enemies:
-                    #fuck u python
                     print("kill")
                     self.network.kill_enemy(enemie.id)
 
                     self.level.visible_sprites.remove(enemie)
                     self.level.attackable_sprites.remove(enemie)
-
 
             for enemie in self.level.attackable_sprites:
                 if enemie.id in self.__killed_enemies: 
@@ -543,7 +551,6 @@ class Game:
         """
 
         weapons = self.__weapons
-        #print (weapons)
         item_ids_server = [item[0] for item in weapons]
 
         hotbar_item_ids = [item for item in self.level.player.inventory.hotbar.get_ids()]
@@ -552,7 +559,6 @@ class Game:
         
         items_ = [item for item in self.level.visible_sprites if type(item) in whitelist and item not in self.level.picked_up and item.id not in hotbar_item_ids]
         items_ids = [item.id for item in self.level.visible_sprites if type(item) in whitelist and item not in self.level.picked_up and item.id not in hotbar_item_ids]
-        #print (items_)
 
         if weapons:
             [Axe(loc[1], [self.level.visible_sprites],loc[0])
@@ -585,7 +591,6 @@ class Game:
                 print ("picked up item", item.id)
                 self.network.picked_up(item.id)
                 item.id = "99999"
-
 
         elif weapons and "LEAVE" == weapons[0]:
             self.__game_state = "start_menu"
@@ -944,7 +949,6 @@ class Game:
             try:
                 ack = self.network.receive_ack()
                 self.network.update_server(list_of_details, self.items)
-
                 if ack:
                     if "OK" in ack:
                         self.network.close_connection()

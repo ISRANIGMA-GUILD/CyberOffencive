@@ -96,11 +96,8 @@ class Client:
                 details = self.details_entry(screen, clock)
 
                 if details == 1:
-                  #  print("leaving1")
                     message = pickle.dumps(["EXIT"])
-
                     self.__the_client_socket.send(message)
-               #     print("leaving3")
 
                     pygame.display.update()
                     clock.tick(FPS)
@@ -374,10 +371,12 @@ class Client:
             pygame.display.update()
             return 1
 
-        except socket.timeout:
+        except socket.timeout as e:
+            print("no time", e)
             return
 
-        except pickle.UnpicklingError:
+        except pickle.UnpicklingError as e:
+            print("pickle rick", e)
             return
 
     def create_message(self, some_data):
@@ -676,15 +675,15 @@ class Client:
             print("timedout", e)
             return
 
-        except ssl.SSLEOFError as e:
-            print("Oh", e)
-            message = ["EXIT", 1, private_data]
+      #  except ssl.SSLEOFError as e:
+        #    print("Oh", e)
+        #    message = ["EXIT", 1, private_data]
 
-            full_msg = self.create_message(message)
-            self.__the_client_socket.send(full_msg)
+         #   full_msg = self.create_message(message)
+         #   self.__the_client_socket.send(full_msg)
 
-            self.__the_client_socket.close()
-            return 1
+          #  self.__the_client_socket.close()
+          #  return 1
 
         except KeyboardInterrupt as e:
             print("Server is shutting down", e)
@@ -734,14 +733,14 @@ class Client:
                 if self.is_ip(data_recv[1]):
                     print("please work")
                     t = [3, data_recv]
-                    print(type(t))
+                    print("hmmmmmmm", type(t))
                     return t
 
             else:
                 return data_recv
 
-        except socket.timeout:
-            print("epic fail")
+        except socket.timeout as e:
+            print("epic fail", e)
             return
         except Exception as e:
             print(e)
@@ -772,8 +771,8 @@ class Client:
             else:
                 return data_recv
 
-        except socket.timeout:
-            print("epic fail")
+        except socket.timeout as e:
+            print("epic fail", e)
             return
         except Exception as e:
             print(e)
@@ -798,8 +797,8 @@ class Client:
             else:
                 return data_recv
 
-        except socket.timeout:
-            print("epic fail")
+        except socket.timeout as e:
+            print("epic fail", e)
             return
 
     def good_music(self):
@@ -830,7 +829,8 @@ class Client:
             ipaddress.ip_interface(addr)
             return True
 
-        except ValueError:
+        except ValueError as e:
+            print(e)
             return False
 
 def main():

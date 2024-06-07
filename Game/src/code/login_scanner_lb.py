@@ -67,7 +67,7 @@ class Login:
             the_big_ugly_list = [self.__list_of_banned_users[i][0]
                                  for i in range(0, len(self.__list_of_banned_users))]
 
-            if tuple_of_credentials in self.__list_of_existing and self:
+            if tuple_of_credentials in self.__list_of_existing:
 
                 if (self.__list_of_existing_resources[self.__number][0] != "banned"
                         and tuple_of_credentials[0] not in the_big_ugly_list):
@@ -76,19 +76,14 @@ class Login:
 
                     success = ["Success", detail]
                     success_pack = self.create_message(success)
-                    self.__sock.send(success_pack)
 
-                    self.__credentials[self.__number] = self.__data
+                    self.successful_login(success_pack)
                     return True
 
                 else:
                     print("ENTRY DENIED")
-                    success_pack = self.create_message(["Failure"])
+                    self.failed_login()
 
-                    m = self.__sock.send(success_pack)
-                    print("the", m)
-
-                    self.__data = None
                     return False
 
             else:
@@ -98,10 +93,7 @@ class Login:
                         tuple_of_credentials in self.__credentials):
 
                     print("Wrong username or password")
-                    success_pack = self.create_message(["Failure"])
-
-                    self.__sock.send(success_pack)
-                    self.__data = None
+                    self.failed_login()
 
                     return False
 
@@ -113,17 +105,13 @@ class Login:
 
                     success_pack = self.create_message(["Success"])
 
-                    self.__data.send(success_pack)
-                    self.__credentials[self.__number] = self.__data
+                    self.successful_login(success_pack)
                     return True
 
         else:
             print("Wrong username or password")
+            self.failed_login()
 
-            success_pack = self.create_message(["Failure"])
-
-            self.__data.send(success_pack)
-            self.__data = None
             return False
 
     def username_exists(self, list_of_existing_users, tuple_of_credentials):
@@ -145,6 +133,27 @@ class Login:
         """
 
         return tuple_of_credentials[1] in list_of_existing
+
+    def successful_login(self, success_pack):
+        """
+
+        :param success_pack:
+        """
+
+        m = self.__sock.send(success_pack)
+
+        print("the", m)
+        self.__credentials[self.__number] = self.__credentials[self.__number]
+
+    def failed_login(self):
+        """
+
+        """
+
+        success_pack = self.create_message(["Failure"])
+
+        self.__sock.send(success_pack)
+        self.__credentials[self.__number] = None
 
     def create_message(self, some_data):
         """

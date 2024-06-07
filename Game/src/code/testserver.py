@@ -71,7 +71,7 @@ class Server:
         self.__energy = []
 
         self.__session_users = []
-        self.__to_send = []
+     #   self.__to_send = []
 
         self.__data_to_send = []
         self.__client_sockets = []
@@ -524,10 +524,10 @@ class Server:
                 self.__load_balance_socket.close()
                 break
 
-            except Exception as e:
-                print("The general error", e)
-                self.update_database()
-                pass
+         #   except Exception as e:
+           #     print("The general error", e)
+           #     self.update_database()
+           #     pass
 
         print("FINISH")
 
@@ -636,7 +636,7 @@ class Server:
                 connection.send(pickle.dumps([my_pass]))
                 print("New client joined!", client_address)
 
-                self.__to_send.append((current_socket, "yay"))
+              #  self.__to_send.append((current_socket, "yay"))
                 self.check_for_banned(client_address, index)
 
                 self.__client_sockets.append(connection)
@@ -721,11 +721,12 @@ class Server:
 
                     loging = Login(self.__all_details[index], self.__list_of_existing_existing_credentials,
                                    self.__list_of_existing_resources, self.__credentials, index,
-                                   self.__new_credentials, self.__list_of_banned_users, data, self.__zone, self.__load_balancer_socket)
+                                   self.__new_credentials, self.__list_of_banned_users, data, self.__zone,
+                                   self.__load_balance_socket, self.__server_name)
 
-                    (self.__all_details[index], self.__credentials, list_of_existing, list_of_existing_resources,
-                     self.__new_credentials, self.__number_of_client) = loging.run()
-                    self.__to_send.append((current_socket, data))
+                    (self.__all_details[index], self.__credentials, self.__list_of_existing_existing_credentials,
+                     self.__list_of_existing_resources, self.__new_credentials) = loging.run()
+                 #   self.__to_send.append((current_socket, data))
 
                     if self.__all_details[index].get("Credentials") is not None:
 
@@ -733,7 +734,7 @@ class Server:
                         self.__selector.modify(current_socket, selectors.EVENT_READ, self.update_clients)
 
                     else:
-                        print("Connection closedg", data)
+                        print("Connection closedg you forken dummy", data, self.__all_details[index])
                         self.__all_details[index]["Connected"] = 1
                         if len(data) >= 3:
                             self.__items[index] = data[2]
@@ -771,7 +772,6 @@ class Server:
         target = list(filter(lambda person: person["Client"] == current_socket and person["Credentials"] is not None,
                              self.__all_details))[0]
         index = self.__all_details.index(target)
-        data = ""
 
         self.receive_data_from_load_balancer(self.__client_sockets[index])
 
@@ -795,8 +795,6 @@ class Server:
             # If client has logged in and there are clients update them
 
             elif len(self.__credentials) <= len(self.__session_users) and type(data) is not tuple and len(data) != 2:
-
-                self.__to_send.append((current_socket, data))
 
                 if len(self.__client_sockets) > len(self.__data_to_send):
                     self.__data_to_send.append(data)
@@ -1102,10 +1100,11 @@ def main():
     main_data_base = DatabaseManager("PlayerDetails", PARAMETERS["PlayerDetails"])
     ips_data_base = DatabaseManager("IPs", PARAMETERS["IPs"])
 
+    net_base = DatabaseManager("IPs", PARAMETERS["NET"])
     login_data_base = DatabaseManager("PlayerDetails", PARAMETERS["NODUP"])
+
     username_database = DatabaseManager("PlayerDetails", PARAMETERS["Users"])
     stat_data_base = DatabaseManager("IPs", PARAMETERS["STAT"])
-    net_base = DatabaseManager("IPs", PARAMETERS["NET"])
     numbers = TheNumbers().run()
 
     server = Server(main_data_base, login_data_base, ips_data_base, numbers, username_database, stat_data_base, net_base)

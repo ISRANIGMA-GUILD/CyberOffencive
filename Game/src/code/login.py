@@ -11,7 +11,7 @@ class Login:
 
     def __init__(self, details, list_of_existing, list_of_existing_resources,
                  credentials, number, new_credentials, banned_users, data,
-                 zone, load_balance_socket):
+                 zone, load_balance_socket, server_name):
         self.__details = details
         self.__list_of_existing = list_of_existing
 
@@ -27,7 +27,10 @@ class Login:
         self.__zone = zone
         self.__load_balance_socket = load_balance_socket
 
-        self.__load_validation = ""
+        self.__load_validation = {}
+        self.__server_name = server_name
+
+        self.__pre_success = False
 
     def run(self):
 
@@ -43,10 +46,10 @@ class Login:
             self.check_account()
             return
 
-        except TypeError:
-            print("Problematic")
-            self.__details["Connected"] = 1
-            return
+ #       except TypeError:
+     #       print("Problematic")
+      #      self.__details["Connected"] = 1
+       #     return
 
         except ConnectionResetError:
             print("Client", self.__number + 1, self.__details["Client"].getpeername(),
@@ -108,10 +111,9 @@ class Login:
 
                 elif self.__load_validation['message_status'] == 'dont':
                     return False
-            else:
-                pass
+
         except socket.timeout as e:
-           # print("timeout load balancer", e)
+            print("timeout load balancer", e)
             pass
 
     def check_account(self):
@@ -126,21 +128,19 @@ class Login:
 
             tuple_of_credentials = self.__details["Credentials"]
             if self.send_credential_to_load_balencer(tuple_of_credentials, self.__load_balance_socket):
-                success = self.__load_validation
-                m = self.__details["Client"].send(success)
-                print("the", m)
-                self.__credentials[self.__number] = self.__details["Credentials"]
+                if "items" in list(self.__load_validation.keys()):
+                    success = ["Success", self.__load_validation.get("items"), self.__zone]
+                    success_pack = pickle.dumps(success)
+
+                    self.successful_login(success_pack)
+                    self.__pre_success = True
 
             else:
-                success_pack = self.create_message(["Failure"])
-                m = self.__details["Client"].send(success_pack)
-
-                print("the", m)
-                self.__details["Credentials"] = None
+                self.failed_login()
 
                 return
 
-            if self.__credentials.count(self.__details["Credentials"]) <= 1:
+            if self.__credentials.count(self.__details["Credentials"]) <= 1 and not self.__pre_success:
 
                 list_of_existing_users = [tup[0] for tup in self.__list_of_existing]
                 list_of_existing_passes = [tup[1] for tup in self.__list_of_existing]
@@ -150,26 +150,21 @@ class Login:
 
                 if tuple_of_credentials in self.__list_of_existing and self:
 
-                    if (self.__list_of_existing_resources[self.__number][0] != "banned"
+                    if (self.__list_of_existing_resources[self.__number][0] != "BANNED"
                        and tuple_of_credentials[0] not in the_big_ugly_list):
                         print("Successful")
                         detail = self.__list_of_existing_resources[self.__list_of_existing.index(tuple_of_credentials)]
 
                         success = ["Success", detail, self.__zone]
-
                         success_pack = self.create_message(success)
-                        m = self.__details["Client"].send(success_pack)
-                        print("the", m)
-                        self.__credentials[self.__number] = self.__details["Credentials"]
+
+                        self.successful_login(success_pack)
                         return True
 
                     else:
                         print("ENTRY DENIED")
 
-                        success_pack = self.create_message(["Failure"])
-                        m = self.__details["Client"].send(success_pack)
-                        print("the", m)
-                        self.__details["Credentials"] = None
+                        self.failed_login()
                         return False
 
                 else:
@@ -180,10 +175,7 @@ class Login:
 
                         print("Wrong username or password")
 
-                        success_pack = self.create_message(["Failure"])
-                        self.__details["Client"].send(success_pack)
-
-                        self.__details["Credentials"] = None
+                        self.failed_login()
                         return False
 
                     else:
@@ -194,18 +186,14 @@ class Login:
 
                         success_pack = self.create_message(["Success", self.__zone])
 
-                        self.__details["Client"].send(success_pack)
-                        self.__credentials[self.__number] = self.__details["Credentials"]
+                        self.successful_login(success_pack)
                         return True
 
-            else:
-                print("Wrong username or password")
+            #elif not :
+              #  print("Wrong username or password")
+              #  self.failed_login()
 
-                success_pack = self.create_message(["Failure"])
-
-                self.__details["Client"].send(success_pack)
-                self.__details["Credentials"] = None
-                return False
+               # return False
 
     def username_exists(self, list_of_existing_users, tuple_of_credentials):
         """
@@ -226,6 +214,27 @@ class Login:
         """
 
         return tuple_of_credentials[1] in list_of_existing
+
+    def successful_login(self, success_pack):
+        """
+
+        :param success_pack:
+        """
+
+        m = self.__details["Client"].send(success_pack)
+
+        print("the", m)
+        self.__credentials[self.__number] = self.__details["Credentials"]
+
+    def failed_login(self):
+        """
+
+        """
+
+        success_pack = self.create_message(["Failure"])
+
+        self.__details["Client"].send(success_pack)
+        self.__details["Credentials"] = None
 
     def create_message(self, some_data):
         """
