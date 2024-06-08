@@ -124,9 +124,11 @@ class Game:
         self.__zone = {}
 
         self.__possible_spawns = {'Zone1': [(6000, 6000), (15000, 16500), (25000, 8500), (30000, 18500)],
-                                  'Zone2': [(41000, 18000)],
+                                  'Zone2': [(40619, 8179)],
                                   'Zone3': [(30000, 34500)],
-                                  'Zone4': [(41000, 30000)]}
+                                  'Zone4': [(41000, 30000)],
+                                  'ZoneBuffer1': [(36600, 6000)],
+                                  'ZoneBuffer2': [(24641, 20398)]}
 
     def run(self) -> None:
         """
@@ -208,6 +210,7 @@ class Game:
                     if self.tick % 60 == 0:
                         self.tick = 0
                     self.clock.tick(FPS)
+                   # print(self.level.player.get_location())
 
             except KeyboardInterrupt as e:
                 print(e)
@@ -232,9 +235,15 @@ class Game:
 
         :param ran:
         """
-        print("stupid pleased work", ran)
+
         if len(ran) > 1 and type(ran[1]) is not dict:
             if ran[1][1] is not None:
+                self.__zone = ran[2]
+                print("The zone", self.__zone)
+
+                loc = self.find_zone_spawn()
+                self.level.spawn_the_p(loc)
+
                 items = ran[1][1].split(', ')
 
                 if int(items[0]) > 0:
@@ -267,7 +276,6 @@ class Game:
 
             if ran[1][2] is not None:
                 weapons = ran[1][2].split(', ')
-                print("hmmmmmmmmmm", weapons[0])
 
                 if int(weapons[0]) > 0:
                     self.items["A"] = int(weapons[0])
@@ -290,28 +298,26 @@ class Game:
                     for item in range(0, self.items["S"]):
                         self.level.player.inventory.hotbar.insert(Sword((0, 0),
                                                                         [self.level.visible_sprites],"99999"))
-            self.__zone = ran[2]
-            print("The zone", self.__zone)
 
         else:
             self.__zone = ran[1]
             print("The zone", self.__zone)
 
-      #  x = choice([self.__possible_spawns[list(self.__zone.keys())[0]], self.__zone[list(self.__zone.keys())[1]]])
-       # y = choice([self.__zone[list(self.__zone.keys())[2]], self.__zone[list(self.__zone.keys())[3]]])
-        self.find_zone_spawn()
-        loc = self.__possible_spawns["Zone1"][0]
-        self.level.spawn_the_p(loc)
+            loc = self.find_zone_spawn()
+            self.level.spawn_the_p(loc)
 
     def find_zone_spawn(self):
+        """
 
-        print(list(self.__possible_spawns.values()))
-        spawner = list(filter(lambda x: self.__zone.get(list(self.__zone.keys())[0]) <= choice(x)[0] <=
-                                        self.__zone.get(list(self.__zone.keys())[1]) and
-                                        self.__zone.get(list(self.__zone.keys())[2]) <= choice(x)[1] <=
-                                        self.__zone.get(list(self.__zone.keys())[3]),
-                                        list(self.__possible_spawns.values())))
-        print(spawner)
+        """
+
+        the_zones = list(self.__zone.keys())
+        spawner = list(filter(lambda x: self.__zone.get(the_zones[0]) <= choice(x)[0] <= self.__zone.get(the_zones[1])
+                       and self.__zone.get(the_zones[2]) <= choice(x)[1] <= self.__zone.get(the_zones[3]),
+                       list(self.__possible_spawns.values())))
+
+        spawn = choice(spawner[0])
+        return spawn
 
     def create_threads(self, game_lock, com_lock, div_lock):
         """
@@ -358,9 +364,8 @@ class Game:
             data3 = self.network.receive_location()
 
             data = [data1, data3]
-            print("the data", data)
+       #     print("the data", data)
             success_data = self.which_is_it(data)
-
             if success_data == 1 or success_data == [[[], [], [], []], []]:
                 return
 
@@ -368,39 +373,41 @@ class Game:
                 0], success_data[0][1], success_data[0][2], success_data[0][3]
             self.__other_client = success_data[1]
 
+            print("hey", self.__other_client)
+
             if self.__other_client:
-                list_of_something = list(filter(lambda x: x[0], self.__previously))
+                if "EXIT" not in self.__other_client[1]:
+                    list_of_something = list(filter(lambda x: x[0], self.__previously))
 
-                if not list(self.__prev_info.keys()):
-                    self.__prev_info[self.__other_client[3]] = self.__other_client
-                    self.__users.append(self.__other_client[3])
+                    if not list(self.__prev_info.keys()):
+                        self.__prev_info[self.__other_client[3]] = self.__other_client
+                        self.__users.append(self.__other_client[3])
 
-                elif self.__other_client[3] not in list_of_something:
-                    self.__prev_info[self.__other_client[3]] = self.__other_client
-                    self.__users.append(self.__other_client[3])
+                    elif self.__other_client[3] not in list_of_something:
+                        self.__prev_info[self.__other_client[3]] = self.__other_client
+                        self.__users.append(self.__other_client[3])
 
-                else:
-                    index = self.__previously.index(list_of_something.index(self.__other_client[3]))
-                    self.__prev_info[self.__other_client[3]] = self.__other_client
-                    self.__users[index] = self.__other_client[3]
+                    else:
+                        index = self.__previously.index(list_of_something.index(self.__other_client[3]))
+                        self.__prev_info[self.__other_client[3]] = self.__other_client
+                        self.__users[index] = self.__other_client[3]
 
             if data:
                 existing_data = list(filter(lambda x: x is not None, data))
-                print("wwww", existing_data)
+               # print("wwww", existing_data)
 
                 if existing_data:
                     do_i_migrate = list(filter(lambda x: x[0] == 3, existing_data))
-                    print("migrate", do_i_migrate)
+                   # print("migrate", do_i_migrate)
                     if 3 in do_i_migrate:
                         print("do i move anyware?", do_i_migrate)
 
                     if do_i_migrate:
-                        print("do ! ")
+                      #  print("do ! ")
                         self.__ip = do_i_migrate[0][1][1]
-                        print("stupid stupid absoloute stupid", self.__ip)
+                      #  print("stupid stupid absoloute stupid", self.__ip)
 
-                        print("hi")
-                        port = self.network.choose_port()
+                     #   print("hi")
 
                         list_of_details = ["EXIT", 1, self.items, "q"]
                         self.disconnect_from_server(list_of_details)
@@ -408,13 +415,19 @@ class Game:
                         self.network = Client()
 
                         while 1:
+                            port = self.network.choose_port()
                             self.network.connect_to_socket(self.__ip, port, self.screen, self.clock, 1)
+
                             creds = self.network.create_message(do_i_migrate[0][1][2])
                             res = self.network.check_success(creds)
 
                             if res[0] == "Success":
-                                print("What???????")
+                              #  print("What???????")
                                 break
+
+                            else:
+                                self.disconnect_from_server(list_of_details)
+                                self.network = Client()
                         return
 
     def communication(self, lock):
@@ -588,7 +601,7 @@ class Game:
             for item in self.level.picked_up:
                 self.__collected_items_ids.append(item.id)
                 self.level.picked_up.remove(item)
-                print ("picked up item", item.id)
+                print("picked up item", item.id)
                 self.network.picked_up(item.id)
                 item.id = "99999"
 
@@ -655,6 +668,7 @@ class Game:
         """
 
         if self.__previous_details != list_of_public_details or self.__just_entered == 0:  # or self.__timer >= 0.02:
+            print(self.level.player.get_location())
             s = self.network.update_server(list_of_public_details, self.items)
             self.__previous_details = list_of_public_details
 
@@ -744,13 +758,14 @@ class Game:
         :return:
         """
 
-        stuff = [[], [],[],[]]
+        stuff = [[], [], [], []]
         other_client = []
 
         for d in data:
             if type(d) is int:
                 print("what the fuck")
                 self.__game_state = "start_menu"
+
                 list_of_details = ["EXIT", 1, self.items]
                 self.network.update_server(list_of_details, self.items)
                 return 1
@@ -759,7 +774,7 @@ class Game:
                 pass
 
             elif self.is_enemies(d):
-                stuff = [d[1], d[2], d[3],d[4]]
+                stuff = [d[1], d[2], d[3], d[4]]
 
             else:
                 other_client = d

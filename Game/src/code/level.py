@@ -75,7 +75,7 @@ class Level:
         """
 
         self.player = Player(loc, [self.visible_sprites], self.attackable_sprites,
-                             self.obstacles_sprites, self.create_attack, self.destroy_weapon,self,
+                             self.obstacles_sprites, self.create_attack, self.destroy_weapon, self,
                              f'{BASE_PATH}/graphics/player/up_idle/up_idle_0.png')
 
     def create_attack(self) -> None:

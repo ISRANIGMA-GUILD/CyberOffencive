@@ -17,7 +17,7 @@ THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6
                 "17": "<", "18": "–dbs", "19": "-D", "20": "-T", "21": "-", "22": ".php", "23": "SLEEP", "24": "@",
                 "25": "CREATE USER", "26": "`", "27": "select", "28": "from", "29": "union", "30": "union",
                 "31": "create user", "32": "sleep", "33": "all", "34": "and", "35": "INSERT", "36": "UPDATE",
-                "37": "DELETE", "38": "\\"}
+                "37": "DELETE", "38": "\\", "39": "EXIT"}
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (200, 200, 200)
@@ -210,7 +210,7 @@ class Client:
 
                 the_real_pass = Verifier(256).run()
 
-                self.__the_client_socket.settimeout(0.5)
+                self.__the_client_socket.settimeout(0.003)
                 their_pass = pickle.loads(self.__the_client_socket.recv(MAX_MSG_LENGTH))
 
                 if their_pass[0] == "YOU ARE BANNED":
@@ -371,8 +371,8 @@ class Client:
             pygame.display.update()
             return 1
 
-        except socket.timeout as e:
-            print("no time", e)
+        except socket.timeout:
+         #   print("no time", e)
             return
 
         except pickle.UnpicklingError as e:

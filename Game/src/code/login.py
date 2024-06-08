@@ -3,10 +3,6 @@ import time
 import pickle
 
 
-#TODO: Make sure that if load balancer says login is ok distinguish between exists not exists has not existed####
-#TODO: ###
-
-
 class Login:
 
     def __init__(self, details, list_of_existing, list_of_existing_resources,
@@ -102,6 +98,7 @@ class Login:
         try:
             self.__load_balance_socket.settimeout(0.003)
             data = self.__load_balance_socket.recv(1024)
+            print(data, "this is it you little stupid python")
 
             if data:
                 self.__load_validation = pickle.loads(data)
@@ -129,18 +126,20 @@ class Login:
             tuple_of_credentials = self.__details["Credentials"]
             if self.send_credential_to_load_balencer(tuple_of_credentials, self.__load_balance_socket):
                 if "items" in list(self.__load_validation.keys()):
-                    success = ["Success", self.__load_validation.get("items"), self.__zone]
-                    success_pack = pickle.dumps(success)
+                    #success = ["Success", self.__load_validation.get("items"), self.__zone]
+                 #   success_pack = pickle.dumps(success)
 
-                    self.successful_login(success_pack)
-                    self.__pre_success = True
-
+                 #   self.successful_login(success_pack)
+                  #  self.__pre_success = True
+                    print("let him in")
+                print("you fucking piece of shit")
             else:
+                print("wjawdfdsfgdg")
                 self.failed_login()
 
                 return
 
-            if self.__credentials.count(self.__details["Credentials"]) <= 1 and not self.__pre_success:
+            if self.__credentials.count(self.__details["Credentials"]) <= 1:
 
                 list_of_existing_users = [tup[0] for tup in self.__list_of_existing]
                 list_of_existing_passes = [tup[1] for tup in self.__list_of_existing]
@@ -148,17 +147,24 @@ class Login:
                 the_big_ugly_list = [self.__list_of_banned_users[i][0]
                                      for i in range(0, len(self.__list_of_banned_users))]
 
-                if tuple_of_credentials in self.__list_of_existing and self:
+                if tuple_of_credentials in self.__list_of_existing:
 
                     if (self.__list_of_existing_resources[self.__number][0] != "BANNED"
                        and tuple_of_credentials[0] not in the_big_ugly_list):
-                        print("Successful")
-                        detail = self.__list_of_existing_resources[self.__list_of_existing.index(tuple_of_credentials)]
+                        print("Successful", self.__load_validation.keys())
 
-                        success = ["Success", detail, self.__zone]
-                        success_pack = self.create_message(success)
+                        if self.__load_validation['items'] is None:
+                            detail = self.__list_of_existing_resources[self.__list_of_existing.index(tuple_of_credentials)]
 
-                        self.successful_login(success_pack)
+                            success = ["Success", detail, self.__zone]
+                            success_pack = self.create_message(success)
+
+                            self.successful_login(success_pack)
+                        else:
+                            success = ["Success", self.__load_validation.get("items"), self.__zone]
+                            success_pack = self.create_message(success)
+
+                            self.successful_login(success_pack)
                         return True
 
                     else:

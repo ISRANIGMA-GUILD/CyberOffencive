@@ -106,12 +106,14 @@ class LoadBalancer:
             'Server 4': 0,
             'Server 5': 0
         }
+
         self.__total = 0
 
         self.__list_of_banned_users = []
         self.__list_of_existing_credentials = []
 
         self.__list_of_existing_resources = []
+        self.__all_users = []
         print("Load balancer setup complete. Listening for server connections...")
 
     def run(self):
@@ -119,7 +121,12 @@ class LoadBalancer:
 
         """
         print("NUMBER_OF_SERVERS")
-
+        self.__list_of_existing_credentials, self.__list_of_existing_resources = self.organize_info(self.receive_info()[0], self.receive_info()[1], self.receive_info()[2])
+        self.__list_of_banned_users = [[self.__list_of_existing_credentials[i][0],
+                                        self.__list_of_existing_credentials[i][1],
+                                        self.__list_of_existing_credentials[i][0]]
+                                       for i in range(0, len(self.__list_of_existing_resources))
+                                       if self.__list_of_existing_resources[i][0] == "banned"]
         while True:
             try:
                 self.accept_connections()
@@ -162,6 +169,8 @@ class LoadBalancer:
 
         self.__banned_ips = [vital_info[0] for vital_info in ip_info]
         self.__banned_macs = [vital_info[1] for vital_info in ip_info]
+        print(list_of_existing_credentials)
+        self.__all_users = [cred[0] for cred in list_of_existing_credentials]
 
         return list_of_existing_credentials, list_of_existing_resources
 
@@ -226,6 +235,7 @@ class LoadBalancer:
                     if len(self.servers) < len(self.server_names):
                         # Assign server based on its connection order
                         assigned_zone = 'Zone' + str(len(self.servers) + 1)
+
                     else:
                         print("All zones are occupied. No more connections are expected.")
                         connection.close()
@@ -233,10 +243,11 @@ class LoadBalancer:
 
                     self.server_zone_map[assigned_zone] = {'address': addr}
                     print(f"Connection added to {assigned_zone}: {connection}")
+
                     print("Current state of server_zone_map:", self.server_zone_map)
                     print(self.server_zone_map[assigned_zone])
-                    print("lo")
 
+                    print("lo")
                     self.selector.register(connection, selectors.EVENT_READ, self.service_connection)
 
         except socket.timeout as e:
@@ -319,7 +330,6 @@ class LoadBalancer:
         :param mask:
         """
 
-        #  if mask & selectors.EVENT_READ:
         try:
             sock.settimeout(0.003)
             recv_data = sock.recv(16000)
@@ -329,7 +339,7 @@ class LoadBalancer:
                 client_info = pickle.loads(recv_data)
 
                 print("Data received:", client_info)
-                if client_info['message_status'] == 'wrong_password':
+                if client_info['message_status'] == 'wrong_password': ###Wait the other servers already know?????
                     if client_info['server_name'] and client_info['credentials']:
                         creds = client_info['credentials']
                         server_name = client_info['server_name']
@@ -337,13 +347,20 @@ class LoadBalancer:
 
                 elif client_info['message_status'] == 'add':
                     if self.uncloned(client_info):
+                        print("come on you fucking retard!")
                         self.add_client_credentials(client_info)
-                        message = {'message_status': 'do_add'}
 
-                        print(f"sent to server{message}")
+                        if client_info['credential'][0] in self.__all_users:
+                            index = self.__list_of_existing_credentials.index(client_info['credential'])
+                            message = {'message_status': 'do_add', 'items': self.__list_of_existing_resources[index]}
+
+                        else:
+                            message = {'message_status': 'do_add'}
+
+                        print(f"sent to server{message}", self.__all_users)
                         sock.send(pickle.dumps(message))
 
-                    else:
+                    elif not self.uncloned(client_info):
                         message = {'message_status': 'dont'}
                         print(f"sent to server{message}")
                         sock.send(pickle.dumps(message))
@@ -363,11 +380,22 @@ class LoadBalancer:
                         # weapons = client_info.get('weapons', 'None')  # Default weapons if not provided
                         location = client_info['location']  # Default location if not provided
                         if username in self.__session_users:
-                            self.__session_users.append(username)
+                          #  self.__session_users.remove(username)
+                          #  self.__
                             self.__credentials.append({
                                 'username': username, 'password': password, 'status': status, 'items': items})
-
-                        self.update_client_database(username, password, status, items)
+                        print("smaller or equal to", self.__session_users, self.__weapons)
+                       # if len(self.__session_users) > len(self.__weapons):
+                         #   self.__weapons.append(items)
+                   #     self.update_client_database(username, password, status, items)
+                        the_servers = [self.__credentials_server1, self.__credentials_server2,
+                                       self.__credentials_server3, self.__credentials_server4,
+                                       self.__credentials_server5]
+                        local_user_list = list(filter(lambda x: username in x, the_servers))
+                        if local_user_list:
+                            stuff = local_user_list[0]
+                            if client_info.get("who") in stuff:
+                                local_user_list.pop(local_user_list.index(client_info.get("who")))
                         self.update_database()
 
                         target_server = self.determine_server(location)
@@ -382,6 +410,19 @@ class LoadBalancer:
                                 print("No appropriate server found for the given location.")
 
                     elif client_info['message_status'] == 'total':
+                        if "who" in list(client_info.keys()):
+                            if client_info.get("number_total") < self.__number_of_clients_in_all[client_info.get("server_name")]:
+                                print("removing")
+                                the_servers = [self.__credentials_server1, self.__credentials_server2,
+                                               self.__credentials_server3, self.__credentials_server4,
+                                               self.__credentials_server5]
+                                local_user_list = list(filter(lambda x: client_info.get("who") in x, the_servers))[0]
+
+                                local_user_list.pop(local_user_list.index(client_info.get("who")))
+                                if 'items' in client_info.keys():
+                                    self.__weapons.append(client_info.get('items'))
+                                self.update_database()
+
                         self.__number_of_clients_in_all[client_info.get("server_name")] = client_info.get("number_total")
                         self.__total = sum(list(self.__number_of_clients_in_all.values()))
                         print(self.__total)
@@ -438,12 +479,6 @@ class LoadBalancer:
         :param server_name:
         """
 
-        self.__list_of_existing_credentials, self.__list_of_existing_resources = self.organize_info(self.receive_info()[0], self.receive_info()[1], self.receive_info()[2])
-        self.__list_of_banned_users = [[self.__list_of_existing_credentials[i][0],
-                                        self.__list_of_existing_credentials[i][1],
-                                        self.__list_of_existing_credentials[i][0]]
-                                       for i in range(0, len(self.__list_of_existing_resources))
-                                       if self.__list_of_existing_resources[i][0] == "banned"]
         cred = self.get_server_credentials(server_name)
         login = Login(sock, self.__list_of_existing_credentials, self.__list_of_existing_resources, cred,
                       self.__new_credentials, len(cred)
@@ -472,13 +507,20 @@ class LoadBalancer:
         :return:
         """
 
+        the_servers = [self.__credentials_server1, self.__credentials_server2,
+                       self.__credentials_server3, self.__credentials_server4,
+                       self.__credentials_server5]
+        print(the_servers)
+
         if message:
+            print(message['credential'], message['server_name'])
             if message['server_name'] and message['credential']:
                 if (message['credential'] not in self.__credentials_server1 and
                     message['credential'] not in self.__credentials_server2 and
                     message['credential'] not in self.__credentials_server3 and
                     message['credential'] not in self.__credentials_server4 and
                     message['credential'] not in self.__credentials_server5):
+
                     return True
 
                 else:
@@ -486,6 +528,8 @@ class LoadBalancer:
 
     def add_client_credentials(self, message):
         if message:
+            if message['credential'][0] not in self.__session_users:
+                self.__session_users.append(message['credential'][0])
             if message['server_name'] == 'Server 1' and message['credential']:
                 self.__credentials_server1.append(message['credential'])
             if message['server_name'] == 'Server 2' and message['credential']:
@@ -558,6 +602,7 @@ class LoadBalancer:
         """
 
         """
+        print("HELLO DARKNESS MY FRIEND")
         for index in range(0, len(self.__new_credentials)):
             self.__username_database.insert_no_duplicates(values=[self.__new_credentials[index][0]],
                                                           no_duplicate_params=['Username'])
@@ -568,7 +613,7 @@ class LoadBalancer:
         print(self.__session_users, self.__weapons)
         for index in range(0, len(self.__session_users) - 1):
             if self.__weapons:
-                if self.__weapons[index] is not None:
+                if index < len(self.__weapons):
                     weapons = (str(self.__weapons[index]["A"]) + ", " + str(self.__weapons[index]["B"]) + ", "
                                + str(self.__weapons[index]["S"]))
                     items = (str(self.__weapons[index]["HPF"]) + ", " + str(self.__weapons[index]["EF"]) + ", " +
