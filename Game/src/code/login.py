@@ -1,5 +1,4 @@
 import socket
-import time
 import pickle
 
 
@@ -47,37 +46,26 @@ class Login:
       #      self.__details["Connected"] = 1
        #     return
 
-        except ConnectionResetError:
+        except ConnectionResetError as e:
             print("Client", self.__number + 1, self.__details["Client"].getpeername(),
-                  "unexpectedly left")
+                  "unexpectedly left", e)
             self.__details["Connected"] = 1
-
-            print("Waited")
             return
 
-        except AttributeError:
-            print("start plssss")
+        except AttributeError as e:
+            print(e)
             return
 
         except socket.timeout:
-            print(self.__details["Timer"])
-            elapsed = time.time() - self.__details["Timer"]
-
-            hour, minutes, seconds = time.strftime("%Hh %Mm %Ss",
-                                                   time.gmtime(elapsed)).split(' ')
-            self.__details["Timer"] = (self.__details["Timer"], minutes)
-
-            if '01' in minutes:
-                self.__details["Connected"] = 1
 
             return
 
-        except KeyboardInterrupt:
-            print("Server will end service")
+        except KeyboardInterrupt as e:
+            print("Server will end service", e)
             self.__details["Connected"] = 1
             return
 
-    def send_credential_to_load_balencer(self, credential, sock):
+    def send_credential_to_load_balencer(self, credential):
         """
         check if the client exsist in anothe server and if he do he wont add and connect him
         Args:
@@ -85,19 +73,19 @@ class Login:
         """
         message = {'message_status': 'add', 'credential': credential, 'server_name': self.__server_name}
         self.__load_balance_socket.send(pickle.dumps(message))
-        if self.receive_data_from_load_balancer(sock):
+        if self.receive_data_from_load_balancer():
             return True
         else:
             return False
 
-    def receive_data_from_load_balancer(self, sock):
+    def receive_data_from_load_balancer(self):
         """
 
         """
 
         try:
             self.__load_balance_socket.settimeout(0.003)
-            data = self.__load_balance_socket.recv(1024)
+            data = self.__load_balance_socket.recv(16000)
             print(data, "this is it you little stupid python")
 
             if data:
@@ -124,7 +112,7 @@ class Login:
         else:
 
             tuple_of_credentials = self.__details["Credentials"]
-            if self.send_credential_to_load_balencer(tuple_of_credentials, self.__load_balance_socket):
+            if self.send_credential_to_load_balencer(tuple_of_credentials):
                 if "items" in list(self.__load_validation.keys()):
                     #success = ["Success", self.__load_validation.get("items"), self.__zone]
                  #   success_pack = pickle.dumps(success)
@@ -136,7 +124,7 @@ class Login:
             else:
                 print("wjawdfdsfgdg")
                 self.failed_login()
-
+                self.__load_validation = {}
                 return
 
             if self.__credentials.count(self.__details["Credentials"]) <= 1:
@@ -153,18 +141,20 @@ class Login:
                        and tuple_of_credentials[0] not in the_big_ugly_list):
                         print("Successful", self.__load_validation.keys())
 
-                        if self.__load_validation['items'] is None:
+                        if 'items' not in list(self.__load_validation.keys()):
                             detail = self.__list_of_existing_resources[self.__list_of_existing.index(tuple_of_credentials)]
 
                             success = ["Success", detail, self.__zone]
                             success_pack = self.create_message(success)
 
                             self.successful_login(success_pack)
+                            self.__load_validation = {}
                         else:
                             success = ["Success", self.__load_validation.get("items"), self.__zone]
                             success_pack = self.create_message(success)
 
                             self.successful_login(success_pack)
+                            self.__load_validation = {}
                         return True
 
                     else:

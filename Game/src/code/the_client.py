@@ -49,7 +49,9 @@ class Client:
 
         self.__user_box.w = self.__o_width
         self.__pass_box.w = self.__i_width
+
         self.__login_thingy.w = self.__m_width
+        self.__current_server_ip = ""
 
         # self.v = self.player.get_volume()
 
@@ -64,6 +66,8 @@ class Client:
         screen = pygame.display.set_mode((1920, 1080))
 
         clock = pygame.time.Clock()
+        self.__current_server_ip = server_ip
+
         m = self.connect_to_socket(server_ip, server_port, screen, clock)
 
         if m == 1:
@@ -484,13 +488,6 @@ class Client:
             screen.blit(start_button, (10, 430))
             pygame.display.update()
 
-            self.__timer = time.time() - self.__start_time
-            hour, minutes, seconds = time.strftime("%Hh %Mm %Ss",
-                                                   time.gmtime(self.__timer)).split(' ')
-            if '01' in minutes:
-                self.__the_client_socket.close()
-                return 1, 1
-
             if entering_username:
                 if len(username) < 10:
                     self.draw_text(username, self.font, BLACK, screen, 20, 300)
@@ -832,6 +829,11 @@ class Client:
         except ValueError as e:
             print(e)
             return False
+
+    def get_prev_server_ip(self):
+
+        return self.__current_server_ip
+
 
 def main():
     """

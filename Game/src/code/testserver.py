@@ -35,43 +35,40 @@ class Server:
     def __init__(self, main_data_base, login_data_base, ips_data_base, number, username_database,
                  stat_data_base, net_base):
         self.__load_balance_socket = EncryptClient("Secret", number, "load_balancer").run()
-
         self.__load_balance_ip = self.get_load_balancer_ip()
-        print(self.__load_balance_ip)
+
         self.__load_balance_port = 1800
-
         self.__main_data_base = main_data_base
+
         self.__login_data_base = login_data_base
-
         self.__ips_data_base = ips_data_base
+
         self.__username_database = username_database
-
         self.__stat_database = stat_data_base
+
         self.__net_base = net_base
-
         self.__sockets = [EncryptServer("Servers", port).run() for port in [6921, 8843, 8820]]
+
         self.__number_of_clients = 1
-
         self.__banned_ips = []
+
         self.__banned_macs = []
-
         self.__list_of_banned_users = []
+
         self.__new_credentials = []
-
         self.__all_details = []
+
         self.__credentials = []
-
         self.__locations = []
+
         self.__chat = []
-
         self.__status = []
+
         self.__items = []
-
         self.__hp = []
-        self.__energy = []
 
+        self.__energy = []
         self.__session_users = []
-     #   self.__to_send = []
 
         self.__data_to_send = []
         self.__client_sockets = []
@@ -106,9 +103,9 @@ class Server:
         """
 
         # """:TODO(almost finished): Try-except on everything """#
-        # """:TODO: Make a whitelist of processes NO MATTER CLIENT FRIENDLY or NOT"""#
         # """:TODO(almost finished): Database updates correctly even if server is closed"""#
         # """:TODO(??finished????): If banned you can't connect
+        # """:TODO: If server closes send all clients to load balancer
         # """:TODO(??finished????): Do the big merge, finish everything today
 
         info, resource_info, ip_info = self.receive_info()
@@ -125,7 +122,6 @@ class Server:
         print("Server is up and running")
 
         self.connect_to_load_socket()
-        print("the zone", self.__zone)
         self.set_ids()
         self.set_locations()
 
@@ -288,25 +284,36 @@ class Server:
                 print("Socket is closed. Reinitializing socket.")
                 self.initialize_load_balance_socket()  # Method to reinitialize the socket
                 print("Socket reinitialized.", message)
+
             print(f"Message sent to Load Balancer1: {message}")
             self.__load_balance_socket.send(pickle.dumps(message))
             print(f"Message sent to Load Balancer: {message}")
-      #  except Exception as e:
-          #  print(f"Failed to send message: {e}")
-           # if isinstance(e, socket.error):
-            #    print("Attempting to reinitialize socket after send failure.")
-            #    self.initialize_load_balance_socket()
+
+        except Exception as e:
+            print(f"Failed to send message: {e}")
+
+            if isinstance(e, socket.error):
+                print("Attempting to reinitialize socket after send failure.")
+                self.initialize_load_balance_socket()
+
         except KeyboardInterrupt as e:
             print(e)
 
     def initialize_load_balance_socket(self):
+        """
+
+        """
+
         try:
             if self.__load_balance_socket:
                 self.__load_balance_socket.close()
+
             numbers = TheNumbers().run()
             self.__load_balance_socket = EncryptClient("Secret", numbers, "load_balancer").run()
+
             self.__load_balance_socket.connect((self.__load_balance_ip, self.__load_balance_port))
             print("Load balancer socket reinitialized and connected.")
+
         except Exception as e:
             print(f"Failed to reinitialize and connect load balancer socket: {e}")
             self.__load_balance_socket = None
@@ -320,7 +327,6 @@ class Server:
         """
 
         if temp:
-            print("hi")
             self.send_message_to_load_balancer({'message_status': 'move', 'type': 'out_of_zone',
                                                 'location': client_location, 'credentials': self.__credentials[index],
                                                 'status': self.__status[index],
@@ -368,28 +374,25 @@ class Server:
 
         try:
             self.__load_balance_socket.settimeout(0.003)
-            data = self.__load_balance_socket.recv(1024)
+            data = self.__load_balance_socket.recv(16000)
 
             if data:
                 if pickle.loads(data)['message_status'] == 'do_add':
                     return True
+
                 elif pickle.loads(data)['message_status'] == 'dont':
                     return False
+
                 elif pickle.loads(data)['message_status'] == 'move':
-                    # (self.__locations[self.__client_sockets.index(sock)][0] < self.__zone[list(self.__zone.keys())[0]] or
-                    # self.__locations[self.__client_sockets.index(sock)][0] > self.__zone[list(self.__zone.keys())[1]] or
-                    # self.__locations[self.__client_sockets.index(sock)][1] < self.__zone[list(self.__zone.keys())[2]] or
-                    # self.__locations[self.__client_sockets.index(sock)][1] > self.__zone[list(self.__zone.keys())[3]])):
-                    print("wait.................")
+
                     new_client_info = pickle.loads(data)
                     self.send_client_to_other_server(new_client_info, sock)
 
         except socket.timeout as e:
-           # print("timeout load balancer", e)
             pass
 
-       # except Exception as e:
-        #    print("Failed to receive data from load balancer:", e)
+        except Exception as e:
+            print("Failed to receive data from load balancer:", e)
             # self.__load_balance_socket.close()
 
     def send_client_to_other_server(self, client_info, sock):
@@ -519,10 +522,9 @@ class Server:
                 self.__load_balance_socket.close()
                 break
 
-         #   except Exception as e:
-           #     print("The general error", e)
-           #     self.update_database()
-           #     pass
+            except Exception as e:
+                print("The general error", e)
+                self.update_database()
 
         print("FINISH")
 
@@ -610,12 +612,10 @@ class Server:
                              self.__all_details))[0]
         index = self.__all_details.index(target)
 
-        # print("pre index", index)
         passw = GetPassword(128).run()
-
         my_pass = Verifier(256).run()
-        connection, client_address = current_socket.accept()
 
+        connection, client_address = current_socket.accept()
         self.check_for_banned(client_address, index)
 
         try:
@@ -631,9 +631,7 @@ class Server:
                 connection.send(pickle.dumps([my_pass]))
                 print("New client joined!", client_address)
 
-              #  self.__to_send.append((current_socket, "yay"))
                 self.check_for_banned(client_address, index)
-
                 self.__client_sockets.append(connection)
 
                 self.__all_details[index]["Client"] = connection
@@ -650,7 +648,7 @@ class Server:
             return
 
         except pickle.UnpicklingError as e:
-            print("BAN!", e, Ether().src)
+            print("BAN!", e)
             self.ban_client(client_address)
             return
 
@@ -721,7 +719,6 @@ class Server:
 
                     (self.__all_details[index], self.__credentials, self.__list_of_existing_existing_credentials,
                      self.__list_of_existing_resources, self.__new_credentials) = loging.run()
-                 #   self.__to_send.append((current_socket, data))
 
                     if self.__all_details[index].get("Credentials") is not None:
 
@@ -734,10 +731,11 @@ class Server:
                     else:
                         print("Connection closedg you forken dummy", data, self.__all_details[index])
                         self.__all_details[index]["Connected"] = 1
+
                         if len(data) >= 3:
                             self.__items[index] = data[2]
+
                         self.update_database()
-                        #     self.__weapons[index]
                         current_socket.send(pickle.dumps(["OK"]))
 
                         self.eliminate_socket(index)
@@ -745,7 +743,6 @@ class Server:
 
         except socket.timeout as e:
             print("Still waiting for login from client", index, e)
-            pass
 
         except ssl.SSLEOFError as e:
             print("Connection closed", e)
@@ -776,7 +773,7 @@ class Server:
         try:
             current_socket.settimeout(0.003)
             data = pickle.loads(current_socket.recv(MAX_MSG_LENGTH))
-            print(data)
+
             # If client has quit save their data
             if "EXIT" in data[0]:
                 print("Connection closedg")
@@ -802,7 +799,6 @@ class Server:
 
                 self.__locations[index] = (self.__session_users[index], data[0])
                 temp = True ########################################################################### for testing
-                print("hello")
                 self.handle_client_location(self.__locations[index][1], temp, index)
 
                 if data[1] is not None and len(data[1]) > 0:
@@ -927,11 +923,9 @@ class Server:
 
         except ConnectionResetError as e:
             print("not  good", e)
-            pass
 
         except ssl.SSLError as e:
             print("not  good", e)
-            pass
 
     def print_client_sockets(self, items=None):
         """
@@ -993,9 +987,6 @@ class Server:
             print(e)
             return
 
-        finally:
-            return
-
     def update_database(self):
         """
 
@@ -1026,7 +1017,6 @@ class Server:
         """
 
         m = [loc for loc in self.__item_locations if loc[1] in self.__locations]
-        # print("the equal", m, self.__locations)
 
         if m:
             for collected in m:
@@ -1040,7 +1030,6 @@ class Server:
         """
 
         m = [loc for loc in self.__enemy_locations]
-        # print("the equal", m, self.__enemy_locations)
 
         if m:
             g = EnemyManager(self.collision_grid)
@@ -1093,12 +1082,13 @@ class Server:
         """
 
         ip_address = os.getenv("LOAD_BALANCER_IP")
-        print(ip_address, "ip address")
 
         if ip_address:
             return ip_address
+
         elif ServerDiscoveryClient().discover_server():
             return ServerDiscoveryClient().discover_server()
+
         else:
             return socket.gethostbyname(socket.gethostname())
 

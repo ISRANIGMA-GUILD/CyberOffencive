@@ -364,16 +364,14 @@ class Game:
             data3 = self.network.receive_location()
 
             data = [data1, data3]
-       #     print("the data", data)
             success_data = self.which_is_it(data)
+
             if success_data == 1 or success_data == [[[], [], [], []], []]:
                 return
 
             self.__enemies, self.__weapons, self.__killed_enemies, self.__collected_items_ids_server = success_data[0][
                 0], success_data[0][1], success_data[0][2], success_data[0][3]
             self.__other_client = success_data[1]
-
-            print("hey", self.__other_client)
 
             if self.__other_client:
                 if "EXIT" not in self.__other_client[1]:
@@ -394,24 +392,17 @@ class Game:
 
             if data:
                 existing_data = list(filter(lambda x: x is not None, data))
-               # print("wwww", existing_data)
 
                 if existing_data:
                     do_i_migrate = list(filter(lambda x: x[0] == 3, existing_data))
-                   # print("migrate", do_i_migrate)
                     if 3 in do_i_migrate:
                         print("do i move anyware?", do_i_migrate)
 
                     if do_i_migrate:
-                      #  print("do ! ")
                         self.__ip = do_i_migrate[0][1][1]
-                      #  print("stupid stupid absoloute stupid", self.__ip)
-
-                     #   print("hi")
-
                         list_of_details = ["EXIT", 1, self.items, "q"]
-                        self.disconnect_from_server(list_of_details)
 
+                        self.disconnect_from_server(list_of_details)
                         self.network = Client()
 
                         while 1:
@@ -422,10 +413,10 @@ class Game:
                             res = self.network.check_success(creds)
 
                             if res[0] == "Success":
-                              #  print("What???????")
                                 break
 
                             else:
+
                                 self.disconnect_from_server(list_of_details)
                                 self.network = Client()
                         return
@@ -592,7 +583,6 @@ class Game:
 
             [BlueEnergyFruit(loc[1], [self.level.visible_sprites],loc[0])
              for loc in list(filter(lambda person: "BEF" in person[0], weapons)) if loc[0] not in [item.id for item in self.level.picked_up] and loc[0] not in items_ids]
-
 
             for item in items_:
                 if item.id in self.__collected_items_ids_server:
