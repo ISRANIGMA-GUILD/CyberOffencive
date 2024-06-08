@@ -98,6 +98,7 @@ class Server:
 
         self.__id = []
         self.__items_ids = []
+        self.__extra_items_ids = []
         self.__data_storage = []
 
     def run(self):
@@ -180,6 +181,10 @@ class Server:
             item_is = f'{i}'
             self.__items_ids.append(item_is)
 
+        for i in range(1000, 1101):
+            extra_is = f'{i}'
+            self.__extra_items_ids.append(extra_is)
+
     def set_locations(self):
         """
         Updates list of enemy locations, adds enemies if there are less than 100 enemies in total
@@ -215,6 +220,15 @@ class Server:
             for identity in unused:
                 item_is = f'{choice(self.__w_possabilities)}{identity}'
                 self.__item_locations.append((item_is, (randint(1000, 10000), randint(1000, 10000))))
+
+    def create_extra_items(self, position:tuple ,number=2):
+        """
+
+        """
+
+        for i in range(0, number):
+            extra_is = f'{choice(self.__w_possabilities)}{choice(self.__extra_items_ids)}'
+            self.__item_locations.append((extra_is, (position[0] + randint(-20, 20), position[1] + randint(-20, 20))))
 
     def connect_to_load_socket(self):
         """
@@ -860,13 +874,15 @@ class Server:
                             print("kill him")
                             self.__enemy_locations.remove(stuff)
                             self.__killed_enemies.append(data[1])
+                            self.create_extra_items(stuff[1])
+                            
 
                 elif data[0] == "collected":
                     for stuff in self.__item_locations:
                         if stuff[0] == data[1]:
                             print("collected")
                             self.__item_locations.remove(stuff)
-                            self.__collected_items.append(data[1])      
+                            self.__collected_items.append(data[1])
 
             if len(data) == 5:
                 weapon = data[4]
