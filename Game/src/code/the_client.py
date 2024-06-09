@@ -1,6 +1,7 @@
 import pickle
 import socket
 from creepy import *
+import time
 from dnssec_client import *
 import pygame
 import sys

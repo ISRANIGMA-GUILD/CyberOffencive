@@ -122,6 +122,7 @@ class Server:
         print("Server is up and running")
 
         self.connect_to_load_socket()
+        print("Server connected to the load balencer")
         self.set_ids()
         self.set_locations()
 
@@ -287,7 +288,6 @@ class Server:
 
             print(f"Message sent to Load Balancer1: {message}")
             self.__load_balance_socket.send(pickle.dumps(message))
-            print(f"Message sent to Load Balancer: {message}")
 
         except Exception as e:
             print(f"Failed to send message: {e}")
@@ -1078,6 +1078,7 @@ class Server:
                 sock.settimeout(0.003)
 
                 data = pickle.loads(sock.recv(1024))
+                temp = self.__session_users[self.__client_sockets.index(sock)]
                 self.__items[self.__client_sockets.index(sock)] = data
 
                 self.update_database()
