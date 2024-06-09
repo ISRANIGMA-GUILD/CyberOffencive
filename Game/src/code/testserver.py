@@ -233,7 +233,9 @@ class Server:
 
         while 1:
             try:
+                print("trying to connect to load")
                 self.__load_balance_socket.connect((self.__load_balance_ip, self.__load_balance_port))
+                print("connected to load balancer")
                 their_pass = Verifier(480).run()
 
                 self.__load_balance_socket.send(pickle.dumps([GetPassword(460).run()]))
@@ -250,6 +252,7 @@ class Server:
                     g = 0
 
                     # Receive configuration data from the load balancer
+                    self.__load_balance_socket.settimeout(0.5)
                     data = self.__load_balance_socket.recv(1024)
                     configuration = pickle.loads(data)
 
