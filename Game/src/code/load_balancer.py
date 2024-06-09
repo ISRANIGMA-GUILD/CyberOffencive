@@ -227,7 +227,7 @@ class LoadBalancer:
                     self.servers.append(connection)
                     assigned_zone = self.server_names[len(self.servers) % len(self.server_names)]
 
-                    self.server_zone_map[assigned_zone] = connection  # Map server to its zone
+                    # self.server_zone_map[assigned_zone] = connection  # Map server to its zone
                     print("la")
 
                     self.send_server_configuration(connection, self.get_name())
@@ -235,7 +235,7 @@ class LoadBalancer:
 
                     if len(self.servers) < len(self.server_names):
                         # Assign server based on its connection order
-                        assigned_zone = 'Zone ' + str(len(self.servers))
+                        assigned_zone = 'Zone' + str(len(self.servers))
 
                     else:
                         print("All zones are occupied. No more connections are expected.")
@@ -549,6 +549,8 @@ class LoadBalancer:
         """
         x = client_info[0]
         y = client_info[1]
+        print(f"x {x} y {y}")
+        print(self.server_zone_map)
 
         buffer_zone_1 = self.zone_buffer['ZoneBuffer1']
         buffer_zone_2 = self.zone_buffer['ZoneBuffer2']
@@ -558,6 +560,7 @@ class LoadBalancer:
                 (buffer_zone_2['min_x2'] <= x <= buffer_zone_2['max_x2'] and buffer_zone_2['min_y2'] <= y <=
                  buffer_zone_2['max_y2']):
             print("Client assigned to buffer server based on buffer zone coordinates.")
+            print(self.server_zone_map['Zone5'])
             return self.server_zone_map['Zone5']  # Return the buffer server
 
         else:
@@ -566,9 +569,11 @@ class LoadBalancer:
         print("no buffer")
 
         for zone_name, bounds in self.zones.items():
-            if (bounds[list(bounds.keys())[0]] <= x <= bounds[list(bounds.keys())[1]] and
-                    bounds[list(bounds.keys())[2]] <= y <= bounds[list(bounds.keys())[3]]):
-
+            print(f" bound n {bounds['min_x']}")
+            print(f" bound x {bounds['max_x']}")
+            print(f" boundy n {bounds['min_y']}")
+            print(f" boundy x {bounds['max_y']}")
+            if bounds['min_x'] <= x <= bounds['max_x'] and bounds['min_y'] <= y <= bounds['max_y']:
                 zone_data = self.server_zone_map[zone_name]
                 if zone_data:
                     if 'address' in list(zone_data.keys()):
