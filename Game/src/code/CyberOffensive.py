@@ -223,14 +223,14 @@ class Game:
                 pygame.quit()
                 sys.exit()
 
-            except (Exception, KeyError) as e:
-                print(e)
-                if self.__game_state == "continue":
-                    list_of_details = ["EXIT", 1, self.items]
-                    self.disconnect_from_server(list_of_details)
+          #  except (Exception, KeyError) as e:
+           #     print("here????", e)
+            #    if self.__game_state == "continue":
+             #       list_of_details = ["EXIT", 1, self.items]
+              #      self.disconnect_from_server(list_of_details)
 
-                pygame.quit()
-                sys.exit()
+               # pygame.quit()
+             #   sys.exit()
 
     def receive_the_many_goods(self, ran):
         """
@@ -238,7 +238,7 @@ class Game:
         :param ran:
         """
 
-        if len(ran) > 1 and type(ran[1]) is not dict:
+        if len(ran) > 1 and type(ran[1]) is not dict and not self.contains_dictionary(ran[1]):
             if ran[1][1] is not None:
                 self.__zone = ran[2]
                 print("The zone", self.__zone)
@@ -308,17 +308,29 @@ class Game:
             loc = self.find_zone_spawn()
             self.level.spawn_the_p(loc)
 
+    def contains_dictionary(self, lst):
+        return any(isinstance(item, dict) for item in lst)
+
     def find_zone_spawn(self):
         """
 
         """
+        if type(self.__zone) is tuple or type(self.__zone) is list:
+            the_zones = [list(self.__zone[0].keys()), list(self.__zone[1].keys())]
+            spawner = list(filter(lambda x: (self.__zone[0].get(the_zones[0][0]) <= choice(x)[0] <= self.__zone[0].get(the_zones[0][1])
+                            and self.__zone[0].get(the_zones[0][2]) <= choice(x)[1] <= self.__zone[0].get(the_zones[0][3]) or
+                            (self.__zone[1].get(the_zones[1][0]) <= choice(x)[0] <= self.__zone[1].get(the_zones[1][1]))
+                            and self.__zone[1].get(the_zones[1][2]) <= choice(x)[1] <= self.__zone[1].get(the_zones[1][3]))
+                            ,list(self.__possible_spawns.values())))
 
-        the_zones = list(self.__zone.keys())
-        spawner = list(filter(lambda x: self.__zone.get(the_zones[0]) <= choice(x)[0] <= self.__zone.get(the_zones[1])
-                       and self.__zone.get(the_zones[2]) <= choice(x)[1] <= self.__zone.get(the_zones[3]),
-                       list(self.__possible_spawns.values())))
+            spawn = choice(spawner[0])
+        else:
+            the_zones = list(self.__zone.keys())
+            spawner = list(filter(lambda x: self.__zone.get(the_zones[0]) <= choice(x)[0] <= self.__zone.get(the_zones[1])
+                           and self.__zone.get(the_zones[2]) <= choice(x)[1] <= self.__zone.get(the_zones[3]),
+                           list(self.__possible_spawns.values())))
 
-        spawn = choice(spawner[0])
+            spawn = choice(spawner[0])
         return spawn
 
     def create_threads(self, game_lock, com_lock, div_lock):

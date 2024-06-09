@@ -366,7 +366,7 @@ class Client:
             return data
 
         except IndexError as e:
-            print(e)
+            print("oh really oh really ??????", e)
             return
 
         except ssl.SSLEOFError as e:

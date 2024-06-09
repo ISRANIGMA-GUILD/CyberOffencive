@@ -184,46 +184,87 @@ class Server:
         """
         Updates list of enemy locations, adds enemies if there are less than 100 enemies in total
         """
+        if self.__server_name != "Server 5":
+            locations = list(self.__zone.values())
 
-        locations = list(self.__zone.values())
+            if self.__enemy_locations:
+                used = [re.findall(r'\d+', i[0])[0] for i in self.__enemy_locations]
+                unused = list(filter(lambda x: x not in used, self.__id))
 
-        if self.__enemy_locations:
-            used = [re.findall(r'\d+', i[0])[0] for i in self.__enemy_locations]
-            unused = list(filter(lambda x: x not in used, self.__id))
+            else:
+                unused = self.__id
 
+            while len(self.__enemy_locations) < 101:
+
+                for identity in unused:
+                    enemy_is = f'{choice(self.__e_possabilities)}{identity}'
+                    if enemy_is in self.__killed_enemies:
+                        self.__killed_enemies.remove(enemy_is)
+                    self.__enemy_locations.append((enemy_is, (randint(locations[0], locations[1]),
+                                                              randint(locations[2], locations[3]))))
         else:
-            unused = self.__id
+            locations = [list(self.__zone[0].values()), list(self.__zone[1].values())]
 
-        while len(self.__enemy_locations) < 101:
+            if self.__enemy_locations:
+                used = [re.findall(r'\d+', i[0])[0] for i in self.__enemy_locations]
+                unused = list(filter(lambda x: x not in used, self.__id))
 
-            for identity in unused:
-                enemy_is = f'{choice(self.__e_possabilities)}{identity}'
-                if enemy_is in self.__killed_enemies:
-                    self.__killed_enemies.remove(enemy_is)
-                self.__enemy_locations.append((enemy_is, (randint(locations[0], locations[1]),
-                                                          randint(locations[2], locations[3]))))
+            else:
+                unused = self.__id
+
+            while len(self.__enemy_locations) < 101:
+
+                for identity in unused:
+                    enemy_is = f'{choice(self.__e_possabilities)}{identity}'
+                    if enemy_is in self.__killed_enemies:
+                        self.__killed_enemies.remove(enemy_is)
+
+                    chosen_range = choice(locations)
+                    self.__enemy_locations.append((enemy_is, (randint(chosen_range[0], chosen_range[1]),
+                                                              randint(chosen_range[2], chosen_range[3]))))
 
     def set_item_locations(self):
         """
         Updates list of item locations, adds enemies if there are less than 100 enemies in total
         """
+        if self.__server_name != "Server 5":
+            locations = list(self.__zone.values())
 
-        locations = list(self.__zone.values())
+            if self.__item_locations:
+                used = [re.findall(r'\d+', i[0])[0] for i in self.__item_locations]
+                unused = list(filter(lambda x: x not in used, self.__items_ids))
 
-        if self.__item_locations:
-            used = [re.findall(r'\d+', i[0])[0] for i in self.__item_locations]
-            unused = list(filter(lambda x: x not in used, self.__items_ids))
-        
+            else:
+                unused = self.__items_ids
+
+            while len(self.__item_locations) < 101:
+                for identity in unused:
+                    item_is = f'{choice(self.__w_possabilities)}{identity}'
+                    if item_is in self.__collected_items:
+                        self.__collected_items.remove(item_is)
+                    self.__item_locations.append((item_is, (randint(locations[0], locations[1]),
+                                                            randint(locations[2], locations[3]))))
+
         else:
-            unused = self.__items_ids
+            locations = [list(self.__zone[0].values()), list(self.__zone[1].values())]
 
-        while len(self.__item_locations) < 101:
-            for identity in unused:
-                item_is = f'{choice(self.__w_possabilities)}{identity}'
-                if item_is in self.__collected_items:
-                    self.__collected_items.remove(item_is)
-                self.__item_locations.append((item_is, (randint(locations[0], locations[1]),
-                                                        randint(locations[2], locations[3]))))
+            if self.__item_locations:
+                used = [re.findall(r'\d+', i[0])[0] for i in self.__item_locations]
+                unused = list(filter(lambda x: x not in used, self.__items_ids))
+
+            else:
+                unused = self.__items_ids
+
+            while len(self.__item_locations) < 101:
+                for identity in unused:
+                    item_is = f'{choice(self.__w_possabilities)}{identity}'
+
+                    if item_is in self.__collected_items:
+                        self.__collected_items.remove(item_is)
+
+                    chosen_range = choice(locations)
+                    self.__item_locations.append((item_is, (randint(chosen_range[0], chosen_range[1]),
+                                                            randint(chosen_range[2], chosen_range[3]))))
 
     def connect_to_load_socket(self):
         """
@@ -350,15 +391,15 @@ class Server:
         :param client_location:
         """
 
-        key = list(self.__zone.keys())[0]
         x, y = client_location
 
         if self.__server_name == 'Server 5':
-            zone_1 = self.__zone['ZoneBuffer']['min_x1'], self.__zone['ZoneBuffer']['max_x1'], \
-                self.__zone['ZoneBuffer']['min_y1'], self.__zone['ZoneBuffer']['max_y1']
+            print("is that a tuple?", self.__zone)
+            zone_1 = self.__zone[0]['min_x1'], self.__zone[0]['max_x1'], \
+                self.__zone[0]['min_y1'], self.__zone[0]['max_y1']
 
-            zone_2 = self.__zone['ZoneBuffer']['min_x2'], self.__zone['ZoneBuffer']['max_x2'], \
-                self.__zone['ZoneBuffer']['min_y2'], self.__zone['ZoneBuffer']['max_y2']
+            zone_2 = self.__zone[1]['min_x2'], self.__zone[1]['max_x2'], \
+                self.__zone[1]['min_y2'], self.__zone[1]['max_y2']
 
             if (zone_1[0] <= x <= zone_1[1] and zone_1[2] <= y <= zone_1[3]) or (
                     zone_2[0] <= x <= zone_2[1] and zone_2[2] <= y <= zone_2[3]):
@@ -542,9 +583,9 @@ class Server:
                 self.__load_balance_socket.close()
                 break
 
-            except Exception as e:
-                print("The general error", e)
-                self.update_database()
+       #     except Exception as e:
+        #        print("The general error", e)
+         #       self.update_database()
 
         print("FINISH")
 
