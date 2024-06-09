@@ -244,6 +244,7 @@ class Server:
                 data = pickle.loads(self.__load_balance_socket.recv(1024))
 
                 if data[0] != their_pass:
+                    print("wrong pass")
                     self.__load_balance_socket.close()
                     g = 0
 
