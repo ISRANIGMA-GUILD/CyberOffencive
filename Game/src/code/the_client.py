@@ -214,7 +214,7 @@ class Client:
                 self.__the_client_socket.send(pickle.dumps([GetPassword(128).run()]))
 
                 the_real_pass = Verifier(256).run()
-               # self.__the_client_socket.settimeout(0.05)
+                self.__the_client_socket.settimeout(0.05)
                 their_pass = pickle.loads(self.__the_client_socket.recv(MAX_MSG_LENGTH))
 
                 if their_pass[0] == "YOU ARE BANNED":
@@ -672,15 +672,15 @@ class Client:
             print("timedout", e)
             return
 
-      #  except ssl.SSLEOFError as e:
-        #    print("Oh", e)
-        #    message = ["EXIT", 1, private_data]
+        except ssl.SSLEOFError as e:
+            print("Oh", e)
+            message = ["EXIT", 1, private_data]
 
-         #   full_msg = self.create_message(message)
-         #   self.__the_client_socket.send(full_msg)
+            full_msg = self.create_message(message)
+            self.__the_client_socket.send(full_msg)
 
-          #  self.__the_client_socket.close()
-          #  return 1
+            self.__the_client_socket.close()
+            return 1
 
         except KeyboardInterrupt as e:
             print("Server is shutting down", e)

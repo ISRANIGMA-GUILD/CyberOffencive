@@ -1,4 +1,5 @@
 import socket
+import ssl
 from settings import *
 from DatabaseCreator import *
 from login import *
@@ -638,7 +639,7 @@ class Server:
         self.check_for_banned(client_address, index)
 
         try:
-            connection.settimeout(0.003)
+            connection.settimeout(0.05)
             their_pass = pickle.loads(connection.recv(MAX_MSG_LENGTH))
 
             if their_pass[0] != passw:
@@ -672,6 +673,10 @@ class Server:
             return
 
         except ConnectionResetError as e:
+            print(e)
+            connection.close()
+
+        except ssl.SSLError as e:
             print(e)
             connection.close()
 
