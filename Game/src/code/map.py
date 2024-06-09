@@ -76,10 +76,9 @@ class MapObject(pygame.sprite.Sprite): # No need to inherit from Tile
         super().__init__(groups)
 
         # If you want to use the width and height from Tiled data:
-        if obj.width and obj.height:
-            self.image = pygame.Surface((obj.width, obj.height))
-        else:
-            self.image = obj.image
+        self.image = obj.image
+        if obj.width != 64 or obj.height != 64 or obj.width != 128 or obj.height != 128:
+            self.image = pygame.transform.scale(self.image, (obj.width, obj.height))
 
         self.rect = self.image.get_rect(topleft=(obj.x, obj.y))
         self.obj = obj  # store a reference to pytmx object
