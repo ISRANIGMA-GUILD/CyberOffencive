@@ -31,7 +31,7 @@ PARAMETERS = {"PlayerDetails": ['Username', 'Password', 'Status', 'Items', 'Weap
 
 
 class Server:
-
+    ##TODO: Make sure time does not impact success or failure in login##
     def __init__(self, main_data_base, login_data_base, ips_data_base, number, username_database,
                  stat_data_base, net_base):
         self.__load_balance_socket = EncryptClient("Secret", number, "load_balancer").run()
@@ -312,6 +312,30 @@ class Server:
             self.__load_balance_socket = EncryptClient("Secret", numbers, "load_balancer").run()
 
             self.__load_balance_socket.connect((self.__load_balance_ip, self.__load_balance_port))
+            their_pass = Verifier(480).run()
+
+            self.__load_balance_socket.send(pickle.dumps([GetPassword(460).run()]))
+            self.__load_balance_socket.settimeout(0.5)
+
+            data = pickle.loads(self.__load_balance_socket.recv(1024))
+
+            if data[0] != their_pass:
+                self.__load_balance_socket.close()
+                g = 0
+
+            else:
+                print("Hi load balancer")
+                g = 0
+
+                # Receive configuration data from the load balancer
+                data = self.__load_balance_socket.recv(1024)
+                configuration = pickle.loads(data)
+
+                self.__server_name = configuration['server_name']
+                self.__zone = configuration['zone']
+
+                print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
+
             print("Load balancer socket reinitialized and connected.")
 
         except Exception as e:
@@ -326,11 +350,6 @@ class Server:
         :param client_location:
         """
 
-        if temp:
-            self.send_message_to_load_balancer({'message_status': 'move', 'type': 'out_of_zone',
-                                                'location': client_location, 'credentials': self.__credentials[index],
-                                                'status': self.__status[index],
-                                                'items': self.__items[index]})
         key = list(self.__zone.keys())[0]
         x, y = client_location
 
@@ -367,7 +386,7 @@ class Server:
                                                     'status': self.__status[index]
                                                     , 'items': self.__items[index]})
 
-    def receive_data_from_load_balancer(self, sock):
+    def receive_data_from_load_balancer(self, sock, index):
         """
 
         """
@@ -385,6 +404,8 @@ class Server:
 
                 elif pickle.loads(data)['message_status'] == 'move':
 
+                    temp = True  ########################################################################### for testing
+                    self.handle_client_location(self.__locations[index][1], temp, index)
                     new_client_info = pickle.loads(data)
                     self.send_client_to_other_server(new_client_info, sock)
 
@@ -619,7 +640,7 @@ class Server:
         self.check_for_banned(client_address, index)
 
         try:
-            connection.settimeout(0.003)
+            connection.settimeout(0.05)
             their_pass = pickle.loads(connection.recv(MAX_MSG_LENGTH))
 
             if their_pass[0] != passw:
@@ -768,7 +789,7 @@ class Server:
                              self.__all_details))[0]
         index = self.__all_details.index(target)
 
-        self.receive_data_from_load_balancer(self.__client_sockets[index])
+        self.receive_data_from_load_balancer(self.__client_sockets[index], index)
 
         try:
             current_socket.settimeout(0.003)

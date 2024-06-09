@@ -214,7 +214,7 @@ class Client:
 
                 the_real_pass = Verifier(256).run()
 
-                self.__the_client_socket.settimeout(0.003)
+                self.__the_client_socket.settimeout(0.05)
                 their_pass = pickle.loads(self.__the_client_socket.recv(MAX_MSG_LENGTH))
 
                 if their_pass[0] == "YOU ARE BANNED":
