@@ -6,8 +6,8 @@ from creepy import *
 from settings import *
 import os
 import re
-import win32gui
-import win32con
+# import win32gui
+# import win32con
 
 IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\LoginScreen\\menuscreen.png'
 BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\'

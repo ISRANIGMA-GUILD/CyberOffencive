@@ -235,7 +235,7 @@ class LoadBalancer:
 
                     if len(self.servers) < len(self.server_names):
                         # Assign server based on its connection order
-                        assigned_zone = 'Zone' + str(len(self.servers) + 1)
+                        assigned_zone = 'Zone ' + str(len(self.servers))
 
                     else:
                         print("All zones are occupied. No more connections are expected.")
