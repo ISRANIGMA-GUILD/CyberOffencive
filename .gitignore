@@ -184,3 +184,5 @@ cython_debug/
 *.pem
 *.key
 *.crt
+/dist
+CyberOffensive.rc

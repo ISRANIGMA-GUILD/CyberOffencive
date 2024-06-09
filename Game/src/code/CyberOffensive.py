@@ -4,12 +4,16 @@ from level import *
 from the_client import *
 from creepy import *
 from settings import *
+import hashlib
+import ctypes
+import sys
 import os
 import re
 import win32gui
 import win32con
 from blittable import Blittable
 from projectile import Projectile
+from securety_utils import *
 
 IMAGE = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\graphics\\LoginScreen\\menuscreen.png'
 BASE_PATH = 'C:\\Program Files (x86)\\Common Files\\CyberOffensive\\'
@@ -35,6 +39,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.tick = 0
         self.fps = 0
+        self.securety = CodeIntegrityChecker()
 
         self.level = Level()
         self.network = Client()
@@ -138,12 +143,9 @@ class Game:
         com_lock = threading.Lock()
 
         while 1:
-            #  v = self.player.get_volume()
-            #  v.SetMute(1, None)
-            #  v.SetMasterVolumeLevelScalar(1.0, None)
-            # self.gurgle()
-
             try:
+                self.securety.update()
+
                 for event in pygame.event.get():
                     if pygame.QUIT == event.type:
                         if self.__game_state == "continue":
@@ -212,15 +214,6 @@ class Game:
                     if self.tick % 60 == 0:
                         self.tick = 0
                     self.clock.tick(FPS)
-
-            except KeyboardInterrupt as e:
-                print(e)
-                if self.__game_state == "continue":
-                    list_of_details = ["EXIT", 1, self.items]
-                    self.disconnect_from_server(list_of_details)
-
-                pygame.quit()
-                sys.exit()
 
             except Exception as e:
                 print(e)
@@ -374,11 +367,9 @@ class Game:
 
             if data:
                 existing_data = list(filter(lambda x: x is not None, data))
-                #print(existing_data)
 
                 if existing_data:
                     do_i_migrate = list(filter(lambda x: x[0] == 3, existing_data))
-                    #print("migrate", do_i_migrate)
                     if 3 in do_i_migrate:
                         print("do i move anyware?", do_i_migrate)
 
@@ -443,8 +434,6 @@ class Game:
             self.__previous_status = self.level.player.status
 
             self.prev_loc = current_loc
-            # If we received new locations of enemies from server see if we need to spawn them,
-            # If they exist just update according to data in this message (enemies)
             self.spawn_enemies()
 
             self.spawn_weapons()
@@ -456,7 +445,6 @@ class Game:
             self.draw_chat()
 
     def direction_weapon(self, other_client):
-        #print(other_client)
         if 5 <= len(other_client) <= 6:
             if 'S' == other_client[4]:
                 if 'down' in other_client[2]:
@@ -554,8 +542,8 @@ class Game:
                 elif loc[0] in self.__the_enemies and new_id[0] not in self.__the_e_id:
 
                     self.__the_enemies.pop(self.__the_e_id.index(new_id[0]))
-                    self.__the_e_id.remove(new_id[0])  # make sure order of ids is the same as order of id numbers
-                
+                    self.__the_e_id.remove(new_id[0])
+
                 else:
                     self.__enemy_locs[self.__the_enemies.index(loc[0])] = loc[1]
 
@@ -572,7 +560,6 @@ class Game:
                     enemie.kill()
 
                 elif enemie.id not in self.__the_enemies:
-                    #fuck u python
                     print("kill")
                     self.network.kill_enemy(enemie.id)
 
@@ -582,7 +569,6 @@ class Game:
 
             for enemie in self.level.attackable_sprites:
                 if enemie.id in self.__killed_enemies: 
-                    # Remove from game state and network
                     self.__the_enemies.remove(enemie.id)
                     self.level.visible_sprites.remove(enemie)
                     self.level.attackable_sprites.remove(enemie)
@@ -602,7 +588,6 @@ class Game:
         """
 
         weapons = self.__weapons
-        #print (weapons)
         item_ids_server = [item[0] for item in weapons]
 
         hotbar_item_ids = [item for item in self.level.player.inventory.hotbar.get_ids()]
@@ -611,7 +596,6 @@ class Game:
         
         items_ = [item for item in self.level.visible_sprites if type(item) in whitelist and item not in self.level.picked_up and item.id not in hotbar_item_ids]
         items_ids = [item.id for item in self.level.visible_sprites if type(item) in whitelist and item not in self.level.picked_up and item.id not in hotbar_item_ids]
-        #print (items_)
 
         if weapons:
             [Axe(loc[1], [self.level.visible_sprites],loc[0])
@@ -777,12 +761,6 @@ class Game:
 
     def draw_text(self, text, color, surface, x, y):
         """
-
-        :param text:
-        :param color:
-        :param surface:
-        :param x:
-        :param y:
         """
 
         text_tobj = self.font_chat.render(text, 1, color)
@@ -793,9 +771,6 @@ class Game:
 
     def which_is_it(self, data):
         """
-
-        :param data:
-        :return:
         """
 
         stuff = [[], [],[],[]]
@@ -832,14 +807,13 @@ class Game:
         if self.__keys[pygame.K_m] or self.__using_chat:
             self.__using_chat = True
             self.level.using_chat = True
-            # Handle chat input (non-blocking)
+
             self._handle_chat_input()
         else:
             self.level.using_chat = False
 
-        # Update the chat UI periodically (in the main thread)
         current_time = time.time()
-        if current_time - self.last_chat_update_time > 0.05:  # Update every 50ms
+        if current_time - self.last_chat_update_time > 0.05:
             self.draw_chat_ui()
             self.last_chat_update_time = current_time
 
@@ -854,16 +828,15 @@ class Game:
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
-                    self.enter_key_timer = time.time()  # Start timer when Enter is pressed
+                    self.enter_key_timer = time.time()
                 elif event.key == pygame.K_BACKSPACE:
                     if self.__temp_message:
                         self.__temp_message = self.__temp_message[:-1]
                 else:
                     self.__temp_message += event.unicode
 
-                # Update the chat surface
-                self.chat_surface.fill((0, 0, 0))  # Clear the surface
-                self.draw_chat_messages(self.chat_surface)  # Draw messages on the surface
+                self.chat_surface.fill((0, 0, 0))
+                self.draw_chat_messages(self.chat_surface)
 
         # Handle Enter key press with a timer
         if self.enter_key_timer:
@@ -881,19 +854,16 @@ class Game:
     def draw_chat_ui(self):
         """Draws the chat UI on the screen."""
 
-        pygame.draw.rect(self.screen, (0, 255, 0), self.__input_box)  # Draw input box
+        pygame.draw.rect(self.screen, (0, 255, 0), self.__input_box)
 
-        # Blit the chat surface to the screen
         self.screen.blit(self.chat_surface, self.chat_surface_rect)
 
     def draw_chat_messages(self, surface):
         """Draws chat messages on the specified surface."""
 
-        # Draw the chat message area
-        pygame.draw.rect(surface, (0, 0, 0), self.__output_box)  # Clear output box
-        pygame.draw.rect(surface, (255, 215, 0), self.__output_o_box, 2)  # Draw outline
+        pygame.draw.rect(surface, (0, 0, 0), self.__output_box)
+        pygame.draw.rect(surface, (255, 215, 0), self.__output_o_box, 2)
 
-        # Draw messages in reverse order (newest at the bottom)
         if self.__other_messages is not None:
             if 0 < len(self.__temp_message) <= self.__prev_length:
                 self.draw_text(self.__temp_message, (255, 0, 0), surface, 10, 610)
@@ -1009,7 +979,7 @@ class Game:
                         self.network.close_connection()
                         break
 
-            except ssl.SSLError as e:
+            except Exception as e:
                 print("EXITED BECAUSE?", e)
                 break
 
@@ -1028,7 +998,6 @@ class Game:
         """
         self.level.player.ungurgle(original_player)
 
-        
 
 def main():
     abspath = os.path.abspath(__file__)
