@@ -959,9 +959,9 @@ class Server:
 
         for socks in eligables:
             try:
-                if ((0 <= abs(self.__locations[self.__client_sockets.index(socks["Client"])][0] -
+                if ((0 <= abs(self.__locations[self.__client_sockets.index(socks["Client"])][1][0] -
                             self.__locations[number][1][0]) <= 1500) or
-                    (0 <= abs(self.__locations[self.__client_sockets.index(socks["Client"])][1] -
+                    (0 <= abs(self.__locations[self.__client_sockets.index(socks["Client"])][1][1] -
                               self.__locations[number][1][1]) <= 1500)):
                     socks["Client"].send(pickle.dumps(message))
 
