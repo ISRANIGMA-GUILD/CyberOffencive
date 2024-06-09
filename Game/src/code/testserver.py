@@ -404,13 +404,6 @@ class Server:
 
                 elif pickle.loads(data)['message_status'] == 'move':
 
-<<<<<<< HEAD
-                  #  temp = True  ########################################################################### for testing
-               #     self.handle_client_location(self.__locations[index][1], temp, index)
-=======
-                    # temp = True  ########################################################################### for testing
-                    # self.handle_client_location(self.__locations[index][1], temp, index)
->>>>>>> ed47ea8cd1c749758a0f62ce89be32703f95d4f5
                     new_client_info = pickle.loads(data)
                     self.send_client_to_other_server(new_client_info, sock)
                     print("he did it")
