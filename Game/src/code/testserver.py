@@ -239,7 +239,7 @@ class Server:
                 their_pass = Verifier(480).run()
 
                 self.__load_balance_socket.send(pickle.dumps([GetPassword(460).run()]))
-                self.__load_balance_socket.settimeout(0.5)
+                self.__load_balance_socket.settimeout(0.05)
 
                 data = pickle.loads(self.__load_balance_socket.recv(1024))
 
@@ -253,7 +253,7 @@ class Server:
                     g = 0
 
                     # Receive configuration data from the load balancer
-                    self.__load_balance_socket.settimeout(0.5)
+                    self.__load_balance_socket.settimeout(0.003)
                     data = self.__load_balance_socket.recv(1024)
                     configuration = pickle.loads(data)
 
