@@ -32,6 +32,7 @@ class Game:
 
         pygame.display.set_caption('Cyber Offensive')
         self.clock = pygame.time.Clock()
+
         self.tick = 0
         self.fps = 0
 
@@ -400,16 +401,16 @@ class Game:
                         print("do i move anyware?", do_i_migrate)
 
                     if do_i_migrate:
-                        self.__ip = do_i_migrate[0][1][1][0]
-                        port = do_i_migrate[0][1][1][1]
-                        print(port)
+                        self.__ip = do_i_migrate[0][1][1]
+                    #    port = do_i_migrate[0][1][1][1]
+                     #   print(port)
                         list_of_details = ["EXIT", 1, self.items, "q"]
 
                         self.disconnect_from_server(list_of_details)
                         self.network = Client()
 
                         while 1:
-                           # port = self.network.choose_port()
+                            port = self.network.choose_port()
                             self.network.connect_to_socket(self.__ip, port, self.screen, self.clock, 1)
 
                             creds = self.network.create_message(do_i_migrate[0][1][2])
@@ -541,6 +542,7 @@ class Game:
                     # Remove from game state and network
                     self.__the_enemies.remove(enemie.id)
                     self.level.visible_sprites.remove(enemie)
+
                     self.level.attackable_sprites.remove(enemie)
                     enemie.status = "death"
 
@@ -594,8 +596,10 @@ class Game:
             for item in self.level.picked_up:
                 self.__collected_items_ids.append(item.id)
                 self.level.picked_up.remove(item)
+
                 print("picked up item", item.id)
                 self.network.picked_up(item.id)
+
                 item.id = "99999"
 
         elif weapons and "LEAVE" == weapons[0]:
@@ -756,7 +760,6 @@ class Game:
 
         for d in data:
             if type(d) is int:
-                print("what the fuck")
                 self.__game_state = "start_menu"
 
                 list_of_details = ["EXIT", 1, self.items]
