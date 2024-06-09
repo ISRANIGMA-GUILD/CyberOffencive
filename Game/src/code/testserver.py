@@ -104,9 +104,7 @@ class Server:
         """
 
         # """:TODO(almost finished): Try-except on everything """#
-        # """:TODO(almost finished): Database updates correctly even if server is closed"""#
         # """:TODO(??finished????): If banned you can't connect
-        # """:TODO: If server closes send all clients to load balancer
         # """:TODO(??finished????): Do the big merge, finish everything today
 
         info, resource_info, ip_info = self.receive_info()
@@ -961,7 +959,11 @@ class Server:
 
         for socks in eligables:
             try:
-                socks["Client"].send(pickle.dumps(message))
+                if ((0 <= abs(self.__locations[self.__client_sockets.index(socks["Client"])][0] -
+                            self.__locations[number][1][0]) <= 1500) or
+                    (0 <= abs(self.__locations[self.__client_sockets.index(socks["Client"])][1] -
+                              self.__locations[number][1][1]) <= 1500)):
+                    socks["Client"].send(pickle.dumps(message))
 
             except ConnectionResetError as e:
                 print("not  good", e)
