@@ -24,7 +24,7 @@ class MapRenderer:
                 for obj in layer:
                     if obj.image:
                         map_object = MapObject(obj, [self.object_group])  # Pass object_group
-    
+
     def get_objects(self):
         """Returns a list of all MapObject instances in the object_group."""
         return self.object_group.sprites() 
@@ -75,12 +75,11 @@ class MapObject(pygame.sprite.Sprite): # No need to inherit from Tile
     def __init__(self, obj, groups):  # Pass 'groups' here
         super().__init__(groups)
 
-        #if hasattr(obj, 'width') and hasattr(obj, 'height'):
-        #   self.image = pygame.transform.scale(obj.image, (obj.width, obj.height))
-        #else:
-        #   self.image = obj.image
-
-        self.image = obj.image
+        # If you want to use the width and height from Tiled data:
+        if obj.width and obj.height:
+            self.image = pygame.Surface((obj.width, obj.height))
+        else:
+            self.image = obj.image
 
         self.rect = self.image.get_rect(topleft=(obj.x, obj.y))
         self.obj = obj  # store a reference to pytmx object

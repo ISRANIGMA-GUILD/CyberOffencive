@@ -11,5 +11,13 @@ class CollisionGrid:
         return grid_x, grid_y
 
     def add_to_grid(self, sprite):
-        grid_x, grid_y = self.get_grid_coords(sprite.hitbox.centerx, sprite.hitbox.centery)
-        self.grid[grid_x][grid_y].append(sprite)
+        # Calculate the grid coordinates for the entire object's area
+        grid_x_start = sprite.hitbox.left // self.tile_width
+        grid_y_start = sprite.hitbox.top // self.tile_height
+        grid_x_end = (sprite.hitbox.right // self.tile_width) + 1  # Include the rightmost tile
+        grid_y_end = (sprite.hitbox.bottom // self.tile_height) + 1  # Include the bottommost tile
+
+        # Add the object to the grid for every tile it occupies
+        for grid_x in range(grid_x_start, grid_x_end):
+            for grid_y in range(grid_y_start, grid_y_end):
+                self.grid[grid_x][grid_y].append(sprite)
