@@ -14,11 +14,17 @@ class Server:
         print("Server is listening for clients...")
 
         while True:
-            data, client_address = self.server_socket.recvfrom(1024)
-            print(f"Received discovery request from {client_address}")
+            try:
 
-            if data.decode() == "DISCOVER":
-                self.server_socket.sendto("SERVER_FOUND".encode(), client_address)
+                data, client_address = self.server_socket.recvfrom(1024)
+                print(f"Received discovery request from {client_address}")
+
+                if data.decode() == "DISCOVER":
+                    self.server_socket.sendto("SERVER_FOUND".encode(), client_address)
+
+            except Exception as e:
+                print("eeeeeeeeeeeeee", e)
+                pass
 
     def get_local_ip(self):
         """

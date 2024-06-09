@@ -404,9 +404,10 @@ class Server:
 
                 elif pickle.loads(data)['message_status'] == 'move':
 
+                    temp = True  ########################################################################### for testing
+                    self.handle_client_location(self.__locations[index][1], temp, index)
                     new_client_info = pickle.loads(data)
                     self.send_client_to_other_server(new_client_info, sock)
-                    print("he did it")
 
         except socket.timeout as e:
             pass
@@ -639,7 +640,7 @@ class Server:
         self.check_for_banned(client_address, index)
 
         try:
-            connection.settimeout(0.003)
+            connection.settimeout(0.05)
             their_pass = pickle.loads(connection.recv(MAX_MSG_LENGTH))
 
             if their_pass[0] != passw:

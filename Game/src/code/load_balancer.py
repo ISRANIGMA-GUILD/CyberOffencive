@@ -235,7 +235,7 @@ class LoadBalancer:
 
                     if len(self.servers) < len(self.server_names):
                         # Assign server based on its connection order
-                        assigned_zone = 'Zone ' + str(len(self.servers))
+                        assigned_zone = 'Zone' + str(len(self.servers) + 1)
 
                     else:
                         print("All zones are occupied. No more connections are expected.")
@@ -392,7 +392,7 @@ class LoadBalancer:
                         if target_server:
                             message = {'message_status': 'move', 'ip': target_server['address'],
                                        'credential': credentials}
-                            print("who????????????", target_server['address'])
+                            print("who????????????",target_server['address'])
 
                             if target_server is not None:
                                 print("sent to server")
