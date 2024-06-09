@@ -399,16 +399,16 @@ class Game:
                         print("do i move anyware?", do_i_migrate)
 
                     if do_i_migrate:
-                        self.__ip = do_i_migrate[0][1][1][0]
-                        port = do_i_migrate[0][1][1][1]
-                        print(port)
+                        self.__ip = do_i_migrate[0][1][1]
+                      #  port = do_i_migrate[0][1][1][1]
+                    #    print(port)
                         list_of_details = ["EXIT", 1, self.items, "q"]
 
                         self.disconnect_from_server(list_of_details)
                         self.network = Client()
 
                         while 1:
-                           # port = self.network.choose_port()
+                            port = self.network.choose_port()
                             self.network.connect_to_socket(self.__ip, port, self.screen, self.clock, 1)
 
                             creds = self.network.create_message(do_i_migrate[0][1][2])
