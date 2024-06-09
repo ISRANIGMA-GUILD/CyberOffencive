@@ -717,6 +717,9 @@ class Server:
             print(e)
             connection.close()
 
+        except ssl.SSLWantReadError as e:
+            print("in", e)
+
         except ssl.SSLError as e:
             print(e)
             connection.close()
