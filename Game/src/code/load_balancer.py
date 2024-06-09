@@ -22,7 +22,7 @@ zones = {
 LB_IP = "0.0.0.0"
 LB_PORT = 1800
 
-NUMBER_OF_SERVERS = 2
+NUMBER_OF_SERVERS = 5
 
 # Define the servers
 servers = ['Server1', 'Server2', 'Server3', 'Server4', 'Server5']
