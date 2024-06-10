@@ -192,9 +192,9 @@ class LoadBalancer:
             print("e", e)
             self.update_database()
 
-    #    except Exception as e:
-   #         print("The general error", e)
-     #       self.update_database()
+        except Exception as e:
+            print("The general error", e)
+            self.update_database()
 
     def accept_new_connection(self, sock, mask):
         """
@@ -207,7 +207,6 @@ class LoadBalancer:
         try:
             if len(self.servers) < NUMBER_OF_SERVERS:
                 connection, addr = sock.accept()
-                print("the", addr)
 
                 pass_c = GetPassword(460).run()
 
@@ -254,8 +253,8 @@ class LoadBalancer:
         except BlockingIOError as e:
             print(f"BlockingIOError: No incoming connections to accept yet. {e}")
 
-     #   except Exception as e:
-     #       print(f"Exception in accept_new_connection: {e}")
+        except Exception as e:
+           print(f"Exception in accept_new_connection: {e}")
 
     def get_name(self):
         """

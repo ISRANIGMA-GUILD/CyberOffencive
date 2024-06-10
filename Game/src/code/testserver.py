@@ -864,7 +864,7 @@ class Server:
                         self.__data_to_send[index] = data
 
                 self.__locations[index] = (self.__session_users[index], data[0])
-                temp = True ########################################################################### for testing
+                temp = True
                 self.handle_client_location(self.__locations[index][1], temp, index)
 
                 if data[1] is not None and len(data[1]) > 0:
@@ -959,9 +959,9 @@ class Server:
 
         for socks in eligables:
             try:
-                if ((0 <= abs(self.__locations[self.__client_sockets.index(socks["Client"])][0] -
+                if ((0 <= abs(self.__locations[self.__client_sockets.index(socks["Client"])][1][0] -
                              self.__locations[number][1][0]) <= 1500) or
-                    (0 <= abs(self.__locations[self.__client_sockets.index(socks["Client"])][1] -
+                    (0 <= abs(self.__locations[self.__client_sockets.index(socks["Client"])][1][1] -
                               self.__locations[number][1][1]) <= 1500)):
                     socks["Client"].send(pickle.dumps(message))
 
@@ -987,8 +987,8 @@ class Server:
                     if current in clear_data:
                         for message in clear_data:
                             if message is not None and current != self.__session_users.index(message[0]):
-                                if (abs(message[0][0] - clear_data[current][0][0]) <= 1500 or
-                                        abs(message[0][1] - clear_data[current][0][1]) <= 1500):
+                                if 0 <= (abs(message[0][0] - clear_data[current][0][0]) <= 1500 or
+                                   0 <= abs(message[0][1] - clear_data[current][0][1]) <= 1500):
                                     socks["Client"].send(pickle.dumps(message[1]))
 
         except ConnectionResetError as e:

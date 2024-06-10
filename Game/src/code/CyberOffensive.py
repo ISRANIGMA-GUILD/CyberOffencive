@@ -675,7 +675,7 @@ class Game:
         :param list_of_public_details:
         :param other_client:
         """
-
+        print("how far", other_client)
         if self.__previous_details != list_of_public_details or self.__just_entered == 0:  # or self.__timer >= 0.02:
             print(self.level.player.get_location())
             s = self.network.update_server(list_of_public_details, self.items)
