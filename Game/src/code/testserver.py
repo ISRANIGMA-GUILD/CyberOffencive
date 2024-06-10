@@ -267,17 +267,8 @@ class Server:
                 if g == 0:
                     break
 
-            except socket.timeout as e:
-                print(e)
-
-            except ConnectionRefusedError as e:
-                print(e)
-
-            except ConnectionResetError as e:
-                print(e)
-
-            except OSError as e:
-                print(e)
+            except Exception as e:
+                print("exception",e)
 
         print("out")
 
@@ -291,16 +282,12 @@ class Server:
                 print("Socket is closed. Reinitializing socket.")
                 self.initialize_load_balance_socket()  # Method to reinitialize the socket
                 print("Socket reinitialized.", message)
-            print(f"Message sent to Load Balancer1: {message}")
+            #print(f"Message sent to Load Balancer1: {message}")
             self.__load_balance_socket.send(pickle.dumps(message))
-            print(f"Message sent to Load Balancer: {message}")
-      #  except Exception as e:
-          #  print(f"Failed to send message: {e}")
-           # if isinstance(e, socket.error):
-            #    print("Attempting to reinitialize socket after send failure.")
-            #    self.initialize_load_balance_socket()
-        except KeyboardInterrupt as e:
-            print(e)
+            #print(f"Message sent to Load Balancer: {message}")
+
+        except Exception as e:
+            print("exception",e)
 
     def initialize_load_balance_socket(self):
         try:
@@ -323,7 +310,7 @@ class Server:
         """
 
         if temp:
-            print("hi")
+            #print("hi")
             self.send_message_to_load_balancer({'message_status': 'move','type': 'out_of_zone', 'location': client_location,
                                                 'credentials': self.__credentials[index], 'status': self.__status[index]
                                                 ,'items': self.__items[index]})
@@ -433,7 +420,7 @@ class Server:
         :param number:
         """
 
-        print(client_address)
+        print("client_address",client_address)
         if (client_address[0] in self.__banned_ips or getmacbyip(client_address[0]) in self.__banned_macs
                 or Ether().src in self.__banned_macs):
             self.__all_details[number]["Connected"] = 1
@@ -454,16 +441,8 @@ class Server:
                 print(f"creating for clients")
                 self.__sockets.append(sockets)
 
-        except OSError as e:
-            print(e)
-            return
-
-        except TypeError as e:
-            print(e)
-            return
-
-        except IndexError as e:
-            print(e)
+        except Exception as e:
+            print("exception",e)
             return
 
     def create_message(self, some_data):
@@ -729,7 +708,7 @@ class Server:
             self.__selector.register(connection, selectors.EVENT_READ, self.receive_login)
 
         except ConnectionResetError as e:
-            print(e)
+            print("exception",e)
             connection.close()
 
     def receive_login(self, current_socket, mask):
@@ -882,7 +861,7 @@ class Server:
                         if stuff[0] == data[1]:
                             print("collected")
                             self.__item_locations.remove(stuff)
-                            self.__collected_items.append(data[1])
+                            self.__collected_items.append(data[1])      
 
             if len(data) == 5:
                 weapon = data[4]
@@ -1035,7 +1014,7 @@ class Server:
 
         except Exception as e:
 
-            print(e)
+            print("exception",e)
             return
 
         finally:
