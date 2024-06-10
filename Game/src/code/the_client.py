@@ -1,6 +1,7 @@
 import pickle
 import socket
 from creepy import *
+import time
 from dnssec_client import *
 import pygame
 import sys
@@ -17,7 +18,7 @@ THE_BIG_LIST = {"0": "'", "1": ";", "2": "=", "3": '"', "4": "*", "5": "AND", "6
                 "17": "<", "18": "–dbs", "19": "-D", "20": "-T", "21": "-", "22": ".php", "23": "SLEEP", "24": "@",
                 "25": "CREATE USER", "26": "`", "27": "select", "28": "from", "29": "union", "30": "union",
                 "31": "create user", "32": "sleep", "33": "all", "34": "and", "35": "INSERT", "36": "UPDATE",
-                "37": "DELETE", "38": "\\"}
+                "37": "DELETE", "38": "\\", "39": "EXIT"}
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (200, 200, 200)
@@ -48,7 +49,9 @@ class Client:
 
         self.__user_box.w = self.__o_width
         self.__pass_box.w = self.__i_width
+
         self.__login_thingy.w = self.__m_width
+        self.__current_server_ip = ""
 
         # self.v = self.player.get_volume()
 
@@ -63,6 +66,8 @@ class Client:
         screen = pygame.display.set_mode((1920, 1080))
 
         clock = pygame.time.Clock()
+        self.__current_server_ip = server_ip
+
         m = self.connect_to_socket(server_ip, server_port, screen, clock)
 
         if m == 1:
@@ -95,11 +100,8 @@ class Client:
                 details = self.details_entry(screen, clock)
 
                 if details == 1:
-                  #  print("leaving1")
                     message = pickle.dumps(["EXIT"])
-
                     self.__the_client_socket.send(message)
-               #     print("leaving3")
 
                     pygame.display.update()
                     clock.tick(FPS)
@@ -211,8 +213,7 @@ class Client:
                 self.__the_client_socket.send(pickle.dumps([GetPassword(128).run()]))
 
                 the_real_pass = Verifier(256).run()
-
-                self.__the_client_socket.settimeout(0.5)
+                self.__the_client_socket.settimeout(0.05)
                 their_pass = pickle.loads(self.__the_client_socket.recv(MAX_MSG_LENGTH))
 
                 if their_pass[0] == "YOU ARE BANNED":
@@ -364,7 +365,7 @@ class Client:
             return data
 
         except IndexError as e:
-            print(e)
+            print("oh really oh really ??????", e)
             return
 
         except ssl.SSLEOFError as e:
@@ -374,9 +375,11 @@ class Client:
             return 1
 
         except socket.timeout:
+         #   print("no time", e)
             return
 
-        except pickle.UnpicklingError:
+        except pickle.UnpicklingError as e:
+            print("pickle rick", e)
             return
 
     def create_message(self, some_data):
@@ -483,13 +486,6 @@ class Client:
             start_button = self.font.render('PASSWORD', True, (255, 215, 0))
             screen.blit(start_button, (10, 430))
             pygame.display.update()
-
-            self.__timer = time.time() - self.__start_time
-            hour, minutes, seconds = time.strftime("%Hh %Mm %Ss",
-                                                   time.gmtime(self.__timer)).split(' ')
-            if '01' in minutes:
-                self.__the_client_socket.close()
-                return 1, 1
 
             if entering_username:
                 if len(username) < 10:
@@ -731,14 +727,14 @@ class Client:
                 if self.is_ip(data_recv[1]):
                     print("please work")
                     t = [3, data_recv]
-                    print(type(t))
+                    print("hmmmmmmm", type(t))
                     return t
 
             else:
                 return data_recv
 
-        except socket.timeout:
-            print("epic fail")
+        except socket.timeout as e:
+            print("epic fail", e)
             return
         except Exception as e:
             print(e)
@@ -768,8 +764,8 @@ class Client:
             else:
                 return data_recv
 
-        except socket.timeout:
-            print("epic fail")
+        except socket.timeout as e:
+            print("epic fail", e)
             return
         except Exception as e:
             print(e)
@@ -793,8 +789,8 @@ class Client:
             else:
                 return data_recv
 
-        except socket.timeout:
-            print("epic fail")
+        except socket.timeout as e:
+            print("epic fail", e)
             return
 
     def good_music(self):
@@ -825,11 +821,13 @@ class Client:
             ipaddress.ip_interface(addr)
             return True
 
-        except ValueError:
+        except ValueError as e:
+            print(e)
             return False
 
-    def migrate(self):
-        pass
+    def get_prev_server_ip(self):
+
+        return self.__current_server_ip
 
 
 def main():
