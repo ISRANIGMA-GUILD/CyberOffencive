@@ -199,19 +199,18 @@ class Game:
                         self.__previous = time.time()
 
                     threads = self.create_threads(game_lock, com_lock, div_lock)
+                    original = self.gurgle()
+                    self.ungurgle(original)
 
                     for thread in threads:
                         thread.start()
 
                     for thread in threads:
                         thread.join()
-                    
-                    original = self.gurgle()
-                    self.ungurgle(original)
-
 
                     # Handle chat input
                     self.chat_handler()
+
 
                     pygame.display.update()
                     self.tick += 1
@@ -219,6 +218,8 @@ class Game:
                     if self.tick % 60 == 0:
                         self.tick = 0
                     self.clock.tick(FPS)
+
+
                    # print(self.level.player.get_location())
 
             except Exception as e:
@@ -239,7 +240,6 @@ class Game:
         if len(ran) > 1 and type(ran[1]) is not dict and not self.contains_dictionary(ran[1]):
             if ran[1][1] is not None:
                 self.__zone = ran[2]
-                print("The zone", self.__zone)
 
                 loc = self.find_zone_spawn()
                 self.level.spawn_the_p(loc)
@@ -301,7 +301,6 @@ class Game:
 
         else:
             self.__zone = ran[1]
-            print("The zone", self.__zone)
 
             loc = self.find_zone_spawn()
             self.level.spawn_the_p(loc)
@@ -372,9 +371,8 @@ class Game:
         """
 
         with lock:
-            for i in range(2):
-                data1 = self.network.receive_stuff()
-                data3 = self.network.receive_location()
+            data1 = self.network.receive_stuff()
+            data3 = self.network.receive_location()
 
     #    data4 = self.network.receive_stuff()
       #  data3 = self.network.receive_location()

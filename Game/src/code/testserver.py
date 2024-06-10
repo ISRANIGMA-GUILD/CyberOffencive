@@ -517,8 +517,8 @@ class Server:
         self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
 
         update_interval = 1 / 60  # Seconds (adjust as needed for responsiveness)
-        update_interval2 = 1 / 30  # Seconds (adjust as needed for responsiveness)
-        update_interval3 = 1 / 15
+        update_interval2 = 1 / 4  # Seconds (adjust as needed for responsiveness)
+        update_interval3 = 1 / 1
         
         last_update_time = time.time()
         last_update_time2 = time.time()
@@ -613,7 +613,7 @@ class Server:
             callback = key.data
             callback(key.fileobj, mask)
 
-            self.inform_all()
+        #    self.inform_all()
 
     def update_game_state(self):
 
