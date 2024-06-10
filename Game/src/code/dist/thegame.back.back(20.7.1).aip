@@ -238,191 +238,191 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="APPDIR" ComponentId="{3EC3CDBC-8699-4501-9B18-DCCE322273F9}" Directory_="APPDIR" Attributes="0"/>
-    <ROW Component="BasicCharakterActions.png" ComponentId="{3F7E3836-B776-4D95-82CC-CA00BC205ECB}" Directory_="Characters_Dir" Attributes="0" KeyPath="BasicCharakterActions.png" Type="0"/>
-    <ROW Component="Basic_Furniture.png" ComponentId="{79CF1838-9925-439D-A803-00F83EE7520C}" Directory_="Objects_Dir" Attributes="0" KeyPath="Basic_Furniture.png" Type="0"/>
-    <ROW Component="Bitmaskreferences1.png" ComponentId="{AE3721AC-82F4-426F-8BF4-F3964C187420}" Directory_="Tilesets_Dir" Attributes="0" KeyPath="Bitmaskreferences1.png" Type="0"/>
-    <ROW Component="CyberOffensive.exe" ComponentId="{3774C6BA-22FB-4BC2-BFCB-3D42456B9A16}" Directory_="Game_Dir" Attributes="256" KeyPath="CyberOffensive.exe"/>
-    <ROW Component="Details.csv" ComponentId="{7AAC5433-2B9C-4735-BF8C-D95A3195F6B9}" Directory_="map_Dir" Attributes="0" KeyPath="Details.csv" Type="0"/>
+    <ROW Component="BasicCharakterActions.png" ComponentId="{6CE7056A-7378-4D62-BBB1-65EC74D19A7D}" Directory_="Characters_Dir" Attributes="0" KeyPath="BasicCharakterActions.png" Type="0"/>
+    <ROW Component="Basic_Furniture.png" ComponentId="{3EB8616A-C9B2-4ADE-9248-6F06DA3AE8EF}" Directory_="Objects_Dir" Attributes="0" KeyPath="Basic_Furniture.png" Type="0"/>
+    <ROW Component="Bitmaskreferences1.png" ComponentId="{FD28052E-E4B5-414C-9730-6E643109BA58}" Directory_="Tilesets_Dir" Attributes="0" KeyPath="Bitmaskreferences1.png" Type="0"/>
+    <ROW Component="CyberOffensive.exe" ComponentId="{E553AAF0-2FF6-4385-BC4E-BB4EF04EC3D4}" Directory_="Game_Dir" Attributes="256" KeyPath="CyberOffensive.exe"/>
+    <ROW Component="Details.csv" ComponentId="{026B912B-250A-4C78-93C3-487963ABCB8B}" Directory_="map_Dir" Attributes="0" KeyPath="Details.csv" Type="0"/>
     <ROW Component="ProductInformation" ComponentId="{E8E638F7-DF77-4AD6-BDE7-7DEE1097FF18}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
-    <ROW Component="SproutLandsdefautltpalettesnip.PNG" ComponentId="{8884348F-D810-41AA-B4B5-D096695DB895}" Directory_="SproutLandscolorpallet_Dir" Attributes="0" KeyPath="SproutLandsdefautltpalettesnip.PNG" Type="0"/>
+    <ROW Component="SproutLandsdefautltpalettesnip.PNG" ComponentId="{E5248740-7AEF-4424-B9F7-F8B0C212ECF5}" Directory_="SproutLandscolorpallet_Dir" Attributes="0" KeyPath="SproutLandsdefautltpalettesnip.PNG" Type="0"/>
     <ROW Component="TheWildBreathOfZelda15Lv.ttf" ComponentId="{4A921290-9D17-4F09-8D36-AD07CCCD9935}" Directory_="fonts_Dir" Attributes="0" Type="0"/>
-    <ROW Component="Water7.atlas.txt" ComponentId="{B775ED62-DD83-48F6-98B6-CBEBF1F6BBC7}" Directory_="spine_Dir" Attributes="0" KeyPath="Water7.atlas.txt" Type="0"/>
-    <ROW Component="arrow.png" ComponentId="{709FED3E-CA4E-4DF3-96FF-FA8E2AED0148}" Directory_="bow_1_Dir" Attributes="0" KeyPath="arrow.png" Type="0"/>
-    <ROW Component="arrow.png_1" ComponentId="{EFE982D4-3AC8-4834-AE1B-7EB7A5E3D7C9}" Directory_="weapons_1_Dir" Attributes="0" KeyPath="arrow.png_1" Type="0"/>
-    <ROW Component="attack_boost.png" ComponentId="{43D7A2EF-3336-4B5D-8C28-42A42CA32063}" Directory_="skills_Dir" Attributes="0" KeyPath="attack_boost.png" Type="0"/>
-    <ROW Component="attack_down.png" ComponentId="{3E9E0F88-5B3D-4828-A4A8-CF241E93987A}" Directory_="down_attack_10_Dir" Attributes="0" KeyPath="attack_down.png" Type="0"/>
-    <ROW Component="attack_left.png" ComponentId="{706CFE4B-9CFE-4FF1-9530-655992C9BC8C}" Directory_="left_attack_10_Dir" Attributes="0" KeyPath="attack_left.png" Type="0"/>
-    <ROW Component="attack_right.png" ComponentId="{118E477E-A84B-42A3-BED8-0E6069EAD4F1}" Directory_="right_attack_10_Dir" Attributes="0" KeyPath="attack_right.png" Type="0"/>
-    <ROW Component="attack_up.png" ComponentId="{27052FAB-EB6B-48E9-B80A-40F12847EF73}" Directory_="up_attack_10_Dir" Attributes="0" KeyPath="attack_up.png" Type="0"/>
-    <ROW Component="bow.zip" ComponentId="{60A5EE7D-6D57-4A1C-9B14-DAB258FF459E}" Directory_="bow_Dir" Attributes="0" KeyPath="bow.zip" Type="0"/>
-    <ROW Component="boy_front_01.png" ComponentId="{AE3645DF-3A30-4814-A1B2-0B3B27F5F21A}" Directory_="blue_energy_fruit_Dir" Attributes="0" KeyPath="boy_front_01.png" Type="0"/>
-    <ROW Component="brawn_idle.png" ComponentId="{C87BA5B2-6D24-448D-B9F1-E7428AD77115}" Directory_="graphics_Dir" Attributes="0" KeyPath="brawn_idle.png" Type="0"/>
-    <ROW Component="death_0.png" ComponentId="{27C92F13-9951-40EB-8005-9B4B60C06DB8}" Directory_="death_Dir" Attributes="0" KeyPath="death_0.png" Type="0"/>
-    <ROW Component="death_0.png_1" ComponentId="{893CC83F-97CE-4899-84EE-DEBDB831D35A}" Directory_="death_1_Dir" Attributes="0" KeyPath="death_0.png_1" Type="0"/>
-    <ROW Component="death_0.png_2" ComponentId="{3AD21D5B-7059-4D2C-B40E-373E1C8BB7C5}" Directory_="death_2_Dir" Attributes="0" KeyPath="death_0.png_2" Type="0"/>
-    <ROW Component="death_0.png_3" ComponentId="{791E511E-27A2-419D-9D96-454B844BE844}" Directory_="death_3_Dir" Attributes="0" KeyPath="death_0.png_3" Type="0"/>
-    <ROW Component="death_0.png_4" ComponentId="{D78AC3F4-1EED-41CF-A46A-B3633E06BB4E}" Directory_="death_4_Dir" Attributes="0" KeyPath="death_0.png_4" Type="0"/>
-    <ROW Component="death_0.png_5" ComponentId="{E20682F8-7418-4991-BCE1-D606ADED1CC6}" Directory_="death_5_Dir" Attributes="0" KeyPath="death_0.png_5" Type="0"/>
-    <ROW Component="death_0.png_6" ComponentId="{9FD40C4C-8DCF-46A6-BCC8-55B1EDF413D9}" Directory_="death_6_Dir" Attributes="0" KeyPath="death_0.png_6" Type="0"/>
-    <ROW Component="death_0.png_7" ComponentId="{B8F3CDAF-5F6D-406A-A2CB-5F79A7744D64}" Directory_="death_7_Dir" Attributes="0" KeyPath="death_0.png_7" Type="0"/>
-    <ROW Component="death_0.png_8" ComponentId="{85F36BD3-2EC0-4857-97E7-BEF3A05B1E16}" Directory_="death_8_Dir" Attributes="0" KeyPath="death_0.png_8" Type="0"/>
-    <ROW Component="demo.gif" ComponentId="{F31F5C50-97F9-41CB-92B6-E0379D1AB38C}" Directory_="Water7_Dir" Attributes="0" KeyPath="demo.gif" Type="0"/>
-    <ROW Component="details.png" ComponentId="{DF13A179-5EC4-45F1-A8C4-8C2CCE551689}" Directory_="tilemap_Dir" Attributes="0" KeyPath="details.png" Type="0"/>
-    <ROW Component="details.png_1" ComponentId="{23FD9DA7-8D63-4F71-A971-EA641757E9CE}" Directory_="notneeded_Dir" Attributes="0" KeyPath="details.png_1" Type="0"/>
-    <ROW Component="down.png" ComponentId="{2EB0D556-0678-4799-BC50-61DCB6D801ED}" Directory_="axe_Dir" Attributes="0" KeyPath="down.png_1" Type="0"/>
-    <ROW Component="down.png_1" ComponentId="{3ACF4118-42BF-4A24-8ADB-2563DE2718F9}" Directory_="metal_sword_Dir" Attributes="0" KeyPath="down.png_3" Type="0"/>
-    <ROW Component="down.png_2" ComponentId="{A21B7E9F-835E-4FE2-85D5-F878BA667FFC}" Directory_="new_temp_Dir" Attributes="0" KeyPath="down.png_4" Type="0"/>
-    <ROW Component="down.png_3" ComponentId="{F9BE4338-ADE1-445E-AD64-2B42D56EA19F}" Directory_="temp_Dir" Attributes="0" KeyPath="down.png_5" Type="0"/>
-    <ROW Component="down.png_4" ComponentId="{D000544F-7FA5-4F31-8CF7-A127FBFB79E3}" Directory_="staff_Dir" Attributes="0" KeyPath="down.png_6" Type="0"/>
-    <ROW Component="down.png_5" ComponentId="{63BF1FBF-350A-4FE9-88E5-FA391F2F70FD}" Directory_="sword_Dir" Attributes="0" KeyPath="down.png_7" Type="0"/>
-    <ROW Component="down_0.png" ComponentId="{030A3015-7315-4F27-BA53-A65E572EA67B}" Directory_="down_Dir" Attributes="0" KeyPath="down_0.png" Type="0"/>
-    <ROW Component="down_0.png_1" ComponentId="{D0410BEB-A17E-4B2B-B6CC-029AA804C9AA}" Directory_="down_1_Dir" Attributes="0" KeyPath="down_0.png_1" Type="0"/>
-    <ROW Component="down_0.png_10" ComponentId="{F4FDBE43-E187-4838-9DDB-76A6C6E1318E}" Directory_="down_10_Dir" Attributes="0" KeyPath="down_0.png_10" Type="0"/>
-    <ROW Component="down_0.png_2" ComponentId="{AA9C4B05-FEFB-487D-8C7D-C1181E389CFD}" Directory_="down_2_Dir" Attributes="0" KeyPath="down_0.png_2" Type="0"/>
-    <ROW Component="down_0.png_3" ComponentId="{D714ABB7-69FF-4C39-AB96-1F2553B07CC9}" Directory_="down_3_Dir" Attributes="0" KeyPath="down_0.png_3" Type="0"/>
-    <ROW Component="down_0.png_4" ComponentId="{6BB5DC88-6A82-45A8-92E0-91D09CBDB00D}" Directory_="down_4_Dir" Attributes="0" KeyPath="down_0.png_4" Type="0"/>
-    <ROW Component="down_0.png_5" ComponentId="{DEDF3D6F-686C-4911-B779-5283A2A1BBEE}" Directory_="down_5_Dir" Attributes="0" KeyPath="down_0.png_5" Type="0"/>
-    <ROW Component="down_0.png_6" ComponentId="{E63A076C-5644-4CE3-99F2-86C3429EC760}" Directory_="down_6_Dir" Attributes="0" KeyPath="down_0.png_6" Type="0"/>
-    <ROW Component="down_0.png_7" ComponentId="{C2DD6D81-FB79-48B0-8A6E-76192080A7B1}" Directory_="down_7_Dir" Attributes="0" KeyPath="down_0.png_7" Type="0"/>
-    <ROW Component="down_0.png_8" ComponentId="{8D22FAB7-A98C-4677-9636-7168012514F5}" Directory_="down_8_Dir" Attributes="0" KeyPath="down_0.png_8" Type="0"/>
-    <ROW Component="down_0.png_9" ComponentId="{FC9A3F6E-42D5-423D-A822-E229E39714E8}" Directory_="down_9_Dir" Attributes="0" KeyPath="down_0.png_9" Type="0"/>
-    <ROW Component="down_attack_0.png" ComponentId="{F2E76923-FA06-4591-9712-04A2673C1B79}" Directory_="down_attack_Dir" Attributes="0" KeyPath="down_attack_0.png" Type="0"/>
-    <ROW Component="down_attack_0.png_1" ComponentId="{81EECF4D-18FC-475E-A09C-97F63E469747}" Directory_="down_attack_1_Dir" Attributes="0" KeyPath="down_attack_0.png_1" Type="0"/>
-    <ROW Component="down_attack_0.png_2" ComponentId="{EB194E64-2159-450B-989A-6F6C6B4E3D11}" Directory_="down_attack_2_Dir" Attributes="0" KeyPath="down_attack_0.png_2" Type="0"/>
-    <ROW Component="down_attack_0.png_3" ComponentId="{A7236609-C3D3-450D-AEFE-5C2D4776E32A}" Directory_="down_attack_3_Dir" Attributes="0" KeyPath="down_attack_0.png_3" Type="0"/>
-    <ROW Component="down_attack_0.png_4" ComponentId="{AE1A8238-5A8B-4A8A-A86A-DDA847581D52}" Directory_="down_attack_4_Dir" Attributes="0" KeyPath="down_attack_0.png_4" Type="0"/>
-    <ROW Component="down_attack_0.png_5" ComponentId="{802FAE36-2257-4CF0-A743-0E330023B599}" Directory_="down_attack_5_Dir" Attributes="0" KeyPath="down_attack_0.png_5" Type="0"/>
-    <ROW Component="down_attack_0.png_6" ComponentId="{7A477CCA-BC9D-4846-BE1D-CCF0D852249A}" Directory_="down_attack_6_Dir" Attributes="0" KeyPath="down_attack_0.png_6" Type="0"/>
-    <ROW Component="down_attack_0.png_7" ComponentId="{EFAAA386-4BAC-43A4-8DCF-77CF2D540324}" Directory_="down_attack_7_Dir" Attributes="0" KeyPath="down_attack_0.png_7" Type="0"/>
-    <ROW Component="down_attack_0.png_8" ComponentId="{57B02A03-415D-4F2C-9CC0-F25E9735450D}" Directory_="down_attack_8_Dir" Attributes="0" KeyPath="down_attack_0.png_8" Type="0"/>
-    <ROW Component="down_attack_0.png_9" ComponentId="{26EC5486-8B8C-4E7A-9B79-C9CD9F6405AB}" Directory_="down_attack_9_Dir" Attributes="0" KeyPath="down_attack_0.png_9" Type="0"/>
-    <ROW Component="down_idle_0.png" ComponentId="{09E77322-2C81-4838-818D-04914D3FEB44}" Directory_="down_idle_Dir" Attributes="0" KeyPath="down_idle_0.png" Type="0"/>
-    <ROW Component="down_idle_0.png_1" ComponentId="{F08C0FC7-7A5A-4C7A-8926-E298CC09A1B5}" Directory_="down_idle_1_Dir" Attributes="0" KeyPath="down_idle_0.png_1" Type="0"/>
-    <ROW Component="down_idle_0.png_2" ComponentId="{E85C0B8D-A974-4CE6-BCEE-8557833F3B54}" Directory_="down_idle_2_Dir" Attributes="0" KeyPath="down_idle_0.png_2" Type="0"/>
-    <ROW Component="down_idle_0.png_3" ComponentId="{0D74EF4D-2F99-41E1-B4E7-1C253059111D}" Directory_="down_idle_3_Dir" Attributes="0" KeyPath="down_idle_0.png_3" Type="0"/>
-    <ROW Component="down_idle_0.png_4" ComponentId="{F7C99864-13B2-41EA-AAAD-05D70EFBCA9F}" Directory_="down_idle_4_Dir" Attributes="0" KeyPath="down_idle_0.png_4" Type="0"/>
-    <ROW Component="down_idle_0.png_5" ComponentId="{2D25D68B-0B97-4C81-B2CA-ED68B968930E}" Directory_="down_idle_5_Dir" Attributes="0" KeyPath="down_idle_0.png_5" Type="0"/>
-    <ROW Component="down_idle_0.png_6" ComponentId="{58025167-848B-4F22-B072-280739195890}" Directory_="down_idle_6_Dir" Attributes="0" KeyPath="down_idle_0.png_6" Type="0"/>
-    <ROW Component="down_idle_0.png_7" ComponentId="{B204052D-41F0-4841-934D-B116AE83EE2F}" Directory_="down_idle_7_Dir" Attributes="0" KeyPath="down_idle_0.png_7" Type="0"/>
-    <ROW Component="down_idle_0.png_8" ComponentId="{35A11ABF-D6BD-41D0-BD1E-DB841DB1ABF7}" Directory_="down_idle_8_Dir" Attributes="0" KeyPath="down_idle_0.png_8" Type="0"/>
-    <ROW Component="down_idle_0.png_9" ComponentId="{C867D1A5-11B3-4B07-B2E1-69B7CBDD783A}" Directory_="down_idle_9_Dir" Attributes="0" KeyPath="down_idle_0.png_9" Type="0"/>
-    <ROW Component="flowers.png" ComponentId="{CA498448-A1CC-4BB0-8604-7EFC4DA5E86B}" Directory_="summer_Dir" Attributes="0" KeyPath="flowers.png" Type="0"/>
-    <ROW Component="grass_1.png" ComponentId="{D288647C-859E-4F1A-AA04-EE5EF19A4275}" Directory_="grass_Dir" Attributes="0" KeyPath="grass_1.png" Type="0"/>
-    <ROW Component="idle_down.png" ComponentId="{A32DDEA7-7B5B-40E0-A3DE-02841C8D09FC}" Directory_="down_idle_10_Dir" Attributes="0" KeyPath="idle_down.png" Type="0"/>
-    <ROW Component="idle_left.png" ComponentId="{C736845D-AB96-40DD-A0B6-D12C9BC2BAEC}" Directory_="left_idle_10_Dir" Attributes="0" KeyPath="idle_left.png" Type="0"/>
-    <ROW Component="idle_right.png" ComponentId="{A6E84D86-D7AF-4D82-BF29-BD89F2BF61AC}" Directory_="right_idle_10_Dir" Attributes="0" KeyPath="idle_right.png" Type="0"/>
-    <ROW Component="idle_up.png" ComponentId="{19FF15D0-6F4E-4166-8875-B090ABC7ABDE}" Directory_="up_idle_10_Dir" Attributes="0" KeyPath="idle_up.png" Type="0"/>
-    <ROW Component="laser.png" ComponentId="{399B2C29-CA8B-445E-935D-E24F6A87BBB5}" Directory_="Frenzy_Dir" Attributes="0" KeyPath="laser.png" Type="0"/>
-    <ROW Component="left_0.png" ComponentId="{08E0B05F-0281-4886-8AF1-C96CA6C1A266}" Directory_="left_Dir" Attributes="0" KeyPath="left_0.png" Type="0"/>
-    <ROW Component="left_0.png_1" ComponentId="{6AAA66D6-80E8-4D0C-BC72-DC918BACCBF3}" Directory_="left_1_Dir" Attributes="0" KeyPath="left_0.png_1" Type="0"/>
-    <ROW Component="left_0.png_10" ComponentId="{A14BB15D-3D39-4792-8D3B-AF45FEEA20A9}" Directory_="left_10_Dir" Attributes="0" KeyPath="left_0.png_10" Type="0"/>
-    <ROW Component="left_0.png_2" ComponentId="{D9168437-3F30-498B-88F0-9F5AF2E36106}" Directory_="left_2_Dir" Attributes="0" KeyPath="left_0.png_2" Type="0"/>
-    <ROW Component="left_0.png_3" ComponentId="{D85102E5-BEF3-47D9-8F64-8B5B88178CD5}" Directory_="left_3_Dir" Attributes="0" KeyPath="left_0.png_3" Type="0"/>
-    <ROW Component="left_0.png_4" ComponentId="{B9896BD6-A56C-4673-9860-938F3A826034}" Directory_="left_4_Dir" Attributes="0" KeyPath="left_0.png_4" Type="0"/>
-    <ROW Component="left_0.png_5" ComponentId="{0E3965E6-10BC-4BE7-8158-D28B5483AEF0}" Directory_="left_5_Dir" Attributes="0" KeyPath="left_0.png_5" Type="0"/>
-    <ROW Component="left_0.png_6" ComponentId="{7B897668-BFA6-4A72-B71C-597FC24831BD}" Directory_="left_6_Dir" Attributes="0" KeyPath="left_0.png_6" Type="0"/>
-    <ROW Component="left_0.png_7" ComponentId="{B42E86CB-D681-48ED-BB30-1EA0C123FFCB}" Directory_="left_7_Dir" Attributes="0" KeyPath="left_0.png_7" Type="0"/>
-    <ROW Component="left_0.png_8" ComponentId="{09F2C4D6-5DD4-47B9-85B6-126EF5685185}" Directory_="left_8_Dir" Attributes="0" KeyPath="left_0.png_8" Type="0"/>
-    <ROW Component="left_0.png_9" ComponentId="{FC9F81F2-DA84-40F7-864F-291194BEAA3B}" Directory_="left_9_Dir" Attributes="0" KeyPath="left_0.png_9" Type="0"/>
-    <ROW Component="left_attack_0.png" ComponentId="{562B4B1F-5FFB-4694-9C06-C8D6EC7D064D}" Directory_="left_attack_Dir" Attributes="0" KeyPath="left_attack_0.png" Type="0"/>
-    <ROW Component="left_attack_0.png_1" ComponentId="{F71D3D0C-8D76-4C4C-9E1D-00D002EA84D9}" Directory_="left_attack_1_Dir" Attributes="0" KeyPath="left_attack_0.png_1" Type="0"/>
-    <ROW Component="left_attack_0.png_2" ComponentId="{CDF0FD7A-75AC-430E-B1D2-AC4BEEAFA8E8}" Directory_="left_attack_2_Dir" Attributes="0" KeyPath="left_attack_0.png_2" Type="0"/>
-    <ROW Component="left_attack_0.png_3" ComponentId="{86AE9B7B-8228-4311-B083-026A925B9DCD}" Directory_="left_attack_3_Dir" Attributes="0" KeyPath="left_attack_0.png_3" Type="0"/>
-    <ROW Component="left_attack_0.png_4" ComponentId="{2311876E-1F70-48D3-B1B7-68AAF7C537E2}" Directory_="left_attack_4_Dir" Attributes="0" KeyPath="left_attack_0.png_4" Type="0"/>
-    <ROW Component="left_attack_0.png_5" ComponentId="{D48745A6-E966-44E0-9CB4-9F94DF1A93C6}" Directory_="left_attack_5_Dir" Attributes="0" KeyPath="left_attack_0.png_5" Type="0"/>
-    <ROW Component="left_attack_0.png_6" ComponentId="{173B0816-34D5-41BF-B38A-7CECEF0EC83D}" Directory_="left_attack_6_Dir" Attributes="0" KeyPath="left_attack_0.png_6" Type="0"/>
-    <ROW Component="left_attack_0.png_7" ComponentId="{9E498E0C-45CE-4E34-9084-FDFCA27614D3}" Directory_="left_attack_7_Dir" Attributes="0" KeyPath="left_attack_0.png_7" Type="0"/>
-    <ROW Component="left_attack_0.png_8" ComponentId="{13C2F11B-803D-4747-B5A2-07451D15F8D2}" Directory_="left_attack_8_Dir" Attributes="0" KeyPath="left_attack_0.png_8" Type="0"/>
-    <ROW Component="left_attack_0.png_9" ComponentId="{0818BD29-86F3-466B-A5C2-307854CD47CB}" Directory_="left_attack_9_Dir" Attributes="0" KeyPath="left_attack_0.png_9" Type="0"/>
-    <ROW Component="left_idle_0.png" ComponentId="{04D4A7AD-93EC-4D49-AFBB-20921D7C807F}" Directory_="left_idle_Dir" Attributes="0" KeyPath="left_idle_0.png" Type="0"/>
-    <ROW Component="left_idle_0.png_1" ComponentId="{2A56E092-2057-4013-B1F7-A67981CDFB10}" Directory_="left_idle_1_Dir" Attributes="0" KeyPath="left_idle_0.png_1" Type="0"/>
-    <ROW Component="left_idle_0.png_2" ComponentId="{B6DB3AEF-D0AB-4246-B928-55980B7F6A4E}" Directory_="left_idle_2_Dir" Attributes="0" KeyPath="left_idle_0.png_2" Type="0"/>
-    <ROW Component="left_idle_0.png_3" ComponentId="{A8B52F1A-3E36-4293-8010-982A7FCF6E72}" Directory_="left_idle_3_Dir" Attributes="0" KeyPath="left_idle_0.png_3" Type="0"/>
-    <ROW Component="left_idle_0.png_4" ComponentId="{E08BF741-6F20-4CC7-A76C-7439C3584754}" Directory_="left_idle_4_Dir" Attributes="0" KeyPath="left_idle_0.png_4" Type="0"/>
-    <ROW Component="left_idle_0.png_5" ComponentId="{A537E071-D765-4DE6-A6E8-0F5E6324F892}" Directory_="left_idle_5_Dir" Attributes="0" KeyPath="left_idle_0.png_5" Type="0"/>
-    <ROW Component="left_idle_0.png_6" ComponentId="{79888D41-0C78-4A51-8C0D-A1E8EE15BB34}" Directory_="left_idle_6_Dir" Attributes="0" KeyPath="left_idle_0.png_6" Type="0"/>
-    <ROW Component="left_idle_0.png_7" ComponentId="{D93D0F3C-7DC2-43EF-A40E-5C4E738AE283}" Directory_="left_idle_7_Dir" Attributes="0" KeyPath="left_idle_0.png_7" Type="0"/>
-    <ROW Component="left_idle_0.png_8" ComponentId="{5409F9AD-5088-49AB-873A-9F896F363DFA}" Directory_="left_idle_8_Dir" Attributes="0" KeyPath="left_idle_0.png_8" Type="0"/>
-    <ROW Component="left_idle_0.png_9" ComponentId="{0A95DC9A-7B05-437F-A35A-1A6B65436FC8}" Directory_="left_idle_9_Dir" Attributes="0" KeyPath="left_idle_0.png_9" Type="0"/>
-    <ROW Component="login.png" ComponentId="{3C8F6094-4629-4CF5-AAF6-AE0A4AEFF98D}" Directory_="LoginScreen_Dir" Attributes="0" KeyPath="login.png" Type="0"/>
-    <ROW Component="on_hotbar.png" ComponentId="{D81F0018-EB87-43E8-8C91-0D332FAEE0F0}" Directory_="energy_fruit_Dir" Attributes="0" KeyPath="on_hotbar.png_2" Type="0"/>
-    <ROW Component="on_hotbar.png_1" ComponentId="{35F8246C-011A-458A-987A-80680D9D2F32}" Directory_="hp_fruit_Dir" Attributes="0" KeyPath="on_hotbar.png_3" Type="0"/>
-    <ROW Component="on_hotbar.png_2" ComponentId="{D8EE4C0B-202D-49DA-9E9E-AFE5A3DB64CC}" Directory_="red_hp_fruit_Dir" Attributes="0" KeyPath="on_hotbar.png_4" Type="0"/>
+    <ROW Component="Water7.atlas.txt" ComponentId="{A328C2C8-5F9B-4089-A1A7-D399C6A6C53F}" Directory_="spine_Dir" Attributes="0" KeyPath="Water7.atlas.txt" Type="0"/>
+    <ROW Component="arrow.png" ComponentId="{BE36D8D4-E1DE-4ED9-A5AD-161713FF69FD}" Directory_="bow_1_Dir" Attributes="0" KeyPath="arrow.png" Type="0"/>
+    <ROW Component="arrow.png_1" ComponentId="{E9FD7A66-B875-4339-9163-ACA6E8040161}" Directory_="weapons_1_Dir" Attributes="0" KeyPath="arrow.png_1" Type="0"/>
+    <ROW Component="attack_boost.png" ComponentId="{1FD83929-8D13-4D24-A94E-C76A5F464A0F}" Directory_="skills_Dir" Attributes="0" KeyPath="attack_boost.png" Type="0"/>
+    <ROW Component="attack_down.png" ComponentId="{5FB5D458-6792-4494-85B2-FBE2B59421CD}" Directory_="down_attack_10_Dir" Attributes="0" KeyPath="attack_down.png" Type="0"/>
+    <ROW Component="attack_left.png" ComponentId="{DCF40518-3B50-4B11-9FEF-ABB920F9401E}" Directory_="left_attack_10_Dir" Attributes="0" KeyPath="attack_left.png" Type="0"/>
+    <ROW Component="attack_right.png" ComponentId="{35DDB64B-9010-4DD2-AF23-8C50EA80CDA5}" Directory_="right_attack_10_Dir" Attributes="0" KeyPath="attack_right.png" Type="0"/>
+    <ROW Component="attack_up.png" ComponentId="{5CA4C9C7-08FC-4143-8D31-A4075112AC87}" Directory_="up_attack_10_Dir" Attributes="0" KeyPath="attack_up.png" Type="0"/>
+    <ROW Component="bow.zip" ComponentId="{A5749768-C40B-45AB-AA99-4F82C8B9D874}" Directory_="bow_Dir" Attributes="0" KeyPath="bow.zip" Type="0"/>
+    <ROW Component="boy_front_01.png" ComponentId="{D623CF84-64EF-4A0F-B5CB-570330219A2B}" Directory_="blue_energy_fruit_Dir" Attributes="0" KeyPath="boy_front_01.png" Type="0"/>
+    <ROW Component="brawn_idle.png" ComponentId="{DEF19EBD-6F14-496B-8B80-DB80DA031831}" Directory_="graphics_Dir" Attributes="0" KeyPath="brawn_idle.png" Type="0"/>
+    <ROW Component="death_0.png" ComponentId="{AA0D1C93-593B-448C-94A0-BB47D1904CAC}" Directory_="death_Dir" Attributes="0" KeyPath="death_0.png" Type="0"/>
+    <ROW Component="death_0.png_1" ComponentId="{FD5670E4-8B78-431B-A9B5-2D2C005E4ED9}" Directory_="death_1_Dir" Attributes="0" KeyPath="death_0.png_1" Type="0"/>
+    <ROW Component="death_0.png_2" ComponentId="{594797F5-9A7E-469F-8B0B-64ED37D612B2}" Directory_="death_2_Dir" Attributes="0" KeyPath="death_0.png_2" Type="0"/>
+    <ROW Component="death_0.png_3" ComponentId="{DA74E73D-C5B6-40F8-9F5D-5CDD5748EC6C}" Directory_="death_3_Dir" Attributes="0" KeyPath="death_0.png_3" Type="0"/>
+    <ROW Component="death_0.png_4" ComponentId="{0EE510B5-64CC-421D-ADA4-DAFD57728252}" Directory_="death_4_Dir" Attributes="0" KeyPath="death_0.png_4" Type="0"/>
+    <ROW Component="death_0.png_5" ComponentId="{462EF3C8-5791-4F66-97A4-B976415A0108}" Directory_="death_5_Dir" Attributes="0" KeyPath="death_0.png_5" Type="0"/>
+    <ROW Component="death_0.png_6" ComponentId="{C2D2DC21-8D23-468E-AD26-B1790EBD398C}" Directory_="death_6_Dir" Attributes="0" KeyPath="death_0.png_6" Type="0"/>
+    <ROW Component="death_0.png_7" ComponentId="{75FEF1D5-66B3-4DF0-9A2F-2C1DDE003B42}" Directory_="death_7_Dir" Attributes="0" KeyPath="death_0.png_7" Type="0"/>
+    <ROW Component="death_0.png_8" ComponentId="{B714FB83-62F7-4A58-8ED9-E0F603EB7367}" Directory_="death_8_Dir" Attributes="0" KeyPath="death_0.png_8" Type="0"/>
+    <ROW Component="demo.gif" ComponentId="{4D30CB1D-BCD4-45CF-AD94-80727B4D5D89}" Directory_="Water7_Dir" Attributes="0" KeyPath="demo.gif" Type="0"/>
+    <ROW Component="details.png" ComponentId="{707E4778-2062-4D3B-BC67-330BC20CC6E1}" Directory_="tilemap_Dir" Attributes="0" KeyPath="details.png" Type="0"/>
+    <ROW Component="details.png_1" ComponentId="{B0FC2168-03ED-4B54-9BCB-9CA729502313}" Directory_="notneeded_Dir" Attributes="0" KeyPath="details.png_3" Type="0"/>
+    <ROW Component="down.png" ComponentId="{4DCF9001-201E-4E1B-BFAE-870AEFC23320}" Directory_="axe_Dir" Attributes="0" KeyPath="down.png_1" Type="0"/>
+    <ROW Component="down.png_1" ComponentId="{0C058658-A804-42D7-8FF0-61DE98D04395}" Directory_="metal_sword_Dir" Attributes="0" KeyPath="down.png_3" Type="0"/>
+    <ROW Component="down.png_2" ComponentId="{117CE78F-98DB-4DC6-8372-B682195C413B}" Directory_="new_temp_Dir" Attributes="0" KeyPath="down.png_4" Type="0"/>
+    <ROW Component="down.png_3" ComponentId="{B6B5AB9F-C701-465E-B4EB-76D257FE2DFA}" Directory_="temp_Dir" Attributes="0" KeyPath="down.png_5" Type="0"/>
+    <ROW Component="down.png_4" ComponentId="{3C54BCB2-ACE8-445B-AB9E-D0613014DA1F}" Directory_="staff_Dir" Attributes="0" KeyPath="down.png_6" Type="0"/>
+    <ROW Component="down.png_5" ComponentId="{40AC1E68-EE2D-4BDC-B035-CF9755289390}" Directory_="sword_Dir" Attributes="0" KeyPath="down.png_7" Type="0"/>
+    <ROW Component="down_0.png" ComponentId="{D681BCA0-96EA-4322-B3E8-109577198B2A}" Directory_="down_Dir" Attributes="0" KeyPath="down_0.png" Type="0"/>
+    <ROW Component="down_0.png_1" ComponentId="{B53D8D96-0256-424B-93A8-46CA5C066BCD}" Directory_="down_1_Dir" Attributes="0" KeyPath="down_0.png_1" Type="0"/>
+    <ROW Component="down_0.png_10" ComponentId="{ED406B06-F0D6-45AD-AE9D-EFE003640977}" Directory_="down_10_Dir" Attributes="0" KeyPath="down_0.png_10" Type="0"/>
+    <ROW Component="down_0.png_2" ComponentId="{626B3698-56A2-4BE1-B9A2-3876F0D814E5}" Directory_="down_2_Dir" Attributes="0" KeyPath="down_0.png_2" Type="0"/>
+    <ROW Component="down_0.png_3" ComponentId="{B1C782EF-BC24-4EF1-8A99-32412F64FBAB}" Directory_="down_3_Dir" Attributes="0" KeyPath="down_0.png_3" Type="0"/>
+    <ROW Component="down_0.png_4" ComponentId="{C7EA1DDB-2655-4663-8E6D-93D4B218667C}" Directory_="down_4_Dir" Attributes="0" KeyPath="down_0.png_4" Type="0"/>
+    <ROW Component="down_0.png_5" ComponentId="{6845ABB2-7087-471C-B6C0-FB500B4419C3}" Directory_="down_5_Dir" Attributes="0" KeyPath="down_0.png_5" Type="0"/>
+    <ROW Component="down_0.png_6" ComponentId="{0A3BCD25-0C4B-49E0-BE2A-E323CF3E64C8}" Directory_="down_6_Dir" Attributes="0" KeyPath="down_0.png_6" Type="0"/>
+    <ROW Component="down_0.png_7" ComponentId="{8FD467CF-3C88-442E-B874-60742A1F6241}" Directory_="down_7_Dir" Attributes="0" KeyPath="down_0.png_7" Type="0"/>
+    <ROW Component="down_0.png_8" ComponentId="{FE390912-88B8-4063-90D0-DC68788DDF9E}" Directory_="down_8_Dir" Attributes="0" KeyPath="down_0.png_8" Type="0"/>
+    <ROW Component="down_0.png_9" ComponentId="{8ABCEFDF-1ADC-4048-BEA6-26E94AC7764B}" Directory_="down_9_Dir" Attributes="0" KeyPath="down_0.png_9" Type="0"/>
+    <ROW Component="down_attack_0.png" ComponentId="{798A7B6D-D6F7-4A59-97FE-5E09FE260806}" Directory_="down_attack_Dir" Attributes="0" KeyPath="down_attack_0.png" Type="0"/>
+    <ROW Component="down_attack_0.png_1" ComponentId="{7263490C-638D-4FF8-AB5D-7BA2EEA60656}" Directory_="down_attack_1_Dir" Attributes="0" KeyPath="down_attack_0.png_1" Type="0"/>
+    <ROW Component="down_attack_0.png_2" ComponentId="{DF5AE1DE-3319-4DB8-8F14-CEE70200C1DD}" Directory_="down_attack_2_Dir" Attributes="0" KeyPath="down_attack_0.png_2" Type="0"/>
+    <ROW Component="down_attack_0.png_3" ComponentId="{4984F92C-D31B-408D-BB72-3D52BCD8DE80}" Directory_="down_attack_3_Dir" Attributes="0" KeyPath="down_attack_0.png_3" Type="0"/>
+    <ROW Component="down_attack_0.png_4" ComponentId="{E5E6DF16-F46C-4BA5-926D-1C179E004616}" Directory_="down_attack_4_Dir" Attributes="0" KeyPath="down_attack_0.png_4" Type="0"/>
+    <ROW Component="down_attack_0.png_5" ComponentId="{ED001E53-5509-4B07-8BE4-2A2ECFCB2ACA}" Directory_="down_attack_5_Dir" Attributes="0" KeyPath="down_attack_0.png_5" Type="0"/>
+    <ROW Component="down_attack_0.png_6" ComponentId="{0F226F12-8D93-44A3-8F09-7CB6EB58AE97}" Directory_="down_attack_6_Dir" Attributes="0" KeyPath="down_attack_0.png_6" Type="0"/>
+    <ROW Component="down_attack_0.png_7" ComponentId="{A48099C7-0FFA-491C-924A-116F2F72AE49}" Directory_="down_attack_7_Dir" Attributes="0" KeyPath="down_attack_0.png_7" Type="0"/>
+    <ROW Component="down_attack_0.png_8" ComponentId="{61B43E9C-674A-4CF9-9753-7E8FF305BA6E}" Directory_="down_attack_8_Dir" Attributes="0" KeyPath="down_attack_0.png_8" Type="0"/>
+    <ROW Component="down_attack_0.png_9" ComponentId="{B8EB2D7D-A18A-4EF7-9EB2-9267F17FF2F9}" Directory_="down_attack_9_Dir" Attributes="0" KeyPath="down_attack_0.png_9" Type="0"/>
+    <ROW Component="down_idle_0.png" ComponentId="{73E13C52-1D87-478A-992F-E08DA00B1259}" Directory_="down_idle_Dir" Attributes="0" KeyPath="down_idle_0.png" Type="0"/>
+    <ROW Component="down_idle_0.png_1" ComponentId="{F3C22D64-D45C-4C4C-A3E2-E9E69CED23B9}" Directory_="down_idle_1_Dir" Attributes="0" KeyPath="down_idle_0.png_1" Type="0"/>
+    <ROW Component="down_idle_0.png_2" ComponentId="{9DB3C5B5-865B-48EB-AC71-6F8860B92818}" Directory_="down_idle_2_Dir" Attributes="0" KeyPath="down_idle_0.png_2" Type="0"/>
+    <ROW Component="down_idle_0.png_3" ComponentId="{2912805B-3F70-4E18-A666-98D86BF9608C}" Directory_="down_idle_3_Dir" Attributes="0" KeyPath="down_idle_0.png_3" Type="0"/>
+    <ROW Component="down_idle_0.png_4" ComponentId="{EFEC889B-C772-4D32-8591-1B69A0D0C07D}" Directory_="down_idle_4_Dir" Attributes="0" KeyPath="down_idle_0.png_4" Type="0"/>
+    <ROW Component="down_idle_0.png_5" ComponentId="{B595A6D8-53A4-40B8-89F8-37DE8FFCBEFF}" Directory_="down_idle_5_Dir" Attributes="0" KeyPath="down_idle_0.png_5" Type="0"/>
+    <ROW Component="down_idle_0.png_6" ComponentId="{B8DF99F9-1253-45DD-9B7A-F9059730CDDD}" Directory_="down_idle_6_Dir" Attributes="0" KeyPath="down_idle_0.png_6" Type="0"/>
+    <ROW Component="down_idle_0.png_7" ComponentId="{1F0B86F1-75B7-447F-810A-D839F2181B2A}" Directory_="down_idle_7_Dir" Attributes="0" KeyPath="down_idle_0.png_7" Type="0"/>
+    <ROW Component="down_idle_0.png_8" ComponentId="{7D449824-B8AD-43F9-B2F2-2C08E3FD035E}" Directory_="down_idle_8_Dir" Attributes="0" KeyPath="down_idle_0.png_8" Type="0"/>
+    <ROW Component="down_idle_0.png_9" ComponentId="{3CE906B7-D707-433C-B422-A36AF231C2BC}" Directory_="down_idle_9_Dir" Attributes="0" KeyPath="down_idle_0.png_9" Type="0"/>
+    <ROW Component="flowers.png" ComponentId="{54D597E2-386F-448E-B258-CBDD19218466}" Directory_="summer_Dir" Attributes="0" KeyPath="flowers.png" Type="0"/>
+    <ROW Component="grass_1.png" ComponentId="{D3A8426B-533E-4B34-B14F-DF5584722637}" Directory_="grass_Dir" Attributes="0" KeyPath="grass_1.png" Type="0"/>
+    <ROW Component="idle_down.png" ComponentId="{8D0267C1-203E-4C2F-A871-E877FFF59A5D}" Directory_="down_idle_10_Dir" Attributes="0" KeyPath="idle_down.png" Type="0"/>
+    <ROW Component="idle_left.png" ComponentId="{42A398E5-9649-4C0A-AFD4-3F10AC1B1202}" Directory_="left_idle_10_Dir" Attributes="0" KeyPath="idle_left.png" Type="0"/>
+    <ROW Component="idle_right.png" ComponentId="{92E53EFA-6E68-4BFA-B9F4-0BC6C58B22D4}" Directory_="right_idle_10_Dir" Attributes="0" KeyPath="idle_right.png" Type="0"/>
+    <ROW Component="idle_up.png" ComponentId="{DDE166C0-0965-4443-8340-617014B3E730}" Directory_="up_idle_10_Dir" Attributes="0" KeyPath="idle_up.png" Type="0"/>
+    <ROW Component="laser.png" ComponentId="{9F859B6B-FF8E-4A8D-8B4D-2525B63D7E40}" Directory_="Frenzy_Dir" Attributes="0" KeyPath="laser.png" Type="0"/>
+    <ROW Component="left_0.png" ComponentId="{F8E08BF5-2FB0-4E94-BF55-78975495CC80}" Directory_="left_Dir" Attributes="0" KeyPath="left_0.png" Type="0"/>
+    <ROW Component="left_0.png_1" ComponentId="{53E2C9A2-7900-43B8-9438-250BBED89CF2}" Directory_="left_1_Dir" Attributes="0" KeyPath="left_0.png_1" Type="0"/>
+    <ROW Component="left_0.png_10" ComponentId="{1EE14FAD-019E-42D5-AF22-0A6066F60293}" Directory_="left_10_Dir" Attributes="0" KeyPath="left_0.png_10" Type="0"/>
+    <ROW Component="left_0.png_2" ComponentId="{E1D66C78-43BF-4AE1-9121-F7A3DA5E1EC7}" Directory_="left_2_Dir" Attributes="0" KeyPath="left_0.png_2" Type="0"/>
+    <ROW Component="left_0.png_3" ComponentId="{2C51D689-3ECB-43B8-931B-0519E39C1BB6}" Directory_="left_3_Dir" Attributes="0" KeyPath="left_0.png_3" Type="0"/>
+    <ROW Component="left_0.png_4" ComponentId="{9D7CA82A-90D2-447E-BB5F-50B76833D7C3}" Directory_="left_4_Dir" Attributes="0" KeyPath="left_0.png_4" Type="0"/>
+    <ROW Component="left_0.png_5" ComponentId="{B563B76B-A750-44D3-BE0C-39ECF22AC1F4}" Directory_="left_5_Dir" Attributes="0" KeyPath="left_0.png_5" Type="0"/>
+    <ROW Component="left_0.png_6" ComponentId="{B63FAE3C-03AD-4A8C-BDA5-6F550EDD7F4F}" Directory_="left_6_Dir" Attributes="0" KeyPath="left_0.png_6" Type="0"/>
+    <ROW Component="left_0.png_7" ComponentId="{EFB316C9-9E87-4E63-A43B-71D2CAF56BB2}" Directory_="left_7_Dir" Attributes="0" KeyPath="left_0.png_7" Type="0"/>
+    <ROW Component="left_0.png_8" ComponentId="{DAFD3E33-2B84-4C6C-A761-96FE17D7D21B}" Directory_="left_8_Dir" Attributes="0" KeyPath="left_0.png_8" Type="0"/>
+    <ROW Component="left_0.png_9" ComponentId="{6D8676A1-F4C0-4CE1-96D6-76EC59749BC3}" Directory_="left_9_Dir" Attributes="0" KeyPath="left_0.png_9" Type="0"/>
+    <ROW Component="left_attack_0.png" ComponentId="{F61A4DFC-C2AD-426B-A30C-504A3E830E9B}" Directory_="left_attack_Dir" Attributes="0" KeyPath="left_attack_0.png" Type="0"/>
+    <ROW Component="left_attack_0.png_1" ComponentId="{9F8D643F-E379-444F-8141-9D34BC6C8D50}" Directory_="left_attack_1_Dir" Attributes="0" KeyPath="left_attack_0.png_1" Type="0"/>
+    <ROW Component="left_attack_0.png_2" ComponentId="{CEB2B5F2-9DEF-484C-ACD4-95809863FF43}" Directory_="left_attack_2_Dir" Attributes="0" KeyPath="left_attack_0.png_2" Type="0"/>
+    <ROW Component="left_attack_0.png_3" ComponentId="{3BD540AC-3B7D-46A9-B742-4F8B20CC3BF3}" Directory_="left_attack_3_Dir" Attributes="0" KeyPath="left_attack_0.png_3" Type="0"/>
+    <ROW Component="left_attack_0.png_4" ComponentId="{580FFE4E-B8F5-46EF-B4D8-FDA23E66906F}" Directory_="left_attack_4_Dir" Attributes="0" KeyPath="left_attack_0.png_4" Type="0"/>
+    <ROW Component="left_attack_0.png_5" ComponentId="{E559A257-67E6-46C1-87F6-F84FA6786D44}" Directory_="left_attack_5_Dir" Attributes="0" KeyPath="left_attack_0.png_5" Type="0"/>
+    <ROW Component="left_attack_0.png_6" ComponentId="{4E1467E9-C921-4F6E-8702-A5510B909D9B}" Directory_="left_attack_6_Dir" Attributes="0" KeyPath="left_attack_0.png_6" Type="0"/>
+    <ROW Component="left_attack_0.png_7" ComponentId="{0CD3ECE3-D23B-402D-B6F9-21FD6ECC3EFA}" Directory_="left_attack_7_Dir" Attributes="0" KeyPath="left_attack_0.png_7" Type="0"/>
+    <ROW Component="left_attack_0.png_8" ComponentId="{CB04A624-98AC-4FA4-B385-53738FCE8B91}" Directory_="left_attack_8_Dir" Attributes="0" KeyPath="left_attack_0.png_8" Type="0"/>
+    <ROW Component="left_attack_0.png_9" ComponentId="{EA19CE3B-705A-4FF9-B5BE-3B04F5C99E4B}" Directory_="left_attack_9_Dir" Attributes="0" KeyPath="left_attack_0.png_9" Type="0"/>
+    <ROW Component="left_idle_0.png" ComponentId="{D37E5C53-9A4F-42D6-B91A-7EA246F55B90}" Directory_="left_idle_Dir" Attributes="0" KeyPath="left_idle_0.png" Type="0"/>
+    <ROW Component="left_idle_0.png_1" ComponentId="{A0751D49-AF92-407D-9D6C-DF5CBAE41F47}" Directory_="left_idle_1_Dir" Attributes="0" KeyPath="left_idle_0.png_1" Type="0"/>
+    <ROW Component="left_idle_0.png_2" ComponentId="{0DB0A944-C495-4E7E-852C-1381C403F305}" Directory_="left_idle_2_Dir" Attributes="0" KeyPath="left_idle_0.png_2" Type="0"/>
+    <ROW Component="left_idle_0.png_3" ComponentId="{C1DF95B0-8725-4DC4-859F-78CE1F384282}" Directory_="left_idle_3_Dir" Attributes="0" KeyPath="left_idle_0.png_3" Type="0"/>
+    <ROW Component="left_idle_0.png_4" ComponentId="{93806548-393F-4C88-A1DC-105513DA9050}" Directory_="left_idle_4_Dir" Attributes="0" KeyPath="left_idle_0.png_4" Type="0"/>
+    <ROW Component="left_idle_0.png_5" ComponentId="{C6195049-B4EA-46EC-85D1-26A0EAC15273}" Directory_="left_idle_5_Dir" Attributes="0" KeyPath="left_idle_0.png_5" Type="0"/>
+    <ROW Component="left_idle_0.png_6" ComponentId="{0C38CDDC-6918-4587-85FE-0B66A7F7FDE7}" Directory_="left_idle_6_Dir" Attributes="0" KeyPath="left_idle_0.png_6" Type="0"/>
+    <ROW Component="left_idle_0.png_7" ComponentId="{23AEE8DE-C798-4622-9A32-ED03253F1605}" Directory_="left_idle_7_Dir" Attributes="0" KeyPath="left_idle_0.png_7" Type="0"/>
+    <ROW Component="left_idle_0.png_8" ComponentId="{6C0E904B-5044-4845-BAF0-3AFC9404013E}" Directory_="left_idle_8_Dir" Attributes="0" KeyPath="left_idle_0.png_8" Type="0"/>
+    <ROW Component="left_idle_0.png_9" ComponentId="{3EE175D6-F2A4-460F-9C86-9A8B3193A947}" Directory_="left_idle_9_Dir" Attributes="0" KeyPath="left_idle_0.png_9" Type="0"/>
+    <ROW Component="login.png" ComponentId="{1566400E-7810-40DE-A0AB-95704AF3305F}" Directory_="LoginScreen_Dir" Attributes="0" KeyPath="login.png" Type="0"/>
+    <ROW Component="on_hotbar.png" ComponentId="{4912CFAF-4177-421A-8790-DAB3C841FDC7}" Directory_="energy_fruit_Dir" Attributes="0" KeyPath="on_hotbar.png_2" Type="0"/>
+    <ROW Component="on_hotbar.png_1" ComponentId="{E01E0C85-D1CA-4F6E-ABA1-0610563C7BC8}" Directory_="hp_fruit_Dir" Attributes="0" KeyPath="on_hotbar.png_3" Type="0"/>
+    <ROW Component="on_hotbar.png_2" ComponentId="{0C0D7311-4CB2-488B-BD98-C0AA922F9E51}" Directory_="red_hp_fruit_Dir" Attributes="0" KeyPath="on_hotbar.png_4" Type="0"/>
     <ROW Component="perfectmusic.mp3" ComponentId="{79C5F73A-B6C8-4F8C-BC9D-D4AD0912A0F9}" Directory_="Music_Dir" Attributes="0" KeyPath="perfectmusic.mp3" Type="0"/>
-    <ROW Component="png" ComponentId="{5F3BDA4B-6256-4B3A-9F88-DBE1022529F0}" Directory_="objects_Dir" Attributes="0" KeyPath="png" Type="0"/>
-    <ROW Component="png_1" ComponentId="{9482208A-645C-4E6B-8860-FBF4C2E1B85D}" Directory_="new_objects_Dir" Attributes="0" KeyPath="png_1" Type="0"/>
-    <ROW Component="png_2" ComponentId="{71D2379D-59A0-460B-929B-EEF9BE1FEFF2}" Directory_="objects_1_Dir" Attributes="0" KeyPath="png_11" Type="0"/>
-    <ROW Component="png_3" ComponentId="{03E6FBEA-811C-48FA-94DC-70C3D6698958}" Directory_="objects_2_Dir" Attributes="0" KeyPath="png_32" Type="0"/>
-    <ROW Component="png_4" ComponentId="{F6518F43-DA5E-4A37-B8C2-ED848245E1BC}" Directory_="objects_3_Dir" Attributes="0" KeyPath="png_33" Type="0"/>
-    <ROW Component="read_me.txt" ComponentId="{69957865-4509-40AA-AD3B-70B2AC303857}" Directory_="SproutLandsSpritesBasicpack_Dir" Attributes="0" KeyPath="read_me.txt" Type="0"/>
-    <ROW Component="right_0.png" ComponentId="{E027DED5-1F5C-4256-B19E-BB3F3E3950BB}" Directory_="right_Dir" Attributes="0" KeyPath="right_0.png" Type="0"/>
-    <ROW Component="right_0.png_1" ComponentId="{1130219A-5993-4A0C-AC15-58A1C21838F6}" Directory_="right_1_Dir" Attributes="0" KeyPath="right_0.png_1" Type="0"/>
-    <ROW Component="right_0.png_10" ComponentId="{35BBAAF8-279C-4487-B626-0F6E6F06041F}" Directory_="right_10_Dir" Attributes="0" KeyPath="right_0.png_10" Type="0"/>
-    <ROW Component="right_0.png_2" ComponentId="{266E43AF-7ADC-49B3-B5C5-55FA91D58B6D}" Directory_="right_2_Dir" Attributes="0" KeyPath="right_0.png_2" Type="0"/>
-    <ROW Component="right_0.png_3" ComponentId="{E71CA4A2-B428-490A-A576-A24C44A9E995}" Directory_="right_3_Dir" Attributes="0" KeyPath="right_0.png_3" Type="0"/>
-    <ROW Component="right_0.png_4" ComponentId="{9D353AE6-9400-4D35-831C-46AFF479EEE2}" Directory_="right_4_Dir" Attributes="0" KeyPath="right_0.png_4" Type="0"/>
-    <ROW Component="right_0.png_5" ComponentId="{FDF260B0-3689-4BCE-B8D8-C26745BC642F}" Directory_="right_5_Dir" Attributes="0" KeyPath="right_0.png_5" Type="0"/>
-    <ROW Component="right_0.png_6" ComponentId="{60E30431-8823-4D4B-8726-4DEDEBF62E3B}" Directory_="right_6_Dir" Attributes="0" KeyPath="right_0.png_6" Type="0"/>
-    <ROW Component="right_0.png_7" ComponentId="{974FAC65-1B1E-419B-B87C-AC474B7CC0AA}" Directory_="right_7_Dir" Attributes="0" KeyPath="right_0.png_7" Type="0"/>
-    <ROW Component="right_0.png_8" ComponentId="{C4C890C5-2809-4C2D-98CE-C8C901566FF1}" Directory_="right_8_Dir" Attributes="0" KeyPath="right_0.png_8" Type="0"/>
-    <ROW Component="right_0.png_9" ComponentId="{3489AD15-6338-41F7-A4CB-F223C8F9ED66}" Directory_="right_9_Dir" Attributes="0" KeyPath="right_0.png_9" Type="0"/>
-    <ROW Component="right_attack_0.png" ComponentId="{A6CC29E9-71F0-40BA-8677-849D3D15E946}" Directory_="right_attack_Dir" Attributes="0" KeyPath="right_attack_0.png" Type="0"/>
-    <ROW Component="right_attack_0.png_1" ComponentId="{D2C97342-8C96-4637-AF64-106A6FBB30D4}" Directory_="right_attack_1_Dir" Attributes="0" KeyPath="right_attack_0.png_1" Type="0"/>
-    <ROW Component="right_attack_0.png_2" ComponentId="{EEE88367-DCF6-40F8-BA8D-85DA56405A09}" Directory_="right_attack_2_Dir" Attributes="0" KeyPath="right_attack_0.png_2" Type="0"/>
-    <ROW Component="right_attack_0.png_3" ComponentId="{3B8DE211-C70C-411E-BC6C-C370565C4413}" Directory_="right_attack_3_Dir" Attributes="0" KeyPath="right_attack_0.png_3" Type="0"/>
-    <ROW Component="right_attack_0.png_4" ComponentId="{A0B7FC4F-C3A5-42FE-A9B4-88D34D6E9CDC}" Directory_="right_attack_4_Dir" Attributes="0" KeyPath="right_attack_0.png_4" Type="0"/>
-    <ROW Component="right_attack_0.png_5" ComponentId="{C8FCD267-3367-4FEE-A8E0-9E5A3E7D77EE}" Directory_="right_attack_5_Dir" Attributes="0" KeyPath="right_attack_0.png_5" Type="0"/>
-    <ROW Component="right_attack_0.png_6" ComponentId="{C5F19050-A205-4521-A985-4B501D47F437}" Directory_="right_attack_6_Dir" Attributes="0" KeyPath="right_attack_0.png_6" Type="0"/>
-    <ROW Component="right_attack_0.png_7" ComponentId="{E9B3EDB3-E516-4E44-998F-EE4843A9D28B}" Directory_="right_attack_7_Dir" Attributes="0" KeyPath="right_attack_0.png_7" Type="0"/>
-    <ROW Component="right_attack_0.png_8" ComponentId="{D9573268-B71E-4217-9EFE-C6787F13A4DF}" Directory_="right_attack_8_Dir" Attributes="0" KeyPath="right_attack_0.png_8" Type="0"/>
-    <ROW Component="right_attack_0.png_9" ComponentId="{DEEC832B-B772-4B5E-879E-FB72851DFA55}" Directory_="right_attack_9_Dir" Attributes="0" KeyPath="right_attack_0.png_9" Type="0"/>
-    <ROW Component="right_idle_0.png" ComponentId="{7715AC61-3FE2-4867-91F2-EE095B6B7943}" Directory_="right_idle_Dir" Attributes="0" KeyPath="right_idle_0.png" Type="0"/>
-    <ROW Component="right_idle_0.png_1" ComponentId="{FAEA3966-1827-4389-A82D-7F6B0D639F69}" Directory_="right_idle_1_Dir" Attributes="0" KeyPath="right_idle_0.png_1" Type="0"/>
-    <ROW Component="right_idle_0.png_2" ComponentId="{C98D7352-5798-4702-A007-4B7CC3E13E2C}" Directory_="right_idle_2_Dir" Attributes="0" KeyPath="right_idle_0.png_2" Type="0"/>
-    <ROW Component="right_idle_0.png_3" ComponentId="{7209C8EE-2BE0-437B-9380-3085BCF77263}" Directory_="right_idle_3_Dir" Attributes="0" KeyPath="right_idle_0.png_3" Type="0"/>
-    <ROW Component="right_idle_0.png_4" ComponentId="{E0016CF8-8860-4446-8FDB-A6CD7D01F79B}" Directory_="right_idle_4_Dir" Attributes="0" KeyPath="right_idle_0.png_4" Type="0"/>
-    <ROW Component="right_idle_0.png_5" ComponentId="{82FC4474-05FC-4258-B7A5-0FF6D61E7157}" Directory_="right_idle_5_Dir" Attributes="0" KeyPath="right_idle_0.png_5" Type="0"/>
-    <ROW Component="right_idle_0.png_6" ComponentId="{B0507ABB-9DF4-402E-B515-5030D6EA98B7}" Directory_="right_idle_6_Dir" Attributes="0" KeyPath="right_idle_0.png_6" Type="0"/>
-    <ROW Component="right_idle_0.png_7" ComponentId="{E8557F48-3A41-490C-A44C-C9B9437A8464}" Directory_="right_idle_7_Dir" Attributes="0" KeyPath="right_idle_0.png_7" Type="0"/>
-    <ROW Component="right_idle_0.png_8" ComponentId="{4DADEEF8-400A-40CA-B7AC-6DF03DD4D2F5}" Directory_="right_idle_8_Dir" Attributes="0" KeyPath="right_idle_0.png_8" Type="0"/>
-    <ROW Component="right_idle_0.png_9" ComponentId="{B442959C-170E-463E-AAD6-A5FF918AFE3E}" Directory_="right_idle_9_Dir" Attributes="0" KeyPath="right_idle_0.png_9" Type="0"/>
-    <ROW Component="rock.png" ComponentId="{A09E862A-D77A-4C71-8B40-3228781C8BD0}" Directory_="tiles_1_Dir" Attributes="0" KeyPath="rock.png" Type="0"/>
-    <ROW Component="summer_tile.png" ComponentId="{9A0EF734-44B0-4AF9-BE37-0EF52C4A5F9D}" Directory_="tiles_Dir" Attributes="0" KeyPath="summer_tile.png" Type="0"/>
-    <ROW Component="template.png" ComponentId="{4F554F14-05F1-4E45-AD13-8C6AE2B3D1B7}" Directory_="image_Dir" Attributes="0" KeyPath="template.png" Type="0"/>
-    <ROW Component="tile000.png" ComponentId="{2B48E0C3-2EA5-4CFC-86D9-03FD88241D75}" Directory_="up_attack_1_Dir" Attributes="0" KeyPath="tile000.png" Type="0"/>
-    <ROW Component="tile000.png_1" ComponentId="{8462AB7E-0E78-40DA-92B4-0D245E7247D5}" Directory_="up_idle_1_Dir" Attributes="0" KeyPath="tile000.png_1" Type="0"/>
-    <ROW Component="tile000.png_2" ComponentId="{ADD9395F-9B15-4FFD-BE81-632F43B2751D}" Directory_="up_attack_3_Dir" Attributes="0" KeyPath="tile000.png_2" Type="0"/>
-    <ROW Component="tile000.png_3" ComponentId="{89FC4966-7D9C-4278-9A75-6F3B06619615}" Directory_="up_idle_3_Dir" Attributes="0" KeyPath="tile000.png_3" Type="0"/>
-    <ROW Component="tile000.png_4" ComponentId="{C2155A73-D26E-43F7-8375-F7C87FE804AF}" Directory_="up_attack_4_Dir" Attributes="0" KeyPath="tile000.png_4" Type="0"/>
-    <ROW Component="tile000.png_5" ComponentId="{9EE784B4-0FCD-4D04-A5CC-5EA2574A18FB}" Directory_="up_idle_4_Dir" Attributes="0" KeyPath="tile000.png_5" Type="0"/>
-    <ROW Component="tile000.png_6" ComponentId="{3F5DBEE1-85CA-46BE-A3D8-41E0BA470251}" Directory_="up_attack_7_Dir" Attributes="0" KeyPath="tile000.png_6" Type="0"/>
-    <ROW Component="tile000.png_7" ComponentId="{24EDD91C-A520-41A8-A106-EF99D8ED3E68}" Directory_="up_idle_7_Dir" Attributes="0" KeyPath="tile000.png_7" Type="0"/>
-    <ROW Component="tile004.png" ComponentId="{776FBDBC-D00A-4ED8-B1DE-EA65F9B7D5D8}" Directory_="up_1_Dir" Attributes="0" KeyPath="tile004.png" Type="0"/>
-    <ROW Component="tile004.png_1" ComponentId="{8F74B12A-17C7-4924-8C27-8A26D63EFCC8}" Directory_="up_3_Dir" Attributes="0" KeyPath="tile004.png_1" Type="0"/>
-    <ROW Component="tile004.png_2" ComponentId="{7E3A5711-29D8-4454-82F2-C9E8EEACA222}" Directory_="up_4_Dir" Attributes="0" KeyPath="tile004.png_2" Type="0"/>
-    <ROW Component="tile004.png_3" ComponentId="{73622FA5-84D3-4A78-BFAC-AC2E3C69FA34}" Directory_="up_7_Dir" Attributes="0" KeyPath="tile004.png_3" Type="0"/>
-    <ROW Component="tsx" ComponentId="{B84A868F-4A2A-4598-B72E-894AEE45A535}" Directory_="new_map_Dir" Attributes="0" KeyPath="tsx" Type="0"/>
-    <ROW Component="up_0.png" ComponentId="{61E7D995-C8AA-4EF0-9FF8-37CA83F3E4BA}" Directory_="up_Dir" Attributes="0" KeyPath="up_0.png" Type="0"/>
-    <ROW Component="up_0.png_1" ComponentId="{AA26CB23-08F2-4A2A-9892-D07A51332896}" Directory_="up_2_Dir" Attributes="0" KeyPath="up_0.png_2" Type="0"/>
-    <ROW Component="up_0.png_2" ComponentId="{1413A6A8-1C9B-4803-9773-E0DCD034257A}" Directory_="up_5_Dir" Attributes="0" KeyPath="up_0.png_5" Type="0"/>
-    <ROW Component="up_0.png_3" ComponentId="{76AA061D-6631-47B1-8122-D1E024CE5386}" Directory_="up_6_Dir" Attributes="0" KeyPath="up_0.png_6" Type="0"/>
-    <ROW Component="up_0.png_4" ComponentId="{B9578E91-9E27-4270-B30F-43423AC731C6}" Directory_="up_8_Dir" Attributes="0" KeyPath="up_0.png_8" Type="0"/>
-    <ROW Component="up_0.png_5" ComponentId="{08ED94AF-5A25-4EA3-A027-C97E11F6A7F1}" Directory_="up_9_Dir" Attributes="0" KeyPath="up_0.png_9" Type="0"/>
-    <ROW Component="up_0.png_6" ComponentId="{26741626-78A8-4327-B3E3-0930D5A1A3D3}" Directory_="up_10_Dir" Attributes="0" KeyPath="up_0.png_10" Type="0"/>
-    <ROW Component="up_attack_0.png" ComponentId="{9EF496FE-B67E-429F-953A-B2250E121874}" Directory_="up_attack_Dir" Attributes="0" KeyPath="up_attack_0.png" Type="0"/>
-    <ROW Component="up_attack_0.png_1" ComponentId="{DA8555FC-72EA-4DDC-AD24-B770D68C10A7}" Directory_="up_attack_2_Dir" Attributes="0" KeyPath="up_attack_0.png_2" Type="0"/>
-    <ROW Component="up_attack_0.png_2" ComponentId="{A92533DB-020C-4110-9D78-CCAB60B6FD71}" Directory_="up_attack_5_Dir" Attributes="0" KeyPath="up_attack_0.png_5" Type="0"/>
-    <ROW Component="up_attack_0.png_3" ComponentId="{A3EE8C77-5B2F-4980-A3BB-AA42564709F9}" Directory_="up_attack_6_Dir" Attributes="0" KeyPath="up_attack_0.png_6" Type="0"/>
-    <ROW Component="up_attack_0.png_4" ComponentId="{1A241F2B-5255-4F77-B816-1EF247D5F497}" Directory_="up_attack_8_Dir" Attributes="0" KeyPath="up_attack_0.png_8" Type="0"/>
-    <ROW Component="up_attack_0.png_5" ComponentId="{E4746D5D-C6ED-4292-AB69-F4B3F13C9D6B}" Directory_="up_attack_9_Dir" Attributes="0" KeyPath="up_attack_0.png_9" Type="0"/>
-    <ROW Component="up_idle_0.png" ComponentId="{B7B96B81-2CA9-4669-BE72-A4E1F964899B}" Directory_="up_idle_Dir" Attributes="0" KeyPath="up_idle_0.png" Type="0"/>
-    <ROW Component="up_idle_0.png_1" ComponentId="{61A76CA8-A1D4-4BA7-AC1C-42A127CE2583}" Directory_="up_idle_2_Dir" Attributes="0" KeyPath="up_idle_0.png_2" Type="0"/>
-    <ROW Component="up_idle_0.png_2" ComponentId="{D7B73EE9-D7CA-4F35-9776-23A7123A347A}" Directory_="up_idle_5_Dir" Attributes="0" KeyPath="up_idle_0.png_5" Type="0"/>
-    <ROW Component="up_idle_0.png_3" ComponentId="{778D3B62-DDA0-4541-8181-8F833DAA4742}" Directory_="up_idle_6_Dir" Attributes="0" KeyPath="up_idle_0.png_6" Type="0"/>
-    <ROW Component="up_idle_0.png_4" ComponentId="{3C1FA86F-0C43-43C8-BE6C-910930DF32AE}" Directory_="up_idle_8_Dir" Attributes="0" KeyPath="up_idle_0.png_8" Type="0"/>
-    <ROW Component="up_idle_0.png_5" ComponentId="{30420196-1E6F-4A8F-A9CE-B9DDE6E10B45}" Directory_="up_idle_9_Dir" Attributes="0" KeyPath="up_idle_0.png_9" Type="0"/>
-    <ROW Component="water70000.png" ComponentId="{14626857-FE2F-4A24-BA65-C9F61ADD2C46}" Directory_="Png_Dir" Attributes="0" KeyPath="water70000.png_1" Type="0"/>
-    <ROW Component="winter_tile.png" ComponentId="{32C8C7DF-A623-4F37-90EF-0972DCDCEF72}" Directory_="tiles_2_Dir" Attributes="0" KeyPath="winter_tile.png_1" Type="0"/>
+    <ROW Component="png" ComponentId="{3C261D9B-C045-484C-9E7D-F3D6A1B093A5}" Directory_="objects_Dir" Attributes="0" KeyPath="png" Type="0"/>
+    <ROW Component="png_1" ComponentId="{F2F849C8-4C67-42DD-974F-96CFB7033917}" Directory_="new_objects_Dir" Attributes="0" KeyPath="png_1" Type="0"/>
+    <ROW Component="png_2" ComponentId="{EEDAEE3F-D6FC-4487-A1ED-214BE4B1A5BD}" Directory_="objects_1_Dir" Attributes="0" KeyPath="png_11" Type="0"/>
+    <ROW Component="png_3" ComponentId="{993B8EAA-BFCD-4A1A-B4EB-C217607D6AB7}" Directory_="objects_2_Dir" Attributes="0" KeyPath="png_32" Type="0"/>
+    <ROW Component="png_4" ComponentId="{C77C7368-5F3E-40FF-82A9-928DD56675E7}" Directory_="objects_3_Dir" Attributes="0" KeyPath="png_33" Type="0"/>
+    <ROW Component="read_me.txt" ComponentId="{210B3CD0-B025-4141-BDAF-E9912C3D2273}" Directory_="SproutLandsSpritesBasicpack_Dir" Attributes="0" KeyPath="read_me.txt" Type="0"/>
+    <ROW Component="right_0.png" ComponentId="{62F9D2C7-B5D5-4703-AEB8-3DD9A2CEC8F5}" Directory_="right_Dir" Attributes="0" KeyPath="right_0.png" Type="0"/>
+    <ROW Component="right_0.png_1" ComponentId="{9574BC2B-C5C6-4107-AD71-22F9ABE9E695}" Directory_="right_1_Dir" Attributes="0" KeyPath="right_0.png_1" Type="0"/>
+    <ROW Component="right_0.png_10" ComponentId="{E1FD1DED-3BB2-41EA-85FB-7EC6DF824714}" Directory_="right_10_Dir" Attributes="0" KeyPath="right_0.png_10" Type="0"/>
+    <ROW Component="right_0.png_2" ComponentId="{904D2B08-6F64-4FE9-830F-F3FC9B29F1A6}" Directory_="right_2_Dir" Attributes="0" KeyPath="right_0.png_2" Type="0"/>
+    <ROW Component="right_0.png_3" ComponentId="{46D57731-2990-4E86-BAA3-1AAE7F9088B5}" Directory_="right_3_Dir" Attributes="0" KeyPath="right_0.png_3" Type="0"/>
+    <ROW Component="right_0.png_4" ComponentId="{BCF51B0D-A045-49BC-8843-BBD21CF62713}" Directory_="right_4_Dir" Attributes="0" KeyPath="right_0.png_4" Type="0"/>
+    <ROW Component="right_0.png_5" ComponentId="{27856D2F-64C5-4085-AE17-415083D34C48}" Directory_="right_5_Dir" Attributes="0" KeyPath="right_0.png_5" Type="0"/>
+    <ROW Component="right_0.png_6" ComponentId="{CF3D4B56-9FAC-4654-A6F2-9EF4B3E74F07}" Directory_="right_6_Dir" Attributes="0" KeyPath="right_0.png_6" Type="0"/>
+    <ROW Component="right_0.png_7" ComponentId="{7F39584F-146C-4CD7-99CC-2966EA19B19E}" Directory_="right_7_Dir" Attributes="0" KeyPath="right_0.png_7" Type="0"/>
+    <ROW Component="right_0.png_8" ComponentId="{C723DB35-FE69-4306-ACD0-B31A7295A0BA}" Directory_="right_8_Dir" Attributes="0" KeyPath="right_0.png_8" Type="0"/>
+    <ROW Component="right_0.png_9" ComponentId="{C9F6C2B8-2DCF-448D-BEFD-33ECEC0D0FAB}" Directory_="right_9_Dir" Attributes="0" KeyPath="right_0.png_9" Type="0"/>
+    <ROW Component="right_attack_0.png" ComponentId="{D163AC46-2A53-42FC-B798-D312A90D122E}" Directory_="right_attack_Dir" Attributes="0" KeyPath="right_attack_0.png" Type="0"/>
+    <ROW Component="right_attack_0.png_1" ComponentId="{A6E596C8-B29A-4350-A5D8-29D2F003C50F}" Directory_="right_attack_1_Dir" Attributes="0" KeyPath="right_attack_0.png_1" Type="0"/>
+    <ROW Component="right_attack_0.png_2" ComponentId="{399120EE-72CF-44ED-B280-69DE32DE4BCE}" Directory_="right_attack_2_Dir" Attributes="0" KeyPath="right_attack_0.png_2" Type="0"/>
+    <ROW Component="right_attack_0.png_3" ComponentId="{E716E5A3-B370-4163-BCC1-BCE88ED348A7}" Directory_="right_attack_3_Dir" Attributes="0" KeyPath="right_attack_0.png_3" Type="0"/>
+    <ROW Component="right_attack_0.png_4" ComponentId="{6EBD563E-189F-4087-8A53-CC30686CD2D7}" Directory_="right_attack_4_Dir" Attributes="0" KeyPath="right_attack_0.png_4" Type="0"/>
+    <ROW Component="right_attack_0.png_5" ComponentId="{5B351E4F-A845-482B-9AA4-7B3A98D24A36}" Directory_="right_attack_5_Dir" Attributes="0" KeyPath="right_attack_0.png_5" Type="0"/>
+    <ROW Component="right_attack_0.png_6" ComponentId="{AE448AD8-0E4A-4784-8380-F2A7E20AA121}" Directory_="right_attack_6_Dir" Attributes="0" KeyPath="right_attack_0.png_6" Type="0"/>
+    <ROW Component="right_attack_0.png_7" ComponentId="{E9F2B426-D720-41F2-8141-49529A5A631E}" Directory_="right_attack_7_Dir" Attributes="0" KeyPath="right_attack_0.png_7" Type="0"/>
+    <ROW Component="right_attack_0.png_8" ComponentId="{39740E22-4822-4072-B49E-707E216055B3}" Directory_="right_attack_8_Dir" Attributes="0" KeyPath="right_attack_0.png_8" Type="0"/>
+    <ROW Component="right_attack_0.png_9" ComponentId="{3F720CA3-918B-4787-8BC0-8049E86E7409}" Directory_="right_attack_9_Dir" Attributes="0" KeyPath="right_attack_0.png_9" Type="0"/>
+    <ROW Component="right_idle_0.png" ComponentId="{0A2C8E2C-4049-4FDD-B008-912535E627E6}" Directory_="right_idle_Dir" Attributes="0" KeyPath="right_idle_0.png" Type="0"/>
+    <ROW Component="right_idle_0.png_1" ComponentId="{EE3E9855-1CA9-4727-A516-58F270ACB9F1}" Directory_="right_idle_1_Dir" Attributes="0" KeyPath="right_idle_0.png_1" Type="0"/>
+    <ROW Component="right_idle_0.png_2" ComponentId="{ADAE0E08-35F8-427A-A45E-F75132F12037}" Directory_="right_idle_2_Dir" Attributes="0" KeyPath="right_idle_0.png_2" Type="0"/>
+    <ROW Component="right_idle_0.png_3" ComponentId="{26A4EF90-23B8-43C2-B1C9-F9A73A3FC7A1}" Directory_="right_idle_3_Dir" Attributes="0" KeyPath="right_idle_0.png_3" Type="0"/>
+    <ROW Component="right_idle_0.png_4" ComponentId="{BE23C5C9-F3B8-4CC8-AAB1-A458927DBF5C}" Directory_="right_idle_4_Dir" Attributes="0" KeyPath="right_idle_0.png_4" Type="0"/>
+    <ROW Component="right_idle_0.png_5" ComponentId="{FC7F0EAE-4509-4601-ACBB-50793A39B12A}" Directory_="right_idle_5_Dir" Attributes="0" KeyPath="right_idle_0.png_5" Type="0"/>
+    <ROW Component="right_idle_0.png_6" ComponentId="{366770A6-9DA3-45FA-BBAD-96C299621F6E}" Directory_="right_idle_6_Dir" Attributes="0" KeyPath="right_idle_0.png_6" Type="0"/>
+    <ROW Component="right_idle_0.png_7" ComponentId="{91043959-41BF-4CBD-A24A-80ED90486375}" Directory_="right_idle_7_Dir" Attributes="0" KeyPath="right_idle_0.png_7" Type="0"/>
+    <ROW Component="right_idle_0.png_8" ComponentId="{2F4A06E2-A3F7-49BA-8B1E-DF2C4CB736C0}" Directory_="right_idle_8_Dir" Attributes="0" KeyPath="right_idle_0.png_8" Type="0"/>
+    <ROW Component="right_idle_0.png_9" ComponentId="{FF41E9AF-5801-4837-8673-AA3002EC9656}" Directory_="right_idle_9_Dir" Attributes="0" KeyPath="right_idle_0.png_9" Type="0"/>
+    <ROW Component="rock.png" ComponentId="{E1C2921B-D329-400F-AFC3-79ADA8496ACD}" Directory_="tiles_1_Dir" Attributes="0" KeyPath="rock.png" Type="0"/>
+    <ROW Component="summer_tile.png" ComponentId="{27EF2690-41D9-4F36-B8A9-AA2CB2BF541B}" Directory_="tiles_Dir" Attributes="0" KeyPath="summer_tile.png" Type="0"/>
+    <ROW Component="template.png" ComponentId="{DC44CD44-9BF1-4733-83A1-B9DD76D48B6A}" Directory_="image_Dir" Attributes="0" KeyPath="template.png" Type="0"/>
+    <ROW Component="tile000.png" ComponentId="{D1D54ADF-B4CA-455A-A91C-04EF546D2E78}" Directory_="up_attack_1_Dir" Attributes="0" KeyPath="tile000.png" Type="0"/>
+    <ROW Component="tile000.png_1" ComponentId="{1570A67B-9CB6-4206-8F0F-BEB046FEEDF9}" Directory_="up_idle_1_Dir" Attributes="0" KeyPath="tile000.png_1" Type="0"/>
+    <ROW Component="tile000.png_2" ComponentId="{6D372D30-9443-4ABD-84B3-2C0B4D87E97B}" Directory_="up_attack_3_Dir" Attributes="0" KeyPath="tile000.png_2" Type="0"/>
+    <ROW Component="tile000.png_3" ComponentId="{DDF0C755-4EB3-4BD5-ADD2-40B34CC64A19}" Directory_="up_idle_3_Dir" Attributes="0" KeyPath="tile000.png_3" Type="0"/>
+    <ROW Component="tile000.png_4" ComponentId="{A283937E-3B95-4A8E-95C4-690A8A99B412}" Directory_="up_attack_4_Dir" Attributes="0" KeyPath="tile000.png_4" Type="0"/>
+    <ROW Component="tile000.png_5" ComponentId="{6F2E0F26-8EAC-413C-912B-96849AF82966}" Directory_="up_idle_4_Dir" Attributes="0" KeyPath="tile000.png_5" Type="0"/>
+    <ROW Component="tile000.png_6" ComponentId="{F0D6A930-8B0B-4EDF-94E6-31C212CA2B8E}" Directory_="up_attack_7_Dir" Attributes="0" KeyPath="tile000.png_6" Type="0"/>
+    <ROW Component="tile000.png_7" ComponentId="{571A8597-941D-444E-A940-D89B4C6D92CC}" Directory_="up_idle_7_Dir" Attributes="0" KeyPath="tile000.png_7" Type="0"/>
+    <ROW Component="tile004.png" ComponentId="{4DC8BB48-41A1-4052-ACC1-3A95B093945F}" Directory_="up_1_Dir" Attributes="0" KeyPath="tile004.png" Type="0"/>
+    <ROW Component="tile004.png_1" ComponentId="{C7F3958E-4B9C-4441-BF9B-07FEABB6BD4A}" Directory_="up_3_Dir" Attributes="0" KeyPath="tile004.png_1" Type="0"/>
+    <ROW Component="tile004.png_2" ComponentId="{A6F84926-AB4C-47E1-B813-00DEEE5F18BE}" Directory_="up_4_Dir" Attributes="0" KeyPath="tile004.png_2" Type="0"/>
+    <ROW Component="tile004.png_3" ComponentId="{86D84962-AE70-4E2B-AF8C-C4829E3A93F5}" Directory_="up_7_Dir" Attributes="0" KeyPath="tile004.png_3" Type="0"/>
+    <ROW Component="tsx" ComponentId="{CADFE82F-6A7F-4FEE-9AC6-1544AA8802B7}" Directory_="new_map_Dir" Attributes="0" KeyPath="tsx" Type="0"/>
+    <ROW Component="up_0.png" ComponentId="{081DF1CE-73E6-453D-A36A-A56A0A7D8093}" Directory_="up_Dir" Attributes="0" KeyPath="up_0.png" Type="0"/>
+    <ROW Component="up_0.png_1" ComponentId="{A41CBD6E-179F-49E5-BAF8-C46859312A17}" Directory_="up_2_Dir" Attributes="0" KeyPath="up_0.png_2" Type="0"/>
+    <ROW Component="up_0.png_2" ComponentId="{8E54B1CB-A4FC-424A-BC4B-8B760B41375D}" Directory_="up_5_Dir" Attributes="0" KeyPath="up_0.png_5" Type="0"/>
+    <ROW Component="up_0.png_3" ComponentId="{9E2B7336-03AF-4A97-B8CF-EAC2110A76E6}" Directory_="up_6_Dir" Attributes="0" KeyPath="up_0.png_6" Type="0"/>
+    <ROW Component="up_0.png_4" ComponentId="{F1429CEC-9B6A-4134-8A91-C58A81FA6C67}" Directory_="up_8_Dir" Attributes="0" KeyPath="up_0.png_8" Type="0"/>
+    <ROW Component="up_0.png_5" ComponentId="{301D347B-89D8-4F2D-A348-5DB4FDF728DD}" Directory_="up_9_Dir" Attributes="0" KeyPath="up_0.png_9" Type="0"/>
+    <ROW Component="up_0.png_6" ComponentId="{142F3F11-B603-4EE7-BD34-8CE65B1A2F00}" Directory_="up_10_Dir" Attributes="0" KeyPath="up_0.png_10" Type="0"/>
+    <ROW Component="up_attack_0.png" ComponentId="{E13BA985-0ABB-4324-B238-DAD46A18D900}" Directory_="up_attack_Dir" Attributes="0" KeyPath="up_attack_0.png" Type="0"/>
+    <ROW Component="up_attack_0.png_1" ComponentId="{2D15885E-3B4F-45A6-879C-9F510A568B87}" Directory_="up_attack_2_Dir" Attributes="0" KeyPath="up_attack_0.png_2" Type="0"/>
+    <ROW Component="up_attack_0.png_2" ComponentId="{5A6ACF45-B14A-41F9-9416-3C3848904559}" Directory_="up_attack_5_Dir" Attributes="0" KeyPath="up_attack_0.png_5" Type="0"/>
+    <ROW Component="up_attack_0.png_3" ComponentId="{6C0F9CFF-CE6A-45F4-B354-4D172251A408}" Directory_="up_attack_6_Dir" Attributes="0" KeyPath="up_attack_0.png_6" Type="0"/>
+    <ROW Component="up_attack_0.png_4" ComponentId="{0BD42DAD-BC18-4562-BF78-C792C56CA63E}" Directory_="up_attack_8_Dir" Attributes="0" KeyPath="up_attack_0.png_8" Type="0"/>
+    <ROW Component="up_attack_0.png_5" ComponentId="{8761E71B-44F9-4A0A-8749-F006B2B14666}" Directory_="up_attack_9_Dir" Attributes="0" KeyPath="up_attack_0.png_9" Type="0"/>
+    <ROW Component="up_idle_0.png" ComponentId="{ED627557-6498-4B7C-B2C3-B2600CA22A35}" Directory_="up_idle_Dir" Attributes="0" KeyPath="up_idle_0.png" Type="0"/>
+    <ROW Component="up_idle_0.png_1" ComponentId="{C5F0BB3F-CD03-4EB6-B656-641672030D29}" Directory_="up_idle_2_Dir" Attributes="0" KeyPath="up_idle_0.png_2" Type="0"/>
+    <ROW Component="up_idle_0.png_2" ComponentId="{77B41197-3380-4B9D-879B-48B69F073353}" Directory_="up_idle_5_Dir" Attributes="0" KeyPath="up_idle_0.png_5" Type="0"/>
+    <ROW Component="up_idle_0.png_3" ComponentId="{2B690666-066D-4957-BC76-8F72E45B6BFF}" Directory_="up_idle_6_Dir" Attributes="0" KeyPath="up_idle_0.png_6" Type="0"/>
+    <ROW Component="up_idle_0.png_4" ComponentId="{C6388EAC-450A-4046-A95A-40E304E00AAD}" Directory_="up_idle_8_Dir" Attributes="0" KeyPath="up_idle_0.png_8" Type="0"/>
+    <ROW Component="up_idle_0.png_5" ComponentId="{B61A7562-04BD-448E-BA58-541A415DF9B0}" Directory_="up_idle_9_Dir" Attributes="0" KeyPath="up_idle_0.png_9" Type="0"/>
+    <ROW Component="water70000.png" ComponentId="{39C5FED1-498B-431A-851C-AB4E12D377D2}" Directory_="Png_Dir" Attributes="0" KeyPath="water70000.png_1" Type="0"/>
+    <ROW Component="winter_tile.png" ComponentId="{8E92A427-1EC3-4C86-B7B2-E8CC37DAA3D5}" Directory_="tiles_2_Dir" Attributes="0" KeyPath="winter_tile.png_1" Type="0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
     <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0"/>
@@ -430,32 +430,35 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
     <ROW File="perfectmusic.mp3" Component_="perfectmusic.mp3" FileName="PERFEC~1.MP3|perfectmusic.mp3" Attributes="0" SourcePath="..\perfectmusic.mp3" SelfReg="false"/>
-    <ROW File="Details.csv" Component_="Details.csv" FileName="Details.csv" Attributes="0" SourcePath="..\..\map\Details.csv" SelfReg="false"/>
-    <ROW File="Floor.csv" Component_="Details.csv" FileName="Floor.csv" Attributes="0" SourcePath="..\..\map\Floor.csv" SelfReg="false"/>
-    <ROW File="FloorBlocks.csv" Component_="Details.csv" FileName="FLOORB~1.CSV|FloorBlocks.csv" Attributes="0" SourcePath="..\..\map\FloorBlocks.csv" SelfReg="false"/>
-    <ROW File="Grass.csv" Component_="Details.csv" FileName="Grass.csv" Attributes="0" SourcePath="..\..\map\Grass.csv" SelfReg="false"/>
-    <ROW File="Objects.csv" Component_="Details.csv" FileName="Objects.csv" Attributes="0" SourcePath="..\..\map\Objects.csv" SelfReg="false"/>
     <ROW File="TheWildBreathOfZelda15Lv.ttf" Component_="TheWildBreathOfZelda15Lv.ttf" FileName="THEWIL~1.TTF|TheWildBreathOfZelda-15Lv.ttf" Attributes="0" SourcePath="..\..\fonts\TheWildBreathOfZelda-15Lv.ttf" SelfReg="false"/>
     <ROW File="tsx" Component_="tsx" FileName="08.tsx" Attributes="0" SourcePath="..\..\new_map\08.tsx" SelfReg="false"/>
     <ROW File="cyber_map.tmj" Component_="tsx" FileName="CYBER_~1.TMJ|cyber_map.tmj" Attributes="0" SourcePath="..\..\new_map\cyber_map.tmj" SelfReg="false"/>
     <ROW File="cyber_map.tmx" Component_="tsx" FileName="CYBER_~1.TMX|cyber_map.tmx" Attributes="0" SourcePath="..\..\new_map\cyber_map.tmx" SelfReg="false"/>
+    <ROW File="cyber_map_.tmx" Component_="tsx" FileName="CYBER_~2.TMX|cyber_map_.tmx" Attributes="0" SourcePath="..\..\new_map\cyber_map_.tmx" SelfReg="false"/>
     <ROW File="cyber_map_ground.csv" Component_="tsx" FileName="CYBER_~1.CSV|cyber_map_ground.csv" Attributes="0" SourcePath="..\..\new_map\cyber_map_ground.csv" SelfReg="false"/>
     <ROW File="cyber_map_ground_details.csv" Component_="tsx" FileName="CYBER_~2.CSV|cyber_map_ground_details.csv" Attributes="0" SourcePath="..\..\new_map\cyber_map_ground_details.csv" SelfReg="false"/>
-    <ROW File="details.png_3" Component_="tsx" FileName="details.png" Attributes="0" SourcePath="..\..\new_map\details.png" SelfReg="false"/>
+    <ROW File="details.png_2" Component_="tsx" FileName="details.png" Attributes="0" SourcePath="..\..\new_map\details.png" SelfReg="false"/>
     <ROW File="details.tsx" Component_="tsx" FileName="details.tsx" Attributes="0" SourcePath="..\..\new_map\details.tsx" SelfReg="false"/>
-    <ROW File="Floor.png_3" Component_="tsx" FileName="Floor.png" Attributes="0" SourcePath="..\..\new_map\Floor.png" SelfReg="false"/>
+    <ROW File="Floor.png_2" Component_="tsx" FileName="Floor.png" Attributes="0" SourcePath="..\..\new_map\Floor.png" SelfReg="false"/>
     <ROW File="Floor.tsx" Component_="tsx" FileName="Floor.tsx" Attributes="0" SourcePath="..\..\new_map\Floor.tsx" SelfReg="false"/>
     <ROW File="grass_1.tsx" Component_="tsx" FileName="grass_1.tsx" Attributes="0" SourcePath="..\..\new_map\grass_1.tsx" SelfReg="false"/>
     <ROW File="grass_2.tsx" Component_="tsx" FileName="grass_2.tsx" Attributes="0" SourcePath="..\..\new_map\grass_2.tsx" SelfReg="false"/>
     <ROW File="grass_3.tsx" Component_="tsx" FileName="grass_3.tsx" Attributes="0" SourcePath="..\..\new_map\grass_3.tsx" SelfReg="false"/>
-    <ROW File="ground.png_3" Component_="tsx" FileName="ground.png" Attributes="0" SourcePath="..\..\new_map\ground.png" SelfReg="false"/>
+    <ROW File="ground.png_2" Component_="tsx" FileName="ground.png" Attributes="0" SourcePath="..\..\new_map\ground.png" SelfReg="false"/>
     <ROW File="ground.tsx" Component_="tsx" FileName="ground.tsx" Attributes="0" SourcePath="..\..\new_map\ground.tsx" SelfReg="false"/>
+    <ROW File="invisibletileset.tsx" Component_="tsx" FileName="INVISI~1.TSX|invisible-tileset.tsx" Attributes="0" SourcePath="..\..\new_map\invisible-tileset.tsx" SelfReg="false"/>
+    <ROW File="invisible.tsx" Component_="tsx" FileName="INVISI~2.TSX|invisible.tsx" Attributes="0" SourcePath="..\..\new_map\invisible.tsx" SelfReg="false"/>
     <ROW File="stud_tree.tsx" Component_="tsx" FileName="STUD_T~1.TSX|stud_tree.tsx" Attributes="0" SourcePath="..\..\new_map\stud_tree.tsx" SelfReg="false"/>
     <ROW File="tree.tsx" Component_="tsx" FileName="tree.tsx" Attributes="0" SourcePath="..\..\new_map\tree.tsx" SelfReg="false"/>
     <ROW File="tree_01.tsx" Component_="tsx" FileName="tree_01.tsx" Attributes="0" SourcePath="..\..\new_map\tree_01.tsx" SelfReg="false"/>
     <ROW File="tree_02.tsx" Component_="tsx" FileName="tree_02.tsx" Attributes="0" SourcePath="..\..\new_map\tree_02.tsx" SelfReg="false"/>
     <ROW File="tree_snow_01.tsx" Component_="tsx" FileName="TREE_S~1.TSX|tree_snow_01.tsx" Attributes="0" SourcePath="..\..\new_map\tree_snow_01.tsx" SelfReg="false"/>
     <ROW File="tree_snow_02.tsx" Component_="tsx" FileName="TREE_S~2.TSX|tree_snow_02.tsx" Attributes="0" SourcePath="..\..\new_map\tree_snow_02.tsx" SelfReg="false"/>
+    <ROW File="Details.csv" Component_="Details.csv" FileName="Details.csv" Attributes="0" SourcePath="..\..\map\Details.csv" SelfReg="false"/>
+    <ROW File="Floor.csv" Component_="Details.csv" FileName="Floor.csv" Attributes="0" SourcePath="..\..\map\Floor.csv" SelfReg="false"/>
+    <ROW File="FloorBlocks.csv" Component_="Details.csv" FileName="FLOORB~1.CSV|FloorBlocks.csv" Attributes="0" SourcePath="..\..\map\FloorBlocks.csv" SelfReg="false"/>
+    <ROW File="Grass.csv" Component_="Details.csv" FileName="Grass.csv" Attributes="0" SourcePath="..\..\map\Grass.csv" SelfReg="false"/>
+    <ROW File="Objects.csv" Component_="Details.csv" FileName="Objects.csv" Attributes="0" SourcePath="..\..\map\Objects.csv" SelfReg="false"/>
     <ROW File="png" Component_="png" FileName="01.png" Attributes="0" SourcePath="..\..\graphics\autumn\objects\01.png" SelfReg="false"/>
     <ROW File="bow.zip" Component_="bow.zip" FileName="bow.zip" Attributes="0" SourcePath="..\..\graphics\bow\bow.zip" SelfReg="false"/>
     <ROW File="down.png" Component_="bow.zip" FileName="down.png" Attributes="0" SourcePath="..\..\graphics\bow\down.png" SelfReg="false"/>
@@ -1117,6 +1120,7 @@
     <ROW File="png_9" Component_="png_1" FileName="3213.png" Attributes="0" SourcePath="..\..\graphics\new_objects\3213.png" SelfReg="false"/>
     <ROW File="_.png_4" Component_="png_1" FileName="3213_.png" Attributes="0" SourcePath="..\..\graphics\new_objects\3213_.png" SelfReg="false"/>
     <ROW File="png_10" Component_="png_1" FileName="9999.png" Attributes="0" SourcePath="..\..\graphics\new_objects\9999.png" SelfReg="false"/>
+    <ROW File="invisible.png" Component_="png_1" FileName="INVISI~1.PNG|invisible.png" Attributes="0" SourcePath="..\..\graphics\new_objects\invisible.png" SelfReg="false"/>
     <ROW File="png_11" Component_="png_2" FileName="0.png" Attributes="0" SourcePath="..\..\graphics\objects\0.png" SelfReg="false"/>
     <ROW File="png_12" Component_="png_2" FileName="01.png" Attributes="0" SourcePath="..\..\graphics\objects\01.png" SelfReg="false"/>
     <ROW File="png_13" Component_="png_2" FileName="02.png" Attributes="0" SourcePath="..\..\graphics\objects\02.png" SelfReg="false"/>
@@ -1228,9 +1232,9 @@
     <ROW File="details.png" Component_="details.png" FileName="details.png" Attributes="0" SourcePath="..\..\graphics\tilemap\details.png" SelfReg="false"/>
     <ROW File="Floor.png" Component_="details.png" FileName="Floor.png" Attributes="0" SourcePath="..\..\graphics\tilemap\Floor.png" SelfReg="false"/>
     <ROW File="ground.png" Component_="details.png" FileName="ground.png" Attributes="0" SourcePath="..\..\graphics\tilemap\ground.png" SelfReg="false"/>
-    <ROW File="details.png_1" Component_="details.png_1" FileName="details.png" Attributes="0" SourcePath="..\..\graphics\tilemap\not needed\details.png" SelfReg="false"/>
-    <ROW File="Floor.png_1" Component_="details.png_1" FileName="Floor.png" Attributes="0" SourcePath="..\..\graphics\tilemap\not needed\Floor.png" SelfReg="false"/>
-    <ROW File="ground.png_1" Component_="details.png_1" FileName="ground.png" Attributes="0" SourcePath="..\..\graphics\tilemap\not needed\ground.png" SelfReg="false"/>
+    <ROW File="details.png_3" Component_="details.png_1" FileName="details.png" Attributes="0" SourcePath="..\..\graphics\tilemap\not needed\details.png" SelfReg="false"/>
+    <ROW File="Floor.png_3" Component_="details.png_1" FileName="Floor.png" Attributes="0" SourcePath="..\..\graphics\tilemap\not needed\Floor.png" SelfReg="false"/>
+    <ROW File="ground.png_3" Component_="details.png_1" FileName="ground.png" Attributes="0" SourcePath="..\..\graphics\tilemap\not needed\ground.png" SelfReg="false"/>
     <ROW File="rock.png" Component_="rock.png" FileName="rock.png" Attributes="0" SourcePath="..\..\graphics\tiles\rock.png" SelfReg="false"/>
     <ROW File="summer_tile.png_1" Component_="rock.png" FileName="SUMMER~1.PNG|summer_tile.png" Attributes="0" SourcePath="..\..\graphics\tiles\summer_tile.png" SelfReg="false"/>
     <ROW File="winter_tile.png" Component_="rock.png" FileName="WINTER~1.PNG|winter_tile.png" Attributes="0" SourcePath="..\..\graphics\tiles\winter_tile.png" SelfReg="false"/>
@@ -1444,9 +1448,8 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatCompsComponent">
     <ROW Feature_="MainFeature" Component_="APPDIR"/>
     <ROW Feature_="MainFeature" Component_="ProductInformation"/>
-    <ROW Feature_="MainFeature" Component_="Details.csv"/>
-    <ROW Feature_="MainFeature" Component_="png"/>
     <ROW Feature_="MainFeature" Component_="perfectmusic.mp3"/>
+    <ROW Feature_="MainFeature" Component_="png"/>
     <ROW Feature_="MainFeature" Component_="bow.zip"/>
     <ROW Feature_="MainFeature" Component_="brawn_idle.png"/>
     <ROW Feature_="MainFeature" Component_="death_0.png"/>
@@ -1596,11 +1599,11 @@
     <ROW Feature_="MainFeature" Component_="right_0.png_10"/>
     <ROW Feature_="MainFeature" Component_="attack_right.png"/>
     <ROW Feature_="MainFeature" Component_="idle_right.png"/>
+    <ROW Feature_="MainFeature" Component_="TheWildBreathOfZelda15Lv.ttf"/>
     <ROW Feature_="MainFeature" Component_="up_0.png_6"/>
     <ROW Feature_="MainFeature" Component_="attack_up.png"/>
     <ROW Feature_="MainFeature" Component_="idle_up.png"/>
     <ROW Feature_="MainFeature" Component_="attack_boost.png"/>
-    <ROW Feature_="MainFeature" Component_="TheWildBreathOfZelda15Lv.ttf"/>
     <ROW Feature_="MainFeature" Component_="BasicCharakterActions.png"/>
     <ROW Feature_="MainFeature" Component_="Basic_Furniture.png"/>
     <ROW Feature_="MainFeature" Component_="read_me.txt"/>
@@ -1622,9 +1625,10 @@
     <ROW Feature_="MainFeature" Component_="down.png_2"/>
     <ROW Feature_="MainFeature" Component_="down.png_3"/>
     <ROW Feature_="MainFeature" Component_="down.png_4"/>
-    <ROW Feature_="MainFeature" Component_="tsx"/>
     <ROW Feature_="MainFeature" Component_="down.png_5"/>
     <ROW Feature_="MainFeature" Component_="arrow.png_1"/>
+    <ROW Feature_="MainFeature" Component_="tsx"/>
+    <ROW Feature_="MainFeature" Component_="Details.csv"/>
     <ROW Feature_="MainFeature" Component_="png_4"/>
     <ROW Feature_="MainFeature" Component_="winter_tile.png"/>
     <ROW Feature_="MainFeature" Component_="CyberOffensive.exe"/>
@@ -1677,7 +1681,7 @@
     <ROW Registry="Version" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Version" Value="[ProductVersion]" Component_="ProductInformation"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
-    <ROW Shortcut="CyberOffensive" Directory_="DesktopFolder" Name="CYBERO~1|CyberOffensive" Component_="CyberOffensive.exe" Target="[#CyberOffensive.exe]" Hotkey="0" Icon_="CyberOffensive.exe" IconIndex="0" ShowCmd="1" WkDir="Game_Dir" CustomFlags="1"/>
+    <ROW Shortcut="CyberOffensive" Directory_="DesktopFolder" Name="CYBERO~1|CyberOffensive" Component_="CyberOffensive.exe" Target="[#CyberOffensive.exe]" Hotkey="0" Icon_="CyberOffensive.exe" IconIndex="0" ShowCmd="1" WkDir="Game_Dir"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiThemeComponent">
     <ATTRIBUTE name="UsedTheme" value="classic"/>

@@ -578,9 +578,9 @@ class Server:
                 self.__load_balance_socket.close()
                 break
 
-       #     except Exception as e:
-        #        print("The general error", e)
-         #       self.update_database()
+            except Exception as e:
+                print("The general error", e)
+                self.update_database()
 
         print("FINISH")
 
@@ -963,27 +963,28 @@ class Server:
                                                and person != self.__all_details[number], self.__all_details))
 
         chat_message = f'{self.__session_users[number]}: {self.__chat[number]}'
-        
-        if 'attack' in self.__status[number] and weapon != '':
-            if contains_projectile:
-                message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number], weapon, projectile_angle]
+
+        if self.__locations[number] is not None:
+            if 'attack' in self.__status[number] and weapon != '':
+                if contains_projectile:
+                    message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number], weapon, projectile_angle]
+                else:
+                    message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number], weapon]
             else:
-                message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number], weapon]
-        else:
-            message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number]]
-        
-        self.__data_storage[number] = (self.__session_users[number], message)
+                message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number]]
 
-        for socks in eligables:
-            try:
-                if ((0 <= abs(self.__locations[self.__client_sockets.index(socks["Client"])][1][0] -
-                             self.__locations[number][1][0]) <= 1500) or
-                    (0 <= abs(self.__locations[self.__client_sockets.index(socks["Client"])][1][1] -
-                              self.__locations[number][1][1]) <= 1500)):
-                    socks["Client"].send(pickle.dumps(message))
+            self.__data_storage[number] = (self.__session_users[number], message)
 
-            except Exception as e:
-                print("not  good", e)
+            for socks in eligables:
+                try:
+                    if ((0 <= abs(self.__locations[self.__client_sockets.index(socks["Client"])][1][0] -
+                                 self.__locations[number][1][0]) <= 1500) or
+                        (0 <= abs(self.__locations[self.__client_sockets.index(socks["Client"])][1][1] -
+                                  self.__locations[number][1][1]) <= 1500)):
+                        socks["Client"].send(pickle.dumps(message))
+
+                except Exception as e:
+                    print("not  good", e)
 
     def send_from_clients(self):
         """

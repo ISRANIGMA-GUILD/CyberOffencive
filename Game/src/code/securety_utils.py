@@ -23,7 +23,6 @@ class CodeIntegrityChecker:
                         sys.exit()
                 except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                     continue
-                
 
     def update(self):
         """Called every frame to perform checks."""
