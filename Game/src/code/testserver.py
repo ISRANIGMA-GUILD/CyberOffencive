@@ -332,7 +332,7 @@ class Server:
             self.__load_balance_socket.send(pickle.dumps(message))
 
         except Exception as e:
-            print(f"Failed to send message: {e}")
+            print(f"Failed to send message: ", e)
 
             if isinstance(e, socket.error):
                 print("Attempting to reinitialize socket after send failure.")
@@ -377,7 +377,7 @@ class Server:
             print("Load balancer socket reinitialized and connected.")
 
         except Exception as e:
-            print(f"Failed to reinitialize and connect load balancer socket: {e}")
+            print(f"Failed to reinitialize and connect load balancer socket: ", e)
             self.__load_balance_socket = None
 
     def handle_client_location(self, client_location, temp, index):
@@ -942,7 +942,8 @@ class Server:
 
         chat_message = f'{self.__session_users[number]}: {self.__chat[number]}'
 
-        if self.__locations[number] is not None:
+        if (self.__locations[number] is not None and number < len(self.__status) is not None and
+                number < len(self.__session_users) is not None):
             if 'attack' in self.__status[number] and weapon != '':
                 if contains_projectile:
                     message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number], weapon, projectile_angle]

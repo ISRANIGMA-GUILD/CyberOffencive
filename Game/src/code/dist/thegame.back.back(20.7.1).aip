@@ -241,7 +241,7 @@
     <ROW Component="BasicCharakterActions.png" ComponentId="{6CE7056A-7378-4D62-BBB1-65EC74D19A7D}" Directory_="Characters_Dir" Attributes="0" KeyPath="BasicCharakterActions.png" Type="0"/>
     <ROW Component="Basic_Furniture.png" ComponentId="{3EB8616A-C9B2-4ADE-9248-6F06DA3AE8EF}" Directory_="Objects_Dir" Attributes="0" KeyPath="Basic_Furniture.png" Type="0"/>
     <ROW Component="Bitmaskreferences1.png" ComponentId="{FD28052E-E4B5-414C-9730-6E643109BA58}" Directory_="Tilesets_Dir" Attributes="0" KeyPath="Bitmaskreferences1.png" Type="0"/>
-    <ROW Component="CyberOffensive.exe" ComponentId="{A1E7533A-9EEF-43B5-AECD-809981E8DA11}" Directory_="Game_Dir" Attributes="256" KeyPath="CyberOffensive.exe"/>
+    <ROW Component="CyberOffensive.exe" ComponentId="{63B78AE3-3083-4A99-B3E6-2F1CD9BF4111}" Directory_="Game_Dir" Attributes="256" KeyPath="CyberOffensive.exe"/>
     <ROW Component="Details.csv" ComponentId="{026B912B-250A-4C78-93C3-487963ABCB8B}" Directory_="map_Dir" Attributes="0" KeyPath="Details.csv" Type="0"/>
     <ROW Component="ProductInformation" ComponentId="{E8E638F7-DF77-4AD6-BDE7-7DEE1097FF18}" Directory_="APPDIR" Attributes="4" KeyPath="Version"/>
     <ROW Component="SproutLandsdefautltpalettesnip.PNG" ComponentId="{E5248740-7AEF-4424-B9F7-F8B0C212ECF5}" Directory_="SproutLandscolorpallet_Dir" Attributes="0" KeyPath="SproutLandsdefautltpalettesnip.PNG" Type="0"/>
@@ -429,7 +429,7 @@
     <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
-    <ROW File="perfectmusic.mp3" Component_="perfectmusic.mp3" FileName="PERFEC~1.MP3|perfectmusic.mp3" Attributes="0" SourcePath="..\perfectmusic.mp3" SelfReg="false"/>
+    <ROW File="perfectmusic.mp3" Component_="perfectmusic.mp3" FileName="PERFEC~1.MP3|perfectmusic.mp3" Attributes="0" SourcePath="..\..\Music\perfectmusic.mp3" SelfReg="false"/>
     <ROW File="TheWildBreathOfZelda15Lv.ttf" Component_="TheWildBreathOfZelda15Lv.ttf" FileName="THEWIL~1.TTF|TheWildBreathOfZelda-15Lv.ttf" Attributes="0" SourcePath="..\..\fonts\TheWildBreathOfZelda-15Lv.ttf" SelfReg="false"/>
     <ROW File="tsx" Component_="tsx" FileName="08.tsx" Attributes="0" SourcePath="..\..\new_map\08.tsx" SelfReg="false"/>
     <ROW File="cyber_map.tmj" Component_="tsx" FileName="CYBER_~1.TMJ|cyber_map.tmj" Attributes="0" SourcePath="..\..\new_map\cyber_map.tmj" SelfReg="false"/>

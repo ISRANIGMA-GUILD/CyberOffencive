@@ -53,14 +53,14 @@ class Client:
         self.__login_thingy.w = self.__m_width
         self.__current_server_ip = ""
 
-        # self.v = self.player.get_volume()
+        self.v = self.player.get_volume()
 
     def run(self):
         """
 
         """
 
-        #  self.player.run()
+        self.player.run()
 
         server_ip, server_port = self.format_socket()
         screen = pygame.display.set_mode((1920, 1080))
@@ -77,6 +77,7 @@ class Client:
 
         while 1:
             try:
+                self.good_music()
                 img = pygame.image.load(IMAGE)
                 screen.blit(img, (0, 0))
 
@@ -152,8 +153,9 @@ class Client:
 
             except ssl.SSLEOFError as e:
                 print(e)
-                pygame.display.update()
+                self.__the_client_socket.close()
 
+                pygame.display.update()
                 clock.tick(FPS)
                 return 1
 
@@ -202,6 +204,7 @@ class Client:
             pygame.display.update()
 
             try:
+                self.good_music()
                 print("Trying to connect...")
                 self.__the_client_socket = TLSSocketWrapper(server_ip).create_sock()
 
@@ -251,6 +254,7 @@ class Client:
             except ssl.SSLEOFError as e:
                 print("stop", e)
               #  time.sleep(0.02)
+                self.__the_client_socket.close()
                 pygame.display.update()
                 clock.tick(FPS)
                 return 1
@@ -309,7 +313,7 @@ class Client:
         """
 
         while 1:
-            #   self.good_music()
+            self.good_music()
             server_discover = ServerDiscoveryClient()
             servers_ip = server_discover.discover_server()
 
@@ -364,6 +368,7 @@ class Client:
         except ssl.SSLEOFError as e:
             print("stop", e)
            # time.sleep(0.02)
+            self.__the_client_socket.close()
             pygame.display.update()
             return 1
 
@@ -394,6 +399,7 @@ class Client:
         while 1:
             #  self.good_music()
             try:
+                self.good_music()
                 img = pygame.image.load(IMAGE)
                 screen.blit(img, (0, 0))
 
@@ -428,7 +434,7 @@ class Client:
             except ssl.SSLEOFError as e:
                 print("stop", e)
                # time.sleep(0.02)
-
+                self.__the_client_socket.close()
                 pygame.display.update()
                 clock.tick(FPS)
                 return 1
@@ -462,7 +468,7 @@ class Client:
         entering_username = True
 
         while 1:
-            # self.good_music()
+            self.good_music()
             img = pygame.image.load(IMAGE)
             screen.blit(img, (0, 0))
 
@@ -549,6 +555,7 @@ class Client:
 
         while 1:
             try:
+                self.good_music()
                 self.__the_client_socket.send(details)
                 success = self.receive_data(1024)
 
@@ -604,7 +611,7 @@ class Client:
         :return:
         """
 
-        # self.good_music()
+    #    self.good_music()
 
         try:
             if public_data[0] == "EXIT":
@@ -778,7 +785,7 @@ class Client:
 
         """
 
-        self.v.SetMute(1, None)
+        self.v.SetMute(0, None)
         self.v.SetMasterVolumeLevelScalar(1.0, None)
 
     def close_connection(self):

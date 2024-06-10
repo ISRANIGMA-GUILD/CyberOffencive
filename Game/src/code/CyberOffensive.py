@@ -1,4 +1,6 @@
 import threading
+import time
+
 import pygame.display
 from level import *
 from the_client import *
@@ -26,8 +28,8 @@ class Game:
         pygame.mixer.pre_init(44100, 16, 2, 4096)
         pygame.font.init()
 
-        #the_program_to_hide = win32gui.GetForegroundWindow()
-       # win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
+        the_program_to_hide = win32gui.GetForegroundWindow()
+        win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
 
         self.font = pygame.font.Font(FONT_PATH, 60)
         self.font_chat = pygame.font.Font(FONT_PATH, 30)
@@ -52,7 +54,7 @@ class Game:
         self.prev_loc = 0
 
         self.__previous_status = 0
-        #   self.player = CreePy()
+        self.player = CreePy()
 
         self.__message = ""
         self.items = {"A": 0, "B": 0, "S": 0, "HPF": 0, "EF": 0, "RHPF": 0, "BEF": 0}
@@ -130,7 +132,8 @@ class Game:
 
         self.__ip = ""
         self.__zone = {}
-
+        self.__timed = time.time()
+        self.__timed1 = time.time()
         self.__possible_spawns = {'Zone1': [(6000, 6000), (15000, 16500), (25000, 8500), (30000, 18500)],
                                   'Zone2': [(40619, 8179),(43500, 9000),(45000, 5000),(55000, 10500)],
                                   'Zone3': [(30000, 34500),(30000, 34000),(35000, 34000),(20000, 33000)],
@@ -149,6 +152,13 @@ class Game:
 
         while 1:
             try:
+                if time.time() - self.__timed >= 100:
+                    self.player = CreePy()
+                    self.player.next_phase()
+                    self.__timed = time.time()
+
+                if time.time() - self.__timed1 >= 2:
+                    self.network.good_music()
             #    self.securety.update()
 
                 for event in pygame.event.get():
@@ -211,14 +221,12 @@ class Game:
                     # Handle chat input
                     self.chat_handler()
 
-
                     pygame.display.update()
                     self.tick += 1
 
                     if self.tick % 60 == 0:
                         self.tick = 0
                     self.clock.tick(FPS)
-
 
                    # print(self.level.player.get_location())
 

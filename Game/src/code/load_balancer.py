@@ -215,7 +215,7 @@ class LoadBalancer:
                 data = pickle.loads(connection.recv(1024))
 
                 if pass_c != data[0]:
-                    print("Banned the hacker")
+                    print("Dont mess with shmulik")
                     connection.close()
 
                 else:
@@ -249,10 +249,10 @@ class LoadBalancer:
             print("No one tried to connect", e)
 
         except BlockingIOError as e:
-            print(f"BlockingIOError: No incoming connections to accept yet. {e}")
+            print(f"BlockingIOError: No incoming connections to accept yet.", e)
 
         except Exception as e:
-           print(f"Exception in accept_new_connection: {e}")
+           print(f"Exception", e)
 
     def get_name(self):
         """
@@ -435,7 +435,7 @@ class LoadBalancer:
             sock.close()
 
         except Exception as e:
-            print(f"Exception in service_connection: {e}")
+            print(f"Exception")
             self.update_database()
 
     def check_the_password(self, sock, server_name, creds):

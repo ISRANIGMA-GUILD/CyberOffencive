@@ -140,8 +140,6 @@ class Login:
         """
 
         m = self.__sock.send(success_pack)
-
-        print("the", m)
         self.__credentials[self.__number] = self.__credentials[self.__number]
 
     def failed_login(self):
