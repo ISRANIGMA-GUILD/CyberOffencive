@@ -108,17 +108,14 @@ class Client:
                     return 1
 
                 else:
-                    print("this", details)
                     checker = self.check_success(details)
 
                     if checker == 1:
                         return 1
 
-                    print("the checker", checker)
                     self.__logged = checker
 
                     if self.__logged[0] == 'Success':
-                        print("Nice", checker)
                         pygame.display.update()
 
                         clock.tick(FPS)
@@ -203,7 +200,6 @@ class Client:
                 screen.blit(img, (0, 0))
 
             pygame.display.update()
-            print(f'ip:port = {server_ip}:{server_port}')
 
             try:
                 print("Trying to connect...")
@@ -271,12 +267,12 @@ class Client:
 
                 server_port = self.choose_port()
 
-      #      except Exception as e:
+            except Exception as e:
                 # Catch any other exceptions for debugging
-             #   print(f"Unexpected error: {e}")
-             #   print("Retrying...")
+                print(f"Unexpected error: {e}")
+                print("Retrying...")
 
-             #   server_port = self.choose_port()
+                server_port = self.choose_port()
 
             pygame.display.update()
             clock.tick(FPS)
@@ -303,7 +299,6 @@ class Client:
         """
         list_port = [6921, 8843, 8820]
         server_port = random.choice(list_port)
-        print(server_port)
 
         return server_port
 
@@ -318,7 +313,6 @@ class Client:
             server_discover = ServerDiscoveryClient()
             servers_ip = server_discover.discover_server()
 
-            print(servers_ip)
             if servers_ip is None:
                 pass
 
@@ -354,7 +348,6 @@ class Client:
         try:
             self.__the_client_socket.settimeout(TIMEOUT_TIME)
             data_pack = self.__the_client_socket.recv(sized)
-        #    print("data pack", data_pack)
 
             if not data_pack:
                 return
@@ -425,9 +418,7 @@ class Client:
                     user = user
                     password = password
 
-                    print(user, password)
                     credentials = (user, password)
-
                     pack = self.create_message(credentials)
 
                     pygame.display.update()
@@ -555,14 +546,11 @@ class Client:
         """
 
         #   self.good_music()
-        print("details", details)
+
         while 1:
             try:
                 self.__the_client_socket.send(details)
-                print("details1", details)
-
                 success = self.receive_data(1024)
-                print("Did succeed?", success)
 
                 if success is None:
                     print("Fail")
@@ -570,10 +558,8 @@ class Client:
 
                 else:
                     decrypt = success
-                    print(decrypt, "Srsly")
 
                     if "Success" == decrypt[0]:
-                        print("success", decrypt[0])
                         return decrypt
 
                     elif "Failure" == decrypt[0]:
@@ -622,11 +608,8 @@ class Client:
 
         try:
             if public_data[0] == "EXIT":
-                print("leaving", public_data)
                 data = ["EXIT", 1, private_data]
-
                 full_msg = self.create_message(data)
-
                 self.__the_client_socket.send(full_msg)
 
             else:
@@ -725,9 +708,7 @@ class Client:
 
             elif data_recv[0] == "EXIT" and len(data_recv) == 3:  # if the client need to move to another server
                 if self.is_ip(data_recv[1]):
-                    print("please work")
                     t = [3, data_recv]
-                    print("hmmmmmmm", type(t))
                     return t
 
             else:
@@ -757,7 +738,6 @@ class Client:
 
             elif data_recv[0] == "EXIT" and len(data_recv) >= 3:  # if the client need to move to another server
                 if self.is_ip(data_recv[1]):
-                    print("please work", data_recv)
                     t = [3, data_recv]
                     return t
 
@@ -803,9 +783,6 @@ class Client:
 
     def close_connection(self):
         self.__the_client_socket.close()
-
-   # def create_client_sock(self):
-       # self.__the_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def is_ip(self, addr):
         """

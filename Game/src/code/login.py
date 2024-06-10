@@ -41,14 +41,13 @@ class Login:
             self.check_account()
             return
 
- #       except TypeError:
-     #       print("Problematic")
-      #      self.__details["Connected"] = 1
-       #     return
+        except TypeError:
+            print("Problematic")
+            self.__details["Connected"] = 1
+            return
 
         except ConnectionResetError as e:
-            print("Client", self.__number + 1, self.__details["Client"].getpeername(),
-                  "unexpectedly left", e)
+            print(e)
             self.__details["Connected"] = 1
             return
 
@@ -86,7 +85,6 @@ class Login:
         try:
             self.__load_balance_socket.settimeout(0.003)
             data = self.__load_balance_socket.recv(16000)
-            print(data, "this is it you little stupid python")
 
             if data:
                 self.__load_validation = pickle.loads(data)
@@ -114,15 +112,9 @@ class Login:
             tuple_of_credentials = self.__details["Credentials"]
             if self.send_credential_to_load_balencer(tuple_of_credentials):
                 if "items" in list(self.__load_validation.keys()):
-                    #success = ["Success", self.__load_validation.get("items"), self.__zone]
-                 #   success_pack = pickle.dumps(success)
-
-                 #   self.successful_login(success_pack)
-                  #  self.__pre_success = True
                     print("let him in")
-                print("you fucking piece of shit")
             else:
-                print("wjawdfdsfgdg")
+
                 self.failed_login()
                 self.__load_validation = {}
                 return
@@ -139,7 +131,6 @@ class Login:
 
                     if (self.__list_of_existing_resources[self.__number][0] != "BANNED"
                        and tuple_of_credentials[0] not in the_big_ugly_list):
-                        print("Successful", self.__load_validation.keys())
 
                         if 'items' not in list(self.__load_validation.keys()):
                             detail = self.__list_of_existing_resources[self.__list_of_existing.index(tuple_of_credentials)]
@@ -185,12 +176,6 @@ class Login:
                         self.successful_login(success_pack)
                         return True
 
-            #elif not :
-              #  print("Wrong username or password")
-              #  self.failed_login()
-
-               # return False
-
     def username_exists(self, list_of_existing_users, tuple_of_credentials):
         """
 
@@ -218,8 +203,6 @@ class Login:
         """
 
         m = self.__details["Client"].send(success_pack)
-
-        print("the", m)
         self.__credentials[self.__number] = self.__details["Credentials"]
 
     def failed_login(self):

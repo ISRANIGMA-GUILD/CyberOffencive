@@ -1,5 +1,4 @@
 import threading
-
 import pygame.display
 from level import *
 from the_client import *
@@ -150,7 +149,7 @@ class Game:
 
         while 1:
             try:
-                self.securety.update()
+            #    self.securety.update()
 
                 for event in pygame.event.get():
                     if pygame.QUIT == event.type:
@@ -373,8 +372,12 @@ class Game:
         """
 
         with lock:
-            data1 = self.network.receive_stuff()
-            data3 = self.network.receive_location()
+            for i in range(2):
+                data1 = self.network.receive_stuff()
+                data3 = self.network.receive_location()
+
+    #    data4 = self.network.receive_stuff()
+      #  data3 = self.network.receive_location()
 
             data = [data1, data3]
             success_data = self.which_is_it(data)
@@ -408,13 +411,9 @@ class Game:
 
                 if existing_data:
                     do_i_migrate = list(filter(lambda x: x[0] == 3, existing_data))
-                    if 3 in do_i_migrate:
-                        print("do i move anyware?", do_i_migrate)
 
                     if do_i_migrate:
                         self.__ip = do_i_migrate[0][1][1]
-                    #    port = do_i_migrate[0][1][1][1]
-                     #   print(port)
                         list_of_details = ["EXIT", 1, self.items, "q"]
 
                         self.disconnect_from_server(list_of_details)
@@ -590,7 +589,6 @@ class Game:
             for enemie in self.level.attackable_sprites:
                 if enemie.status == 'death' and enemie.id in self.__the_enemies:
                     self.__the_enemies.remove(enemie.id)
-                    print("kill", enemie.id)
 
                     self.network.kill_enemy(enemie.id)
                     
@@ -600,7 +598,6 @@ class Game:
                     enemie.kill()
 
                 elif enemie.id not in self.__the_enemies:
-                    print("kill")
                     self.network.kill_enemy(enemie.id)
 
                     self.level.visible_sprites.remove(enemie)
@@ -665,9 +662,7 @@ class Game:
                 self.__collected_items_ids.append(item.id)
                 self.level.picked_up.remove(item)
 
-                print("picked up item", item.id)
                 self.network.picked_up(item.id)
-
                 item.id = "99999"
 
         elif weapons and "LEAVE" == weapons[0]:
@@ -731,9 +726,8 @@ class Game:
         :param list_of_public_details:
         :param other_client:
         """
-        print("how far", other_client)
-        if self.__previous_details != list_of_public_details or self.__just_entered == 0:  # or self.__timer >= 0.02:
-            print(self.level.player.get_location())
+
+        if self.__previous_details != list_of_public_details or self.__just_entered == 0:
             s = self.network.update_server(list_of_public_details, self.items)
             self.__previous_details = list_of_public_details
 
@@ -819,7 +813,6 @@ class Game:
 
         for d in data:
             if type(d) is int:
-                print("what the fuck")
                 self.__game_state = "start_menu"
 
                 list_of_details = ["EXIT", 1, self.items]
@@ -1028,8 +1021,8 @@ class Game:
         """
         makes all values random
         """
-        original_player = self.level.player.gurgle()
 
+        original_player = self.level.player.gurgle()
 
         return original_player
 

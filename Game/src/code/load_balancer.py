@@ -221,14 +221,12 @@ class LoadBalancer:
                 else:
                     connection.send(pickle.dumps([Verifier(480).run()]))
 
-                    print(f"Connected to {addr}")
                     connection.setblocking(False)
 
                     self.servers.append(connection)
                     assigned_zone = self.server_names[len(self.servers) % len(self.server_names)]
 
                     # self.server_zone_map[assigned_zone] = connection  # Map server to its zone
-                    print("la")
 
                     self.send_server_configuration(connection, self.get_name())
                     data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
@@ -243,7 +241,6 @@ class LoadBalancer:
                         return
 
                     self.server_zone_map[assigned_zone] = {'address': addr}
-                    print(f"Connection added to {assigned_zone}: {connection}")
 
                     print("lo")
                     self.selector.register(connection, selectors.EVENT_READ, self.service_connection)
@@ -264,7 +261,6 @@ class LoadBalancer:
         """
 
         if len(self.servers) == 1:
-            print("moo")
             return "Server 1", 1
 
         if len(self.servers) == 2:
@@ -287,7 +283,6 @@ class LoadBalancer:
         """
 
         if zone == 1:
-            print("moo")
             return {'min_x': 0, 'max_x': 36480, 'min_y': 0, 'max_y': 19680}
 
         if zone == 2:
@@ -302,24 +297,6 @@ class LoadBalancer:
         if zone == 5:
             return ({'min_x1': 36481, 'max_x1': 40321, 'min_y1': 0, 'max_y1': 43200},
                     {'min_x2': 0, 'max_x2': 76800, 'min_y2': 19681, 'max_y2': 23519})
-
-    def update_client_database(self, username, password, status, items):
-        """
-        Insert or update client data in the database.
-
-        :param username: Client's username
-        :param password: Client's password
-        :param status: Client's status
-        :param items: Client's initial items
-        """
-        self.__username_database.insert_no_duplicates(values=[username], no_duplicate_params=["Username"])
-        self.__main_data_base.set_values(['Password'], [password],
-                                         ['Username'], [username])
-
-        values = [username, password, status, items]
-        params = PARAMETERS["PlayerDetails"]
-
- #       print(f"Updated database for client {username}")
 
     def service_connection(self, sock, mask):
         """
@@ -352,12 +329,10 @@ class LoadBalancer:
                         else:
                             message = {'message_status': 'do_add'}
 
-                        print(f"sent to server{message}")
                         sock.send(pickle.dumps(message))
 
                     elif not self.uncloned(client_info):
                         message = {'message_status': 'dont'}
-                        print(f"sent to server{message}")
                         sock.send(pickle.dumps(message))
 
                 elif client_info['message_status']:
@@ -392,7 +367,6 @@ class LoadBalancer:
                         if target_server:
                             message = {'message_status': 'move', 'ip': target_server['address'],
                                        'credential': credentials}
-                            print("who????????????", target_server['address'])
 
                             if target_server is not None:
                                 print("sent to server")
@@ -549,8 +523,6 @@ class LoadBalancer:
         """
         x = client_info[0]
         y = client_info[1]
-        print(f"x {x} y {y}")
-        print(self.server_zone_map)
 
         buffer_zone_1 = self.zone_buffer['ZoneBuffer1']
         buffer_zone_2 = self.zone_buffer['ZoneBuffer2']
@@ -560,7 +532,7 @@ class LoadBalancer:
                 (buffer_zone_2['min_x2'] <= x <= buffer_zone_2['max_x2'] and buffer_zone_2['min_y2'] <= y <=
                  buffer_zone_2['max_y2']):
             print("Client assigned to buffer server based on buffer zone coordinates.")
-            print(self.server_zone_map['Zone5'])
+
             return self.server_zone_map['Zone5']  # Return the buffer server
 
         else:
@@ -569,19 +541,13 @@ class LoadBalancer:
         print("no buffer")
 
         for zone_name, bounds in self.zones.items():
-            print(f" bound n {bounds['min_x']}")
-            print(f" bound x {bounds['max_x']}")
-            print(f" boundy n {bounds['min_y']}")
-            print(f" boundy x {bounds['max_y']}")
             if bounds['min_x'] <= x <= bounds['max_x'] and bounds['min_y'] <= y <= bounds['max_y']:
                 zone_data = self.server_zone_map[zone_name]
                 if zone_data:
                     if 'address' in list(zone_data.keys()):
-                        print(f"Client located in {zone_name}, routing to server.")
                         return zone_data  # Return the socket connection to the server for this zone
 
                     else:
-                        print(f"Server for {zone_name} is not connected.")
                         return
 
         print("No zone found for the client's location.")

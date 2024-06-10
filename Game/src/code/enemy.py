@@ -13,7 +13,7 @@ from arrow import Arrow
 class Enemy(Entity):
     def __init__(self, monster_name: str, position: tuple, groups, obstacle_sprites, damage_player_func, attack_type,
                  level, id=None) -> None:
-        print("id", id)
+
         self.stats = {
             HEALTH: ENEMIES_DATA[monster_name][HEALTH],
             SPEED: ENEMIES_DATA[monster_name][SPEED],

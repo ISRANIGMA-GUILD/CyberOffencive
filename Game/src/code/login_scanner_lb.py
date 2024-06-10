@@ -37,7 +37,6 @@ class Login:
             return
 
         except ConnectionResetError:
-            print("Client", self.__number + 1, "unexpectedly left")
             print("Waited")
             return
 

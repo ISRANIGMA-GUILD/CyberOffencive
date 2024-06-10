@@ -2,6 +2,7 @@ import socket
 import os
 import re
 
+
 class ServerDiscoveryClient:
     def __init__(self, port=1801):
         self.port = port
@@ -20,7 +21,6 @@ class ServerDiscoveryClient:
             while True:
                 data, server_address = client_socket.recvfrom(1024)
                 if data.decode() == "LOAD_BALANCER_SERVER_FOUND":
-                    print("Server found at:", server_address)
                     return server_address[0]  # Return the IP address of the server
 
         except socket.timeout:
@@ -57,7 +57,6 @@ def update_docker_compose(server_ip):
     # Write the updated content back to the file
     try:
         with open(docker_compose_file, 'w') as f:
-            print(updated_content)
             f.write(updated_content)
 
         print(f"Updated LOAD_BALANCER_IP in {docker_compose_file}")
@@ -75,6 +74,5 @@ if __name__ == "__main__":
 
     if server_ip:
         update_docker_compose(server_ip)
-        print("Server IP:", server_ip)
     else:
         print("Server discovery failed.")

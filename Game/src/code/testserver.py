@@ -311,8 +311,6 @@ class Server:
                     self.__server_name = configuration['server_name']
                     self.__zone = configuration['zone']
 
-                    print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
-
                 if g == 0:
                     break
 
@@ -330,9 +328,7 @@ class Server:
             if self.__load_balance_socket is None or self.__load_balance_socket.fileno() == -1:
                 print("Socket is closed. Reinitializing socket.")
                 self.initialize_load_balance_socket()  # Method to reinitialize the socket
-                print("Socket reinitialized.", message)
 
-            print(f"Message sent to Load Balancer1: {message}")
             self.__load_balance_socket.send(pickle.dumps(message))
 
         except Exception as e:
@@ -378,8 +374,6 @@ class Server:
                 self.__server_name = configuration['server_name']
                 self.__zone = configuration['zone']
 
-                print(f"Received configuration: Server Name - {self.__server_name}, Zone - {self.__zone}")
-
             print("Load balancer socket reinitialized and connected.")
 
         except Exception as e:
@@ -397,7 +391,6 @@ class Server:
         x, y = client_location
 
         if self.__server_name == 'Server 5':
-            print("is that a tuple?", self.__zone)
             zone_1 = self.__zone[0]['min_x1'], self.__zone[0]['max_x1'], \
                 self.__zone[0]['min_y1'], self.__zone[0]['max_y1']
 
@@ -423,7 +416,6 @@ class Server:
                 pass
 
             else:
-                print(f"Client location {client_location} out of assigned zone.")
                 self.send_message_to_load_balancer({'message_status': 'move', 'type': 'out_of_zone',
                                                     'location': client_location,
                                                     'credentials': self.__credentials[index],
@@ -470,13 +462,8 @@ class Server:
         t = client_info['ip']
         ip = t[0]
 
-        print("is it a socket?", ip, client_info['credential'])
         message = ["EXIT", ip, client_info['credential']]
-
-        print(f"the massage is: {message}")
         sock.send(pickle.dumps(message))
-
-        print(f"send message to client to leave the server and to go to{client_info['ip']}")
 
     def check_for_banned(self, client_address, number):
         """
@@ -485,7 +472,6 @@ class Server:
         :param number:
         """
 
-        print("client_address",client_address)
         if (client_address[0] in self.__banned_ips or getmacbyip(client_address[0]) in self.__banned_macs
                 or (getmacbyip(client_address[0]) == 'ff:ff:ff:ff:ff:ff' and Ether().src in self.__banned_macs)):
             self.__all_details[number]["Connected"] = 1
@@ -531,8 +517,8 @@ class Server:
         self.__selector.register(self.__sockets[2], selectors.EVENT_READ, self.accept_client)
 
         update_interval = 1 / 60  # Seconds (adjust as needed for responsiveness)
-        update_interval2 = 1 / 2  # Seconds (adjust as needed for responsiveness)
-        update_interval3 = 1 / 2
+        update_interval2 = 1 / 30  # Seconds (adjust as needed for responsiveness)
+        update_interval3 = 1 / 15
         
         last_update_time = time.time()
         last_update_time2 = time.time()
@@ -679,13 +665,11 @@ class Server:
             their_pass = pickle.loads(connection.recv(MAX_MSG_LENGTH))
 
             if their_pass[0] != passw:
-                print("shut up")
                 self.ban_client(client_address)
 
             else:
 
                 connection.send(pickle.dumps([my_pass]))
-                print("New client joined!", client_address)
 
                 self.check_for_banned(client_address, index)
                 self.__client_sockets.append(connection)
@@ -728,8 +712,8 @@ class Server:
 
         if getmacbyip(client_address[0]) == 'ff:ff:ff:ff:ff:ff':
 
-            print("banned banned", self.__ips_data_base.insert_no_duplicates(values=[client_address[0], Ether().src],
-                                                                             no_duplicate_params=["IP", "MAC"]))
+            self.__ips_data_base.insert_no_duplicates(values=[client_address[0], Ether().src],
+                                                                             no_duplicate_params=["IP", "MAC"])
             self.__net_base.set_values(["Status"], ["BANNED"], ["IP", "MAC"],
                                        [client_address[0], Ether().src])
             self.__banned_ips.append(client_address[0])
@@ -792,7 +776,6 @@ class Server:
                         self.__selector.modify(current_socket, selectors.EVENT_READ, self.update_clients)
 
                     else:
-                        print("Connection closedg you forken dummy", data, self.__all_details[index])
                         self.__all_details[index]["Connected"] = 1
 
                         if len(data) >= 3:
@@ -805,7 +788,7 @@ class Server:
                         self.print_client_sockets()
 
         except socket.timeout as e:
-            print("Still waiting for login from client", index, e)
+            print("Still waiting for login from client", e)
 
         except ssl.SSLEOFError as e:
             print("Connection closed", e)
@@ -839,7 +822,7 @@ class Server:
 
             # If client has quit save their data
             if "EXIT" in data[0]:
-                print("Connection closedg")
+                print("Connection closed")
                 self.__all_details[index]["Connected"] = 1
                 self.__items[index] = data[2]
 
@@ -871,20 +854,16 @@ class Server:
                 self.send_to_clients(index)
             
             elif len(data) == 2:
-                print("meow",data)
                 if data[0] == "kill":
                     for stuff in self.__enemy_locations:
                         if stuff[0] == data[1]:
-                            print("kill him")
                             self.__enemy_locations.remove(stuff)
                             self.__killed_enemies.append(data[1])
                             self.create_extra_items(stuff[1])
-                            
 
                 elif data[0] == "collected":
                     for stuff in self.__item_locations:
                         if stuff[0] == data[1]:
-                            print("collected")
                             self.__item_locations.remove(stuff)
                             self.__collected_items.append(data[1])      
 
@@ -900,10 +879,9 @@ class Server:
                 
         except socket.timeout as e:
             print("meow", e)
-            pass
 
         except ssl.SSLEOFError as e:
-            print("Connection closedm", e)
+            print("Connection closed", e)
             self.__all_details[index]["Connected"] = 1
 
             self.print_client_sockets()
@@ -912,7 +890,7 @@ class Server:
             self.eliminate_socket(index)
 
         except ssl.SSLError as e:
-            print("Connection closedm", e)
+            print("Connection closed", e)
             self.__all_details[index]["Connected"] = 1
 
             self.print_client_sockets()
@@ -921,7 +899,7 @@ class Server:
             self.eliminate_socket(index)
 
         except EOFError as e:
-            print("Connection closedn", e)
+            print("Connection closed", e)
             self.__all_details[index]["Connected"] = 1
 
             self.update_database()
@@ -1076,25 +1054,29 @@ class Server:
         """
 
         """
-        for index in range(0, len(self.__new_credentials)):
-            self.__username_database.insert_no_duplicates(values=[self.__new_credentials[index][0]],
-                                                                        no_duplicate_params=['Username'])
+        try:
+            for index in range(0, len(self.__new_credentials)):
+                self.__username_database.insert_no_duplicates(values=[self.__new_credentials[index][0]],
+                                                                            no_duplicate_params=['Username'])
 
-            self.__main_data_base.set_values(['Password'], [self.__new_credentials[index][1]],
-                                             ['Username'], [self.__new_credentials[index][0]])
+                self.__main_data_base.set_values(['Password'], [self.__new_credentials[index][1]],
+                                                 ['Username'], [self.__new_credentials[index][0]])
 
-        for index in range(0, len(self.__session_users) - 1):
-            if self.__items[index] is not None:
-                weapons = (str(self.__items[index]["A"]) + ", " + str(self.__items[index]["B"]) + ", "
-                           + str(self.__items[index]["S"]))
-                items = (str(self.__items[index]["HPF"]) + ", " + str(self.__items[index]["EF"]) + ", " +
-                         str(self.__items[index]["RHPF"]) + ", " + str(self.__items[index]["BEF"]))
+            for index in range(0, len(self.__session_users) - 1):
+                if self.__items[index] is not None:
+                    weapons = (str(self.__items[index]["A"]) + ", " + str(self.__items[index]["B"]) + ", "
+                               + str(self.__items[index]["S"]))
+                    items = (str(self.__items[index]["HPF"]) + ", " + str(self.__items[index]["EF"]) + ", " +
+                             str(self.__items[index]["RHPF"]) + ", " + str(self.__items[index]["BEF"]))
 
-                self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
-                                                 [self.__session_users[index]])
-        info, resource_info, ip_info = self.receive_info()
-        self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = (
-            self.organize_info(info, resource_info, ip_info))
+                    self.__main_data_base.set_values(['Items', 'Weapons'], [items, weapons], ['Username'],
+                                                     [self.__session_users[index]])
+            info, resource_info, ip_info = self.receive_info()
+            self.__list_of_existing_existing_credentials, self.__list_of_existing_resources = (
+                self.organize_info(info, resource_info, ip_info))
+
+        except TypeError:
+            pass
 
     def update_items(self):
         """
@@ -1107,7 +1089,6 @@ class Server:
             for collected in m:
                 self.__item_locations.remove(collected)
                 self.set_item_locations()
-                print("GOT HIM")
 
     def update_enemies(self):
         """

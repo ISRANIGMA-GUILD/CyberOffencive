@@ -52,7 +52,6 @@ class Level:
         self.collision_grid = CollisionGrid(self.map_renderer.tmx_data.width, self.map_renderer.tmx_data.height,
                                             TILE_WIDTH, TILE_HEIGHT)
         self.create_map()
-        #print(self.collision_grid.grid)
 
         self.ui = UI()
         # Add TMX objects to the appropriate sprite groups
@@ -103,7 +102,6 @@ class Level:
 
     def damage_player(self, player, amount_of_damage, attack_type) -> None:
         if player.vulnerable and player.stats[HEALTH] > 0:
-            # print("the player is: ", player.status)
             player.stats[HEALTH] -= amount_of_damage
 
             player.vulnerable = False

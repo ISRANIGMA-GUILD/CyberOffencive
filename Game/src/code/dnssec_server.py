@@ -15,7 +15,6 @@ class Server:
 
         while True:
             data, client_address = self.server_socket.recvfrom(1024)
-            print(f"Received discovery request from {client_address}")
 
             if data.decode() == "DISCOVER":
                 self.server_socket.sendto("SERVER_FOUND".encode(), client_address)

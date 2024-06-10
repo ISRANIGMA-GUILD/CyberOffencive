@@ -19,7 +19,6 @@ class ServerDiscoveryClient:
             while True:
                 data, server_address = client_socket.recvfrom(1024)
                 if data.decode() == "SERVER_FOUND":
-                    print("Server found at:", server_address)
                     return server_address[0]  # Return the IP address of the server
 
         except socket.timeout:
