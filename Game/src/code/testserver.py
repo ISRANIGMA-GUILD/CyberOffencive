@@ -942,8 +942,8 @@ class Server:
 
         chat_message = f'{self.__session_users[number]}: {self.__chat[number]}'
 
-        if (self.__locations[number] is not None and number < len(self.__status) is not None and
-                number < len(self.__session_users) is not None):
+        if (self.__locations[number] is not None and number < len(self.__status) and
+                number < len(self.__session_users) and number < len(self.__chat)):
             if 'attack' in self.__status[number] and weapon != '':
                 if contains_projectile:
                     message = [self.__locations[number][1], chat_message, self.__status[number], self.__session_users[number], weapon, projectile_angle]
@@ -959,7 +959,8 @@ class Server:
                     if ((0 <= abs(self.__locations[self.__client_sockets.index(socks["Client"])][1][0] -
                                  self.__locations[number][1][0]) <= 1500) or
                         (0 <= abs(self.__locations[self.__client_sockets.index(socks["Client"])][1][1] -
-                                  self.__locations[number][1][1]) <= 1500)):
+                                  self.__locations[number][1][1]) <= 1500) or
+                            self.__chat[self.__client_sockets.index(socks["Client"])] is not None):
                         socks["Client"].send(pickle.dumps(message))
 
                 except Exception as e:
