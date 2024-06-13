@@ -1,6 +1,5 @@
 import threading
 import time
-
 import pygame.display
 from level import *
 from the_client import *
@@ -54,7 +53,7 @@ class Game:
         self.prev_loc = 0
 
         self.__previous_status = 0
-        self.player = CreePy()
+    #    self.player = CreePy()
 
         self.__message = ""
         self.items = {"A": 0, "B": 0, "S": 0, "HPF": 0, "EF": 0, "RHPF": 0, "BEF": 0}
@@ -152,13 +151,13 @@ class Game:
 
         while 1:
             try:
-                if time.time() - self.__timed >= 100:
-                    self.player = CreePy()
-                    self.player.next_phase()
-                    self.__timed = time.time()
+             #   if time.time() - self.__timed >= 100:
+               #     self.player = CreePy()
+               #     self.player.next_phase()
+              #      self.__timed = time.time()
 
-                if time.time() - self.__timed1 >= 2:
-                    self.network.good_music()
+          #      if time.time() - self.__timed1 >= 2:
+            #        self.network.good_music()
             #    self.securety.update()
 
                 for event in pygame.event.get():

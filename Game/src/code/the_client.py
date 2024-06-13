@@ -36,7 +36,7 @@ class Client:
         self.__timer = 0
 
         self.__start_time = 0
-        self.player = CreePy()
+       # self.player = CreePy()
 
         self.__logged = ""
         self.__login_thingy = pygame.Rect(0, 0, 600, 1100)
@@ -53,14 +53,14 @@ class Client:
         self.__login_thingy.w = self.__m_width
         self.__current_server_ip = ""
 
-        self.v = self.player.get_volume()
+       # self.v = self.player.get_volume()
 
     def run(self):
         """
 
         """
 
-        self.player.run()
+      #  self.player.run()
 
         server_ip, server_port = self.format_socket()
         screen = pygame.display.set_mode((1920, 1080))
@@ -77,7 +77,7 @@ class Client:
 
         while 1:
             try:
-                self.good_music()
+             #   self.good_music()
                 img = pygame.image.load(IMAGE)
                 screen.blit(img, (0, 0))
 
@@ -204,7 +204,7 @@ class Client:
             pygame.display.update()
 
             try:
-                self.good_music()
+               # self.good_music()
                 print("Trying to connect...")
                 self.__the_client_socket = TLSSocketWrapper(server_ip).create_sock()
 
@@ -313,7 +313,7 @@ class Client:
         """
 
         while 1:
-            self.good_music()
+         #   self.good_music()
             server_discover = ServerDiscoveryClient()
             servers_ip = server_discover.discover_server()
 
@@ -399,7 +399,7 @@ class Client:
         while 1:
             #  self.good_music()
             try:
-                self.good_music()
+             #   self.good_music()
                 img = pygame.image.load(IMAGE)
                 screen.blit(img, (0, 0))
 
@@ -468,7 +468,7 @@ class Client:
         entering_username = True
 
         while 1:
-            self.good_music()
+         #   self.good_music()
             img = pygame.image.load(IMAGE)
             screen.blit(img, (0, 0))
 
@@ -555,7 +555,7 @@ class Client:
 
         while 1:
             try:
-                self.good_music()
+           #     self.good_music()
                 self.__the_client_socket.send(details)
                 success = self.receive_data(1024)
 
